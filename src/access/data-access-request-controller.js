@@ -80,7 +80,7 @@ angular.module('dataAccessRequest')
       'DataAccessRequestResource',
       'DataAccessRequestService',
       'DataAccessRequestStatusResource',
-      'DataAccessFormResource',
+      'DataAccessFormConfigResource',
       'DataAccessFormService',
       'DataAccessRequestCommentsResource',
       'DataAccessRequestCommentResource',
@@ -96,7 +96,7 @@ angular.module('dataAccessRequest')
               DataAccessRequestResource,
               DataAccessRequestService,
               DataAccessRequestStatusResource,
-              DataAccessFormResource,
+              DataAccessFormConfigResource,
               DataAccessFormService,
               DataAccessRequestCommentsResource,
               DataAccessRequestCommentResource,
@@ -192,7 +192,7 @@ angular.module('dataAccessRequest')
           }
 
           // Retrieve form data
-          DataAccessFormResource.get(
+          DataAccessFormConfigResource.get(
             function onSuccess(dataAccessForm) {
               $scope.form.definition = DataAccessFormService.parseJsonSafely(dataAccessForm.definition, []);
               $scope.form.schema = DataAccessFormService.parseJsonSafely(dataAccessForm.schema, {});
@@ -334,7 +334,7 @@ angular.module('dataAccessRequest')
   .controller('DataAccessRequestEditController', ['$log', '$scope', '$routeParams', '$location', '$modal',
     'DataAccessRequestsResource',
     'DataAccessRequestResource',
-    'DataAccessFormResource',
+    'DataAccessFormConfigResource',
     'DataAccessFormService',
     'AlertService',
     'ServerErrorUtils',
@@ -344,7 +344,7 @@ angular.module('dataAccessRequest')
     function ($log, $scope, $routeParams, $location, $modal,
               DataAccessRequestsResource,
               DataAccessRequestResource,
-              DataAccessFormResource,
+              DataAccessFormConfigResource,
               DataAccessFormService,
               AlertService,
               ServerErrorUtils,
@@ -390,7 +390,7 @@ angular.module('dataAccessRequest')
       };
 
       // Retrieve form data
-      DataAccessFormResource.get(
+      DataAccessFormConfigResource.get(
         function onSuccess(dataAccessForm) {
           $scope.form.definition = DataAccessFormService.parseJsonSafely(dataAccessForm.definition, []);
           $scope.form.schema = DataAccessFormService.parseJsonSafely(dataAccessForm.schema, {});

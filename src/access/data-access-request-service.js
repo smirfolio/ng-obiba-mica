@@ -11,6 +11,14 @@
 'use strict';
 
 angular.module('dataAccessRequest')
+
+  .factory('DataAccessFormConfigResource', ['$resource',
+    function ($resource) {
+      return $resource('data-access-form/ws', {}, {
+        'get': {method: 'GET', errorHandler: true}
+      });
+    }])
+
   .factory('DataAccessRequestsResource', ['$resource',
     function ($resource) {
       return $resource('ws/data-access-requests', {}, {
