@@ -14,7 +14,7 @@ angular.module('dataAccessRequest')
 
   .factory('DataAccessFormConfigResource', ['$resource',
     function ($resource) {
-      return $resource('data-access-form/ws', {}, {
+      return $resource('ws/config/data-access-form', {}, {
         'get': {method: 'GET', errorHandler: true}
       });
     }])
