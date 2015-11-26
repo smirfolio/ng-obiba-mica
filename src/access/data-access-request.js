@@ -14,6 +14,7 @@ angular.module('dataAccessRequest', [
   'pascalprecht.translate',
   'obiba.alert',
   'obiba.comments',
+  'obiba.utils',
   'angularMoment',
   'templates-ngObibaMica'
 ]);
