@@ -10,7 +10,7 @@
 
 'use strict';
 
-angular.module('dataAccessRequest')
+angular.module('obiba.mica.access')
   .controller('DataAccessRequestListController', ['$rootScope', '$scope', 'DataAccessRequestsResource', 'DataAccessRequestResource', 'DataAccessRequestService', 'NOTIFICATION_EVENTS', 'SessionProxy', 'USER_ROLES',
 
     function ($rootScope, $scope, DataAccessRequestsResource, DataAccessRequestResource, DataAccessRequestService, NOTIFICATION_EVENTS, SessionProxy, USER_ROLES) {

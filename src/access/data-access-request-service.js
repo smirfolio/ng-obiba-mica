@@ -10,7 +10,7 @@
 
 'use strict';
 
-angular.module('dataAccessRequest')
+angular.module('obiba.mica.access')
 
   .factory('DataAccessFormConfigResource', ['$resource',
     function ($resource) {
