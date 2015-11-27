@@ -11,9 +11,9 @@
 'use strict';
 
 angular.module('dataAccessRequest')
-  .controller('DataAccessRequestListController', ['$rootScope', '$scope', 'DataAccessRequestsResource', 'DataAccessRequestResource', 'DataAccessRequestService', 'NOTIFICATION_EVENTS', 'Session', 'USER_ROLES',
+  .controller('DataAccessRequestListController', ['$rootScope', '$scope', 'DataAccessRequestsResource', 'DataAccessRequestResource', 'DataAccessRequestService', 'NOTIFICATION_EVENTS', 'SessionProxy', 'USER_ROLES',
 
-    function ($rootScope, $scope, DataAccessRequestsResource, DataAccessRequestResource, DataAccessRequestService, NOTIFICATION_EVENTS, Session, USER_ROLES) {
+    function ($rootScope, $scope, DataAccessRequestsResource, DataAccessRequestResource, DataAccessRequestService, NOTIFICATION_EVENTS, SessionProxy, USER_ROLES) {
 
       var onSuccess = function(reqs) {
         for (var i = 0; i < reqs.length; i++) {
@@ -43,7 +43,7 @@ angular.module('dataAccessRequest')
       $scope.loading = true;
       DataAccessRequestsResource.query({}, onSuccess, onError);
       $scope.actions = DataAccessRequestService.actions;
-      $scope.showApplicant = Session.roles.filter(function(role) {
+      $scope.showApplicant = SessionProxy.roles().filter(function(role) {
         return [USER_ROLES.dao, USER_ROLES.admin].indexOf(role) > -1;
       }).length > 0;
 
@@ -338,7 +338,7 @@ angular.module('dataAccessRequest')
     'JsonUtils',
     'AlertService',
     'ServerErrorUtils',
-    'Session',
+    'SessionProxy',
     'DataAccessRequestService',
 
     function ($log, $scope, $routeParams, $location, $modal,
@@ -348,7 +348,7 @@ angular.module('dataAccessRequest')
               JsonUtils,
               AlertService,
               ServerErrorUtils,
-              Session,
+              SessionProxy,
               DataAccessRequestService) {
 
       var onSuccess = function(response, getResponseHeaders) {
@@ -434,7 +434,7 @@ angular.module('dataAccessRequest')
                 request.attachments = request.attachments || [];
                 return request;
               }) : {
-              applicant: Session.login,
+              applicant: SessionProxy.login(),
               status: DataAccessRequestService.status.OPENED,
               attachments: []
             };
