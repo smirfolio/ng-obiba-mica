@@ -9,11 +9,12 @@ module.exports = function (grunt) {
       src: {
         js: [
           // order is important!
+          'src/utils/utils.js',
+          'src/ng-obiba-mica.js',
           'src/access/data-access-request.js',
           'src/access/data-access-request-controller.js',
           'src/access/data-access-request-router.js',
-          'src/access/data-access-request-service.js',
-          'src/ng-obiba-mica.js'
+          'src/access/data-access-request-service.js'
         ]
       }
     },

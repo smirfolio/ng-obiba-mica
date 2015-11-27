@@ -5,7 +5,46 @@
  * License: GNU Public License version 3
  * Date: 2015-11-27
  */
-/*
+'use strict';
+
+angular.module('obiba.mica.utils', [])
+
+  .factory('UserProfileService',
+    function () {
+
+      var getAttributeValue = function(attributes, key) {
+        var result = attributes.filter(function (attribute) {
+          return attribute.key === key;
+        });
+
+        return result && result.length > 0 ? result[0].value : null;
+      };
+
+      return {
+
+        'getAttribute': function (attributes, key) {
+          return getAttributeValue(attributes, key);
+        },
+
+        'getFullName': function (profile) {
+          if (profile) {
+            if (profile.attributes) {
+              return getAttributeValue(profile.attributes, 'firstName') + ' ' + getAttributeValue(profile.attributes, 'lastName');
+            }
+            return profile.username;
+          }
+          return null;
+        }
+      };
+    });
+
+;'use strict';
+
+angular.module('ngObibaMica', [
+  'obiba.mica.utils',
+  'obiba.mica.access'
+]);
+;/*
  * Copyright (c) 2014 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
@@ -744,12 +783,6 @@ angular.module('obiba.mica.access')
 
       return this;
     }]);
-;'use strict';
-
-angular.module('ngObibaMica', [
-  'obiba.mica.utils',
-  'obiba.mica.access'
-]);
 ;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html']);
 
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
