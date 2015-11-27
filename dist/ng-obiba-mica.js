@@ -70,7 +70,7 @@ angular.module('dataAccessRequest')
       $scope.loading = true;
       DataAccessRequestsResource.query({}, onSuccess, onError);
       $scope.actions = DataAccessRequestService.actions;
-      $scope.showApplicant = SessionProxy.roles.filter(function(role) {
+      $scope.showApplicant = SessionProxy.roles().filter(function(role) {
         return [USER_ROLES.dao, USER_ROLES.admin].indexOf(role) > -1;
       }).length > 0;
 
@@ -461,7 +461,7 @@ angular.module('dataAccessRequest')
                 request.attachments = request.attachments || [];
                 return request;
               }) : {
-              applicant: SessionProxy.login,
+              applicant: SessionProxy.login(),
               status: DataAccessRequestService.status.OPENED,
               attachments: []
             };
