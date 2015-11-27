@@ -17,7 +17,7 @@
 
 'use strict';
 
-angular.module('dataAccessRequest', [
+angular.module('obiba.mica.access', [
   'pascalprecht.translate',
   'obiba.alert',
   'obiba.comments',
@@ -747,7 +747,8 @@ angular.module('dataAccessRequest')
 ;'use strict';
 
 angular.module('ngObibaMica', [
-  'dataAccessRequest'
+  'obiba.mica.utils',
+  'obiba.mica.access'
 ]);
 ;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html']);
 

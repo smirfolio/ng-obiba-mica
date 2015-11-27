@@ -10,7 +10,7 @@
 
 'use strict';
 
-angular.module('dataAccessRequest', [
+angular.module('obiba.mica.access', [
   'pascalprecht.translate',
   'obiba.alert',
   'obiba.comments',

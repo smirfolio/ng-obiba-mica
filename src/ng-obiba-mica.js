@@ -1,5 +1,6 @@
 'use strict';
 
 angular.module('ngObibaMica', [
-  'dataAccessRequest'
+  'obiba.mica.utils',
+  'obiba.mica.access'
 ]);
