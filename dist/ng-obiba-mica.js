@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2015-11-26
+ * Date: 2015-11-27
  */
 /*
  * Copyright (c) 2014 OBiBa. All rights reserved.
@@ -1006,7 +1006,6 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "      <li class=\"active\">{{dataAccessRequest.id}}</li>\n" +
     "    </ol>\n" +
     "  </h2>\n" +
-    "  <p>Testing</p>\n" +
     "\n" +
     "  <obiba-alert id=\"DataAccessRequestViewController\"></obiba-alert>\n" +
     "\n" +
