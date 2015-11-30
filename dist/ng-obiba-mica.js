@@ -44,7 +44,7 @@ angular.module('ngObibaMica', [
   'obiba.mica.utils',
   'obiba.mica.access'
 ]).config(['$provide', function($provide) {
-  $provide.provider('ngObibaMicaUrlProvider', ['$log', function($log) {
+  $provide.provider('ngObibaMicaUrlProvider', function() {
     var registry = {
       'DataAccessFormConfigResource': 'ws/config/data-access-form',
       'DataAccessRequestsResource': 'ws/data-access-requests',
@@ -61,17 +61,15 @@ angular.module('ngObibaMica', [
           return registry[resource];
         }
 
-        $log.error('Invalid resource ', resource);
         return null;
       };
-
     }
 
     this.$get = function() {
       return new UrlProvider();
     };
 
-  }]);
+  });
 
 }]);
 
