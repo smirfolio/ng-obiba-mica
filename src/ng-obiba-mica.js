@@ -6,7 +6,7 @@ angular.module('ngObibaMica', [
 ])
 
   .config(['$provide', function($provide) {
-    $provide.provider('ngObibaMicaUrlProvider', function() {
+    $provide.provider('ngObibaMicaUrl', function() {
       var registry = {
         'DataAccessFormConfigResource': 'ws/config/data-access-form',
         'DataAccessRequestsResource': 'ws/data-access-requests',
