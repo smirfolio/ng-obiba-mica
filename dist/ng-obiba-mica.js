@@ -653,7 +653,7 @@ angular.module('obiba.mica.access')
       });
     }])
 
-  .factory('DataAccessRequestStatusResource', ['$resource', 'DataAccessRequestResourceUrlService',
+  .factory('DataAccessRequestStatusResource', ['$resource',
     function ($resource) {
       return $resource('ws/data-access-request/:id/_status?to=:status', {}, {
         'update': {method: 'PUT', params: {id: '@id', status: '@status'}, errorHandler: true}
