@@ -601,7 +601,7 @@ angular.module('obiba.mica.access')
 
   .factory('DataAccessFormConfigResource', ['$resource', 'ngObibaMicaUrlProvider',
     function ($resource, ngObibaMicaUrlProvider) {
-      return $resource(ngObibaMicaUrlProvider.getUrl('ngObibaMicaUrlProvider'), {}, {
+      return $resource(ngObibaMicaUrlProvider.getUrl('DataAccessFormConfigResource'), {}, {
         'get': {method: 'GET', errorHandler: true}
       });
     }])
