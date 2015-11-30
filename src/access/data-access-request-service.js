@@ -12,9 +12,9 @@
 
 angular.module('obiba.mica.access')
 
-  .factory('DataAccessFormConfigResource', ['$resource',
-    function ($resource) {
-      return $resource('ws/config/data-access-form', {}, {
+  .factory('DataAccessFormConfigResource', ['$resource', 'ngObibaMicaUrlProvider',
+    function ($resource, DataAccessRequestResourceUrlService) {
+      return $resource(DataAccessRequestResourceUrlService.getUrl('ngObibaMicaUrlProvider'), {}, {
         'get': {method: 'GET', errorHandler: true}
       });
     }])
@@ -66,7 +66,7 @@ angular.module('obiba.mica.access')
       });
     }])
 
-  .factory('DataAccessRequestStatusResource', ['$resource',
+  .factory('DataAccessRequestStatusResource', ['$resource', 'DataAccessRequestResourceUrlService',
     function ($resource) {
       return $resource('ws/data-access-request/:id/_status?to=:status', {}, {
         'update': {method: 'PUT', params: {id: '@id', status: '@status'}, errorHandler: true}

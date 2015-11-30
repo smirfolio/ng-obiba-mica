@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2015-11-27
+ * Date: 2015-11-30
  */
 'use strict';
 
@@ -43,7 +43,38 @@ angular.module('obiba.mica.utils', [])
 angular.module('ngObibaMica', [
   'obiba.mica.utils',
   'obiba.mica.access'
-]);
+]).config(['$provide', function($provide) {
+  $provide.provider('ngObibaMicaUrlProvider', ['$log', function($log) {
+    var registry = {
+      'DataAccessFormConfigResource': 'ws/config/data-access-form',
+      'DataAccessRequestsResource': 'ws/data-access-requests',
+      'DataAccessRequestResource': 'ws/data-access-request/:id',
+      'DataAccessRequestCommentsResource': 'ws/data-access-request/:id/comments',
+      'DataAccessRequestCommentResource': 'ws/data-access-request/:id/comment/:commentId',
+      'DataAccessRequestStatusResource': 'ws/data-access-request/:id/_status?to=:status',
+    };
+
+    function UrlProvider() {
+
+      this.getUrl =function(resource) {
+        if (resource in registry) {
+          return registry[resource];
+        }
+
+        $log.error('Invalid resource ', resource);
+        return null;
+      };
+
+    }
+
+    this.$get = function() {
+      return new UrlProvider();
+    };
+
+  }]);
+
+}]);
+
 ;/*
  * Copyright (c) 2014 OBiBa. All rights reserved.
  *
@@ -570,9 +601,9 @@ angular.module('obiba.mica.access')
 
 angular.module('obiba.mica.access')
 
-  .factory('DataAccessFormConfigResource', ['$resource',
-    function ($resource) {
-      return $resource('ws/config/data-access-form', {}, {
+  .factory('DataAccessFormConfigResource', ['$resource', 'ngObibaMicaUrlProvider',
+    function ($resource, DataAccessRequestResourceUrlService) {
+      return $resource(DataAccessRequestResourceUrlService.getUrl('ngObibaMicaUrlProvider'), {}, {
         'get': {method: 'GET', errorHandler: true}
       });
     }])
@@ -624,7 +655,7 @@ angular.module('obiba.mica.access')
       });
     }])
 
-  .factory('DataAccessRequestStatusResource', ['$resource',
+  .factory('DataAccessRequestStatusResource', ['$resource', 'DataAccessRequestResourceUrlService',
     function ($resource) {
       return $resource('ws/data-access-request/:id/_status?to=:status', {}, {
         'update': {method: 'PUT', params: {id: '@id', status: '@status'}, errorHandler: true}
