@@ -601,33 +601,33 @@ angular.module('obiba.mica.access')
 
 angular.module('obiba.mica.access')
 
-  .factory('DataAccessFormConfigResource', ['$resource', 'ngObibaMicaUrlProvider',
-    function ($resource, ngObibaMicaUrlProvider) {
-      return $resource(ngObibaMicaUrlProvider.getUrl('DataAccessFormConfigResource'), {}, {
+  .factory('DataAccessFormConfigResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+      return $resource(ngObibaMicaUrl.getUrl('DataAccessFormConfigResource'), {}, {
         'get': {method: 'GET', errorHandler: true}
       });
     }])
 
-  .factory('DataAccessRequestsResource', ['$resource', 'ngObibaMicaUrlProvider',
-    function ($resource, ngObibaMicaUrlProvider) {
-      return $resource(ngObibaMicaUrlProvider.getUrl('DataAccessRequestsResource'), {}, {
+  .factory('DataAccessRequestsResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+      return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestsResource'), {}, {
         'save': {method: 'POST', errorHandler: true},
         'get': {method: 'GET'}
       });
     }])
 
-  .factory('DataAccessRequestResource', ['$resource', 'ngObibaMicaUrlProvider',
-    function ($resource, ngObibaMicaUrlProvider) {
-      return $resource(ngObibaMicaUrlProvider.getUrl('DataAccessRequestResource'), {}, {
+  .factory('DataAccessRequestResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+      return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestResource'), {}, {
         'save': {method: 'PUT', params: {id: '@id'}, errorHandler: true},
         'get': {method: 'GET'},
         'delete': {method: 'DELETE'}
       });
     }])
 
-  .factory('DataAccessRequestCommentsResource', ['$resource', 'ngObibaMicaUrlProvider',
-    function ($resource, ngObibaMicaUrlProvider) {
-      return $resource(ngObibaMicaUrlProvider.getUrl('DataAccessRequestCommentsResource'), {}, {
+  .factory('DataAccessRequestCommentsResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+      return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestCommentsResource'), {}, {
         'save': {
           method: 'POST',
           params: {id: '@id'},
@@ -638,9 +638,9 @@ angular.module('obiba.mica.access')
       });
     }])
 
-  .factory('DataAccessRequestCommentResource', ['$resource', 'ngObibaMicaUrlProvider',
-    function ($resource, ngObibaMicaUrlProvider) {
-      return $resource(ngObibaMicaUrlProvider.getUrl('DataAccessRequestCommentResource'), {}, {
+  .factory('DataAccessRequestCommentResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+      return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestCommentResource'), {}, {
         'delete': {
           method: 'DELETE',
           params: {id: '@id', commentId: '@commentId'},
@@ -655,9 +655,9 @@ angular.module('obiba.mica.access')
       });
     }])
 
-  .factory('DataAccessRequestStatusResource', ['$resource', 'ngObibaMicaUrlProvider',
-    function ($resource, ngObibaMicaUrlProvider) {
-      return $resource(ngObibaMicaUrlProvider.getUrl('DataAccessRequestStatusResource'), {}, {
+  .factory('DataAccessRequestStatusResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+      return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestStatusResource'), {}, {
         'update': {method: 'PUT', params: {id: '@id', status: '@status'}, errorHandler: true}
       });
     }])
