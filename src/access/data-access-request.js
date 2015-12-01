@@ -16,6 +16,5 @@ angular.module('obiba.mica.access', [
   'obiba.comments',
   'obiba.utils',
   'angularMoment',
-  'templates-ngObibaMica',
-  'schemaForm'
+  'templates-ngObibaMica'
 ]);

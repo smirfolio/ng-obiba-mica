@@ -41,6 +41,7 @@ angular.module('obiba.mica.utils', [])
 ;'use strict';
 
 angular.module('ngObibaMica', [
+  'schemaForm',
   'obiba.mica.utils',
   'obiba.mica.access'
 ])
@@ -99,8 +100,7 @@ angular.module('obiba.mica.access', [
   'obiba.comments',
   'obiba.utils',
   'angularMoment',
-  'templates-ngObibaMica',
-  'schemaForm'
+  'templates-ngObibaMica'
 ]);
 ;/*
  * Copyright (c) 2014 OBiBa. All rights reserved.

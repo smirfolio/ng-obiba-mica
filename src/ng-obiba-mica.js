@@ -1,6 +1,7 @@
 'use strict';
 
 angular.module('ngObibaMica', [
+  'schemaForm',
   'obiba.mica.utils',
   'obiba.mica.access'
 ])
