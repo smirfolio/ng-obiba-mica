@@ -14,6 +14,7 @@ angular.module('obiba.mica.access', [
   'pascalprecht.translate',
   'obiba.alert',
   'obiba.comments',
+  'obiba.mica.attachment',
   'obiba.utils',
   'angularMoment',
   'templates-ngObibaMica'

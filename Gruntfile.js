@@ -14,6 +14,8 @@ module.exports = function (grunt) {
           'src/file/file.js',
           'src/file/file-filter.js',
           'src/file/file-service.js',
+          'src/attachment/attachment.js',
+          'src/attachment/attachment-directives.js',
           'src/access/data-access-request.js',
           'src/access/data-access-request-controller.js',
           'src/access/data-access-request-router.js',

@@ -5,6 +5,7 @@ angular.module('ngObibaMica', [
   'schemaForm',
   'obiba.mica.utils',
   'obiba.mica.file',
+  'obiba.mica.attachment',
   'obiba.mica.access'
 ])
   .constant('USER_ROLES', {

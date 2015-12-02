@@ -45,6 +45,7 @@ angular.module('ngObibaMica', [
   'schemaForm',
   'obiba.mica.utils',
   'obiba.mica.file',
+  'obiba.mica.attachment',
   'obiba.mica.access'
 ])
   .constant('USER_ROLES', {
@@ -116,6 +117,131 @@ angular.module('obiba.mica.file')
       });
     }])
 ;
+;'use strict';
+
+angular.module('obiba.mica.attachment', [
+  'obiba.mica.file',
+  'ui',
+  'ui.bootstrap',
+  'ngFileUpload',
+  'templates-ngObibaMica'
+]);
+;'use strict';
+
+angular.module('obiba.mica.attachment')
+  .directive('attachmentList', [function() {
+    return {
+      restrict: 'E',
+      scope: {
+        hrefBuilder: '&',
+        files: '='
+      },
+      templateUrl: 'attachment/attachment-list-template.html',
+      link: function(scope) {
+        scope.attachments = [];
+        scope.hrefBuilder = scope.hrefBuilder || function(a) { return a.id; };
+
+        scope.$watch('files', function(val) {
+          if (val) {
+            scope.attachments = val.map(function (a) {
+              var temp = angular.copy(a);
+              temp.href = scope.hrefBuilder({id: a.id});
+              return temp;
+            });
+          }
+        }, true);
+      }
+    };
+  }])
+  .directive('attachmentInput', [function () {
+    return {
+      restrict: 'E',
+      require: '^form',
+      scope: {
+        multiple: '=',
+        accept: '@',
+        files: '='
+      },
+      templateUrl: 'attachment/attachment-input-template.html',
+      controller: 'AttachmentCtrl'
+    };
+  }])
+  .controller('AttachmentCtrl', ['$scope', '$timeout', '$log', 'Upload', 'TempFileResource',
+    function ($scope, $timeout, $log, Upload, TempFileResource) {
+      $scope.onFileSelect = function (file) {
+        $scope.uploadedFiles = file;
+        $scope.uploadedFiles.forEach(function (f) {
+          uploadFile(f);
+        });
+      };
+
+      var uploadFile = function (file) {
+        $log.debug('file', file);
+
+        var attachment = {
+          showProgressBar: true,
+          lang: 'en',
+          progress: 0,
+          fileName: file.name,
+          size: file.size
+        };
+
+        if ($scope.multiple) {
+          $scope.files.push(attachment);
+        } else {
+          $scope.files.splice(0, $scope.files.length);
+          $scope.files.push(attachment);
+        }
+
+        $scope.upload = Upload
+          .upload({
+            url: '/ws/files/temp',
+            method: 'POST',
+            file: file
+          })
+          .progress(function (evt) {
+            attachment.progress = parseInt(100.0 * evt.loaded / evt.total);
+          })
+          .success(function (data, status, getResponseHeaders) {
+            var parts = getResponseHeaders().location.split('/');
+            var fileId = parts[parts.length - 1];
+            TempFileResource.get(
+              {id: fileId},
+              function (tempFile) {
+                $log.debug('tempFile', tempFile);
+                attachment.id = tempFile.id;
+                attachment.md5 = tempFile.md5;
+                attachment.justUploaded = true;
+                // wait for 1 second before hiding progress bar
+                $timeout(function () { attachment.showProgressBar = false; }, 1000);
+              }
+            );
+          });
+      };
+
+      $scope.deleteTempFile = function (tempFileId) {
+        TempFileResource.delete(
+          {id: tempFileId},
+          function () {
+            for (var i = $scope.files.length; i--;) {
+              var attachment = $scope.files[i];
+              if (attachment.justUploaded && attachment.id === tempFileId) {
+                $scope.files.splice(i, 1);
+              }
+            }
+          }
+        );
+      };
+
+      $scope.deleteFile = function (fileId) {
+        for (var i = $scope.files.length; i--;) {
+          if ($scope.files[i].id === fileId) {
+            $scope.files.splice(i, 1);
+          }
+        }
+      };
+    }
+  ]);
 ;/*
  * Copyright (c) 2014 OBiBa. All rights reserved.
  *
@@ -132,6 +258,7 @@ angular.module('obiba.mica.access', [
   'pascalprecht.translate',
   'obiba.alert',
   'obiba.comments',
+  'obiba.mica.attachment',
   'obiba.utils',
   'angularMoment',
   'templates-ngObibaMica'
@@ -855,7 +982,7 @@ angular.module('obiba.mica.access')
 
       return this;
     }]);
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html']);
 
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
@@ -1184,5 +1311,54 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "  </div>\n" +
     "\n" +
     "</div>\n" +
+    "");
+}]);
+
+angular.module("attachment/attachment-input-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("attachment/attachment-input-template.html",
+    "<button type=\"button\" class=\"btn btn-primary btn-xs\" aria-hidden=\"true\" ngf-select ngf-change=\"onFileSelect($files)\" translate>file.upload.button</button>\n" +
+    "\n" +
+    "<table ng-show=\"files.length\" class=\"table table-striped\">\n" +
+    "  <tbody>\n" +
+    "  <tr ng-repeat=\"file in files\">\n" +
+    "    <td>\n" +
+    "      {{file.fileName}}\n" +
+    "      <progressbar ng-show=\"file.showProgressBar\" class=\"progress-striped\" value=\"file.progress\">\n" +
+    "        {{file.progress}}%\n" +
+    "      </progressbar>\n" +
+    "    </td>\n" +
+    "    <td>\n" +
+    "      {{file.size | bytes}}\n" +
+    "    </td>\n" +
+    "    <td>\n" +
+    "      <a ng-show=\"file.id\" ng-click=\"deleteFile(file.id)\" class=\"action\">\n" +
+    "        <i class=\"fa fa-trash-o\"></i>\n" +
+    "      </a>\n" +
+    "      <a ng-show=\"file.tempId\" ng-click=\"deleteTempFile(file.tempId)\" class=\"action\">\n" +
+    "        <i class=\"fa fa-trash-o\"></i>\n" +
+    "      </a>\n" +
+    "    </td>\n" +
+    "  </tr>\n" +
+    "  </tbody>\n" +
+    "</table>\n" +
+    "");
+}]);
+
+angular.module("attachment/attachment-list-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("attachment/attachment-list-template.html",
+    "<table class=\"table table-bordered table-striped\" ng-show=\"attachments.length\">\n" +
+    "  <tbody>\n" +
+    "  <tr ng-repeat=\"attachment in attachments\">\n" +
+    "    <th>\n" +
+    "      <a target=\"_self\" ng-href=\"{{attachment.href}}\"\n" +
+    "        download=\"{{attachment.fileName}}\">{{attachment.fileName}}\n" +
+    "      </a>\n" +
+    "    </th>\n" +
+    "    <td>\n" +
+    "      {{attachment.size | bytes}}\n" +
+    "    </td>\n" +
+    "  </tr>\n" +
+    "  </tbody>\n" +
+    "</table>\n" +
     "");
 }]);
