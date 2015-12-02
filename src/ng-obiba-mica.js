@@ -1,5 +1,17 @@
 'use strict';
 
+
+angular.module('ngObibaMica')
+  .constant('USER_ROLES', {
+    all: '*',
+    admin: 'mica-administrator',
+    reviewer: 'mica-reviewer',
+    editor: 'mica-editor',
+    user: 'mica-user',
+    dao: 'mica-data-access-officer'
+  });
+
+
 angular.module('ngObibaMica', [
   'schemaForm',
   'obiba.mica.utils',

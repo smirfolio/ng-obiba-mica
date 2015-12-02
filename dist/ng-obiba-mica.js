@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2015-11-30
+ * Date: 2015-12-02
  */
 'use strict';
 
@@ -39,6 +39,18 @@ angular.module('obiba.mica.utils', [])
     });
 
 ;'use strict';
+
+
+angular.module('ngObibaMica')
+  .constant('USER_ROLES', {
+    all: '*',
+    admin: 'mica-administrator',
+    reviewer: 'mica-reviewer',
+    editor: 'mica-editor',
+    user: 'mica-user',
+    dao: 'mica-data-access-officer'
+  });
+
 
 angular.module('ngObibaMica', [
   'schemaForm',
