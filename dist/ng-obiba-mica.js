@@ -44,6 +44,7 @@ angular.module('obiba.mica.utils', [])
 angular.module('ngObibaMica', [
   'schemaForm',
   'obiba.mica.utils',
+  'obiba.mica.file',
   'obiba.mica.access'
 ])
   .constant('USER_ROLES', {
@@ -92,6 +93,29 @@ angular.module('ngObibaMica', [
 
   }]);
 
+;'use strict';
+
+angular.module('obiba.mica.file', ['ngResource']);
+;'use strict';
+
+angular.module('obiba.mica.file')
+  .filter('bytes', function () {
+    return function (bytes) {
+      return bytes === null || typeof bytes === 'undefined' ? '' : filesize(bytes);
+    };
+  });
+
+;'use strict';
+
+angular.module('obiba.mica.file')
+  .factory('TempFileResource', ['$resource',
+    function ($resource) {
+      return $resource('ws/files/temp/:id', {}, {
+        'get': {method: 'GET'},
+        'delete': {method: 'DELETE'}
+      });
+    }])
+;
 ;/*
  * Copyright (c) 2014 OBiBa. All rights reserved.
  *
