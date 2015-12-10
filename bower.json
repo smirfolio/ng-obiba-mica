@@ -3,7 +3,7 @@
   "main": [
     "dist/ng-obiba-mica.js"
   ],
-  "version": "1.0.0",
+  "version": "1.0",
   "description": "OBiBa AngularJS Mica Components",
   "license": "GNU Public License version 3",
   "ignore": [
