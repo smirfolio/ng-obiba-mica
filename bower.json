@@ -1,7 +1,9 @@
 {
   "name": "ng-obiba-mica",
   "main": [
-    "dist/ng-obiba-mica.js"
+    "dist/ng-obiba-mica.js",
+    "dist/css/ng-obiba-mica.css",
+    "dist/css/ng-obiba-mica.css.map"
   ],
   "version": "1.1-snapshot",
   "description": "OBiBa AngularJS Mica Components",
