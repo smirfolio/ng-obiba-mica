@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2015-12-16
+ * Date: 2016-01-06
  */
 'use strict';
 
