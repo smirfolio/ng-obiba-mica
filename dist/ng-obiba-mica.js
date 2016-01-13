@@ -18,7 +18,7 @@ function NgObibaMicaUrlProvider() {
     'DataAccessRequestCommentResource': 'ws/data-access-request/:id/comment/:commentId',
     'DataAccessRequestStatusResource': 'ws/data-access-request/:id/_status?to=:status',
     'TempFileUploadResource': 'ws/files/temp',
-    'getStudiesStatistics': 'ws/studies/_search'
+    'PublishedStudiesSearchResource': 'ws/studies/_search'
 
   };
   function UrlProvider(registry) {
@@ -1237,7 +1237,7 @@ angular.module('obiba.mica.graphics')
 angular.module('obiba.mica.graphics')
   .factory('GraphicChartsDataResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
-      return $resource(ngObibaMicaUrl.getUrl('getStudiesStatistics'), {}, {
+      return $resource(ngObibaMicaUrl.getUrl('PublishedStudiesSearchResource'), {}, {
         'get': {method: 'GET', errorHandler: true}
       });
     }])
