@@ -13,7 +13,7 @@
 angular.module('obiba.mica.graphics')
   .factory('GraphicChartsDataResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
-      return $resource(ngObibaMicaUrl.getUrl('getStudiesStatistics'), {}, {
+      return $resource(ngObibaMicaUrl.getUrl('PublishedStudiesSearchResource'), {}, {
         'get': {method: 'GET', errorHandler: true}
       });
     }])
