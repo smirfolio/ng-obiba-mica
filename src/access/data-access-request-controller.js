@@ -353,7 +353,13 @@ angular.module('obiba.mica.access')
           DataAccessRequestStatusResource.update({
             id: $scope.dataAccessRequest.id,
             status: DataAccessRequestService.status.SUBMITTED
-          }, onUpdatStatusSuccess, onError);
+          }, function onSubmitted() {
+            $uibModal.open({
+              scope: $scope,
+              templateUrl:'access/views/data-access-request-submitted-modal.html'
+            });
+            onUpdatStatusSuccess();
+          }, onError);
         } else {
           AlertService.alert({
             id: 'DataAccessRequestViewController',
