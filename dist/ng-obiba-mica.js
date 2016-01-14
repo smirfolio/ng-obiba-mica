@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-01-13
+ * Date: 2016-01-14
  */
 'use strict';
 
@@ -18,7 +18,7 @@ function NgObibaMicaUrlProvider() {
     'DataAccessRequestCommentResource': 'ws/data-access-request/:id/comment/:commentId',
     'DataAccessRequestStatusResource': 'ws/data-access-request/:id/_status?to=:status',
     'TempFileUploadResource': 'ws/files/temp',
-    'PublishedStudiesSearchResource': 'ws/studies/_search'
+    'PublishedStudiesSearchResource': 'ws/:type/_search'
 
   };
   function UrlProvider(registry) {
@@ -337,6 +337,7 @@ angular.module('obiba.mica.access', [
 angular.module('obiba.mica.access')
   .controller('DataAccessRequestListController', ['$rootScope',
     '$scope',
+    '$uibModal',
     'DataAccessRequestsResource',
     'DataAccessRequestResource',
     'DataAccessRequestService',
@@ -348,6 +349,7 @@ angular.module('obiba.mica.access')
 
     function ($rootScope,
               $scope,
+              $uibModal,
               DataAccessRequestsResource,
               DataAccessRequestResource,
               DataAccessRequestService,
@@ -404,6 +406,41 @@ angular.module('obiba.mica.access')
         );
       };
 
+      $scope.userProfile = function (profile) {
+        $scope.applicant = profile;
+        $uibModal.open({
+          scope: $scope,
+          templateUrl: 'access/views/data-access-request-profile-user-modal.html'
+        });
+      };
+
+      var getAttributeValue = function(attributes, key) {
+        var result = attributes.filter(function (attribute) {
+          return attribute.key === key;
+        });
+
+        return result && result.length > 0 ? result[0].value : null;
+      };
+
+      $scope.getFullName = function (profile) {
+        if (profile) {
+          if (profile.attributes) {
+            return getAttributeValue(profile.attributes, 'firstName') + ' ' + getAttributeValue(profile.attributes, 'lastName');
+          }
+          return profile.username;
+        }
+        return null;
+      };
+
+      $scope.getProfileEmail = function (profile) {
+        if (profile) {
+          if (profile.attributes) {
+            return getAttributeValue(profile.attributes, 'email');
+          }
+        }
+        return null;
+      };
+
       $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, id) {
         if ($scope.requestToDelete === id) {
           DataAccessRequestResource.delete({id: $scope.requestToDelete},
@@ -421,6 +458,7 @@ angular.module('obiba.mica.access')
     ['$rootScope',
       '$scope',
       '$location',
+      '$uibModal',
       '$routeParams',
       '$filter',
       'DataAccessRequestResource',
@@ -440,6 +478,7 @@ angular.module('obiba.mica.access')
     function ($rootScope,
               $scope,
               $location,
+              $uibModal,
               $routeParams,
               $filter,
               DataAccessRequestResource,
@@ -661,6 +700,41 @@ angular.module('obiba.mica.access')
         confirmStatusChange(DataAccessRequestService.status.REJECTED, null, 'reject');
       };
 
+      $scope.userProfile = function (profile) {
+        $scope.applicant = profile;
+        $uibModal.open({
+          scope: $scope,
+          templateUrl: 'access/views/data-access-request-profile-user-modal.html'
+        });
+      };
+
+      var getAttributeValue = function(attributes, key) {
+        var result = attributes.filter(function (attribute) {
+          return attribute.key === key;
+        });
+
+        return result && result.length > 0 ? result[0].value : null;
+      };
+
+      $scope.getFullName = function (profile) {
+        if (profile) {
+          if (profile.attributes) {
+            return getAttributeValue(profile.attributes, 'firstName') + ' ' + getAttributeValue(profile.attributes, 'lastName');
+          }
+          return profile.username;
+        }
+        return null;
+      };
+
+      $scope.getProfileEmail = function (profile) {
+        if (profile) {
+          if (profile.attributes) {
+            return getAttributeValue(profile.attributes, 'email');
+          }
+        }
+        return null;
+      };
+
       $scope.$on(
         NOTIFICATION_EVENTS.confirmDialogAccepted,
         function(event, status) {
@@ -735,7 +809,7 @@ angular.module('obiba.mica.access')
 
         $uibModal.open({
           scope: $scope,
-          templateUrl: 'access/views/data-access-request-validation-modal.html',
+          templateUrl: 'access/views/data-access-request-validation-modal.html'
         });
       };
 
@@ -903,7 +977,7 @@ angular.module('obiba.mica.access')
         'save': {
           method: 'POST',
           params: {id: '@id'},
-          headers : {'Content-Type' : 'text/plain' },
+          headers: {'Content-Type': 'text/plain'},
           errorHandler: true
         },
         'get': {method: 'GET', params: {id: '@id'}, errorHandler: true}
@@ -921,7 +995,7 @@ angular.module('obiba.mica.access')
         'update': {
           method: 'PUT',
           params: {id: '@id', commentId: '@commentId'},
-          headers : {'Content-Type' : 'text/plain' },
+          headers: {'Content-Type': 'text/plain'},
           errorHandler: true
         }
       });
@@ -930,11 +1004,15 @@ angular.module('obiba.mica.access')
   .factory('DataAccessRequestStatusResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestStatusResource'), {}, {
-        'update': {method: 'PUT', params: {id: '@id', status: '@status'}, errorHandler: true}
+        'update': {
+          method: 'PUT',
+          params: {id: '@id', status: '@status'},
+          errorHandler: true
+        }
       });
     }])
 
-  .service('DataAccessRequestConfig', function() {
+  .service('DataAccessRequestConfig', function () {
     var options = {
       newRequestButtonCaption: null,
       documentsSectionTitle: null,
@@ -944,9 +1022,9 @@ angular.module('obiba.mica.access')
       userListPageTitle: null
     };
 
-    this.setOptions = function(newOptions) {
+    this.setOptions = function (newOptions) {
       if (typeof(newOptions) === 'object') {
-        Object.keys(newOptions).forEach(function(option) {
+        Object.keys(newOptions).forEach(function (option) {
           if (option in options) {
             options[option] = newOptions[option];
           }
@@ -954,14 +1032,14 @@ angular.module('obiba.mica.access')
       }
     };
 
-    this.getOptions = function() {
+    this.getOptions = function () {
       return angular.copy(options);
     };
 
   })
 
-  .service('DataAccessRequestService', ['$translate',
-    function ($translate) {
+  .service('DataAccessRequestService', ['$translate', 'SessionProxy',
+    function ($translate, SessionProxy) {
       var statusList = {
         OPENED: 'OPENED',
         SUBMITTED: 'SUBMITTED',
@@ -972,10 +1050,10 @@ angular.module('obiba.mica.access')
 
       this.status = statusList;
 
-      this.getStatusFilterData = function(userCallback) {
+      this.getStatusFilterData = function (userCallback) {
         if (userCallback) {
-          $translate(Object.keys(statusList)).then(function(translation) {
-            userCallback(Object.keys(translation).map(function(key){
+          $translate(Object.keys(statusList)).then(function (translation) {
+            userCallback(Object.keys(translation).map(function (key) {
               return translation[key];
             }));
           });
@@ -983,10 +1061,20 @@ angular.module('obiba.mica.access')
       };
 
       var canDoAction = function (request, action) {
-        return request.actions ? request.actions.indexOf(action) !== -1 : null;
+        return request.actions ? request.actions.indexOf(action) !== - 1 : null;
       };
 
       this.actions = {
+        canViewProfile: function (role) {
+          var found = false;
+          var currentUserRoles = SessionProxy.roles();
+          angular.forEach(currentUserRoles, function (value) {
+            if (value === role) {
+              found = true;
+            }
+          });
+          return found;
+        },
         canView: function (request) {
           return canDoAction(request, 'VIEW');
         },
@@ -1005,7 +1093,7 @@ angular.module('obiba.mica.access')
       };
 
       var canChangeStatus = function (request, to) {
-        return request.nextStatus ? request.nextStatus.indexOf(to) !== -1 : null;
+        return request.nextStatus ? request.nextStatus.indexOf(to) !== - 1 : null;
       };
 
       this.nextStatus = {
@@ -1031,8 +1119,8 @@ angular.module('obiba.mica.access')
 
       };
 
-      this.getStatusHistoryInfo = function(userCallback) {
-        if (!userCallback) {
+      this.getStatusHistoryInfo = function (userCallback) {
+        if (! userCallback) {
           return;
         }
 
@@ -1074,9 +1162,9 @@ angular.module('obiba.mica.access')
 
         $translate(Object.keys(keyIdMap))
           .then(
-            function(translation) {
+            function (translation) {
               Object.keys(translation).forEach(
-                function(key){
+                function (key) {
                   statusHistoryInfo[keyIdMap[key]].msg = translation[key];
                 });
 
@@ -1084,7 +1172,7 @@ angular.module('obiba.mica.access')
             });
       };
 
-      this.getStatusHistoryInfoId = function(status) {
+      this.getStatusHistoryInfoId = function (status) {
         var id = 'opened';
 
         if (status.from !== 'OPENED' || status.from !== status.to) {
@@ -1111,7 +1199,15 @@ angular.module('obiba.mica.access')
       };
 
       return this;
-    }]);
+    }])
+  .filter('filterProfileAttributes', function () {
+    return function (attributes) {
+      var exclude = ['email', 'firstName', 'lastName', 'createdDate', 'lastLogin', 'username'];
+      return attributes.filter(function (attribute) {
+        return exclude.indexOf(attribute.key) === - 1;
+      });
+    };
+  });
 ;/*
  * Copyright (c) 2014 OBiBa. All rights reserved.
  *
@@ -1129,14 +1225,18 @@ function GraphicChartsDataProvider() {
   function DataProvider(dataResponse) {
     var data = dataResponse;
     this.getData = function (callback) {
-      if(callback){
-      data.$promise.then(callback);
+      if (callback) {
+        data.$promise.then(callback);
       }
     };
   }
 
-  this.$get = function (GraphicChartsDataResource, GraphicChartsConfig) {
-    return new DataProvider(GraphicChartsDataResource.get({id: GraphicChartsConfig.getOptions().entityIds}));
+  this.$get = function (GraphicChartsDataResource, GraphicChartsConfig, GraphicChartsQuery) {
+    var queryDto = GraphicChartsQuery.queryDtoBuilder(GraphicChartsConfig.getOptions().entityIds);
+    return new DataProvider(GraphicChartsDataResource.get({
+      type: GraphicChartsConfig.getOptions().entityType,
+      id: GraphicChartsConfig.getOptions().entityIds
+    }, queryDto));
   };
 }
 
@@ -1238,13 +1338,14 @@ angular.module('obiba.mica.graphics')
   .factory('GraphicChartsDataResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('PublishedStudiesSearchResource'), {}, {
-        'get': {method: 'GET', errorHandler: true}
+        'get': {method: 'POST', errorHandler: true}
       });
     }])
   .service('GraphicChartsConfig', function () {
     var factory = {
       options: {
-        entityIds: 'NaN'
+        entityIds: 'NaN',
+        entityType: null
       }
     };
     factory.setOptions = function (newOptions) {
@@ -1293,8 +1394,18 @@ angular.module('obiba.mica.graphics')
         });
         return ArrayData;
       };
-    }]);
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html']);
+    }])
+  .service('GraphicChartsQuery', [function () {
+    this.queryDtoBuilder = function (entityIds) {
+      if (!(entityIds) || entityIds ==='NaN') {
+        return '{"studyQueryDto":{"from":0,"size":0,"sort":{"field":"acronym.en","order":0}},"locale":"en","withFacets":true}';
+      }
+      else{
+        return '{"studyQueryDto":{"from":0,"size":0,"sort":{"field":"acronym.en","order":0}},"networkQueryDto":{"from":0,"size":0,"sort":{"field":"acronym.en","order":0},"filteredQuery":{"obiba.mica.LogicalFilterQueryDto.filter":{"fields":[{"field":{"field":"id","obiba.mica.TermsFilterQueryDto.terms":{"values":["'+entityIds+'"]}},"op":1}]}}},"locale":"en","withFacets":true}';
+      }
+    };
+  }]);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html']);
 
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
@@ -1411,15 +1522,17 @@ angular.module("access/views/data-access-request-list.html", []).run(["$template
     "      <div class=\"col-xs-4\">\n" +
     "        <span class=\"input-group input-group-sm no-padding-top\">\n" +
     "          <span class=\"input-group-addon\" id=\"data-access-requests-search\"><i\n" +
-    "            class=\"glyphicon glyphicon-search\"></i></span>\n" +
+    "              class=\"glyphicon glyphicon-search\"></i></span>\n" +
     "          <input ng-model=\"searchText\" type=\"text\" class=\"form-control\"\n" +
-    "            aria-describedby=\"data-access-requests-search\">\n" +
+    "              aria-describedby=\"data-access-requests-search\">\n" +
     "        </span>\n" +
     "      </div>\n" +
     "      <div class=\"col-xs-2\">\n" +
     "        <div class=\"input-group\">\n" +
-    "          <ui-select id=\"status-select\" theme=\"bootstrap\" ng-model=\"searchStatus.filter\" reset-search-input=\"true\">\n" +
-    "            <ui-select-match allow-clear=\"true\" placeholder=\"{{'data-access-request.status-placeholder' | translate}}\">\n" +
+    "          <ui-select id=\"status-select\" theme=\"bootstrap\"\n" +
+    "              ng-model=\"searchStatus.filter\" reset-search-input=\"true\">\n" +
+    "            <ui-select-match allow-clear=\"true\"\n" +
+    "                placeholder=\"{{'data-access-request.status-placeholder' | translate}}\">\n" +
     "              <span ng-bind-html=\"$select.selected\"></span>\n" +
     "            </ui-select-match>\n" +
     "            <ui-select-choices repeat=\"data in REQUEST_STATUS\">\n" +
@@ -1427,12 +1540,11 @@ angular.module("access/views/data-access-request-list.html", []).run(["$template
     "            </ui-select-choices>\n" +
     "          </ui-select>\n" +
     "        </div>\n" +
-    "        </div>\n" +
+    "      </div>\n" +
     "      <div class=\"col-xs-6\">\n" +
     "        <dir-pagination-controls class=\"pull-right\"></dir-pagination-controls>\n" +
     "      </div>\n" +
     "    </div>\n" +
-    "\n" +
     "    <div class=\"table-responsive\">\n" +
     "      <table class=\"table table-bordered table-striped\">\n" +
     "        <thead>\n" +
@@ -1448,19 +1560,28 @@ angular.module("access/views/data-access-request-list.html", []).run(["$template
     "        </thead>\n" +
     "        <tbody>\n" +
     "        <tr\n" +
-    "          dir-paginate=\"request in requests | filter:{status: searchStatus.filter} | filter:searchText | itemsPerPage: 20\">\n" +
+    "            dir-paginate=\"request in requests | filter:{status: searchStatus.filter} | filter:searchText | itemsPerPage: 20\">\n" +
     "          <td>\n" +
-    "            <a ng-href=\"#/data-access-request/{{request.id}}\" ng-if=\"actions.canView(request)\" translate>{{request.id}}</a>\n" +
+    "            <a ng-href=\"#/data-access-request/{{request.id}}\"\n" +
+    "                ng-if=\"actions.canView(request)\" translate>{{request.id}}</a>\n" +
     "            <span ng-if=\"!actions.canView(request)\">{{request.id}}</span>\n" +
     "          </td>\n" +
     "          <td ng-if=\"showApplicant\">\n" +
-    "            {{userProfileService.getFullName(request.profile) || request.applicant}}\n" +
+    "            <span ng-if=\"actions.canViewProfile('mica-user')\">\n" +
+    "         {{getFullName(request.profile) || request.applicant}}\n" +
+    "            </span>\n" +
+    "            <a href ng-click=\"userProfile(request.profile)\"\n" +
+    "                ng-if=\"actions.canViewProfile('mica-data-access-officer')\">\n" +
+    "              {{getFullName(request.profile) ||\n" +
+    "              request.applicant}}\n" +
+    "            </a>\n" +
     "          </td>\n" +
     "          <td>\n" +
     "            {{request.title}}\n" +
     "          </td>\n" +
     "          <td>\n" +
-    "            {{(request.timestamps.lastUpdate || request.timestamps.created) | fromNow}}\n" +
+    "            {{(request.timestamps.lastUpdate || request.timestamps.created) |\n" +
+    "            fromNow}}\n" +
     "          </td>\n" +
     "          <td>\n" +
     "            <span ng-if=\"request.submissionDate\">{{request.submissionDate | fromNow}}</span>\n" +
@@ -1471,11 +1592,14 @@ angular.module("access/views/data-access-request-list.html", []).run(["$template
     "          <td>\n" +
     "            <ul class=\"list-inline\">\n" +
     "              <li ng-if=\"actions.canEdit(request)\">\n" +
-    "                <a ng-href=\"#/data-access-request/{{request.id}}/edit\"  title=\"{{'edit' | translate}}\"><i class=\"fa fa-pencil\"></i></a>\n" +
+    "                <a ng-href=\"#/data-access-request/{{request.id}}/edit\"\n" +
+    "                    title=\"{{'edit' | translate}}\"><i class=\"fa fa-pencil\"></i></a>\n" +
     "              </li>\n" +
     "              <li>\n" +
-    "                <a ng-if=\"actions.canDelete(request)\" ng-click=\"deleteRequest(request)\" title=\"{{'delete' | translate}}\"><i\n" +
-    "                  class=\"fa fa-trash-o\"></i></a>\n" +
+    "                <a ng-if=\"actions.canDelete(request)\"\n" +
+    "                    ng-click=\"deleteRequest(request)\"\n" +
+    "                    title=\"{{'delete' | translate}}\"><i\n" +
+    "                    class=\"fa fa-trash-o\"></i></a>\n" +
     "              </li>\n" +
     "            </ul>\n" +
     "          </td>\n" +
@@ -1486,6 +1610,56 @@ angular.module("access/views/data-access-request-list.html", []).run(["$template
     "  </div>\n" +
     "\n" +
     "\n" +
+    "</div>\n" +
+    "");
+}]);
+
+angular.module("access/views/data-access-request-profile-user-modal.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("access/views/data-access-request-profile-user-modal.html",
+    "<div class=\"modal-content\">\n" +
+    "  <div class=\"modal-header\">\n" +
+    "    <button type=\"button\" class=\"close\" aria-hidden=\"true\"\n" +
+    "      ng-click=\"$dismiss()\">&times;</button>\n" +
+    "    <h4 class=\"modal-title\">\n" +
+    "      {{'data-access-request.profile.title' | translate}}\n" +
+    "    </h4>\n" +
+    "  </div>\n" +
+    "  <div class=\"modal-body\">\n" +
+    "    <div>\n" +
+    "      <label class=\"control-label\">\n" +
+    "        {{'data-access-request.profile.name' | translate}}\n" +
+    "      </label> :\n" +
+    "      <span>\n" +
+    "        {{getFullName(applicant)}}\n" +
+    "      </span>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div>\n" +
+    "      <label class=\"control-label\">\n" +
+    "        {{'data-access-request.profile.email' | translate}}\n" +
+    "      </label> :\n" +
+    "      <span>\n" +
+    "        {{getProfileEmail(applicant)}}\n" +
+    "      </span>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div\n" +
+    "      ng-repeat=\"attribute in applicant.attributes | filterProfileAttributes\">\n" +
+    "      <label  class=\"control-label\">\n" +
+    "        {{attribute.key}}\n" +
+    "      </label> :\n" +
+    "      <span >{{attribute.value}}</span>\n" +
+    "    </div>\n" +
+    "    <a  class=\"btn btn-default\" href=\"mailto:{{getProfileEmail(applicant)}}\" target=\"_blank\">\n" +
+    "      {{'data-access-request.profile.send-email' | translate}}</a>\n" +
+    "  </div>\n" +
+    "  <div class=\"modal-footer\">\n" +
+    "    <button type=\"button\" class=\"btn btn-primary voffest4\"\n" +
+    "      ng-click=\"$dismiss()\">\n" +
+    "      <span ng-hide=\"confirm.close\" translate>close</span>\n" +
+    "      {{confirm.close}}\n" +
+    "    </button>\n" +
+    "  </div>\n" +
     "</div>\n" +
     "");
 }]);
@@ -1537,7 +1711,14 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "\n" +
     "  <div ng-if=\"validForm\">\n" +
     "\n" +
-    "    <p class=\"help-block pull-left\"><span translate>created-by</span> {{userProfileService.getFullName(dataAccessRequest.profile) || dataAccessRequest.applicant}},\n" +
+    "    <p class=\"help-block pull-left\"><span translate>created-by</span>\n" +
+    "       <span ng-if=\"actions.canViewProfile('mica-user')\">\n" +
+    "         {{getFullName(dataAccessRequest.profile) || dataAccessRequest.applicant}}\n" +
+    "      </span>\n" +
+    "      <a href ng-click=\"userProfile(dataAccessRequest.profile)\"\n" +
+    "          ng-if=\"actions.canViewProfile('mica-data-access-officer')\">\n" +
+    "        {{getFullName(dataAccessRequest.profile) || dataAccessRequest.applicant}}\n" +
+    "      </a>,\n" +
     "      <span>{{dataAccessRequest.timestamps.created | amCalendar}}</span>\n" +
     "      <span class=\"label label-success\">{{dataAccessRequest.status}}</span></p>\n" +
     "\n" +

@@ -15,14 +15,18 @@ function GraphicChartsDataProvider() {
   function DataProvider(dataResponse) {
     var data = dataResponse;
     this.getData = function (callback) {
-      if(callback){
-      data.$promise.then(callback);
+      if (callback) {
+        data.$promise.then(callback);
       }
     };
   }
 
-  this.$get = function (GraphicChartsDataResource, GraphicChartsConfig) {
-    return new DataProvider(GraphicChartsDataResource.get({id: GraphicChartsConfig.getOptions().entityIds}));
+  this.$get = function (GraphicChartsDataResource, GraphicChartsConfig, GraphicChartsQuery) {
+    var queryDto = GraphicChartsQuery.queryDtoBuilder(GraphicChartsConfig.getOptions().entityIds);
+    return new DataProvider(GraphicChartsDataResource.get({
+      type: GraphicChartsConfig.getOptions().entityType,
+      id: GraphicChartsConfig.getOptions().entityIds
+    }, queryDto));
   };
 }
 
