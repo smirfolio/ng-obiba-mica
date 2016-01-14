@@ -677,7 +677,13 @@ angular.module('obiba.mica.access')
           DataAccessRequestStatusResource.update({
             id: $scope.dataAccessRequest.id,
             status: DataAccessRequestService.status.SUBMITTED
-          }, onUpdatStatusSuccess, onError);
+          }, function onSubmitted() {
+            $uibModal.open({
+              scope: $scope,
+              templateUrl:'access/views/data-access-request-submitted-modal.html'
+            });
+            onUpdatStatusSuccess();
+          }, onError);
         } else {
           AlertService.alert({
             id: 'DataAccessRequestViewController',
@@ -1405,7 +1411,7 @@ angular.module('obiba.mica.graphics')
       }
     };
   }]);
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html']);
 
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
@@ -1545,6 +1551,7 @@ angular.module("access/views/data-access-request-list.html", []).run(["$template
     "        <dir-pagination-controls class=\"pull-right\"></dir-pagination-controls>\n" +
     "      </div>\n" +
     "    </div>\n" +
+    "\n" +
     "    <div class=\"table-responsive\">\n" +
     "      <table class=\"table table-bordered table-striped\">\n" +
     "        <thead>\n" +
@@ -1658,6 +1665,46 @@ angular.module("access/views/data-access-request-profile-user-modal.html", []).r
     "      ng-click=\"$dismiss()\">\n" +
     "      <span ng-hide=\"confirm.close\" translate>close</span>\n" +
     "      {{confirm.close}}\n" +
+    "    </button>\n" +
+    "  </div>\n" +
+    "</div>\n" +
+    "");
+}]);
+
+angular.module("access/views/data-access-request-submitted-modal.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("access/views/data-access-request-submitted-modal.html",
+    "<?php\n" +
+    "/**\n" +
+    " * @file\n" +
+    " * Code for the obiba_mica_data_access_request modules.\n" +
+    " */\n" +
+    "\n" +
+    "?>\n" +
+    "<!--\n" +
+    "  ~ Copyright (c) 2015 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
+    "<div class=\"modal-content\">\n" +
+    "  <div class=\"modal-header\">\n" +
+    "    <button type=\"button\" class=\"close\" aria-hidden=\"true\" ng-click=\"$dismiss()\">&times;</button>\n" +
+    "    <h4 class=\"modal-title\">\n" +
+    "      <i class=\"fa fa-check fa-lg\"></i>\n" +
+    "      {{'data-access-request.submit-confirmation.title' | translate}}\n" +
+    "    </h4>\n" +
+    "  </div>\n" +
+    "  <div class=\"modal-body\">\n" +
+    "    <p>{{'data-access-request.submit-confirmation.message' | translate}}</p>\n" +
+    "  </div>\n" +
+    "  <div class=\"modal-footer\">\n" +
+    "    <button type=\"button\" class=\"btn btn-primary voffest4\" ng-click=\"$dismiss()\">\n" +
+    "      <span ng-hide=\"confirm.ok\" translate>ok</span>\n" +
+    "      {{confirm.ok}}\n" +
     "    </button>\n" +
     "  </div>\n" +
     "</div>\n" +
