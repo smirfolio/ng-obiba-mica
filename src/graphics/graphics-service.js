@@ -14,13 +14,14 @@ angular.module('obiba.mica.graphics')
   .factory('GraphicChartsDataResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('PublishedStudiesSearchResource'), {}, {
-        'get': {method: 'GET', errorHandler: true}
+        'get': {method: 'POST', errorHandler: true}
       });
     }])
   .service('GraphicChartsConfig', function () {
     var factory = {
       options: {
-        entityIds: 'NaN'
+        entityIds: 'NaN',
+        entityType: null
       }
     };
     factory.setOptions = function (newOptions) {
@@ -69,4 +70,14 @@ angular.module('obiba.mica.graphics')
         });
         return ArrayData;
       };
-    }]);
+    }])
+  .service('GraphicChartsQuery', [function () {
+    this.queryDtoBuilder = function (entityIds) {
+      if (!(entityIds) || entityIds ==='NaN') {
+        return '{"studyQueryDto":{"from":0,"size":0,"sort":{"field":"acronym.en","order":0}},"locale":"en","withFacets":true}';
+      }
+      else{
+        return '{"studyQueryDto":{"from":0,"size":0,"sort":{"field":"acronym.en","order":0}},"networkQueryDto":{"from":0,"size":0,"sort":{"field":"acronym.en","order":0},"filteredQuery":{"obiba.mica.LogicalFilterQueryDto.filter":{"fields":[{"field":{"field":"id","obiba.mica.TermsFilterQueryDto.terms":{"values":["'+entityIds+'"]}},"op":1}]}}},"locale":"en","withFacets":true}';
+      }
+    };
+  }]);

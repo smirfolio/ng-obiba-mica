@@ -11,7 +11,7 @@ function NgObibaMicaUrlProvider() {
     'DataAccessRequestCommentResource': 'ws/data-access-request/:id/comment/:commentId',
     'DataAccessRequestStatusResource': 'ws/data-access-request/:id/_status?to=:status',
     'TempFileUploadResource': 'ws/files/temp',
-    'PublishedStudiesSearchResource': 'ws/studies/_search'
+    'PublishedStudiesSearchResource': 'ws/:type/_search'
 
   };
   function UrlProvider(registry) {
