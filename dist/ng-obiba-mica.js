@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-01-14
+ * Date: 2016-01-25
  */
 'use strict';
 
@@ -19,8 +19,10 @@ function NgObibaMicaUrlProvider() {
     'DataAccessRequestStatusResource': 'ws/data-access-request/:id/_status?to=:status',
     'TempFileUploadResource': 'ws/files/temp',
     'TempFileResource': 'ws/files/temp/:id',
-    'PublishedStudiesSearchResource': 'ws/:type/_search'
-
+    'PublishedStudiesSearchResource': 'ws/:type/_search',
+    'TaxonomiesResource': 'ws/taxonomies/_filter',
+    'TaxonomyResource': 'ws/taxonomy/:taxonomy/_filter',
+    'VocabularyResource': 'ws/taxonomy/:taxonomy/vocabulary/:vocabulary/_filter'
   };
   function UrlProvider(registry) {
     var urlRegistry = registry;
@@ -97,6 +99,7 @@ angular.module('ngObibaMica', [
     'obiba.mica.file',
     'obiba.mica.attachment',
     'obiba.mica.access',
+    'obiba.mica.search',
     'obiba.mica.graphics'
   ])
   .constant('USER_ROLES', {
@@ -1216,6 +1219,327 @@ angular.module('obiba.mica.access')
     };
   });
 ;/*
+ * Copyright (c) 2016 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+/*global NgObibaMicaTemplateUrlFactory */
+angular.module('obiba.mica.search', [
+    'ui.bootstrap',
+    'pascalprecht.translate',
+    'templates-ngObibaMica'
+  ])
+  .config(['$provide', function ($provide) {
+    $provide.provider('ngObibaMicaSearchTemplateUrl', new NgObibaMicaTemplateUrlFactory().create(
+      {
+        list: {header: null, footer: null},
+        view: {header: null, footer: null},
+        form: {header: null, footer: null}
+      }
+    ));
+  }]);;/*
+ * Copyright (c) 2016 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+angular.module('obiba.mica.search')
+  .controller('SearchController', [
+    '$scope',
+    '$timeout',
+    'TaxonomiesResource',
+    'TaxonomyResource',
+    'VocabularyResource',
+    'ngObibaMicaSearchTemplateUrl',
+    function ($scope,
+              $timeout,
+              TaxonomiesResource,
+              TaxonomyResource,
+              VocabularyResource,
+              ngObibaMicaSearchTemplateUrl) {
+
+      $scope.lang = 'en';
+
+      $scope.documents = {
+        search: {
+          text: null,
+          active: false
+        }
+      };
+      $scope.taxonomies = {
+        all: TaxonomiesResource.get({ target: 'variable' }),
+        search: {
+          text: null,
+          active: false
+        },
+        target: 'variable',
+        taxonomy: null,
+        vocabulary: null
+      };
+
+      var selectTaxonomyTarget = function(target) {
+        if (!$scope.taxonomiesShown) {
+          $('#taxonomies').collapse('show');
+        }
+        if ($scope.taxonomies.target !== target) {
+          $scope.taxonomies.target = target;
+          $scope.taxonomies.taxonomy = null;
+          $scope.taxonomies.vocabulary = null;
+          filterTaxonomies($scope.taxonomies.search.text);
+        }
+      };
+
+      var closeTaxonomies = function() {
+        $('#taxonomies').collapse('hide');
+      };
+
+      var filterTaxonomiesKeyUp = function(event) {
+        switch(event.keyCode) {
+          case 27: // ESC
+            if (!$scope.taxonomies.search.active) {
+              clearFilterTaxonomies();
+            }
+            break;
+
+          case 13: // Enter
+            filterTaxonomies($scope.taxonomies.search.text);
+            break;
+        }
+      };
+
+      var clearFilterTaxonomies = function() {
+        $scope.taxonomies.search.text = null;
+        $scope.taxonomies.search.active = false;
+        filterTaxonomies(null);
+      };
+
+      var filterTaxonomies = function(query) {
+        $scope.taxonomies.search.active = true;
+        if (query && query.length === 1) {
+          $scope.taxonomies.search.active = false;
+          return;
+        }
+        // taxonomy filter
+        if ($scope.taxonomies.taxonomy) {
+          if ($scope.taxonomies.vocabulary) {
+            VocabularyResource.get({
+              target: $scope.taxonomies.target,
+              taxonomy: $scope.taxonomies.taxonomy.name,
+              vocabulary: $scope.taxonomies.vocabulary.name,
+              query: query
+            }, function onSuccess(response) {
+              $scope.taxonomies.vocabulary.terms = response.terms;
+              $scope.taxonomies.search.active = false;
+            });
+          } else {
+            TaxonomyResource.get({
+              target: $scope.taxonomies.target,
+              taxonomy: $scope.taxonomies.taxonomy.name,
+              query: query
+            }, function onSuccess(response) {
+              $scope.taxonomies.taxonomy.vocabularies = response.vocabularies;
+              $scope.taxonomies.search.active = false;
+            });
+          }
+        } else {
+          TaxonomiesResource.get({
+            target: $scope.taxonomies.target,
+            query: query
+          }, function onSuccess(response) {
+            $scope.taxonomies.all = response;
+            $scope.taxonomies.search.active = false;
+          });
+        }
+      };
+
+      var searchKeyUp = function(event) {
+        switch(event.keyCode) {
+          case 27: // ESC
+            if ($scope.documents.search.active) {
+              clearSearch();
+            }
+            break;
+
+          default:
+            if ($scope.documents.search.text) {
+              searchDocuments($scope.documents.search.text);
+            }
+            break;
+        }
+      };
+
+      var clearSearch = function() {
+        $scope.documents.search.text = null;
+        $scope.documents.search.active = false;
+      };
+
+      var searchDocuments = function(/*query*/) {
+        $scope.documents.search.active = true;
+        // search for taxonomy terms
+        // search for matching variables/studies/... count
+      };
+
+      var navigateTaxonomy = function(taxonomy, vocabulary) {
+        var toFilter = ($scope.taxonomies.taxonomy && !taxonomy) || ($scope.taxonomies.vocabulary && !vocabulary);
+        $scope.taxonomies.taxonomy = taxonomy;
+        $scope.taxonomies.vocabulary = vocabulary;
+        if(toFilter) {
+          filterTaxonomies($scope.taxonomies.search.text);
+        }
+      };
+
+      var selectTerm = function(/*taxonomy, vocabulary, term*/) {
+
+      };
+
+      $scope.headerTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('view');
+      $scope.clearFilterTaxonomies = clearFilterTaxonomies;
+      $scope.searchKeyUp = searchKeyUp;
+      $scope.filterTaxonomiesKeyUp = filterTaxonomiesKeyUp;
+      $scope.navigateTaxonomy = navigateTaxonomy;
+      $scope.selectTaxonomyTarget = selectTaxonomyTarget;
+      $scope.selectTerm = selectTerm;
+      $scope.closeTaxonomies = closeTaxonomies;
+      $scope.taxonomiesShown = false;
+      $('#taxonomies').on('show.bs.collapse', function () {
+        $scope.taxonomiesShown = true;
+      });
+      $('#taxonomies').on('hide.bs.collapse', function () {
+        $scope.taxonomiesShown = false;
+      });
+    }]);
+;/*
+ * Copyright (c) 2016 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+angular.module('obiba.mica.search')
+  .directive('taxonomyPanel', [function () {
+    return {
+      restrict: 'EA',
+      replace: true,
+      scope: {
+        taxonomy: '=',
+        lang: '=',
+        onNavigate: '='
+      },
+      templateUrl: 'search/views/taxonomy-panel-template.html'
+    };
+  }])
+
+  .directive('vocabularyPanel', [function () {
+    return {
+      restrict: 'EA',
+      replace: true,
+      scope: {
+        taxonomy: '=',
+        vocabulary: '=',
+        lang: '=',
+        onNavigate: '='
+      },
+      templateUrl: 'search/views/vocabulary-panel-template.html'
+    };
+  }])
+
+  .directive('termPanel', [function () {
+    return {
+      restrict: 'EA',
+      replace: true,
+      scope: {
+        taxonomy: '=',
+        vocabulary: '=',
+        term: '=',
+        lang: '=',
+        onSelect: '='
+      },
+      templateUrl: 'search/views/term-panel-template.html'
+    };
+  }]);
+;/*
+ * Copyright (c) 2016 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+angular.module('obiba.mica.search')
+  .config(['$routeProvider',
+    function ($routeProvider) {
+      $routeProvider
+        .when('/search', {
+          templateUrl: 'search/views/search.html',
+          controller: 'SearchController'
+        });
+    }]);
+;/*
+ * Copyright (c) 2016 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+angular.module('obiba.mica.search')
+  .factory('TaxonomiesResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+      return $resource(ngObibaMicaUrl.getUrl('TaxonomiesResource'), {}, {
+        'get': {
+          method: 'GET',
+          isArray: true,
+          errorHandler: true
+        }
+      });
+    }])
+
+  .factory('TaxonomyResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+      return $resource(ngObibaMicaUrl.getUrl('TaxonomyResource'), {}, {
+        'get': {
+          method: 'GET',
+          errorHandler: true
+        }
+      });
+    }])
+
+  .factory('VocabularyResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+      return $resource(ngObibaMicaUrl.getUrl('VocabularyResource'), {}, {
+        'get': {
+          method: 'GET',
+          errorHandler: true
+        }
+      });
+    }]);
+;/*
  * Copyright (c) 2014 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
@@ -1412,7 +1736,7 @@ angular.module('obiba.mica.graphics')
       }
     };
   }]);
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'search/views/search.html', 'search/views/taxonomies-view.html', 'search/views/taxonomy-panel-template.html', 'search/views/taxonomy-template.html', 'search/views/term-panel-template.html', 'search/views/vocabulary-panel-template.html']);
 
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
@@ -1892,4 +2216,322 @@ angular.module("graphics/views/charts-directive.html", []).run(["$templateCache"
     "  </div>\n" +
     "</div>\n" +
     "");
+}]);
+
+angular.module("search/views/search.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/search.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2016 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
+    "<div>\n" +
+    "  <!--<h2 translate>search</h2>-->\n" +
+    "  <div ng-if=\"headerTemplateUrl\" ng-include=\"headerTemplateUrl\"></div>\n" +
+    "\n" +
+    "  <!-- Classifications region -->\n" +
+    "  <div ng-mouseleave=\"closeTaxonomies()\">\n" +
+    "    <div class=\"row\">\n" +
+    "      <div class=\"col-xs-3\"></div>\n" +
+    "      <div class=\"col-xs-6\">\n" +
+    "        <a href>\n" +
+    "        <span class=\"input-group input-group-sm no-padding-top\">\n" +
+    "          <input ng-keyup=\"searchKeyUp($event)\" ng-model=\"documents.search.text\" type=\"text\" class=\"form-control ng-pristine ng-untouched ng-valid\" aria-describedby=\"study-search\">\n" +
+    "          <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-search\"></i></span>\n" +
+    "        </span>\n" +
+    "        </a>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "    <div class=\"row\">\n" +
+    "      <div class=\"col-xs-3\"></div>\n" +
+    "      <div class=\"col-xs-6\">\n" +
+    "        <ul class=\"nav nav-pills\">\n" +
+    "          <li ng-class=\"{'active': taxonomies.target === 'variable' && taxonomiesShown}\" title=\"{{'variable-classifications' | translate}}\">\n" +
+    "            <a ng-mouseover=\"selectTaxonomyTarget('variable')\" translate>variables</a>\n" +
+    "          </li>\n" +
+    "          <li ng-class=\"{'active': taxonomies.target === 'study' && taxonomiesShown}\" title=\"{{'study-classifications' | translate}}\">\n" +
+    "            <a ng-mouseover=\"selectTaxonomyTarget('study')\" translate>studies</a>\n" +
+    "          </li>\n" +
+    "          <li ng-if=\"taxonomiesShown\">\n" +
+    "            <a href ng-click=\"closeTaxonomies()\" title=\"{{'close' | translate}}\"><i class=\"fa fa-close\"></i> </a>\n" +
+    "          </li>\n" +
+    "        </ul>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "    <div id=\"taxonomies\" class=\"collapse card card-static container\">\n" +
+    "      <div ng-include=\"'search/views/taxonomies-view.html'\"></div>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "\n" +
+    "  <!-- Search criteria region -->\n" +
+    "  <div class=\"voffset4\">\n" +
+    "    <div class=\"row voffset4\">\n" +
+    "      <div class=\"col-xs-12\">\n" +
+    "        <div class=\"btn-group dropdown\" is-open=\"status.isopen\">\n" +
+    "          <button type=\"button\" class=\"btn btn-info btn-sm dropdown-toggle\" ng-disabled=\"disabled\" data-toggle=\"dropdown\">\n" +
+    "            Study: All <span class=\"caret\"></span>\n" +
+    "          </button>\n" +
+    "          <ul class=\"dropdown-menu\" role=\"menu\">\n" +
+    "            <li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Atlantic Path</a></li>\n" +
+    "            <li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">CartaGene</a></li>\n" +
+    "          </ul>\n" +
+    "        </div>\n" +
+    "\n" +
+    "        <div class=\"btn-group dropdown\" is-open=\"status.isopen\">\n" +
+    "          <button type=\"button\" class=\"btn btn-default btn-sm dropdown-toggle\" ng-disabled=\"disabled\" data-toggle=\"dropdown\">\n" +
+    "            OR <span class=\"caret\"></span>\n" +
+    "          </button>\n" +
+    "          <ul class=\"dropdown-menu\" role=\"menu\">\n" +
+    "            <li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">AND</a></li>\n" +
+    "          </ul>\n" +
+    "        </div>\n" +
+    "\n" +
+    "        <div class=\"btn-group dropdown\" is-open=\"status.isopen\">\n" +
+    "          <button type=\"button\" class=\"btn btn-info btn-sm dropdown-toggle\" ng-disabled=\"disabled\" data-toggle=\"dropdown\">\n" +
+    "            Study designs: All <span class=\"caret\"></span>\n" +
+    "          </button>\n" +
+    "          <ul class=\"dropdown-menu\" role=\"menu\">\n" +
+    "            <li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Cohort study (117)</a></li>\n" +
+    "            <li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Cross sectional (8)</a></li>\n" +
+    "            <li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Clinical trial (5)</a></li>\n" +
+    "            <li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Case control (2)</a></li>\n" +
+    "            <li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Other (2)</a></li>\n" +
+    "          </ul>\n" +
+    "        </div>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "\n" +
+    "\n" +
+    "  <!-- Results region -->\n" +
+    "  <div>\n" +
+    "\n" +
+    "  </div>\n" +
+    "</div>");
+}]);
+
+angular.module("search/views/taxonomies-view.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/taxonomies-view.html",
+    "<div class=\"panel panel-default\">\n" +
+    "  <div class=\"panel-heading\">\n" +
+    "    <div class=\"row\">\n" +
+    "      <div class=\"col-xs-8 voffset1\">\n" +
+    "        <ol class=\"mica-breadcrumb no-margin no-padding\">\n" +
+    "          <li ng-if=\"!taxonomies.taxonomy\">\n" +
+    "            {{'all-' + taxonomies.target + '-classifications' | translate}}\n" +
+    "          </li>\n" +
+    "          <li ng-if=\"taxonomies.taxonomy\">\n" +
+    "            <a href ng-click=\"navigateTaxonomy()\">{{'all-' + taxonomies.target + '-classifications' | translate}}</a>\n" +
+    "          </li>\n" +
+    "          <li ng-if=\"taxonomies.taxonomy && !taxonomies.vocabulary\">\n" +
+    "            <span ng-repeat=\"label in taxonomies.taxonomy.title\" ng-if=\"label.locale === lang\">\n" +
+    "              {{label.text}}\n" +
+    "            </span>\n" +
+    "          </li>\n" +
+    "          <li ng-if=\"taxonomies.taxonomy && taxonomies.vocabulary\">\n" +
+    "            <a href ng-click=\"navigateTaxonomy(taxonomies.taxonomy)\">\n" +
+    "              <span ng-repeat=\"label in taxonomies.taxonomy.title\" ng-if=\"label.locale === lang\">\n" +
+    "              {{label.text}}\n" +
+    "              </span>\n" +
+    "            </a>\n" +
+    "          </li>\n" +
+    "          <li ng-if=\"taxonomies.vocabulary\">\n" +
+    "            <span ng-repeat=\"label in taxonomies.vocabulary.title\" ng-if=\"label.locale === lang\">\n" +
+    "              {{label.text}}\n" +
+    "            </span>\n" +
+    "          </li>\n" +
+    "        </ol>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-xs-4\">\n" +
+    "        <div class=\"form-inline pull-right\">\n" +
+    "          <div class=\"form-group\">\n" +
+    "            <span class=\"input-group input-group-sm no-padding-top\">\n" +
+    "              <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-filter\"></i></span>\n" +
+    "              <input ng-keyup=\"filterTaxonomiesKeyUp($event)\" ng-model=\"taxonomies.search.text\" type=\"text\" class=\"form-control ng-pristine ng-untouched ng-valid\" aria-describedby=\"study-search\">\n" +
+    "              <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-remove\" ng-click=\"clearFilterTaxonomies()\"></i></span>\n" +
+    "            </span>\n" +
+    "          </div>\n" +
+    "        </div>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "  <div class=\"panel-body\">\n" +
+    "    <div ng-if=\"!taxonomies.search.active && taxonomies.all.length === 0\" translate>\n" +
+    "      no-classifications\n" +
+    "    </div>\n" +
+    "    <div ng-if=\"taxonomies.search.active\" class=\"loading\"></div>\n" +
+    "\n" +
+    "    <div ng-if=\"!taxonomies.taxonomy\">\n" +
+    "      <div ng-repeat=\"taxonomy in taxonomies.all\" ng-if=\"$index % 3 == 0\" class=\"row\">\n" +
+    "        <div class=\"col-xs-4\">\n" +
+    "          <div taxonomy-panel taxonomy=\"taxonomies.all[$index]\" lang=\"lang\" on-navigate=\"navigateTaxonomy\"></div>\n" +
+    "        </div>\n" +
+    "        <div class=\"col-xs-4\">\n" +
+    "          <div taxonomy-panel taxonomy=\"taxonomies.all[$index + 1]\" lang=\"lang\" on-navigate=\"navigateTaxonomy\"></div>\n" +
+    "        </div>\n" +
+    "        <div class=\"col-xs-4\">\n" +
+    "          <div taxonomy-panel taxonomy=\"taxonomies.all[$index + 2]\" lang=\"lang\" on-navigate=\"navigateTaxonomy\"></div>\n" +
+    "        </div>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div ng-if=\"taxonomies.taxonomy && !taxonomies.vocabulary\">\n" +
+    "      <p class=\"help-block\" ng-repeat=\"label in taxonomies.taxonomy.description\" ng-if=\"label.locale === lang\">\n" +
+    "        {{label.text}}\n" +
+    "      </p>\n" +
+    "      <div ng-repeat=\"vocabulary in taxonomies.taxonomy.vocabularies\" ng-if=\"$index % 3 == 0\" class=\"row\">\n" +
+    "        <div class=\"col-xs-4\">\n" +
+    "          <div vocabulary-panel taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index]\" lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
+    "        </div>\n" +
+    "        <div class=\"col-xs-4\">\n" +
+    "          <div vocabulary-panel taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index + 1]\" lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
+    "        </div>\n" +
+    "        <div class=\"col-xs-4\">\n" +
+    "          <div vocabulary-panel taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index + 2]\" lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
+    "        </div>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div ng-if=\"taxonomies.taxonomy && taxonomies.vocabulary\">\n" +
+    "      <p class=\"help-block\" ng-repeat=\"label in taxonomies.vocabulary.description\" ng-if=\"label.locale === lang\">\n" +
+    "        {{label.text}}\n" +
+    "      </p>\n" +
+    "      <div ng-repeat=\"term in taxonomies.vocabulary.terms\" ng-if=\"$index % 3 == 0\" class=\"row\">\n" +
+    "        <div class=\"col-xs-4\">\n" +
+    "          <div term-panel taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabulary\" term=\"taxonomies.vocabulary.terms[$index]\" lang=\"lang\" on-select=\"selectTerm\"></div>\n" +
+    "        </div>\n" +
+    "        <div class=\"col-xs-4\">\n" +
+    "          <div term-panel taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabulary\" term=\"taxonomies.vocabulary.terms[$index + 1]\" lang=\"lang\" on-select=\"selectTerm\"></div>\n" +
+    "        </div>\n" +
+    "        <div class=\"col-xs-4\">\n" +
+    "          <div term-panel taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabulary\" term=\"taxonomies.vocabulary.terms[$index + 2]\" lang=\"lang\" on-select=\"selectTerm\"></div>\n" +
+    "        </div>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "</div>");
+}]);
+
+angular.module("search/views/taxonomy-panel-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/taxonomy-panel-template.html",
+    "<div>\n" +
+    "  <h4 ng-repeat=\"label in taxonomy.title\" ng-if=\"label.locale === lang\">\n" +
+    "    <a href ng-click=\"onNavigate(taxonomy)\">{{label.text}}</a>\n" +
+    "  </h4>\n" +
+    "  <p class=\"help-block\" ng-repeat=\"label in taxonomy.description\" ng-if=\"label.locale === lang\">\n" +
+    "    {{label.text}}\n" +
+    "  </p>\n" +
+    "  <ul>\n" +
+    "    <li ng-repeat=\"vocabulary in taxonomy.vocabularies\" ng-if=\"$index<4\">\n" +
+    "      <a href ng-click=\"onNavigate(taxonomy, vocabulary)\">\n" +
+    "        <span ng-repeat=\"label in vocabulary.title\" ng-if=\"label.locale === lang\">\n" +
+    "          {{label.text}}\n" +
+    "        </span>\n" +
+    "        <span ng-if=\"!vocabulary.title\">\n" +
+    "          {{vocabulary.name}}\n" +
+    "        </span>\n" +
+    "      </a>\n" +
+    "    </li>\n" +
+    "    <div class=\"collapse\" id=\"{{taxonomy.name + '_vocabularies'}}\">\n" +
+    "      <li ng-repeat=\" vocabulary in taxonomy.vocabularies\" ng-if=\"$index>=4\">\n" +
+    "        <a href ng-click=\"onNavigate(taxonomy, vocabulary)\">\n" +
+    "          <span ng-repeat=\"label in vocabulary.title\" ng-if=\"label.locale === lang\">\n" +
+    "            {{label.text}}\n" +
+    "          </span>\n" +
+    "          <span ng-if=\"!vocabulary.title\">\n" +
+    "            {{vocabulary.name}}\n" +
+    "          </span>\n" +
+    "        </a>\n" +
+    "      </li>\n" +
+    "    </div>\n" +
+    "    <li ng-if=\"taxonomy.vocabularies && taxonomy.vocabularies.length>4\" class=\"list-unstyled\">\n" +
+    "      <a data-toggle=\"collapse\" data-target=\"#{{taxonomy.name + '_vocabularies'}}\">\n" +
+    "        <i class=\"fa fa-arrow-down\"></i>\n" +
+    "      </a>\n" +
+    "    </li>\n" +
+    "  </ul>\n" +
+    "</div>");
+}]);
+
+angular.module("search/views/taxonomy-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/taxonomy-template.html",
+    "<div ng-repeat=\"vocabulary in taxonomies.taxonomy.vocabularies\" ng-if=\"$index % 3 == 0\" class=\"row\">\n" +
+    "  <div class=\"col-xs-4\">\n" +
+    "    <div vocabulary-panel taxonomy=\"taxonomies.taxonomy.vocabularies[$index]\"></div>\n" +
+    "  </div>\n" +
+    "  <div class=\"col-xs-4\">\n" +
+    "    <div taxonomy-panel taxonomy=\"taxonomies.taxonomy.vocabularies[$index + 1]\"></div>\n" +
+    "  </div>\n" +
+    "  <div class=\"col-xs-4\">\n" +
+    "    <div taxonomy-panel taxonomy=\"taxonomies.taxonomy.vocabularies[$index + 2]\"></div>\n" +
+    "  </div>\n" +
+    "</div>");
+}]);
+
+angular.module("search/views/term-panel-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/term-panel-template.html",
+    "<div>\n" +
+    "  <h4 ng-repeat=\"label in term.title\" ng-if=\"label.locale === lang\">\n" +
+    "    {{label.text}}\n" +
+    "    <small>\n" +
+    "    <a href ng-click=\"onSelect(taxonomy, vocabulary, term)\">\n" +
+    "      <i class=\"fa fa-plus-circle\" title=\"{{'add-query' | translate}}\"></i>\n" +
+    "    </a>\n" +
+    "    </small>\n" +
+    "  </h4>\n" +
+    "  <p ng-repeat=\"label in term.description\" ng-if=\"label.locale === lang\">\n" +
+    "    <span class=\"help-block\">{{label.text}}</span>\n" +
+    "  </p>\n" +
+    "</div>");
+}]);
+
+angular.module("search/views/vocabulary-panel-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/vocabulary-panel-template.html",
+    "<div>\n" +
+    "  <h4 ng-repeat=\"label in vocabulary.title\" ng-if=\"label.locale === lang\">\n" +
+    "    <a href ng-click=\"onNavigate(taxonomy, vocabulary)\">{{label.text}}</a>\n" +
+    "  </h4>\n" +
+    "  <h4 ng-if=\"!vocabulary.title\">\n" +
+    "    <a href ng-click=\"onNavigate(taxonomy, vocabulary)\">{{vocabulary.name}}</a>\n" +
+    "  </h4>\n" +
+    "  <p class=\"help-block\" ng-repeat=\"label in vocabulary.description\" ng-if=\"label.locale === lang\">\n" +
+    "    {{label.text}}\n" +
+    "  </p>\n" +
+    "  <ul>\n" +
+    "    <li ng-repeat=\"term in vocabulary.terms\" ng-if=\"$index<4\">\n" +
+    "      <span ng-repeat=\"label in term.title\" ng-if=\"label.locale === lang\">\n" +
+    "        {{label.text}}\n" +
+    "      </span>\n" +
+    "      <span ng-if=\"!term.title\">\n" +
+    "        {{term.name}}\n" +
+    "      </span>\n" +
+    "      <a href ng-click=\"onSelect(taxonomy, vocabulary, term)\">\n" +
+    "        <i class=\"fa fa-plus-circle\" title=\"{{'add-query' | translate}}\"></i>\n" +
+    "      </a>\n" +
+    "    </li>\n" +
+    "    <div class=\"collapse\" id=\"{{taxonomy.name + vocabulary.name + '_terms'}}\">\n" +
+    "      <li ng-repeat=\"term in vocabulary.terms\" ng-if=\"$index>=4\">\n" +
+    "        <span ng-repeat=\"label in term.title\" ng-if=\"label.locale === lang\">\n" +
+    "          {{label.text}}\n" +
+    "        </span>\n" +
+    "        <span ng-if=\"!term.title\">\n" +
+    "          {{term.name}}\n" +
+    "        </span>\n" +
+    "        <a href ng-click=\"onSelect(taxonomy, vocabulary, term)\">\n" +
+    "          <i class=\"fa fa-plus-circle\" title=\"{{'add-query' | translate}}\"></i>\n" +
+    "        </a>\n" +
+    "      </li>\n" +
+    "    </div>\n" +
+    "    <li ng-if=\"vocabulary.terms && vocabulary.terms.length>4\" class=\"list-unstyled\">\n" +
+    "      <a data-toggle=\"collapse\" data-target=\"#{{taxonomy.name + vocabulary.name + '_terms'}}\">\n" +
+    "        <i class=\"fa fa-arrow-down\"></i>\n" +
+    "      </a>\n" +
+    "    </li>\n" +
+    "  </ul>\n" +
+    "</div>");
 }]);

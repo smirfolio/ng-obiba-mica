@@ -12,8 +12,10 @@ function NgObibaMicaUrlProvider() {
     'DataAccessRequestStatusResource': 'ws/data-access-request/:id/_status?to=:status',
     'TempFileUploadResource': 'ws/files/temp',
     'TempFileResource': 'ws/files/temp/:id',
-    'PublishedStudiesSearchResource': 'ws/:type/_search'
-
+    'PublishedStudiesSearchResource': 'ws/:type/_search',
+    'TaxonomiesResource': 'ws/taxonomies/_filter',
+    'TaxonomyResource': 'ws/taxonomy/:taxonomy/_filter',
+    'VocabularyResource': 'ws/taxonomy/:taxonomy/vocabulary/:vocabulary/_filter'
   };
   function UrlProvider(registry) {
     var urlRegistry = registry;
@@ -90,6 +92,7 @@ angular.module('ngObibaMica', [
     'obiba.mica.file',
     'obiba.mica.attachment',
     'obiba.mica.access',
+    'obiba.mica.search',
     'obiba.mica.graphics'
   ])
   .constant('USER_ROLES', {
