@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-01-25
+ * Date: 2016-01-27
  */
 'use strict';
 
@@ -221,13 +221,6 @@ angular.module('obiba.mica.attachment')
   }])
   .controller('AttachmentCtrl', ['$scope', '$timeout', '$log', 'Upload', 'TempFileResource', 'ngObibaMicaUrl',
     function ($scope, $timeout, $log, Upload, TempFileResource, ngObibaMicaUrl) {
-      $scope.onFileSelect = function (file) {
-        $scope.uploadedFiles = file;
-        $scope.uploadedFiles.forEach(function (f) {
-          uploadFile(f);
-        });
-      };
-
       var uploadFile = function (file) {
         $log.debug('file', file);
 
@@ -270,6 +263,13 @@ angular.module('obiba.mica.attachment')
               }
             );
           });
+      };
+
+      $scope.onFileSelect = function (file) {
+        $scope.uploadedFiles = file;
+        $scope.uploadedFiles.forEach(function (f) {
+          uploadFile(f);
+        });
       };
 
       $scope.deleteTempFile = function (tempFileId) {
@@ -507,6 +507,10 @@ angular.module('obiba.mica.access')
         });
       };
 
+      var retrieveComments = function() {
+        $scope.form.comments = DataAccessRequestCommentsResource.query({id: $routeParams.id});
+      };
+
       var selectTab = function(id) {
         $scope.selectedTab = id;
         switch (id) {
@@ -516,10 +520,6 @@ angular.module('obiba.mica.access')
             retrieveComments();
             break;
         }
-      };
-
-      var retrieveComments = function() {
-        $scope.form.comments = DataAccessRequestCommentsResource.query({id: $routeParams.id});
       };
 
       var submitComment = function(comment) {
@@ -1290,40 +1290,8 @@ angular.module('obiba.mica.search')
         vocabulary: null
       };
 
-      var selectTaxonomyTarget = function(target) {
-        if (!$scope.taxonomiesShown) {
-          $('#taxonomies').collapse('show');
-        }
-        if ($scope.taxonomies.target !== target) {
-          $scope.taxonomies.target = target;
-          $scope.taxonomies.taxonomy = null;
-          $scope.taxonomies.vocabulary = null;
-          filterTaxonomies($scope.taxonomies.search.text);
-        }
-      };
-
       var closeTaxonomies = function() {
         $('#taxonomies').collapse('hide');
-      };
-
-      var filterTaxonomiesKeyUp = function(event) {
-        switch(event.keyCode) {
-          case 27: // ESC
-            if (!$scope.taxonomies.search.active) {
-              clearFilterTaxonomies();
-            }
-            break;
-
-          case 13: // Enter
-            filterTaxonomies($scope.taxonomies.search.text);
-            break;
-        }
-      };
-
-      var clearFilterTaxonomies = function() {
-        $scope.taxonomies.search.text = null;
-        $scope.taxonomies.search.active = false;
-        filterTaxonomies(null);
       };
 
       var filterTaxonomies = function(query) {
@@ -1365,6 +1333,49 @@ angular.module('obiba.mica.search')
         }
       };
 
+      var selectTaxonomyTarget = function(target) {
+        if (!$scope.taxonomiesShown) {
+          $('#taxonomies').collapse('show');
+        }
+        if ($scope.taxonomies.target !== target) {
+          $scope.taxonomies.target = target;
+          $scope.taxonomies.taxonomy = null;
+          $scope.taxonomies.vocabulary = null;
+          filterTaxonomies($scope.taxonomies.search.text);
+        }
+      };
+
+      var clearFilterTaxonomies = function() {
+        $scope.taxonomies.search.text = null;
+        $scope.taxonomies.search.active = false;
+        filterTaxonomies(null);
+      };
+
+      var filterTaxonomiesKeyUp = function(event) {
+        switch(event.keyCode) {
+          case 27: // ESC
+            if (!$scope.taxonomies.search.active) {
+              clearFilterTaxonomies();
+            }
+            break;
+
+          case 13: // Enter
+            filterTaxonomies($scope.taxonomies.search.text);
+            break;
+        }
+      };
+
+      var clearSearch = function() {
+        $scope.documents.search.text = null;
+        $scope.documents.search.active = false;
+      };
+
+      var searchDocuments = function(/*query*/) {
+        $scope.documents.search.active = true;
+        // search for taxonomy terms
+        // search for matching variables/studies/... count
+      };
+
       var searchKeyUp = function(event) {
         switch(event.keyCode) {
           case 27: // ESC
@@ -1379,17 +1390,6 @@ angular.module('obiba.mica.search')
             }
             break;
         }
-      };
-
-      var clearSearch = function() {
-        $scope.documents.search.text = null;
-        $scope.documents.search.active = false;
-      };
-
-      var searchDocuments = function(/*query*/) {
-        $scope.documents.search.active = true;
-        // search for taxonomy terms
-        // search for matching variables/studies/... count
       };
 
       var navigateTaxonomy = function(taxonomy, vocabulary) {
