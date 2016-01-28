@@ -34,7 +34,8 @@
     "afterEach": false,
     "spyOn": false,
     "expect": false,
-    "inject": false
+    "inject": false,
+    "RqlParser": false
   }
 
 }
