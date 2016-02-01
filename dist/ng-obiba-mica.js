@@ -2626,7 +2626,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "  <obiba-alert id=\"SearchController\"></obiba-alert>\n" +
     "\n" +
     "  <!-- Classifications region -->\n" +
-    "  <div ng-mouseleave=\"closeTaxonomies()\">\n" +
+    "  <div>\n" +
     "  <!--<div>-->\n" +
     "    <div class=\"row\">\n" +
     "      <div class=\"col-xs-3\"></div>\n" +
@@ -2644,10 +2644,10 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      <div class=\"col-xs-6\">\n" +
     "        <ul class=\"nav nav-pills\">\n" +
     "          <li ng-class=\"{'active': taxonomies.target === 'variable' && taxonomiesShown}\" title=\"{{'variable-classifications' | translate}}\">\n" +
-    "            <a ng-mouseover=\"selectTaxonomyTarget('variable')\" translate>variables</a>\n" +
+    "            <a ng-click=\"selectTaxonomyTarget('variable')\" translate>variables</a>\n" +
     "          </li>\n" +
     "          <li ng-class=\"{'active': taxonomies.target === 'study' && taxonomiesShown}\" title=\"{{'study-classifications' | translate}}\">\n" +
-    "            <a ng-mouseover=\"selectTaxonomyTarget('study')\" translate>studies</a>\n" +
+    "            <a ng-click=\"selectTaxonomyTarget('study')\" translate>studies</a>\n" +
     "          </li>\n" +
     "          <li ng-if=\"taxonomiesShown\">\n" +
     "            <a href ng-click=\"closeTaxonomies()\" title=\"{{'close' | translate}}\"><i class=\"fa fa-close\"></i> </a>\n" +
@@ -2655,7 +2655,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "        </ul>\n" +
     "      </div>\n" +
     "    </div>\n" +
-    "    <div id=\"taxonomies\" class=\"collapse card card-static container\">\n" +
+    "    <div id=\"taxonomies\" class=\"collapse\">\n" +
     "      <div ng-include=\"'search/views/taxonomies-view.html'\"></div>\n" +
     "    </div>\n" +
     "  </div>\n" +
