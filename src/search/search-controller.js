@@ -129,8 +129,44 @@ console.log('THIS IS SEARCH CONTROLLER');
         $scope.documents.search.active = false;
       };
 
-      var searchDocuments = function (/*query*/) {
+      var searchCriteria = function (query) {
         $scope.documents.search.active = true;
+        console.log(query);
+        if (query && query.length === 1) {
+          $scope.documents.search.results = [];
+          $scope.documents.search.active = false;
+          return;
+        }
+        TaxonomiesResource.get({
+          target: 'variable',
+          query: query
+        }, function onSuccess(response) {
+          $scope.documents.search.results = [];
+          if(response) {
+            response.forEach(function(taxonomy) {
+              if(taxonomy.vocabularies) {
+                taxonomy.vocabularies.forEach(function(vocabulary){
+                  if(vocabulary.terms) {
+                    vocabulary.terms.forEach(function(term){
+                      var criteria = {
+                        id: taxonomy.name + '::' + vocabulary.name + ':' + term.name,
+                        taxonomy: taxonomy,
+                        vocabulary: vocabulary,
+                        term: term
+                      };
+                      $scope.documents.search.results.push(criteria);
+                    });
+                  }
+                });
+              }
+            });
+          }
+          $scope.documents.search.active = false;
+        }, function onError(){
+          $scope.documents.search.results = [];
+          $scope.documents.search.active = false;
+        });
+        return $scope.documents.search.results;
         // search for taxonomy terms
         // search for matching variables/studies/... count
       };
@@ -145,7 +181,7 @@ console.log('THIS IS SEARCH CONTROLLER');
 
           default:
             if ($scope.documents.search.text) {
-              searchDocuments($scope.documents.search.text);
+              searchCriteria($scope.documents.search.text);
             }
             break;
         }
@@ -285,6 +321,7 @@ console.log('THIS IS SEARCH CONTROLLER');
 
       $scope.headerTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('view');
       $scope.clearFilterTaxonomies = clearFilterTaxonomies;
+      $scope.searchCriteria = searchCriteria;
       $scope.searchKeyUp = searchKeyUp;
       $scope.filterTaxonomiesKeyUp = filterTaxonomiesKeyUp;
       $scope.navigateTaxonomy = navigateTaxonomy;
