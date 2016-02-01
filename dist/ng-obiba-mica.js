@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-01-29
+ * Date: 2016-02-01
  */
 'use strict';
 
@@ -1421,40 +1421,6 @@ console.log('THIS IS SEARCH CONTROLLER');
         });
       }
 
-      function executeQuery() {
-        if (validateQueryData()) {
-           JoinQuerySearchResource[$scope.search.type]({query: $scope.search.query},
-            function onSuccess(response) {
-              $scope.search.result = response;
-              console.log('>>> Response', $scope.search.result);
-            },
-            onError);
-        }
-      }
-
-      function validateQueryData() {
-        try {
-          var search = $location.search();
-          var type = search.type || QUERY_TYPES.VARIABLES;
-          var query = search.query || getDefaultQuery(type);
-          validateType(type);
-          validateQuery(query);
-          $scope.search.type = type;
-          $scope.search.query = query;
-          return true;
-
-        } catch (e) {
-          AlertService.alert({
-            id: 'SearchController',
-            type: 'danger',
-            msg: e.message,
-            delay: 5000
-          });
-        }
-
-        return false;
-      }
-
       function validateType(type) {
         if (!type || !QUERY_TYPES[type.toUpperCase()]) {
           throw new Error('Invalid type: ' + type);
@@ -1480,6 +1446,40 @@ console.log('THIS IS SEARCH CONTROLLER');
         }
 
         throw new Error('Invalid query type: ' + type);
+      }
+
+      function validateQueryData() {
+        try {
+          var search = $location.search();
+          var type = search.type || QUERY_TYPES.VARIABLES;
+          var query = search.query || getDefaultQuery(type);
+          validateType(type);
+          validateQuery(query);
+          $scope.search.type = type;
+          $scope.search.query = query;
+          return true;
+
+        } catch (e) {
+          AlertService.alert({
+            id: 'SearchController',
+            type: 'danger',
+            msg: e.message,
+            delay: 5000
+          });
+        }
+
+        return false;
+      }
+
+      function executeQuery() {
+        if (validateQueryData()) {
+           JoinQuerySearchResource[$scope.search.type]({query: $scope.search.query},
+            function onSuccess(response) {
+              $scope.search.result = response;
+              console.log('>>> Response', $scope.search.result);
+            },
+            onError);
+        }
       }
 
       function initialize() {
