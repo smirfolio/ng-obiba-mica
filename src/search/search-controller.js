@@ -148,13 +148,16 @@ console.log('THIS IS SEARCH CONTROLLER');
                 taxonomy.vocabularies.forEach(function(vocabulary){
                   if(vocabulary.terms) {
                     vocabulary.terms.forEach(function(term){
-                      var criteria = {
-                        id: taxonomy.name + '::' + vocabulary.name + ':' + term.name,
-                        taxonomy: taxonomy,
-                        vocabulary: vocabulary,
-                        term: term
-                      };
-                      $scope.documents.search.results.push(criteria);
+                      if($scope.documents.search.results.length<10) {
+                        $scope.documents.search.results.push({
+                          id: taxonomy.name + '::' + vocabulary.name + ':' + term.name,
+                          taxonomy: taxonomy,
+                          vocabulary: vocabulary,
+                          term: term,
+                          target: 'variable',
+                          lang: $scope.lang
+                        });
+                      }
                     });
                   }
                 });
@@ -169,6 +172,11 @@ console.log('THIS IS SEARCH CONTROLLER');
         return $scope.documents.search.results;
         // search for taxonomy terms
         // search for matching variables/studies/... count
+      };
+
+      var selectCriteria = function(item) {
+        console.log(item);
+        $scope.selectedCriteria = null;
       };
 
       var searchKeyUp = function (event) {
@@ -322,6 +330,7 @@ console.log('THIS IS SEARCH CONTROLLER');
       $scope.headerTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('view');
       $scope.clearFilterTaxonomies = clearFilterTaxonomies;
       $scope.searchCriteria = searchCriteria;
+      $scope.selectCriteria = selectCriteria;
       $scope.searchKeyUp = searchKeyUp;
       $scope.filterTaxonomiesKeyUp = filterTaxonomiesKeyUp;
       $scope.navigateTaxonomy = navigateTaxonomy;

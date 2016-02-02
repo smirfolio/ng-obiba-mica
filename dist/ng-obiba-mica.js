@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-02-01
+ * Date: 2016-02-02
  */
 'use strict';
 
@@ -1396,13 +1396,16 @@ console.log('THIS IS SEARCH CONTROLLER');
                 taxonomy.vocabularies.forEach(function(vocabulary){
                   if(vocabulary.terms) {
                     vocabulary.terms.forEach(function(term){
-                      var criteria = {
-                        id: taxonomy.name + '::' + vocabulary.name + ':' + term.name,
-                        taxonomy: taxonomy,
-                        vocabulary: vocabulary,
-                        term: term
-                      };
-                      $scope.documents.search.results.push(criteria);
+                      if($scope.documents.search.results.length<10) {
+                        $scope.documents.search.results.push({
+                          id: taxonomy.name + '::' + vocabulary.name + ':' + term.name,
+                          taxonomy: taxonomy,
+                          vocabulary: vocabulary,
+                          term: term,
+                          target: 'variable',
+                          lang: $scope.lang
+                        });
+                      }
                     });
                   }
                 });
@@ -1417,6 +1420,11 @@ console.log('THIS IS SEARCH CONTROLLER');
         return $scope.documents.search.results;
         // search for taxonomy terms
         // search for matching variables/studies/... count
+      };
+
+      var selectCriteria = function(item) {
+        console.log(item);
+        $scope.selectedCriteria = null;
       };
 
       var searchKeyUp = function (event) {
@@ -1570,6 +1578,7 @@ console.log('THIS IS SEARCH CONTROLLER');
       $scope.headerTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('view');
       $scope.clearFilterTaxonomies = clearFilterTaxonomies;
       $scope.searchCriteria = searchCriteria;
+      $scope.selectCriteria = selectCriteria;
       $scope.searchKeyUp = searchKeyUp;
       $scope.filterTaxonomiesKeyUp = filterTaxonomiesKeyUp;
       $scope.navigateTaxonomy = navigateTaxonomy;
@@ -2670,19 +2679,26 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "            <div class=\"col-xs-6\">\n" +
     "                <script type=\"text/ng-template\" id=\"customTemplate.html\">\n" +
     "                    <a>\n" +
-    "                        <span ng-bind-html=\"match.model.id\"></span>\n" +
-    "                        <p ng-repeat=\"label in match.model.term.title\" ng-if=\"label.locale === lang\">\n" +
-    "                            {{label}}\n" +
-    "                        </p>\n" +
+    "                        <div ng-repeat=\"label in match.model.term.title\" ng-if=\"label.locale === match.model.lang\">\n" +
+    "                            {{label.text}}\n" +
+    "                        </div>\n" +
+    "                        <div class=\"help-block no-margin\">\n" +
+    "                            <small ng-repeat=\"label in match.model.vocabulary.title\"\n" +
+    "                                   ng-if=\"label.locale === match.model.lang\">\n" +
+    "                                {{label.text}}\n" +
+    "                            </small>\n" +
+    "                        </div>\n" +
     "                    </a>\n" +
     "                </script>\n" +
     "                <a href>\n" +
     "                    <span class=\"input-group input-group-sm no-padding-top\">\n" +
     "                        <input type=\"text\" ng-model=\"selectedCriteria\" placeholder=\"Search for criteria\"\n" +
-    "                            uib-typeahead=\"criteria for criteria in searchCriteria($viewValue)\"\n" +
-    "                            typeahead-loading=\"documents.search.active\"\n" +
-    "                            typeahead-template-url=\"customTemplate.html\"\n" +
-    "                            class=\"form-control\">\n" +
+    "                               uib-typeahead=\"criteria for criteria in searchCriteria($viewValue)\"\n" +
+    "                               typeahead-min-length=\"2\"\n" +
+    "                               typeahead-loading=\"documents.search.active\"\n" +
+    "                               typeahead-template-url=\"customTemplate.html\"\n" +
+    "                               typeahead-on-select=\"selectCriteria($item)\"\n" +
+    "                               class=\"form-control\">\n" +
     "                      <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-search\"></i></span>\n" +
     "                    </span>\n" +
     "                </a>\n" +
