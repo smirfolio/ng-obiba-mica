@@ -12,8 +12,11 @@
       <div class="col-xs-6">
         <script type="text/ng-template" id="customTemplate.html">
           <a ng-if="match.model.id">
+            <span title="{{match.model.target + '-classifications' | translate}}">
+              <i class="{{'i-obiba-' + match.model.target}}"></i>
+            </span>
             <span title="{{match.model.itemDescription}}">{{match.model.itemTitle}}</span>
-            <small class="help-block no-margin" title="{{match.model.itemParentDescription}}">
+            <small class="help-block no-margin hoffset3" title="{{match.model.itemParentDescription}}">
               {{match.model.itemParentTitle}}
             </small>
           </a>

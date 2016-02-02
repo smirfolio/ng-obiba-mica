@@ -2733,8 +2733,11 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      <div class=\"col-xs-6\">\n" +
     "        <script type=\"text/ng-template\" id=\"customTemplate.html\">\n" +
     "          <a ng-if=\"match.model.id\">\n" +
+    "            <span title=\"{{match.model.target + '-classifications' | translate}}\">\n" +
+    "              <i class=\"{{'i-obiba-' + match.model.target}}\"></i>\n" +
+    "            </span>\n" +
     "            <span title=\"{{match.model.itemDescription}}\">{{match.model.itemTitle}}</span>\n" +
-    "            <small class=\"help-block no-margin\" title=\"{{match.model.itemParentDescription}}\">\n" +
+    "            <small class=\"help-block no-margin hoffset3\" title=\"{{match.model.itemParentDescription}}\">\n" +
     "              {{match.model.itemParentTitle}}\n" +
     "            </small>\n" +
     "          </a>\n" +
