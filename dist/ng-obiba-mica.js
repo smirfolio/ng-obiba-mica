@@ -1378,27 +1378,22 @@ angular.module('obiba.mica.search')
       };
 
       var searchCriteria = function (query) {
-        $scope.documents.search.active = true;
         console.log(query);
-        if (query && query.length === 1) {
-          $scope.documents.search.results = [];
-          $scope.documents.search.active = false;
-          return;
-        }
-
-        TaxonomiesResource.get({
+        // search for taxonomy terms
+        // search for matching variables/studies/... count
+        return TaxonomiesResource.get({
           target: 'variable',
           query: query
-        }, function onSuccess(response) {
-          $scope.documents.search.results = [];
+        }).$promise.then(function(response){
           if (response) {
+            var results = [];
             response.forEach(function (taxonomy) {
               if (taxonomy.vocabularies) {
                 taxonomy.vocabularies.forEach(function (vocabulary) {
                   if (vocabulary.terms) {
                     vocabulary.terms.forEach(function (term) {
-                      if ($scope.documents.search.results.length < 10) {
-                        $scope.documents.search.results.push({
+                      if (results.length < 10) {
+                        results.push({
                           id: taxonomy.name + '::' + vocabulary.name + ':' + term.name,
                           taxonomy: taxonomy,
                           vocabulary: vocabulary,
@@ -1412,15 +1407,11 @@ angular.module('obiba.mica.search')
                 });
               }
             });
+            return results;
+          } else {
+            return [];
           }
-          $scope.documents.search.active = false;
-        }, function onError() {
-          $scope.documents.search.results = [];
-          $scope.documents.search.active = false;
         });
-        return $scope.documents.search.results;
-        // search for taxonomy terms
-        // search for matching variables/studies/... count
       };
 
       var selectCriteria = function (item) {
@@ -1561,8 +1552,7 @@ angular.module('obiba.mica.search')
       $scope.documents = {
         search: {
           text: null,
-          active: false,
-          results: []
+          active: false
         }
       };
 
