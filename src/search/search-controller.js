@@ -47,10 +47,6 @@ angular.module('obiba.mica.search')
               AlertService,
               ServerErrorUtils) {
 
-
-      console.log('THIS IS SEARCH CONTROLLER');
-
-
       function createCriteria(target, taxonomy, vocabulary, term) {
         var id = taxonomy.name + '::' + vocabulary.name;
         if (term) {
@@ -259,7 +255,8 @@ angular.module('obiba.mica.search')
         }).$promise.then(function (response) {
           if (response) {
             var results = [];
-            var count = 0;
+            var total = 0;
+            var size = 10;
             response.forEach(function (bundle) {
               var target = bundle.target;
               var taxonomy = bundle.taxonomy;
@@ -267,20 +264,30 @@ angular.module('obiba.mica.search')
                 taxonomy.vocabularies.forEach(function (vocabulary) {
                   if (vocabulary.terms) {
                     vocabulary.terms.forEach(function (term) {
-                      if (results.length < 10) {
+                      if (results.length < size) {
                         results.push(createCriteria(target, taxonomy, vocabulary, term));
                       }
-                      count++;
+                      total++;
                     });
                   } else {
-                    if (results.length < 10) {
+                    if (results.length < size) {
                       results.push(createCriteria(target, taxonomy, vocabulary));
                     }
-                    count++;
+                    total++;
                   }
                 });
               }
             });
+            if(total > results.length) {
+              var note = {
+                query: query,
+                total: total,
+                size: size,
+                message: 'Showing ' + size + ' / ' + total,
+                status: 'has-warning'
+              };
+              results.push(note);
+            }
             return results;
           } else {
             return [];
@@ -289,8 +296,11 @@ angular.module('obiba.mica.search')
       };
 
       var selectCriteria = function (item) {
-        console.log(item);
-        $scope.selectedCriteria = null;
+        if(item.id){
+          $scope.selectedCriteria = null;
+        } else {
+          $scope.selectedCriteria = item.query;
+        }
       };
 
       var searchKeyUp = function (event) {

@@ -1296,10 +1296,6 @@ angular.module('obiba.mica.search')
               AlertService,
               ServerErrorUtils) {
 
-
-      console.log('THIS IS SEARCH CONTROLLER');
-
-
       function createCriteria(target, taxonomy, vocabulary, term) {
         var id = taxonomy.name + '::' + vocabulary.name;
         if (term) {
@@ -1508,7 +1504,8 @@ angular.module('obiba.mica.search')
         }).$promise.then(function (response) {
           if (response) {
             var results = [];
-            var count = 0;
+            var total = 0;
+            var size = 10;
             response.forEach(function (bundle) {
               var target = bundle.target;
               var taxonomy = bundle.taxonomy;
@@ -1516,20 +1513,30 @@ angular.module('obiba.mica.search')
                 taxonomy.vocabularies.forEach(function (vocabulary) {
                   if (vocabulary.terms) {
                     vocabulary.terms.forEach(function (term) {
-                      if (results.length < 10) {
+                      if (results.length < size) {
                         results.push(createCriteria(target, taxonomy, vocabulary, term));
                       }
-                      count++;
+                      total++;
                     });
                   } else {
-                    if (results.length < 10) {
+                    if (results.length < size) {
                       results.push(createCriteria(target, taxonomy, vocabulary));
                     }
-                    count++;
+                    total++;
                   }
                 });
               }
             });
+            if(total > results.length) {
+              var note = {
+                query: query,
+                total: total,
+                size: size,
+                message: 'Showing ' + size + ' / ' + total,
+                status: 'has-warning'
+              };
+              results.push(note);
+            }
             return results;
           } else {
             return [];
@@ -1538,8 +1545,11 @@ angular.module('obiba.mica.search')
       };
 
       var selectCriteria = function (item) {
-        console.log(item);
-        $scope.selectedCriteria = null;
+        if(item.id){
+          $scope.selectedCriteria = null;
+        } else {
+          $scope.selectedCriteria = item.query;
+        }
       };
 
       var searchKeyUp = function (event) {
@@ -2722,10 +2732,15 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      <div class=\"col-xs-3\"></div>\n" +
     "      <div class=\"col-xs-6\">\n" +
     "        <script type=\"text/ng-template\" id=\"customTemplate.html\">\n" +
-    "          <a>\n" +
+    "          <a ng-if=\"match.model.id\">\n" +
     "            <span title=\"{{match.model.itemDescription}}\">{{match.model.itemTitle}}</span>\n" +
     "            <small class=\"help-block no-margin\" title=\"{{match.model.itemParentDescription}}\">\n" +
     "              {{match.model.itemParentTitle}}\n" +
+    "            </small>\n" +
+    "          </a>\n" +
+    "          <a ng-if=\"!match.model.id\" class=\"{{match.model.status}}\">\n" +
+    "            <small class=\"help-block no-margin\">\n" +
+    "              {{match.model.message}}\n" +
     "            </small>\n" +
     "          </a>\n" +
     "        </script>\n" +
@@ -2751,9 +2766,17 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "            title=\"{{'variable-classifications' | translate}}\">\n" +
     "            <a ng-click=\"selectTaxonomyTarget('variable')\" translate>variables</a>\n" +
     "          </li>\n" +
+    "          <li ng-class=\"{'active': taxonomies.target === 'dataset' && taxonomiesShown}\"\n" +
+    "            title=\"{{'dataset-classifications' | translate}}\">\n" +
+    "            <a ng-click=\"selectTaxonomyTarget('dataset')\" translate>datasets</a>\n" +
+    "          </li>\n" +
     "          <li ng-class=\"{'active': taxonomies.target === 'study' && taxonomiesShown}\"\n" +
     "            title=\"{{'study-classifications' | translate}}\">\n" +
     "            <a ng-click=\"selectTaxonomyTarget('study')\" translate>studies</a>\n" +
+    "          </li>\n" +
+    "          <li ng-class=\"{'active': taxonomies.target === 'network' && taxonomiesShown}\"\n" +
+    "            title=\"{{'network-classifications' | translate}}\">\n" +
+    "            <a ng-click=\"selectTaxonomyTarget('network')\" translate>networks</a>\n" +
     "          </li>\n" +
     "          <li ng-if=\"taxonomiesShown\">\n" +
     "            <a href ng-click=\"closeTaxonomies()\" title=\"{{'close' | translate}}\"><i class=\"fa fa-close\"></i>\n" +
@@ -3046,7 +3069,6 @@ angular.module("search/views/taxonomy-template.html", []).run(["$templateCache",
 angular.module("search/views/term-panel-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/term-panel-template.html",
     "<div>\n" +
-    "  {{target}}\n" +
     "  <h4 ng-repeat=\"label in term.title\" ng-if=\"label.locale === lang\">\n" +
     "    {{label.text}}\n" +
     "    <small>\n" +
