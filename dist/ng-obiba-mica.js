@@ -2718,7 +2718,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "            title=\"{{'study-classifications' | translate}}\">\n" +
     "            <a ng-click=\"selectTaxonomyTarget('study')\" translate>studies</a>\n" +
     "          </li>\n" +
-    "          <li ng-if=\"taxonomiesShown\">1\n" +
+    "          <li ng-if=\"taxonomiesShown\">\n" +
     "            <a href ng-click=\"closeTaxonomies()\" title=\"{{'close' | translate}}\"><i class=\"fa fa-close\"></i>\n" +
     "            </a>\n" +
     "          </li>\n" +
