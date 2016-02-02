@@ -3211,10 +3211,10 @@ angular.module("search/views/variables-search-result-table-template.html", []).r
     "          <localized value=\"summary.variableLabel\" lang=\"lang\"></localized>\n" +
     "        </td>\n" +
     "        <td>\n" +
-    "          <localized value=\"summary.studyName\" lang=\"lang\"></localized>\n" +
+    "          <localized value=\"summary.studyAcronym\" lang=\"lang\"></localized>\n" +
     "        </td>\n" +
     "        <td>\n" +
-    "          <localized value=\"summary.datasetName\" lang=\"lang\"></localized>\n" +
+    "          <localized value=\"summary.datasetAcronym\" lang=\"lang\"></localized>\n" +
     "        </td>\n" +
     "      </tr>\n" +
     "      </tbody>\n" +
