@@ -33,6 +33,7 @@ angular.module('obiba.mica.search')
     'QUERY_TYPES',
     'AlertService',
     'ServerErrorUtils',
+    'LocalizeService',
     function ($scope,
               $timeout,
               $routeParams,
@@ -45,7 +46,8 @@ angular.module('obiba.mica.search')
               JoinQuerySearchResource,
               QUERY_TYPES,
               AlertService,
-              ServerErrorUtils) {
+              ServerErrorUtils,
+              LocalizeService) {
 
       function createCriteria(target, taxonomy, vocabulary, term) {
         var id = taxonomy.name + '::' + vocabulary.name;
@@ -65,24 +67,12 @@ angular.module('obiba.mica.search')
           itemParentDescription: ''
         };
 
-        var extractLabel = function(labels) {
-          var res;
-          if(labels) {
-            labels.forEach(function (label) {
-              if (label.locale === $scope.lang) {
-                res = label.text;
-              }
-            });
-          }
-          return res;
-        };
-
         // prepare some labels for display
         if(term) {
-          criteria.itemTitle = extractLabel(term.title);
-          criteria.itemDescription = extractLabel(term.description);
-          criteria.itemParentTitle = extractLabel(vocabulary.title);
-          criteria.itemParentDescription = extractLabel(vocabulary.description);
+          criteria.itemTitle = LocalizeService.localize(term, 'title', $scope.lang);
+          criteria.itemDescription = LocalizeService.localize(term, 'description',$scope.lang);
+          criteria.itemParentTitle = LocalizeService.localize(vocabulary, 'title', $scope.lang);
+          criteria.itemParentDescription = LocalizeService.localize(vocabulary, 'description', $scope.lang);
           if (!criteria.itemTitle) {
             criteria.itemTitle = term.name;
           }
@@ -90,8 +80,8 @@ angular.module('obiba.mica.search')
             criteria.itemParentTitle = vocabulary.name;
           }
         } else {
-          criteria.itemTitle = extractLabel(vocabulary.title);
-          criteria.itemDescription = extractLabel(vocabulary.description);
+          criteria.itemTitle = LocalizeService.localize(vocabulary, 'title', $scope.lang);
+          criteria.itemDescription = LocalizeService.localize(vocabulary, 'description', $scope.lang);
           if (!criteria.itemTitle) {
             criteria.itemTitle = vocabulary.name;
           }
@@ -168,7 +158,7 @@ angular.module('obiba.mica.search')
       }
 
       var closeTaxonomies = function () {
-        $('#taxonomies').collapse('hide');
+        angular.element('#taxonomies').collapse('hide');
       };
 
       var filterTaxonomies = function (query) {
@@ -212,7 +202,7 @@ angular.module('obiba.mica.search')
 
       var selectTaxonomyTarget = function (target) {
         if (!$scope.taxonomiesShown) {
-          $('#taxonomies').collapse('show');
+          angular.element('#taxonomies').collapse('show');
         }
         if ($scope.taxonomies.target !== target) {
           $scope.taxonomies.target = target;
@@ -296,7 +286,9 @@ angular.module('obiba.mica.search')
       };
 
       var selectCriteria = function (item) {
+        console.log('selectCriteria', item);
         if(item.id){
+          $scope.search.criteria.push(item);
           $scope.selectedCriteria = null;
         } else {
           $scope.selectedCriteria = item.query;
@@ -347,7 +339,8 @@ angular.module('obiba.mica.search')
       $scope.search = {
         query: null,
         type: null,
-        result: null
+        result: null,
+        criteria: []
       };
 
       $scope.documents = {
@@ -382,10 +375,10 @@ angular.module('obiba.mica.search')
       $scope.taxonomiesShown = false;
 
       //// TODO replace with angular code
-      $('#taxonomies').on('show.bs.collapse', function () {
+      angular.element('#taxonomies').on('show.bs.collapse', function () {
         $scope.taxonomiesShown = true;
       });
-      $('#taxonomies').on('hide.bs.collapse', function () {
+      angular.element('#taxonomies').on('hide.bs.collapse', function () {
         $scope.taxonomiesShown = false;
       });
 
@@ -422,5 +415,32 @@ angular.module('obiba.mica.search')
           variables: $scope.type === QUERY_TYPES.VARIABLES || false
         };
       });
+
+    }])
+
+  .controller('QueryDropdownController', [
+    '$scope',
+    'LocalizeService',
+    function ($scope, LocalizeService) {
+      console.log('QueryDropdownController', $scope);
+
+      $scope.selectTerm = function(term) {
+        console.log('Selected term', term);
+      };
+
+      $scope.title = function() {
+        return LocalizeService.localize($scope.criterion.vocabulary, 'title', $scope.criterion.lang);
+      };
+
+      $scope.termTitle = function(term) {
+        return LocalizeService.localize(term, 'title', $scope.criterion.lang);
+      };
+    }])
+
+  .controller('QueryPanelController', [
+    '$scope',
+    function ($scope) {
+      console.log('QueryPanelController', $scope);
+
 
     }]);
