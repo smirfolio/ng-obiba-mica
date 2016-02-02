@@ -1393,14 +1393,40 @@ angular.module('obiba.mica.search')
                   if (vocabulary.terms) {
                     vocabulary.terms.forEach(function (term) {
                       if (results.length < 10) {
-                        results.push({
+                        var criteria = {
                           id: taxonomy.name + '::' + vocabulary.name + ':' + term.name,
                           taxonomy: taxonomy,
                           vocabulary: vocabulary,
                           term: term,
                           target: 'variable',
-                          lang: $scope.lang
+                          lang: $scope.lang,
+                          vocabularyTitle: vocabulary.name,
+                          vocabularyDescription: '',
+                          termTitle: term.name,
+                          termDescription: ''
+                        };
+                        // prepare some labels for display
+                        vocabulary.title.forEach(function(label){
+                          if(label.locale === $scope.lang) {
+                            criteria.vocabularyTitle = label.text;
+                          }
                         });
+                        vocabulary.description.forEach(function(label){
+                          if(label.locale === $scope.lang) {
+                            criteria.vocabularyDescription = label.text;
+                          }
+                        });
+                        term.title.forEach(function(label){
+                          if(label.locale === $scope.lang) {
+                            criteria.termTitle = label.text;
+                          }
+                        });
+                        term.description.forEach(function(label){
+                          if(label.locale === $scope.lang) {
+                            criteria.termDescription = label.text;
+                          }
+                        });
+                        results.push(criteria);
                       }
                     });
                   }
@@ -2671,14 +2697,9 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      <div class=\"col-xs-6\">\n" +
     "        <script type=\"text/ng-template\" id=\"customTemplate.html\">\n" +
     "          <a>\n" +
-    "            <div ng-repeat=\"label in match.model.term.title\" ng-if=\"label.locale === match.model.lang\">\n" +
-    "              {{label.text}}\n" +
-    "            </div>\n" +
-    "            <div class=\"help-block no-margin\">\n" +
-    "              <small ng-repeat=\"label in match.model.vocabulary.title\"\n" +
-    "                ng-if=\"label.locale === match.model.lang\">\n" +
-    "                {{label.text}}\n" +
-    "              </small>\n" +
+    "            <span title=\"{{match.model.termDescription}}\">{{match.model.termTitle}}</span>\n" +
+    "            <div class=\"help-block no-margin\" title=\"{{match.model.vocabularyDescription}}\">\n" +
+    "              {{match.model.vocabularyTitle}}\n" +
     "            </div>\n" +
     "          </a>\n" +
     "        </script>\n" +
