@@ -13,6 +13,7 @@ function NgObibaMicaUrlProvider() {
     'TempFileUploadResource': 'ws/files/temp',
     'TempFileResource': 'ws/files/temp/:id',
     'PublishedStudiesSearchResource': 'ws/:type/_search',
+    'TaxonomiesSearchResource': 'ws/taxonomies/_search',
     'TaxonomiesResource': 'ws/taxonomies/_filter',
     'TaxonomyResource': 'ws/taxonomy/:taxonomy/_filter',
     'VocabularyResource': 'ws/taxonomy/:taxonomy/vocabulary/:vocabulary/_filter',

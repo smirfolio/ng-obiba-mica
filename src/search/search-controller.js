@@ -24,6 +24,7 @@ angular.module('obiba.mica.search')
     '$timeout',
     '$routeParams',
     '$location',
+    'TaxonomiesSearchResource',
     'TaxonomiesResource',
     'TaxonomyResource',
     'VocabularyResource',
@@ -36,6 +37,7 @@ angular.module('obiba.mica.search')
               $timeout,
               $routeParams,
               $location,
+              TaxonomiesSearchResource,
               TaxonomiesResource,
               TaxonomyResource,
               VocabularyResource,
@@ -49,41 +51,55 @@ angular.module('obiba.mica.search')
       console.log('THIS IS SEARCH CONTROLLER');
 
 
-      function createSearchCriteria(target, taxonomy, vocabulary, term) {
+      function createCriteria(target, taxonomy, vocabulary, term) {
+        var id = taxonomy.name + '::' + vocabulary.name;
+        if (term) {
+          id = id + ':' + term.name;
+        }
         var criteria = {
-          id: taxonomy.name + '::' + vocabulary.name + ':' + term.name,
+          id: id,
           taxonomy: taxonomy,
           vocabulary: vocabulary,
           term: term,
           target: target,
           lang: $scope.lang,
-          vocabularyTitle: vocabulary.name,
-          vocabularyDescription: '',
-          termTitle: term.name,
-          termDescription: ''
+          itemTitle: '',
+          itemDescription: '',
+          itemParentTitle: '',
+          itemParentDescription: ''
+        };
+
+        var extractLabel = function(labels) {
+          var res;
+          if(labels) {
+            labels.forEach(function (label) {
+              if (label.locale === $scope.lang) {
+                res = label.text;
+              }
+            });
+          }
+          return res;
         };
 
         // prepare some labels for display
-        vocabulary.title.forEach(function(label){
-          if(label.locale === $scope.lang) {
-            criteria.vocabularyTitle = label.text;
+        if(term) {
+          criteria.itemTitle = extractLabel(term.title);
+          criteria.itemDescription = extractLabel(term.description);
+          criteria.itemParentTitle = extractLabel(vocabulary.title);
+          criteria.itemParentDescription = extractLabel(vocabulary.description);
+          if (!criteria.itemTitle) {
+            criteria.itemTitle = term.name;
           }
-        });
-        vocabulary.description.forEach(function(label){
-          if(label.locale === $scope.lang) {
-            criteria.vocabularyDescription = label.text;
+          if (!criteria.itemParentTitle) {
+            criteria.itemParentTitle = vocabulary.name;
           }
-        });
-        term.title.forEach(function(label){
-          if(label.locale === $scope.lang) {
-            criteria.termTitle = label.text;
+        } else {
+          criteria.itemTitle = extractLabel(vocabulary.title);
+          criteria.itemDescription = extractLabel(vocabulary.description);
+          if (!criteria.itemTitle) {
+            criteria.itemTitle = vocabulary.name;
           }
-        });
-        term.description.forEach(function(label){
-          if(label.locale === $scope.lang) {
-            criteria.termDescription = label.text;
-          }
-        });
+        }
 
         return criteria;
       }
@@ -236,24 +252,31 @@ angular.module('obiba.mica.search')
       };
 
       var searchCriteria = function (query) {
-        console.log(query);
         // search for taxonomy terms
         // search for matching variables/studies/... count
-        return TaxonomiesResource.get({
-          target: 'variable',
+        return TaxonomiesSearchResource.get({
           query: query
-        }).$promise.then(function(response){
+        }).$promise.then(function (response) {
           if (response) {
             var results = [];
-            response.forEach(function (taxonomy) {
+            var count = 0;
+            response.forEach(function (bundle) {
+              var target = bundle.target;
+              var taxonomy = bundle.taxonomy;
               if (taxonomy.vocabularies) {
                 taxonomy.vocabularies.forEach(function (vocabulary) {
                   if (vocabulary.terms) {
                     vocabulary.terms.forEach(function (term) {
                       if (results.length < 10) {
-                        results.push(createSearchCriteria('variable', taxonomy, vocabulary, term));
+                        results.push(createCriteria(target, taxonomy, vocabulary, term));
                       }
+                      count++;
                     });
+                  } else {
+                    if (results.length < 10) {
+                      results.push(createCriteria(target, taxonomy, vocabulary));
+                    }
+                    count++;
                   }
                 });
               }
@@ -296,7 +319,7 @@ angular.module('obiba.mica.search')
       };
 
       var selectTerm = function (target, taxonomy, vocabulary, term) {
-        selectCriteria(createSearchCriteria(target, taxonomy, vocabulary, term));
+        selectCriteria(createCriteria(target, taxonomy, vocabulary, term));
       };
 
       var onTypeChanged = function (type) {
