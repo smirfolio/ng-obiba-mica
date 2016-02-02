@@ -12,14 +12,9 @@
       <div class="col-xs-6">
         <script type="text/ng-template" id="customTemplate.html">
           <a>
-            <div ng-repeat="label in match.model.term.title" ng-if="label.locale === match.model.lang">
-              {{label.text}}
-            </div>
-            <div class="help-block no-margin">
-              <small ng-repeat="label in match.model.vocabulary.title"
-                ng-if="label.locale === match.model.lang">
-                {{label.text}}
-              </small>
+            <span title="{{match.model.termDescription}}">{{match.model.termTitle}}</span>
+            <div class="help-block no-margin" title="{{match.model.vocabularyDescription}}">
+              {{match.model.vocabularyTitle}}
             </div>
           </a>
         </script>

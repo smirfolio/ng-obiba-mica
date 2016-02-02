@@ -145,14 +145,40 @@ angular.module('obiba.mica.search')
                   if (vocabulary.terms) {
                     vocabulary.terms.forEach(function (term) {
                       if (results.length < 10) {
-                        results.push({
+                        var criteria = {
                           id: taxonomy.name + '::' + vocabulary.name + ':' + term.name,
                           taxonomy: taxonomy,
                           vocabulary: vocabulary,
                           term: term,
                           target: 'variable',
-                          lang: $scope.lang
+                          lang: $scope.lang,
+                          vocabularyTitle: vocabulary.name,
+                          vocabularyDescription: '',
+                          termTitle: term.name,
+                          termDescription: ''
+                        };
+                        // prepare some labels for display
+                        vocabulary.title.forEach(function(label){
+                          if(label.locale === $scope.lang) {
+                            criteria.vocabularyTitle = label.text;
+                          }
                         });
+                        vocabulary.description.forEach(function(label){
+                          if(label.locale === $scope.lang) {
+                            criteria.vocabularyDescription = label.text;
+                          }
+                        });
+                        term.title.forEach(function(label){
+                          if(label.locale === $scope.lang) {
+                            criteria.termTitle = label.text;
+                          }
+                        });
+                        term.description.forEach(function(label){
+                          if(label.locale === $scope.lang) {
+                            criteria.termDescription = label.text;
+                          }
+                        });
+                        results.push(criteria);
                       }
                     });
                   }
