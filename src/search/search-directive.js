@@ -111,5 +111,29 @@ angular.module('obiba.mica.search')
       controller: 'SearchResultController',
       templateUrl: 'search/views/search-result-panel-template.html'
     };
+  }])
 
+  .directive('queryDropdown', [function () {
+    return {
+      restrict: 'EA',
+      replace: true,
+      scope: {
+        criterion: '=',
+        onSelect: '='
+      },
+      controller: 'QueryDropdownController',
+      templateUrl: 'search/views/query-dropdown-template.html'
+    };
+  }])
+
+  .directive('queryPanel', [function () {
+    return {
+      restrict: 'EA',
+      replace: true,
+      scope: {
+        criteria: '='
+      },
+      controller: 'QueryPanelController',
+      templateUrl: 'search/views/query-panel-template.html'
+    };
   }]);
