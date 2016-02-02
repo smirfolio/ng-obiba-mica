@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-02-01
+ * Date: 2016-02-02
  */
 'use strict';
 
@@ -1294,7 +1294,7 @@ angular.module('obiba.mica.search')
               ServerErrorUtils) {
 
 
-console.log('THIS IS SEARCH CONTROLLER');
+      console.log('THIS IS SEARCH CONTROLLER');
 
 
       var closeTaxonomies = function () {
@@ -1377,10 +1377,55 @@ console.log('THIS IS SEARCH CONTROLLER');
         $scope.documents.search.active = false;
       };
 
-      var searchDocuments = function (/*query*/) {
+      var searchCriteria = function (query) {
         $scope.documents.search.active = true;
+        console.log(query);
+        if (query && query.length === 1) {
+          $scope.documents.search.results = [];
+          $scope.documents.search.active = false;
+          return;
+        }
+
+        TaxonomiesResource.get({
+          target: 'variable',
+          query: query
+        }, function onSuccess(response) {
+          $scope.documents.search.results = [];
+          if (response) {
+            response.forEach(function (taxonomy) {
+              if (taxonomy.vocabularies) {
+                taxonomy.vocabularies.forEach(function (vocabulary) {
+                  if (vocabulary.terms) {
+                    vocabulary.terms.forEach(function (term) {
+                      if ($scope.documents.search.results.length < 10) {
+                        $scope.documents.search.results.push({
+                          id: taxonomy.name + '::' + vocabulary.name + ':' + term.name,
+                          taxonomy: taxonomy,
+                          vocabulary: vocabulary,
+                          term: term,
+                          target: 'variable',
+                          lang: $scope.lang
+                        });
+                      }
+                    });
+                  }
+                });
+              }
+            });
+          }
+          $scope.documents.search.active = false;
+        }, function onError() {
+          $scope.documents.search.results = [];
+          $scope.documents.search.active = false;
+        });
+        return $scope.documents.search.results;
         // search for taxonomy terms
         // search for matching variables/studies/... count
+      };
+
+      var selectCriteria = function (item) {
+        console.log(item);
+        $scope.selectedCriteria = null;
       };
 
       var searchKeyUp = function (event) {
@@ -1393,7 +1438,7 @@ console.log('THIS IS SEARCH CONTROLLER');
 
           default:
             if ($scope.documents.search.text) {
-              searchDocuments($scope.documents.search.text);
+              searchCriteria($scope.documents.search.text);
             }
             break;
         }
@@ -1473,7 +1518,7 @@ console.log('THIS IS SEARCH CONTROLLER');
 
       function executeQuery() {
         if (validateQueryData()) {
-           JoinQuerySearchResource[$scope.search.type]({query: $scope.search.query},
+          JoinQuerySearchResource[$scope.search.type]({query: $scope.search.query},
             function onSuccess(response) {
               $scope.search.result = response;
               console.log('>>> Response', $scope.search.result);
@@ -1495,7 +1540,7 @@ console.log('THIS IS SEARCH CONTROLLER');
         executeQuery();
       }
 
-      var onTypeChanged = function(type) {
+      var onTypeChanged = function (type) {
         if (type) {
           validateType(type);
           var search = $location.search();
@@ -1516,7 +1561,8 @@ console.log('THIS IS SEARCH CONTROLLER');
       $scope.documents = {
         search: {
           text: null,
-          active: false
+          active: false,
+          results: []
         }
       };
 
@@ -1533,6 +1579,8 @@ console.log('THIS IS SEARCH CONTROLLER');
 
       $scope.headerTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('view');
       $scope.clearFilterTaxonomies = clearFilterTaxonomies;
+      $scope.searchCriteria = searchCriteria;
+      $scope.selectCriteria = selectCriteria;
       $scope.searchKeyUp = searchKeyUp;
       $scope.filterTaxonomiesKeyUp = filterTaxonomiesKeyUp;
       $scope.navigateTaxonomy = navigateTaxonomy;
@@ -1554,7 +1602,7 @@ console.log('THIS IS SEARCH CONTROLLER');
         initialize();
       });
 
-      $scope.$on('$locationChangeSuccess', function(newLocation, oldLocation) {
+      $scope.$on('$locationChangeSuccess', function (newLocation, oldLocation) {
         if (newLocation !== oldLocation) {
           executeQuery();
         }
@@ -1566,7 +1614,7 @@ console.log('THIS IS SEARCH CONTROLLER');
     '$scope',
     'QUERY_TYPES',
     function ($scope, QUERY_TYPES) {
-      var selectTab = function(type) {
+      var selectTab = function (type) {
         console.log('Type', type);
         $scope.type = type;
         $scope.$parent.onTypeChanged(type);
@@ -1575,7 +1623,7 @@ console.log('THIS IS SEARCH CONTROLLER');
       $scope.selectTab = selectTab;
       $scope.QUERY_TYPES = QUERY_TYPES;
 
-      $scope.$watch('type', function() {
+      $scope.$watch('type', function () {
         $scope.activeTab = {
           networks: $scope.type === QUERY_TYPES.NETWORKS || false,
           studies: $scope.type === QUERY_TYPES.STUDIES || false,
@@ -2627,13 +2675,32 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "\n" +
     "  <!-- Classifications region -->\n" +
     "  <div>\n" +
-    "  <!--<div>-->\n" +
+    "    <!--<div>-->\n" +
     "    <div class=\"row\">\n" +
     "      <div class=\"col-xs-3\"></div>\n" +
     "      <div class=\"col-xs-6\">\n" +
+    "        <script type=\"text/ng-template\" id=\"customTemplate.html\">\n" +
+    "          <a>\n" +
+    "            <div ng-repeat=\"label in match.model.term.title\" ng-if=\"label.locale === match.model.lang\">\n" +
+    "              {{label.text}}\n" +
+    "            </div>\n" +
+    "            <div class=\"help-block no-margin\">\n" +
+    "              <small ng-repeat=\"label in match.model.vocabulary.title\"\n" +
+    "                ng-if=\"label.locale === match.model.lang\">\n" +
+    "                {{label.text}}\n" +
+    "              </small>\n" +
+    "            </div>\n" +
+    "          </a>\n" +
+    "        </script>\n" +
     "        <a href>\n" +
     "        <span class=\"input-group input-group-sm no-padding-top\">\n" +
-    "          <input ng-keyup=\"searchKeyUp($event)\" ng-model=\"documents.search.text\" type=\"text\" class=\"form-control ng-pristine ng-untouched ng-valid\" aria-describedby=\"study-search\">\n" +
+    "          <input type=\"text\" ng-model=\"selectedCriteria\" placeholder=\"Search for criteria\"\n" +
+    "            uib-typeahead=\"criteria for criteria in searchCriteria($viewValue)\"\n" +
+    "            typeahead-min-length=\"2\"\n" +
+    "            typeahead-loading=\"documents.search.active\"\n" +
+    "            typeahead-template-url=\"customTemplate.html\"\n" +
+    "            typeahead-on-select=\"selectCriteria($item)\"\n" +
+    "            class=\"form-control\">\n" +
     "          <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-search\"></i></span>\n" +
     "        </span>\n" +
     "        </a>\n" +
@@ -2643,14 +2710,17 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      <div class=\"col-xs-3\"></div>\n" +
     "      <div class=\"col-xs-6\">\n" +
     "        <ul class=\"nav nav-pills\">\n" +
-    "          <li ng-class=\"{'active': taxonomies.target === 'variable' && taxonomiesShown}\" title=\"{{'variable-classifications' | translate}}\">\n" +
+    "          <li ng-class=\"{'active': taxonomies.target === 'variable' && taxonomiesShown}\"\n" +
+    "            title=\"{{'variable-classifications' | translate}}\">\n" +
     "            <a ng-click=\"selectTaxonomyTarget('variable')\" translate>variables</a>\n" +
     "          </li>\n" +
-    "          <li ng-class=\"{'active': taxonomies.target === 'study' && taxonomiesShown}\" title=\"{{'study-classifications' | translate}}\">\n" +
+    "          <li ng-class=\"{'active': taxonomies.target === 'study' && taxonomiesShown}\"\n" +
+    "            title=\"{{'study-classifications' | translate}}\">\n" +
     "            <a ng-click=\"selectTaxonomyTarget('study')\" translate>studies</a>\n" +
     "          </li>\n" +
     "          <li ng-if=\"taxonomiesShown\">\n" +
-    "            <a href ng-click=\"closeTaxonomies()\" title=\"{{'close' | translate}}\"><i class=\"fa fa-close\"></i> </a>\n" +
+    "            <a href ng-click=\"closeTaxonomies()\" title=\"{{'close' | translate}}\"><i class=\"fa fa-close\"></i>\n" +
+    "            </a>\n" +
     "          </li>\n" +
     "        </ul>\n" +
     "      </div>\n" +
@@ -2665,7 +2735,8 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "    <div class=\"row voffset4\">\n" +
     "      <div class=\"col-xs-12\">\n" +
     "        <div class=\"btn-group dropdown\" is-open=\"status.isopen\">\n" +
-    "          <button type=\"button\" class=\"btn btn-info btn-sm dropdown-toggle\" ng-disabled=\"disabled\" data-toggle=\"dropdown\">\n" +
+    "          <button type=\"button\" class=\"btn btn-info btn-sm dropdown-toggle\" ng-disabled=\"disabled\"\n" +
+    "            data-toggle=\"dropdown\">\n" +
     "            Study: All <span class=\"caret\"></span>\n" +
     "          </button>\n" +
     "          <ul class=\"dropdown-menu\" role=\"menu\">\n" +
@@ -2675,7 +2746,8 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "        </div>\n" +
     "\n" +
     "        <div class=\"btn-group dropdown\" is-open=\"status.isopen\">\n" +
-    "          <button type=\"button\" class=\"btn btn-default btn-sm dropdown-toggle\" ng-disabled=\"disabled\" data-toggle=\"dropdown\">\n" +
+    "          <button type=\"button\" class=\"btn btn-default btn-sm dropdown-toggle\" ng-disabled=\"disabled\"\n" +
+    "            data-toggle=\"dropdown\">\n" +
     "            OR <span class=\"caret\"></span>\n" +
     "          </button>\n" +
     "          <ul class=\"dropdown-menu\" role=\"menu\">\n" +
@@ -2684,7 +2756,8 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "        </div>\n" +
     "\n" +
     "        <div class=\"btn-group dropdown\" is-open=\"status.isopen\">\n" +
-    "          <button type=\"button\" class=\"btn btn-info btn-sm dropdown-toggle\" ng-disabled=\"disabled\" data-toggle=\"dropdown\">\n" +
+    "          <button type=\"button\" class=\"btn btn-info btn-sm dropdown-toggle\" ng-disabled=\"disabled\"\n" +
+    "            data-toggle=\"dropdown\">\n" +
     "            Study designs: All <span class=\"caret\"></span>\n" +
     "          </button>\n" +
     "          <ul class=\"dropdown-menu\" role=\"menu\">\n" +
