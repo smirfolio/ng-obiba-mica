@@ -26,7 +26,7 @@ angular.module('obiba.mica.localized')
         lang: '=',
         help: '@'
       },
-      templateUrl: 'app/commons/localized/localized-input-template.html',
+      templateUrl: 'localized/localized-input-template.html',
       link: function ($scope, elem, attr, ctrl) {
         if (angular.isUndefined($scope.model) || $scope.model === null) {
           $scope.model = [
@@ -70,7 +70,7 @@ angular.module('obiba.mica.localized')
         help: '@',
         remove: '='
       },
-      templateUrl: 'app/commons/localized/localized-input-group-template.html',
+      templateUrl: 'localized/localized-input-group-template.html',
       link: function ($scope, elem, attr, ctrl) {
         if (angular.isUndefined($scope.model) || $scope.model === null) {
           $scope.model = [
@@ -114,7 +114,7 @@ angular.module('obiba.mica.localized')
         help: '@',
         rows: '@'
       },
-      templateUrl: 'app/commons/localized/localized-textarea-template.html',
+      templateUrl: 'localized/localized-textarea-template.html',
       link: function ($scope, elem, attr, ctrl) {
         if (angular.isUndefined($scope.model) || $scope.model === null) {
           $scope.model = [

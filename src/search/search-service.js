@@ -78,20 +78,4 @@ angular.module('obiba.mica.search')
           errorHandler: true
         }
       });
-    }])
-
-  .service('LocalizeService', [function() {
-    this.localize = function(property, name, lang) {
-      var res = null;
-      if(property && property[name]) {
-        property[name].forEach(function (label) {
-          if (label.locale === lang) {
-            res = label.text;
-          }
-        });
-      }
-      return res;
-    };
-
-    return this;
-  }]);
+    }]);

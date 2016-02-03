@@ -31,7 +31,6 @@ module.exports = function (grunt) {
           'src/graphics/graphics-service.js',
           'src/localized/localized.js',
           'src/localized/localized-directives.js',
-          'src/localized/localized-directives.js',
           'src/localized/localized-service.js'
         ]
       }

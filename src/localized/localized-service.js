@@ -14,19 +14,24 @@ angular.module('obiba.mica.localized')
 
   .service('LocalizedValues',
     function () {
-      this.forLang = function(values, lang) {
+      this.for = function (values, lang, keyLang, keyValue) {
         if (angular.isArray(values)) {
-          var result = values.filter(function(item) {
-            return item.lang === lang;
+          var result = values.filter(function (item) {
+            return item[keyLang] === lang;
           });
 
           if (result && result.length > 0) {
-            return result[0].value;
+            return result[0][keyValue];
           }
+          return values;
         }
-
-        return values;
       };
 
-      return this;
-  });
+      this.forLocale = function (values, lang) {
+        return this.for(values, lang, 'locale', 'text');
+      };
+
+      this.forLang = function (values, lang) {
+        return this.for(values, lang, 'lang', 'value');
+      };
+    });

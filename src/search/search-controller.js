@@ -33,7 +33,7 @@ angular.module('obiba.mica.search')
     'QUERY_TYPES',
     'AlertService',
     'ServerErrorUtils',
-    'LocalizeService',
+    'LocalizedValues',
     function ($scope,
               $timeout,
               $routeParams,
@@ -47,7 +47,7 @@ angular.module('obiba.mica.search')
               QUERY_TYPES,
               AlertService,
               ServerErrorUtils,
-              LocalizeService) {
+              LocalizedValues) {
 
       function createCriteria(target, taxonomy, vocabulary, term) {
         var id = taxonomy.name + '::' + vocabulary.name;
@@ -69,10 +69,10 @@ angular.module('obiba.mica.search')
 
         // prepare some labels for display
         if(term) {
-          criteria.itemTitle = LocalizeService.localize(term, 'title', $scope.lang);
-          criteria.itemDescription = LocalizeService.localize(term, 'description',$scope.lang);
-          criteria.itemParentTitle = LocalizeService.localize(vocabulary, 'title', $scope.lang);
-          criteria.itemParentDescription = LocalizeService.localize(vocabulary, 'description', $scope.lang);
+          criteria.itemTitle = LocalizedValues.forLocale(term.title, $scope.lang);
+          criteria.itemDescription = LocalizedValues.forLocale(term.description,$scope.lang);
+          criteria.itemParentTitle = LocalizedValues.forLocale(vocabulary.title, $scope.lang);
+          criteria.itemParentDescription = LocalizedValues.forLocale(vocabulary.description, $scope.lang);
           if (!criteria.itemTitle) {
             criteria.itemTitle = term.name;
           }
@@ -80,10 +80,10 @@ angular.module('obiba.mica.search')
             criteria.itemParentTitle = vocabulary.name;
           }
         } else {
-          criteria.itemTitle = LocalizeService.localize(vocabulary, 'title', $scope.lang);
-          criteria.itemDescription = LocalizeService.localize(vocabulary, 'description', $scope.lang);
-          criteria.itemParentTitle = LocalizeService.localize(taxonomy, 'title', $scope.lang);
-          criteria.itemParentDescription = LocalizeService.localize(taxonomy, 'description', $scope.lang);
+          criteria.itemTitle = LocalizedValues.forLocale(vocabulary.title, $scope.lang);
+          criteria.itemDescription = LocalizedValues.forLocale(vocabulary.description, $scope.lang);
+          criteria.itemParentTitle = LocalizedValues.forLocale(taxonomy.title, $scope.lang);
+          criteria.itemParentDescription = LocalizedValues.forLocale(taxonomy.description, $scope.lang);
           if (!criteria.itemTitle) {
             criteria.itemTitle = vocabulary.name;
           }
@@ -431,8 +431,8 @@ angular.module('obiba.mica.search')
 
   .controller('QueryDropdownController', [
     '$scope',
-    'LocalizeService',
-    function ($scope, LocalizeService) {
+    'LocalizedValues',
+    function ($scope, LocalizedValues) {
       console.log('QueryDropdownController', $scope);
 
       $scope.selectTerm = function(term) {
@@ -440,11 +440,11 @@ angular.module('obiba.mica.search')
       };
 
       $scope.title = function() {
-        return LocalizeService.localize($scope.criterion.vocabulary, 'title', $scope.criterion.lang);
+        return LocalizedValues.forLocale($scope.criterion.vocabulary.title, $scope.criterion.lang);
       };
 
       $scope.termTitle = function(term) {
-        return LocalizeService.localize(term, 'title', $scope.criterion.lang);
+        return LocalizedValues.forLocale(term.title, $scope.criterion.lang);
       };
     }])
 
