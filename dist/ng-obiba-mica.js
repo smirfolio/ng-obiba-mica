@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-02-02
+ * Date: 2016-02-03
  */
 'use strict';
 
@@ -1331,8 +1331,13 @@ angular.module('obiba.mica.search')
         } else {
           criteria.itemTitle = LocalizeService.localize(vocabulary, 'title', $scope.lang);
           criteria.itemDescription = LocalizeService.localize(vocabulary, 'description', $scope.lang);
+          criteria.itemParentTitle = LocalizeService.localize(taxonomy, 'title', $scope.lang);
+          criteria.itemParentDescription = LocalizeService.localize(taxonomy, 'description', $scope.lang);
           if (!criteria.itemTitle) {
             criteria.itemTitle = vocabulary.name;
+          }
+          if (!criteria.itemParentTitle) {
+            criteria.itemParentTitle = taxonomy.name;
           }
         }
 

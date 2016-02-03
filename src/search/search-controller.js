@@ -82,8 +82,13 @@ angular.module('obiba.mica.search')
         } else {
           criteria.itemTitle = LocalizeService.localize(vocabulary, 'title', $scope.lang);
           criteria.itemDescription = LocalizeService.localize(vocabulary, 'description', $scope.lang);
+          criteria.itemParentTitle = LocalizeService.localize(taxonomy, 'title', $scope.lang);
+          criteria.itemParentDescription = LocalizeService.localize(taxonomy, 'description', $scope.lang);
           if (!criteria.itemTitle) {
             criteria.itemTitle = vocabulary.name;
+          }
+          if (!criteria.itemParentTitle) {
+            criteria.itemParentTitle = taxonomy.name;
           }
         }
 
