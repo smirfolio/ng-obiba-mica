@@ -429,29 +429,60 @@ angular.module('obiba.mica.search')
 
     }])
 
-  .controller('QueryDropdownController', [
+  .controller('CriterionDropdownController', [
     '$scope',
     'LocalizedValues',
     function ($scope, LocalizedValues) {
       console.log('QueryDropdownController', $scope);
 
-      $scope.selectTerm = function(term) {
-        console.log('Selected term', term);
+      var isSelected = function(name) {
+        return $scope.selectedTerms.indexOf(name) !== -1;
       };
 
-      $scope.title = function() {
-        return LocalizedValues.forLocale($scope.criterion.vocabulary.title, $scope.criterion.lang);
+      var selectAll = function () {
+        $scope.selectedTerms = $scope.criterion.vocabulary.terms.map(function (term) {
+          return term.name;
+        });
       };
 
-      $scope.termTitle = function(term) {
-        return LocalizedValues.forLocale(term.title, $scope.criterion.lang);
+      var toggleSelection = function(term) {
+        if (!isSelected(term.name)) {
+          $scope.selectedTerms.push(term.name);
+          return;
+        }
+
+        $scope.selectedTerms = $scope.selectedTerms.filter(function(name) {
+          return name !== term.name;
+        });
       };
+
+      var localize = function(values) {
+        return LocalizedValues.forLocale(values, $scope.criterion.lang);
+      };
+
+      var truncate = function(text) {
+        return text.length > 40 ? text.substring(0, 40) + '...' : text;
+      };
+
+      $scope.selectedTerms = [];
+      $scope.selectAll = selectAll;
+      $scope.deselectAll = function() { $scope.selectedTerms = []; };
+      $scope.toggleSelection = toggleSelection;
+      $scope.isSelected = isSelected;
+      $scope.localize = localize;
+      $scope.truncate = truncate;
+
     }])
 
-  .controller('QueryPanelController', [
+  .controller('CriteriaPanelController', [
     '$scope',
     function ($scope) {
       console.log('QueryPanelController', $scope);
 
+      $scope.removeCriteria = function(id) {
+        $scope.criteria = $scope.criteria.filter(function(criterion) {
+          return id !== criterion.id;
+        });
+      };
 
     }]);

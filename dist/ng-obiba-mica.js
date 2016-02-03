@@ -1679,30 +1679,61 @@ angular.module('obiba.mica.search')
 
     }])
 
-  .controller('QueryDropdownController', [
+  .controller('CriterionDropdownController', [
     '$scope',
     'LocalizedValues',
     function ($scope, LocalizedValues) {
       console.log('QueryDropdownController', $scope);
 
-      $scope.selectTerm = function(term) {
-        console.log('Selected term', term);
+      var isSelected = function(name) {
+        return $scope.selectedTerms.indexOf(name) !== -1;
       };
 
-      $scope.title = function() {
-        return LocalizedValues.forLocale($scope.criterion.vocabulary.title, $scope.criterion.lang);
+      var selectAll = function () {
+        $scope.selectedTerms = $scope.criterion.vocabulary.terms.map(function (term) {
+          return term.name;
+        });
       };
 
-      $scope.termTitle = function(term) {
-        return LocalizedValues.forLocale(term.title, $scope.criterion.lang);
+      var toggleSelection = function(term) {
+        if (!isSelected(term.name)) {
+          $scope.selectedTerms.push(term.name);
+          return;
+        }
+
+        $scope.selectedTerms = $scope.selectedTerms.filter(function(name) {
+          return name !== term.name;
+        });
       };
+
+      var localize = function(values) {
+        return LocalizedValues.forLocale(values, $scope.criterion.lang);
+      };
+
+      var truncate = function(text) {
+        return text.length > 40 ? text.substring(0, 40) + '...' : text;
+      };
+
+      $scope.selectedTerms = [];
+      $scope.selectAll = selectAll;
+      $scope.deselectAll = function() { $scope.selectedTerms = []; };
+      $scope.toggleSelection = toggleSelection;
+      $scope.isSelected = isSelected;
+      $scope.localize = localize;
+      $scope.truncate = truncate;
+
     }])
 
-  .controller('QueryPanelController', [
+  .controller('CriteriaPanelController', [
     '$scope',
     function ($scope) {
       console.log('QueryPanelController', $scope);
 
+      $scope.removeCriteria = function(id) {
+        $scope.criteria = $scope.criteria.filter(function(criterion) {
+          return id !== criterion.id;
+        });
+      };
 
     }]);
 ;/*
@@ -1820,28 +1851,36 @@ angular.module('obiba.mica.search')
     };
   }])
 
-  .directive('queryDropdown', [function () {
+  .directive('criterionDropdown', [function () {
     return {
       restrict: 'EA',
       replace: true,
       scope: {
         criterion: '=',
-        onSelect: '='
+        onSelect: '=',
+        onRemove: '='
       },
-      controller: 'QueryDropdownController',
-      templateUrl: 'search/views/query-dropdown-template.html'
+      controller: 'CriterionDropdownController',
+      templateUrl: 'search/views/criterion-dropdown-template.html',
+      link: function(scope, element) {
+        scope.remove = function(id) {
+          scope.onRemove(id);
+          element.remove();
+          scope.$destroy();
+        };
+      }
     };
   }])
 
-  .directive('queryPanel', [function () {
+  .directive('criteriaPanel', [function () {
     return {
       restrict: 'EA',
       replace: true,
       scope: {
         criteria: '='
       },
-      controller: 'QueryPanelController',
-      templateUrl: 'search/views/query-panel-template.html'
+      controller: 'CriteriaPanelController',
+      templateUrl: 'search/views/criteria-panel-template.html'
     };
   }]);
 ;/*
@@ -2333,7 +2372,7 @@ angular.module('obiba.mica.localized')
         return this.for(values, lang, 'lang', 'value');
       };
     });
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/datasets-search-result-table-template.html', 'search/views/networks-search-result-table-template.html', 'search/views/query-dropdown-template.html', 'search/views/query-panel-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html', 'search/views/studies-search-result-table-template.html', 'search/views/taxonomies-view.html', 'search/views/taxonomy-panel-template.html', 'search/views/taxonomy-template.html', 'search/views/term-panel-template.html', 'search/views/variables-search-result-table-template.html', 'search/views/vocabulary-panel-template.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/criteria-panel-template.html', 'search/views/criterion-dropdown-template.html', 'search/views/datasets-search-result-table-template.html', 'search/views/networks-search-result-table-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html', 'search/views/studies-search-result-table-template.html', 'search/views/taxonomies-view.html', 'search/views/taxonomy-panel-template.html', 'search/views/taxonomy-template.html', 'search/views/term-panel-template.html', 'search/views/variables-search-result-table-template.html', 'search/views/vocabulary-panel-template.html']);
 
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
@@ -2873,6 +2912,46 @@ angular.module("localized/localized-textarea-template.html", []).run(["$template
     "</div>");
 }]);
 
+angular.module("search/views/criteria-panel-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/criteria-panel-template.html",
+    "<span class=\"voffset4\">\n" +
+    "  <span criterion-dropdown ng-repeat=\"criterion in criteria\" criterion=\"criterion\" on-select=\"selectTerm\" on-remove=\"removeCriteria\">\n" +
+    "  </span>\n" +
+    "</span>\n" +
+    "");
+}]);
+
+angular.module("search/views/criterion-dropdown-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/criterion-dropdown-template.html",
+    "<span class='btn-group btn-info' ng-class='{open: open}'>\n" +
+    "  <button class='btn btn-small btn-info dropdown'\n" +
+    "          ng-click='open=!open;openDropdown()' title=\"{{localize(criterion.vocabulary.title)}}\">\n" +
+    "    {{truncate(localize(criterion.vocabulary.title))}}\n" +
+    "    <span class='fa fa-caret-down'></span>\n" +
+    "  </button>\n" +
+    "\n" +
+    "  <button class='btn btn-small btn-danger' ng-click='remove(criterion.id)'>\n" +
+    "    <span class='fa fa-times'></span>\n" +
+    "  </button>\n" +
+    "\n" +
+    "  <ul class='dropdown-menu query-dropdown-menu' aria-labelledby='dropdownMenu'>\n" +
+    "    <li>\n" +
+    "      <a ng-click='selectAll()'><i class='fa fa-check'></i> Check All</a>\n" +
+    "    </li>\n" +
+    "    <li>\n" +
+    "      <a ng-click='deselectAll();'><i class='fa fa-times'></i> Uncheck All</a>\n" +
+    "    </li>\n" +
+    "    <li class='divider'></li>\n" +
+    "    <li ng-repeat='term in criterion.vocabulary.terms'>\n" +
+    "      <a href ng-click='toggleSelection(term)' title=\"{{localize(term.title)}}\">\n" +
+    "        {{truncate(localize(term.title))}} <span ng-show=\"isSelected(term.name)\"\n" +
+    "                                                     class=\"fa fa-check pull-right\"></span>\n" +
+    "      </a>\n" +
+    "    </li>\n" +
+    "  </ul>\n" +
+    "</span>");
+}]);
+
 angular.module("search/views/datasets-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/datasets-search-result-table-template.html",
     "<div ng-show=\"summaries.length > 0\">\n" +
@@ -2981,24 +3060,6 @@ angular.module("search/views/networks-search-result-table-template.html", []).ru
     "    </table>\n" +
     "  </div>\n" +
     "</div>");
-}]);
-
-angular.module("search/views/query-dropdown-template.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("search/views/query-dropdown-template.html",
-    "<div class=\"btn-group dropdown\" is-open=\"status.isopen\">\n" +
-    "  <button type=\"button\" ng-click=\"togglePanel()\" class=\"btn btn-primary\">\n" +
-    "  {{title()}} <span class=\"caret\"></span>\n" +
-    "  </button>\n" +
-    "</div>\n" +
-    "");
-}]);
-
-angular.module("search/views/query-panel-template.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("search/views/query-panel-template.html",
-    "<span class=\"voffset4\">\n" +
-    "  <span query-dropdown ng-repeat=\"criterion in criteria\" criterion=\"criterion\" on-select=\"selectTerm\" >\n" +
-    "  </span>\n" +
-    "</span>");
 }]);
 
 angular.module("search/views/search-result-panel-template.html", []).run(["$templateCache", function($templateCache) {
@@ -3114,43 +3175,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "  <div class=\"voffset4\">\n" +
     "    <div class=\"row voffset4\">\n" +
     "      <div class=\"col-xs-12\">\n" +
-    "\n" +
-    "        <div query-panel criteria=\"search.criteria\"></div>\n" +
-    "\n" +
-    "        <!--<div class=\"btn-group dropdown\" is-open=\"status.isopen\">-->\n" +
-    "          <!--<button type=\"button\" class=\"btn btn-info btn-sm dropdown-toggle\" ng-disabled=\"disabled\"-->\n" +
-    "            <!--data-toggle=\"dropdown\">-->\n" +
-    "            <!--Study: All <span class=\"caret\"></span>-->\n" +
-    "          <!--</button>-->\n" +
-    "          <!--<ul class=\"dropdown-menu\" role=\"menu\">-->\n" +
-    "            <!--<li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Atlantic Path</a></li>-->\n" +
-    "            <!--<li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">CartaGene</a></li>-->\n" +
-    "          <!--</ul>-->\n" +
-    "        <!--</div>-->\n" +
-    "\n" +
-    "        <!--<div class=\"btn-group dropdown\" is-open=\"status.isopen\">-->\n" +
-    "          <!--<button type=\"button\" class=\"btn btn-default btn-sm dropdown-toggle\" ng-disabled=\"disabled\"-->\n" +
-    "            <!--data-toggle=\"dropdown\">-->\n" +
-    "            <!--OR <span class=\"caret\"></span>-->\n" +
-    "          <!--</button>-->\n" +
-    "          <!--<ul class=\"dropdown-menu\" role=\"menu\">-->\n" +
-    "            <!--<li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">AND</a></li>-->\n" +
-    "          <!--</ul>-->\n" +
-    "        <!--</div>-->\n" +
-    "\n" +
-    "        <!--<div class=\"btn-group dropdown\" is-open=\"status.isopen\">-->\n" +
-    "          <!--<button type=\"button\" class=\"btn btn-info btn-sm dropdown-toggle\" ng-disabled=\"disabled\"-->\n" +
-    "            <!--data-toggle=\"dropdown\">-->\n" +
-    "            <!--Study designs: All <span class=\"caret\"></span>-->\n" +
-    "          <!--</button>-->\n" +
-    "          <!--<ul class=\"dropdown-menu\" role=\"menu\">-->\n" +
-    "            <!--<li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Cohort study (117)</a></li>-->\n" +
-    "            <!--<li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Cross sectional (8)</a></li>-->\n" +
-    "            <!--<li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Clinical trial (5)</a></li>-->\n" +
-    "            <!--<li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Case control (2)</a></li>-->\n" +
-    "            <!--<li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Other (2)</a></li>-->\n" +
-    "          <!--</ul>-->\n" +
-    "        <!--</div>-->\n" +
+    "        <div criteria-panel criteria=\"search.criteria\"></div>\n" +
     "      </div>\n" +
     "    </div>\n" +
     "  </div>\n" +
