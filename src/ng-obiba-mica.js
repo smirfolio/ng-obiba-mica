@@ -95,7 +95,8 @@ angular.module('ngObibaMica', [
     'obiba.mica.attachment',
     'obiba.mica.access',
     'obiba.mica.search',
-    'obiba.mica.graphics'
+    'obiba.mica.graphics',
+    'obiba.mica.localized'
   ])
   .constant('USER_ROLES', {
     all: '*',
