@@ -1542,7 +1542,13 @@ angular.module('obiba.mica.search')
       var selectCriteria = function (item) {
         console.log('selectCriteria', item);
         if(item.id){
-          $scope.search.criteria.push(item);
+          var found = $scope.search.criteria.filter(function(criterion) {
+            return item.vocabulary.name === criterion.vocabulary.name;
+          });
+          console.log('Found', found);
+          if (found && found.length === 0) {
+            $scope.search.criteria.push(item);
+          }
           $scope.selectedCriteria = null;
         } else {
           $scope.selectedCriteria = item.query;
@@ -2747,30 +2753,20 @@ angular.module("search/views/networks-search-result-table-template.html", []).ru
 
 angular.module("search/views/query-dropdown-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/query-dropdown-template.html",
-    "<div>\n" +
-    "    <button type=\"button\" ng-click=\"togglePanel()\" class=\"btn btn-primary\">\n" +
-    "      {{title()}} <span class=\"caret\"></span>\n" +
-    "    </button>\n" +
-    "\n" +
-    "    <!--<div class=\"panel panel-default\">-->\n" +
-    "    <!--<div class=\"panel-body\">-->\n" +
-    "    <!---->\n" +
-    "    <!--</div>-->\n" +
-    "    <!--</div>-->\n" +
-    "</div>");
+    "<div class=\"btn-group dropdown\" is-open=\"status.isopen\">\n" +
+    "  <button type=\"button\" ng-click=\"togglePanel()\" class=\"btn btn-primary\">\n" +
+    "  {{title()}} <span class=\"caret\"></span>\n" +
+    "  </button>\n" +
+    "</div>\n" +
+    "");
 }]);
 
 angular.module("search/views/query-panel-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/query-panel-template.html",
-    "<div class=\"voffset4\">\n" +
-    "  <div class=\"row voffset4\">\n" +
-    "    <div class=\"col-xs-12\">\n" +
-    "      <div ng-repeat=\"criterion in criteria\">\n" +
-    "        <span query-dropdown criterion=\"criterion\" on-select=\"selectTerm\"></span>\n" +
-    "      </div>\n" +
-    "    </div>\n" +
-    "  </div>\n" +
-    "</div>");
+    "<span class=\"voffset4\">\n" +
+    "  <span query-dropdown ng-repeat=\"criterion in criteria\" criterion=\"criterion\" on-select=\"selectTerm\" >\n" +
+    "  </span>\n" +
+    "</span>");
 }]);
 
 angular.module("search/views/search-result-panel-template.html", []).run(["$templateCache", function($templateCache) {
@@ -2886,42 +2882,43 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "  <div class=\"voffset4\">\n" +
     "    <div class=\"row voffset4\">\n" +
     "      <div class=\"col-xs-12\">\n" +
+    "\n" +
     "        <div query-panel criteria=\"search.criteria\"></div>\n" +
     "\n" +
-    "        <div class=\"btn-group dropdown\" is-open=\"status.isopen\">\n" +
-    "          <button type=\"button\" class=\"btn btn-info btn-sm dropdown-toggle\" ng-disabled=\"disabled\"\n" +
-    "            data-toggle=\"dropdown\">\n" +
-    "            Study: All <span class=\"caret\"></span>\n" +
-    "          </button>\n" +
-    "          <ul class=\"dropdown-menu\" role=\"menu\">\n" +
-    "            <li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Atlantic Path</a></li>\n" +
-    "            <li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">CartaGene</a></li>\n" +
-    "          </ul>\n" +
-    "        </div>\n" +
+    "        <!--<div class=\"btn-group dropdown\" is-open=\"status.isopen\">-->\n" +
+    "          <!--<button type=\"button\" class=\"btn btn-info btn-sm dropdown-toggle\" ng-disabled=\"disabled\"-->\n" +
+    "            <!--data-toggle=\"dropdown\">-->\n" +
+    "            <!--Study: All <span class=\"caret\"></span>-->\n" +
+    "          <!--</button>-->\n" +
+    "          <!--<ul class=\"dropdown-menu\" role=\"menu\">-->\n" +
+    "            <!--<li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Atlantic Path</a></li>-->\n" +
+    "            <!--<li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">CartaGene</a></li>-->\n" +
+    "          <!--</ul>-->\n" +
+    "        <!--</div>-->\n" +
     "\n" +
-    "        <div class=\"btn-group dropdown\" is-open=\"status.isopen\">\n" +
-    "          <button type=\"button\" class=\"btn btn-default btn-sm dropdown-toggle\" ng-disabled=\"disabled\"\n" +
-    "            data-toggle=\"dropdown\">\n" +
-    "            OR <span class=\"caret\"></span>\n" +
-    "          </button>\n" +
-    "          <ul class=\"dropdown-menu\" role=\"menu\">\n" +
-    "            <li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">AND</a></li>\n" +
-    "          </ul>\n" +
-    "        </div>\n" +
+    "        <!--<div class=\"btn-group dropdown\" is-open=\"status.isopen\">-->\n" +
+    "          <!--<button type=\"button\" class=\"btn btn-default btn-sm dropdown-toggle\" ng-disabled=\"disabled\"-->\n" +
+    "            <!--data-toggle=\"dropdown\">-->\n" +
+    "            <!--OR <span class=\"caret\"></span>-->\n" +
+    "          <!--</button>-->\n" +
+    "          <!--<ul class=\"dropdown-menu\" role=\"menu\">-->\n" +
+    "            <!--<li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">AND</a></li>-->\n" +
+    "          <!--</ul>-->\n" +
+    "        <!--</div>-->\n" +
     "\n" +
-    "        <div class=\"btn-group dropdown\" is-open=\"status.isopen\">\n" +
-    "          <button type=\"button\" class=\"btn btn-info btn-sm dropdown-toggle\" ng-disabled=\"disabled\"\n" +
-    "            data-toggle=\"dropdown\">\n" +
-    "            Study designs: All <span class=\"caret\"></span>\n" +
-    "          </button>\n" +
-    "          <ul class=\"dropdown-menu\" role=\"menu\">\n" +
-    "            <li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Cohort study (117)</a></li>\n" +
-    "            <li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Cross sectional (8)</a></li>\n" +
-    "            <li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Clinical trial (5)</a></li>\n" +
-    "            <li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Case control (2)</a></li>\n" +
-    "            <li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Other (2)</a></li>\n" +
-    "          </ul>\n" +
-    "        </div>\n" +
+    "        <!--<div class=\"btn-group dropdown\" is-open=\"status.isopen\">-->\n" +
+    "          <!--<button type=\"button\" class=\"btn btn-info btn-sm dropdown-toggle\" ng-disabled=\"disabled\"-->\n" +
+    "            <!--data-toggle=\"dropdown\">-->\n" +
+    "            <!--Study designs: All <span class=\"caret\"></span>-->\n" +
+    "          <!--</button>-->\n" +
+    "          <!--<ul class=\"dropdown-menu\" role=\"menu\">-->\n" +
+    "            <!--<li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Cohort study (117)</a></li>-->\n" +
+    "            <!--<li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Cross sectional (8)</a></li>-->\n" +
+    "            <!--<li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Clinical trial (5)</a></li>-->\n" +
+    "            <!--<li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Case control (2)</a></li>-->\n" +
+    "            <!--<li><a role=\"menuitem\" href ng-click=\"selectCriteria()\">Other (2)</a></li>-->\n" +
+    "          <!--</ul>-->\n" +
+    "        <!--</div>-->\n" +
     "      </div>\n" +
     "    </div>\n" +
     "  </div>\n" +

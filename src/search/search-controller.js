@@ -293,7 +293,13 @@ angular.module('obiba.mica.search')
       var selectCriteria = function (item) {
         console.log('selectCriteria', item);
         if(item.id){
-          $scope.search.criteria.push(item);
+          var found = $scope.search.criteria.filter(function(criterion) {
+            return item.vocabulary.name === criterion.vocabulary.name;
+          });
+          console.log('Found', found);
+          if (found && found.length === 0) {
+            $scope.search.criteria.push(item);
+          }
           $scope.selectedCriteria = null;
         } else {
           $scope.selectedCriteria = item.query;
