@@ -19,6 +19,11 @@ angular.module('obiba.mica.search')
     VARIABLES: 'variables'
   })
 
+  .constant('DISPLAY_TYPES', {
+    LIST: 'list',
+    COVERAGE: 'coverage'
+  })
+
   .controller('SearchController', [
     '$scope',
     '$timeout',
@@ -30,7 +35,9 @@ angular.module('obiba.mica.search')
     'VocabularyResource',
     'ngObibaMicaSearchTemplateUrl',
     'JoinQuerySearchResource',
+    'JoinQueryCoverageResource',
     'QUERY_TYPES',
+    'DISPLAY_TYPES',
     'AlertService',
     'ServerErrorUtils',
     'LocalizedValues',
@@ -45,7 +52,9 @@ angular.module('obiba.mica.search')
               VocabularyResource,
               ngObibaMicaSearchTemplateUrl,
               JoinQuerySearchResource,
+              JoinQueryCoverageResource,
               QUERY_TYPES,
+              DISPLAY_TYPES,
               AlertService,
               ServerErrorUtils,
               LocalizedValues,
@@ -112,6 +121,12 @@ angular.module('obiba.mica.search')
         }
       }
 
+      function validateDisplay(display) {
+        if (!display || !DISPLAY_TYPES[display.toUpperCase()]) {
+          throw new Error('Invalid display: ' + display);
+        }
+      }
+
       function getDefaultQuery(type) {
         var query = ':q(match())';
 
@@ -133,11 +148,14 @@ angular.module('obiba.mica.search')
         try {
           var search = $location.search();
           var type = search.type || QUERY_TYPES.VARIABLES;
+          var display = search.display || DISPLAY_TYPES.LIST;
           var query = search.query || getDefaultQuery(type);
           validateType(type);
+          validateDisplay(display);
           new RqlParser().parse(query);
 
           $scope.search.type = type;
+          $scope.search.display = display;
           $scope.search.query = query;
           return true;
 
@@ -153,14 +171,28 @@ angular.module('obiba.mica.search')
         return false;
       }
 
-      function executeQuery() {
+      function executeSearchQuery() {
         if (validateQueryData()) {
-          JoinQuerySearchResource[$scope.search.type]({query: $scope.search.query},
-            function onSuccess(response) {
-              $scope.search.result = response;
-              console.log('>>> Response', $scope.search.result);
-            },
-            onError);
+          $scope.search.result = null;
+          switch ($scope.search.display) {
+            case DISPLAY_TYPES.LIST:
+              JoinQuerySearchResource[$scope.search.type]({query: $scope.search.query},
+                function onSuccess(response) {
+                  $scope.search.result = response;
+                  console.log('>>> Response', $scope.search.result);
+                },
+                onError);
+              break;
+            case DISPLAY_TYPES.COVERAGE:
+              $scope.search.progress = true;
+              JoinQueryCoverageResource.get({query: $scope.search.query},
+                function onSuccess(response) {
+                  $scope.search.result = response;
+                  console.log('>>> Response', $scope.search.result);
+                },
+                onError);
+              break;
+          }
         }
       }
 
@@ -346,6 +378,15 @@ angular.module('obiba.mica.search')
         }
       };
 
+      var onDisplayChanged = function (display) {
+        if (display) {
+          validateDisplay(display);
+          var search = $location.search();
+          search.display = display;
+          $location.search(search).replace();
+        }
+      };
+
       $scope.QUERY_TYPES = QUERY_TYPES;
       $scope.lang = 'en';
 
@@ -385,6 +426,7 @@ angular.module('obiba.mica.search')
       $scope.selectTerm = selectTerm;
       $scope.closeTaxonomies = closeTaxonomies;
       $scope.onTypeChanged = onTypeChanged;
+      $scope.onDisplayChanged = onDisplayChanged;
       $scope.taxonomiesShown = false;
 
       //// TODO replace with angular code
@@ -396,12 +438,12 @@ angular.module('obiba.mica.search')
       });
 
       $scope.$watch('search', function () {
-        executeQuery();
+        executeSearchQuery();
       });
 
       $scope.$on('$locationChangeSuccess', function (newLocation, oldLocation) {
         if (newLocation !== oldLocation) {
-          executeQuery();
+          executeSearchQuery();
         }
       });
 
@@ -410,22 +452,34 @@ angular.module('obiba.mica.search')
   .controller('SearchResultController', [
     '$scope',
     'QUERY_TYPES',
-    function ($scope, QUERY_TYPES) {
-      var selectTab = function (type) {
-        console.log('Type', type);
+    'DISPLAY_TYPES',
+    function ($scope, QUERY_TYPES, DISPLAY_TYPES) {
+      $scope.selectDisplay = function (display) {
+        console.log('Display', display);
+        $scope.display = display;
+        $scope.$parent.onDisplayChanged(display);
+      };
+      $scope.selectTarget = function (type) {
+        console.log('Target', type);
         $scope.type = type;
         $scope.$parent.onTypeChanged(type);
       };
-
-      $scope.selectTab = selectTab;
       $scope.QUERY_TYPES = QUERY_TYPES;
+      $scope.DISPLAY_TYPES = DISPLAY_TYPES;
 
       $scope.$watch('type', function () {
-        $scope.activeTab = {
+        $scope.activeTarget = {
           networks: $scope.type === QUERY_TYPES.NETWORKS || false,
           studies: $scope.type === QUERY_TYPES.STUDIES || false,
           datasets: $scope.type === QUERY_TYPES.DATASETS || false,
           variables: $scope.type === QUERY_TYPES.VARIABLES || false
+        };
+      });
+
+      $scope.$watch('display', function () {
+        $scope.activeDisplay = {
+          list: $scope.display === DISPLAY_TYPES.LIST || false,
+          coverage: $scope.display === DISPLAY_TYPES.COVERAGE || false
         };
       });
 

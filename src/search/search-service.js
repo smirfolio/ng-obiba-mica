@@ -70,6 +70,16 @@ angular.module('obiba.mica.search')
       });
     }])
 
+  .factory('JoinQueryCoverageResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+      return $resource(ngObibaMicaUrl.getUrl('JoinQueryCoverageResource'), {}, {
+        'get': {
+          method: 'GET',
+          errorHandler: true
+        }
+      });
+    }])
+
   .factory('VocabularyResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('VocabularyResource'), {}, {
