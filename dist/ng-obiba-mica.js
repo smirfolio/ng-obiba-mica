@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-02-03
+ * Date: 2016-02-04
  */
 'use strict';
 
@@ -1284,6 +1284,7 @@ angular.module('obiba.mica.search')
     'AlertService',
     'ServerErrorUtils',
     'LocalizedValues',
+    'ObibaSearchConfig',
     function ($scope,
               $timeout,
               $routeParams,
@@ -1297,8 +1298,9 @@ angular.module('obiba.mica.search')
               QUERY_TYPES,
               AlertService,
               ServerErrorUtils,
-              LocalizedValues) {
-
+              LocalizedValues,
+              ObibaSearchConfig) {
+      console.log(ObibaSearchConfig.getOptions());
       function createCriteria(target, taxonomy, vocabulary, term) {
         var id = taxonomy.name + '::' + vocabulary.name;
         if (term) {
@@ -1985,7 +1987,30 @@ angular.module('obiba.mica.search')
           errorHandler: true
         }
       });
-    }]);
+    }])
+  .service('ObibaSearchConfig', function () {
+    var options = {
+      networks: null,
+      studies: null,
+      datasets: null,
+      variables: null
+    };
+
+    this.setOptions = function (newOptions) {
+      if (typeof(newOptions) === 'object') {
+        Object.keys(newOptions).forEach(function (option) {
+          if (option in options) {
+            options[option] = newOptions[option];
+          }
+        });
+      }
+    };
+
+    this.getOptions = function () {
+      return angular.copy(options);
+    };
+
+  });
 ;/*
  * Copyright (c) 2014 OBiBa. All rights reserved.
  *

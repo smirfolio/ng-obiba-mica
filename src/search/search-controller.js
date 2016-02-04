@@ -34,6 +34,7 @@ angular.module('obiba.mica.search')
     'AlertService',
     'ServerErrorUtils',
     'LocalizedValues',
+    'ObibaSearchConfig',
     function ($scope,
               $timeout,
               $routeParams,
@@ -47,8 +48,9 @@ angular.module('obiba.mica.search')
               QUERY_TYPES,
               AlertService,
               ServerErrorUtils,
-              LocalizedValues) {
-
+              LocalizedValues,
+              ObibaSearchConfig) {
+      console.log(ObibaSearchConfig.getOptions());
       function createCriteria(target, taxonomy, vocabulary, term) {
         var id = taxonomy.name + '::' + vocabulary.name;
         if (term) {
