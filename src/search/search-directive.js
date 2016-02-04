@@ -104,6 +104,7 @@ angular.module('obiba.mica.search')
       replace: true,
       scope: {
         type: '=',
+        display: '=',
         dto: '=',
         lang: '=',
         onTypeChanged: '='
