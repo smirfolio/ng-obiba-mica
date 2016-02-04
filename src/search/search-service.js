@@ -78,4 +78,27 @@ angular.module('obiba.mica.search')
           errorHandler: true
         }
       });
-    }]);
+    }])
+  .service('ObibaSearchConfig', function () {
+    var options = {
+      networks: null,
+      studies: null,
+      datasets: null,
+      variables: null
+    };
+
+    this.setOptions = function (newOptions) {
+      if (typeof(newOptions) === 'object') {
+        Object.keys(newOptions).forEach(function (option) {
+          if (option in options) {
+            options[option] = newOptions[option];
+          }
+        });
+      }
+    };
+
+    this.getOptions = function () {
+      return angular.copy(options);
+    };
+
+  });
