@@ -1774,9 +1774,9 @@ angular.module('obiba.mica.search')
           total: []
         };
         if (response.taxonomies) {
+          var termsCount = 0;
           response.taxonomies.forEach(function (taxo) {
             if (taxo.vocabularies) {
-              var termsCount = 0;
               taxo.vocabularies.forEach(function (voc) {
                 if (voc.terms) {
                   voc.terms.forEach(function (trm) {
@@ -3469,19 +3469,21 @@ angular.module("search/views/coverage-search-result-table-template.html", []).ru
     "  <div class=\"table-responsive\" ng-if=\"table.taxonomyHeaders.length > 0\">\n" +
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
+    "      <!--<tr>-->\n" +
+    "        <!--<th rowspan=\"3\" translate>study.label</th>-->\n" +
+    "        <!--<th ng-repeat=\"header in table.taxonomyHeaders\" title=\"{{header.taxonomy.descriptions[0].value}}\"-->\n" +
+    "          <!--colspan=\"{{header.termsCount}}\">-->\n" +
+    "          <!--{{header.taxonomy.titles[0].value}}-->\n" +
+    "        <!--</th>-->\n" +
+    "        <!--<th rowspan=\"3\" translate>all</th>-->\n" +
+    "      <!--</tr>-->\n" +
     "      <tr>\n" +
-    "        <th rowspan=\"3\" translate>study.label</th>\n" +
-    "        <th ng-repeat=\"header in table.taxonomyHeaders\" title=\"{{header.taxonomy.descriptions[0].value}}\"\n" +
-    "          colspan=\"{{header.termsCount}}\">\n" +
-    "          {{header.taxonomy.titles[0].value}}\n" +
-    "        </th>\n" +
-    "        <th rowspan=\"3\" translate>all</th>\n" +
-    "      </tr>\n" +
-    "      <tr>\n" +
+    "        <th rowspan=\"2\" translate>study.label</th>\n" +
     "        <th ng-repeat=\"header in table.vocabularyHeaders\" title=\"{{header.vocabulary.descriptions[0].value}}\"\n" +
     "          colspan=\"{{header.termsCount}}\">\n" +
     "          {{header.vocabulary.titles[0].value}}\n" +
     "        </th>\n" +
+    "        <th rowspan=\"2\" translate>all</th>\n" +
     "      </tr>\n" +
     "      <tr>\n" +
     "        <th ng-repeat=\"header in table.termHeaders\" title=\"{{header.term.descriptions[0].value}}\">\n" +
@@ -3517,9 +3519,9 @@ angular.module("search/views/coverage-search-result-table-template.html", []).ru
     "    </table>\n" +
     "  </div>\n" +
     "\n" +
-    "      <!--<pre>-->\n" +
-    "<!--{{table | json}}-->\n" +
-    "      <!--</pre>-->\n" +
+    "      <pre>\n" +
+    "{{table | json}}\n" +
+    "      </pre>\n" +
     "</div>");
 }]);
 
