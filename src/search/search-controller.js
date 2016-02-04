@@ -21,7 +21,8 @@ angular.module('obiba.mica.search')
 
   .constant('DISPLAY_TYPES', {
     LIST: 'list',
-    COVERAGE: 'coverage'
+    COVERAGE: 'coverage',
+    GRAPHICS: 'graphics'
   })
 
   .controller('SearchController', [
@@ -171,6 +172,84 @@ angular.module('obiba.mica.search')
         return false;
       }
 
+      function processCoverageResponse(response) {
+        var taxonomyHeaders = [];
+        var vocabularyHeaders = [];
+        var termHeaders = [];
+        var rows = {};
+        var footers = {
+          total: []
+        };
+        if(response.taxonomies) {
+          response.taxonomies.forEach(function(taxo) {
+            if(taxo.vocabularies) {
+              var termsCount = 0;
+              taxo.vocabularies.forEach(function(voc) {
+                if(voc.terms) {
+                  voc.terms.forEach(function(trm){
+                    termsCount++;
+                    termHeaders.push({
+                      taxonomy: taxo.taxonomy,
+                      vocabulary: voc.vocabulary,
+                      term: trm.term
+                    });
+                    footers.total.push(trm.hits);
+                    if(trm.buckets) {
+                      trm.buckets.forEach(function(bucket){
+                        if(!(bucket.field in rows)) {
+                          rows[bucket.field] = {};
+                        }
+                        if(!(bucket.value in rows[bucket.field])) {
+                          rows[bucket.field][bucket.value] = {
+                            field: bucket.field,
+                            title: bucket.title,
+                            description: bucket.description,
+                            hits: {}
+                          };
+                        }
+                        // store the hits per field, per value at the position of the term
+                        rows[bucket.field][bucket.value].hits[termsCount] = bucket.hits;
+                      });
+                    }
+                  });
+                  vocabularyHeaders.push({
+                    taxonomy: taxo.taxonomy,
+                    vocabulary: voc.vocabulary,
+                    termsCount: voc.terms.length
+                  });
+                }
+              });
+              taxonomyHeaders.push({
+                taxonomy: taxo.taxonomy,
+                termsCount: termsCount
+              });
+            }
+          });
+        }
+
+        // compute totalHits for each row
+        Object.keys(rows).forEach(function(field){
+          Object.keys(rows[field]).forEach(function(value){
+            var hits = rows[field][value].hits;
+            rows[field][value].totalHits = Object.keys(hits).map(function(idx) {
+              return hits[idx];
+            }).reduce(function(a, b) {
+              return a + b;
+            });
+          });
+        });
+
+        return {
+          taxonomyHeaders: taxonomyHeaders,
+          vocabularyHeaders: vocabularyHeaders,
+          termHeaders: termHeaders,
+          rows: rows,
+          footers: footers,
+          totalHits: response.totalHits,
+          totalCount: response.totalCount
+        };
+      }
+
       function executeSearchQuery() {
         if (validateQueryData()) {
           $scope.search.result = null;
@@ -179,18 +258,32 @@ angular.module('obiba.mica.search')
               JoinQuerySearchResource[$scope.search.type]({query: $scope.search.query},
                 function onSuccess(response) {
                   $scope.search.result = response;
-                  console.log('>>> Response', $scope.search.result);
                 },
                 onError);
               break;
             case DISPLAY_TYPES.COVERAGE:
               $scope.search.progress = true;
-              JoinQueryCoverageResource.get({query: $scope.search.query},
+              var query = $scope.search.query;
+              var parsedQuery = new RqlParser().parse(query);
+              var aggregate = new RqlQuery('aggregate');
+              var bucket = new RqlQuery('bucket');
+              bucket.args.push('studyIds');
+              //bucket.args.push('dceIds');
+              aggregate.args.push(bucket);
+              parsedQuery.args.forEach(function(arg) {
+                if(arg.name === 'variable') {
+                  arg.args.push(aggregate);
+                }
+              });
+              query = parsedQuery.serializeArgs(parsedQuery.args);
+              JoinQueryCoverageResource.get({query: query},
                 function onSuccess(response) {
-                  $scope.search.result = response;
-                  console.log('>>> Response', $scope.search.result);
+                  $scope.search.result = processCoverageResponse(response);
                 },
                 onError);
+              break;
+            case DISPLAY_TYPES.GRAPHICS:
+              // TODO
               break;
           }
         }
@@ -479,7 +572,8 @@ angular.module('obiba.mica.search')
       $scope.$watch('display', function () {
         $scope.activeDisplay = {
           list: $scope.display === DISPLAY_TYPES.LIST || false,
-          coverage: $scope.display === DISPLAY_TYPES.COVERAGE || false
+          coverage: $scope.display === DISPLAY_TYPES.COVERAGE || false,
+          graphics: $scope.display === DISPLAY_TYPES.GRAPHICS || false
         };
       });
 

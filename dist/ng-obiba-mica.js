@@ -1272,7 +1272,8 @@ angular.module('obiba.mica.search')
 
   .constant('DISPLAY_TYPES', {
     LIST: 'list',
-    COVERAGE: 'coverage'
+    COVERAGE: 'coverage',
+    GRAPHICS: 'graphics'
   })
 
   .controller('SearchController', [
@@ -1422,6 +1423,84 @@ angular.module('obiba.mica.search')
         return false;
       }
 
+      function processCoverageResponse(response) {
+        var taxonomyHeaders = [];
+        var vocabularyHeaders = [];
+        var termHeaders = [];
+        var rows = {};
+        var footers = {
+          total: []
+        };
+        if(response.taxonomies) {
+          response.taxonomies.forEach(function(taxo) {
+            if(taxo.vocabularies) {
+              var termsCount = 0;
+              taxo.vocabularies.forEach(function(voc) {
+                if(voc.terms) {
+                  voc.terms.forEach(function(trm){
+                    termsCount++;
+                    termHeaders.push({
+                      taxonomy: taxo.taxonomy,
+                      vocabulary: voc.vocabulary,
+                      term: trm.term
+                    });
+                    footers.total.push(trm.hits);
+                    if(trm.buckets) {
+                      trm.buckets.forEach(function(bucket){
+                        if(!(bucket.field in rows)) {
+                          rows[bucket.field] = {};
+                        }
+                        if(!(bucket.value in rows[bucket.field])) {
+                          rows[bucket.field][bucket.value] = {
+                            field: bucket.field,
+                            title: bucket.title,
+                            description: bucket.description,
+                            hits: {}
+                          };
+                        }
+                        // store the hits per field, per value at the position of the term
+                        rows[bucket.field][bucket.value].hits[termsCount] = bucket.hits;
+                      });
+                    }
+                  });
+                  vocabularyHeaders.push({
+                    taxonomy: taxo.taxonomy,
+                    vocabulary: voc.vocabulary,
+                    termsCount: voc.terms.length
+                  });
+                }
+              });
+              taxonomyHeaders.push({
+                taxonomy: taxo.taxonomy,
+                termsCount: termsCount
+              });
+            }
+          });
+        }
+
+        // compute totalHits for each row
+        Object.keys(rows).forEach(function(field){
+          Object.keys(rows[field]).forEach(function(value){
+            var hits = rows[field][value].hits;
+            rows[field][value].totalHits = Object.keys(hits).map(function(idx) {
+              return hits[idx];
+            }).reduce(function(a, b) {
+              return a + b;
+            });
+          });
+        });
+
+        return {
+          taxonomyHeaders: taxonomyHeaders,
+          vocabularyHeaders: vocabularyHeaders,
+          termHeaders: termHeaders,
+          rows: rows,
+          footers: footers,
+          totalHits: response.totalHits,
+          totalCount: response.totalCount
+        };
+      }
+
       function executeSearchQuery() {
         if (validateQueryData()) {
           $scope.search.result = null;
@@ -1430,18 +1509,32 @@ angular.module('obiba.mica.search')
               JoinQuerySearchResource[$scope.search.type]({query: $scope.search.query},
                 function onSuccess(response) {
                   $scope.search.result = response;
-                  console.log('>>> Response', $scope.search.result);
                 },
                 onError);
               break;
             case DISPLAY_TYPES.COVERAGE:
               $scope.search.progress = true;
-              JoinQueryCoverageResource.get({query: $scope.search.query},
+              var query = $scope.search.query;
+              var parsedQuery = new RqlParser().parse(query);
+              var aggregate = new RqlQuery('aggregate');
+              var bucket = new RqlQuery('bucket');
+              bucket.args.push('studyIds');
+              //bucket.args.push('dceIds');
+              aggregate.args.push(bucket);
+              parsedQuery.args.forEach(function(arg) {
+                if(arg.name === 'variable') {
+                  arg.args.push(aggregate);
+                }
+              });
+              query = parsedQuery.serializeArgs(parsedQuery.args);
+              JoinQueryCoverageResource.get({query: query},
                 function onSuccess(response) {
-                  $scope.search.result = response;
-                  console.log('>>> Response', $scope.search.result);
+                  $scope.search.result = processCoverageResponse(response);
                 },
                 onError);
+              break;
+            case DISPLAY_TYPES.GRAPHICS:
+              // TODO
               break;
           }
         }
@@ -1730,7 +1823,8 @@ angular.module('obiba.mica.search')
       $scope.$watch('display', function () {
         $scope.activeDisplay = {
           list: $scope.display === DISPLAY_TYPES.LIST || false,
-          coverage: $scope.display === DISPLAY_TYPES.COVERAGE || false
+          coverage: $scope.display === DISPLAY_TYPES.COVERAGE || false,
+          graphics: $scope.display === DISPLAY_TYPES.GRAPHICS || false
         };
       });
 
@@ -1890,6 +1984,17 @@ angular.module('obiba.mica.search')
         summaries: '='
       },
       templateUrl: 'search/views/variables-search-result-table-template.html'
+    };
+  }])
+
+  .directive('coverageResultTable', [function () {
+    return {
+      restrict: 'EA',
+      replace: true,
+      scope: {
+        table: '='
+      },
+      templateUrl: 'search/views/coverage-search-result-table-template.html'
     };
   }])
 
@@ -2463,7 +2568,7 @@ angular.module('obiba.mica.localized')
         return this.for(values, lang, 'lang', 'value');
       };
     });
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/criteria-panel-template.html', 'search/views/criterion-dropdown-template.html', 'search/views/datasets-search-result-table-template.html', 'search/views/networks-search-result-table-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html', 'search/views/studies-search-result-table-template.html', 'search/views/taxonomies-view.html', 'search/views/taxonomy-panel-template.html', 'search/views/taxonomy-template.html', 'search/views/term-panel-template.html', 'search/views/variables-search-result-table-template.html', 'search/views/vocabulary-panel-template.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/coverage-search-result-table-template.html', 'search/views/criteria-panel-template.html', 'search/views/criterion-dropdown-template.html', 'search/views/datasets-search-result-table-template.html', 'search/views/networks-search-result-table-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html', 'search/views/studies-search-result-table-template.html', 'search/views/taxonomies-view.html', 'search/views/taxonomy-panel-template.html', 'search/views/taxonomy-template.html', 'search/views/term-panel-template.html', 'search/views/variables-search-result-table-template.html', 'search/views/vocabulary-panel-template.html']);
 
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
@@ -3003,6 +3108,66 @@ angular.module("localized/localized-textarea-template.html", []).run(["$template
     "</div>");
 }]);
 
+angular.module("search/views/coverage-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/coverage-search-result-table-template.html",
+    "<div>\n" +
+    "  <div class=\"table-responsive\">\n" +
+    "    <table class=\"table table-bordered table-striped\">\n" +
+    "      <thead>\n" +
+    "      <tr>\n" +
+    "        <th rowspan=\"3\" translate>study.label</th>\n" +
+    "        <th ng-repeat=\"header in table.taxonomyHeaders\" title=\"{{header.taxonomy.descriptions[0].value}}\"\n" +
+    "          colspan=\"{{header.termsCount}}\">\n" +
+    "          {{header.taxonomy.titles[0].value}}\n" +
+    "        </th>\n" +
+    "        <th rowspan=\"3\" translate>all</th>\n" +
+    "      </tr>\n" +
+    "      <tr>\n" +
+    "        <th ng-repeat=\"header in table.vocabularyHeaders\" title=\"{{header.vocabulary.descriptions[0].value}}\"\n" +
+    "          colspan=\"{{header.termsCount}}\">\n" +
+    "          {{header.vocabulary.titles[0].value}}\n" +
+    "        </th>\n" +
+    "      </tr>\n" +
+    "      <tr>\n" +
+    "        <th ng-repeat=\"header in table.termHeaders\" title=\"{{header.term.descriptions[0].value}}\">\n" +
+    "          {{header.term.titles[0].value}}\n" +
+    "        </th>\n" +
+    "      </tr>\n" +
+    "      </thead>\n" +
+    "      <tbody>\n" +
+    "\n" +
+    "      <tr ng-repeat=\"row in table.rows.studyIds\">\n" +
+    "        <td title=\"{{row.description}}\">{{row.title}}</td>\n" +
+    "        <td ng-repeat=\"h in table.termHeaders\">\n" +
+    "          <span class=\"label label-info\" ng-if=\"row.hits[$index + 1]\">{{row.hits[$index + 1]}}</span>\n" +
+    "          <span ng-if=\"!row.hits[$index + 1]\">0</span>\n" +
+    "        </td>\n" +
+    "        <th>\n" +
+    "          <a>{{row.totalHits}}</a>\n" +
+    "        </th>\n" +
+    "      </tr>\n" +
+    "\n" +
+    "      </tbody>\n" +
+    "      <tfoot>\n" +
+    "      <tr>\n" +
+    "        <th translate>all</th>\n" +
+    "        <th ng-repeat=\"hit in table.footers.total\">\n" +
+    "          <a>{{hit}}</a>\n" +
+    "        </th>\n" +
+    "        <th>\n" +
+    "          <a>{{table.response.totalHits}}</a>\n" +
+    "        </th>\n" +
+    "      </tr>\n" +
+    "      </tfoot>\n" +
+    "    </table>\n" +
+    "  </div>\n" +
+    "\n" +
+    "      <!--<pre>-->\n" +
+    "<!--{{table.response | json}}-->\n" +
+    "      <!--</pre>-->\n" +
+    "</div>");
+}]);
+
 angular.module("search/views/criteria-panel-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria-panel-template.html",
     "<span class=\"voffset4\">\n" +
@@ -3196,11 +3361,15 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
     "\n" +
     "    <uib-tab heading=\"{{'coverage' | translate}}\" active=\"activeDisplay.coverage\"\n" +
     "      ng-click=\"selectDisplay(DISPLAY_TYPES.COVERAGE)\">\n" +
-    "      <div class=\"voffset2\">\n" +
-    "      <pre>\n" +
+    "      <coverage-result-table table=\"dto\"  class=\"voffset2\"></coverage-result-table>\n" +
+    "\n" +
+    "    </uib-tab>\n" +
+    "\n" +
+    "    <uib-tab heading=\"{{'graphics' | translate}}\" active=\"activeDisplay.graphics\"\n" +
+    "      ng-click=\"selectDisplay(DISPLAY_TYPES.GRAPHICS)\">\n" +
+    "      <pre class=\"voffset2\">\n" +
     "{{dto | json}}\n" +
     "      </pre>\n" +
-    "      </div>\n" +
     "    </uib-tab>\n" +
     "\n" +
     "  </uib-tabset>\n" +

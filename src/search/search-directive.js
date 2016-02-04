@@ -98,6 +98,17 @@ angular.module('obiba.mica.search')
     };
   }])
 
+  .directive('coverageResultTable', [function () {
+    return {
+      restrict: 'EA',
+      replace: true,
+      scope: {
+        table: '='
+      },
+      templateUrl: 'search/views/coverage-search-result-table-template.html'
+    };
+  }])
+
   .directive('resultPanel', [function () {
     return {
       restrict: 'EA',
