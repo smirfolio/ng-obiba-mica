@@ -39,11 +39,15 @@
 
     <uib-tab heading="{{'coverage' | translate}}" active="activeDisplay.coverage"
       ng-click="selectDisplay(DISPLAY_TYPES.COVERAGE)">
-      <div class="voffset2">
-      <pre>
+      <coverage-result-table table="dto"  class="voffset2"></coverage-result-table>
+
+    </uib-tab>
+
+    <uib-tab heading="{{'graphics' | translate}}" active="activeDisplay.graphics"
+      ng-click="selectDisplay(DISPLAY_TYPES.GRAPHICS)">
+      <pre class="voffset2">
 {{dto | json}}
       </pre>
-      </div>
     </uib-tab>
 
   </uib-tabset>
