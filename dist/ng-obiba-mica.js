@@ -1313,7 +1313,8 @@ angular.module('obiba.mica.search')
               LocalizedValues,
               ObibaSearchConfig,
               RqlQueryService) {
-      console.log(ObibaSearchConfig.getOptions());
+
+      $scope.settingsDisplay = ObibaSearchConfig.getOptions();
 
       function onError(response) {
         AlertService.alert({
@@ -1353,10 +1354,24 @@ angular.module('obiba.mica.search')
         throw new Error('Invalid query type: ' + type);
       }
 
+      function getDefaultQueryType() {
+        if ($scope.settingsDisplay.variables.showSearchTab) {
+          return QUERY_TYPES.VARIABLES;
+        }
+        else {
+          var result =  Object.keys($scope.settingsDisplay).filter(function (key) {
+            return $scope.settingsDisplay[key].showSearchTab===1;
+          });
+          console.log(result);
+          return result[result.length-1];
+        }
+      }
+
+
       function validateQueryData() {
         try {
           var search = $location.search();
-          var type = search.type || QUERY_TYPES.VARIABLES;
+          var type = search.type || getDefaultQueryType();
           var display = search.display || DISPLAY_TYPES.LIST;
           var query = search.query || getDefaultQuery(type);
           validateType(type);
@@ -1670,7 +1685,14 @@ angular.module('obiba.mica.search')
     '$scope',
     'QUERY_TYPES',
     'DISPLAY_TYPES',
-    function ($scope, QUERY_TYPES, DISPLAY_TYPES) {
+    'ObibaSearchConfig',
+    function ($scope,
+              QUERY_TYPES,
+              DISPLAY_TYPES,
+              ObibaSearchConfig) {
+
+      $scope.settingsDisplay = ObibaSearchConfig.getOptions();
+
       $scope.selectDisplay = function (display) {
         console.log('Display', display);
         $scope.display = display;
@@ -1686,10 +1708,10 @@ angular.module('obiba.mica.search')
 
       $scope.$watch('type', function () {
         $scope.activeTarget = {
-          networks: $scope.type === QUERY_TYPES.NETWORKS || false,
-          studies: $scope.type === QUERY_TYPES.STUDIES || false,
-          datasets: $scope.type === QUERY_TYPES.DATASETS || false,
-          variables: $scope.type === QUERY_TYPES.VARIABLES || false
+          networks: ($scope.type === QUERY_TYPES.NETWORKS && $scope.settingsDisplay.networks.showSearchTab) || false,
+          studies: ($scope.type === QUERY_TYPES.STUDIES && $scope.settingsDisplay.studies.showSearchTab) || false,
+          datasets: ($scope.type === QUERY_TYPES.DATASETS && $scope.settingsDisplay.datasets.showSearchTab) || false,
+          variables: ($scope.type === QUERY_TYPES.VARIABLES && $scope.settingsDisplay.variables.showSearchTab) || false
         };
       });
 
@@ -3686,28 +3708,28 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
     "      <uib-tabset class=\"voffset2\" type=\"pills\">\n" +
     "\n" +
     "        <!-- Variables -->\n" +
-    "        <uib-tab active=\"activeTarget.variables\" ng-click=\"selectTarget(QUERY_TYPES.VARIABLES)\"\n" +
+    "        <uib-tab ng-show=\"settingsDisplay.variables.showSearchTab\" active=\"activeTarget.variables\" ng-click=\"selectTarget(QUERY_TYPES.VARIABLES)\"\n" +
     "          heading=\"{{'variables' | translate}} ({{dto.variableResultDto.totalHits}})\">\n" +
     "          <variables-result-table\n" +
     "            summaries=\"dto.variableResultDto['obiba.mica.DatasetVariableResultDto.result'].summaries\"></variables-result-table>\n" +
     "        </uib-tab>\n" +
     "\n" +
     "        <!-- Datasets -->\n" +
-    "        <uib-tab active=\"activeTarget.datasets\" ng-click=\"selectTarget(QUERY_TYPES.DATASETS)\"\n" +
+    "        <uib-tab ng-show=\"settingsDisplay.datasets.showSearchTab\" active=\"activeTarget.datasets\" ng-click=\"selectTarget(QUERY_TYPES.DATASETS)\"\n" +
     "          heading=\"{{'datasets' | translate}} ({{dto.datasetResultDto.totalHits}})\">\n" +
     "          <datasets-result-table\n" +
     "            summaries=\"dto.datasetResultDto['obiba.mica.DatasetResultDto.result'].datasets\"></datasets-result-table>\n" +
     "        </uib-tab>\n" +
     "\n" +
     "        <!-- Studies -->\n" +
-    "        <uib-tab active=\"activeTarget.studies\" ng-click=\"selectTarget(QUERY_TYPES.STUDIES)\"\n" +
+    "        <uib-tab ng-show=\"settingsDisplay.studies.showSearchTab\" active=\"activeTarget.studies\" ng-click=\"selectTarget(QUERY_TYPES.STUDIES)\"\n" +
     "          heading=\"{{'studies' | translate}} ({{dto.studyResultDto.totalHits}})\">\n" +
     "          <studies-result-table\n" +
     "            summaries=\"dto.studyResultDto['obiba.mica.StudyResultDto.result'].summaries\"></studies-result-table>\n" +
     "        </uib-tab>\n" +
     "\n" +
     "        <!-- Networks -->\n" +
-    "        <uib-tab active=\"activeTarget.networks\" ng-click=\"selectTarget(QUERY_TYPES.NETWORKS)\"\n" +
+    "        <uib-tab ng-show=\"settingsDisplay.networks.showSearchTab\" active=\"activeTarget.networks\" ng-click=\"selectTarget(QUERY_TYPES.NETWORKS)\"\n" +
     "          heading=\"{{'networks' | translate}} ({{dto.networkResultDto.totalHits}})\">\n" +
     "          <networks-result-table\n" +
     "            summaries=\"dto.networkResultDto['obiba.mica.NetworkResultDto.result'].networks\"></networks-result-table>\n" +
@@ -3782,19 +3804,19 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      <div class=\"col-xs-3\"></div>\n" +
     "      <div class=\"col-xs-6\">\n" +
     "        <ul class=\"nav nav-pills\">\n" +
-    "          <li ng-class=\"{'active': taxonomies.target === 'variable' && taxonomiesShown}\"\n" +
+    "          <li ng-show=\"settingsDisplay.variables.showSearchTab\" ng-class=\"{'active': taxonomies.target === 'variable' && taxonomiesShown}\"\n" +
     "            title=\"{{'variable-classifications' | translate}}\">\n" +
     "            <a ng-click=\"selectTaxonomyTarget('variable')\" translate>variables</a>\n" +
     "          </li>\n" +
-    "          <li ng-class=\"{'active': taxonomies.target === 'dataset' && taxonomiesShown}\"\n" +
+    "          <li ng-show=\"settingsDisplay.datasets.showSearchTab\" ng-class=\"{'active': taxonomies.target === 'dataset' && taxonomiesShown}\"\n" +
     "            title=\"{{'dataset-classifications' | translate}}\">\n" +
     "            <a ng-click=\"selectTaxonomyTarget('dataset')\" translate>datasets</a>\n" +
     "          </li>\n" +
-    "          <li ng-class=\"{'active': taxonomies.target === 'study' && taxonomiesShown}\"\n" +
+    "          <li ng-show=\"settingsDisplay.studies.showSearchTab\" ng-class=\"{'active': taxonomies.target === 'study' && taxonomiesShown}\"\n" +
     "            title=\"{{'study-classifications' | translate}}\">\n" +
     "            <a ng-click=\"selectTaxonomyTarget('study')\" translate>studies</a>\n" +
     "          </li>\n" +
-    "          <li ng-class=\"{'active': taxonomies.target === 'network' && taxonomiesShown}\"\n" +
+    "          <li ng-show=\"settingsDisplay.networks.showSearchTab\" ng-class=\"{'active': taxonomies.target === 'network' && taxonomiesShown}\"\n" +
     "            title=\"{{'network-classifications' | translate}}\">\n" +
     "            <a ng-click=\"selectTaxonomyTarget('network')\" translate>networks</a>\n" +
     "          </li>\n" +
