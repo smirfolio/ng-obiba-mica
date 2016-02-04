@@ -43,6 +43,7 @@ angular.module('obiba.mica.search')
     'ServerErrorUtils',
     'LocalizedValues',
     'ObibaSearchConfig',
+    'RqlQueryService',
     function ($scope,
               $timeout,
               $routeParams,
@@ -59,53 +60,9 @@ angular.module('obiba.mica.search')
               AlertService,
               ServerErrorUtils,
               LocalizedValues,
-              ObibaSearchConfig) {
+              ObibaSearchConfig,
+              RqlQueryService) {
       console.log(ObibaSearchConfig.getOptions());
-      function createCriteria(target, taxonomy, vocabulary, term) {
-        var id = taxonomy.name + '::' + vocabulary.name;
-        if (term) {
-          id = id + ':' + term.name;
-        }
-        var criteria = {
-          id: id,
-          taxonomy: taxonomy,
-          vocabulary: vocabulary,
-          term: term,
-          target: target,
-          lang: $scope.lang,
-          itemTitle: '',
-          itemDescription: '',
-          itemParentTitle: '',
-          itemParentDescription: ''
-        };
-
-        // prepare some labels for display
-        if(term) {
-          criteria.itemTitle = LocalizedValues.forLocale(term.title, $scope.lang);
-          criteria.itemDescription = LocalizedValues.forLocale(term.description,$scope.lang);
-          criteria.itemParentTitle = LocalizedValues.forLocale(vocabulary.title, $scope.lang);
-          criteria.itemParentDescription = LocalizedValues.forLocale(vocabulary.description, $scope.lang);
-          if (!criteria.itemTitle) {
-            criteria.itemTitle = term.name;
-          }
-          if (!criteria.itemParentTitle) {
-            criteria.itemParentTitle = vocabulary.name;
-          }
-        } else {
-          criteria.itemTitle = LocalizedValues.forLocale(vocabulary.title, $scope.lang);
-          criteria.itemDescription = LocalizedValues.forLocale(vocabulary.description, $scope.lang);
-          criteria.itemParentTitle = LocalizedValues.forLocale(taxonomy.title, $scope.lang);
-          criteria.itemParentDescription = LocalizedValues.forLocale(taxonomy.description, $scope.lang);
-          if (!criteria.itemTitle) {
-            criteria.itemTitle = vocabulary.name;
-          }
-          if (!criteria.itemParentTitle) {
-            criteria.itemParentTitle = taxonomy.name;
-          }
-        }
-
-        return criteria;
-      }
 
       function onError(response) {
         AlertService.alert({
@@ -154,6 +111,14 @@ angular.module('obiba.mica.search')
           validateType(type);
           validateDisplay(display);
           new RqlParser().parse(query);
+          var rqlQuery = new RqlParser().parse(query);
+          //console.log('>>>> Found node', RqlQueryService.variableNode(rqlQuery));
+          RqlQueryService.buildVariableCriteria(rqlQuery, $scope.lang).then(function(criteriaList){
+            console.log('CRITERIAS', criteriaList);
+            criteriaList.forEach(function(criterion){
+              selectCriteria(criterion);
+            });
+          });
 
           $scope.search.type = type;
           $scope.search.display = display;
@@ -387,13 +352,13 @@ angular.module('obiba.mica.search')
                   if (vocabulary.terms) {
                     vocabulary.terms.forEach(function (term) {
                       if (results.length < size) {
-                        results.push(createCriteria(target, taxonomy, vocabulary, term));
+                        results.push(RqlQueryService.createCriteria(target, taxonomy, vocabulary, term, $scope.lang));
                       }
                       total++;
                     });
                   } else {
                     if (results.length < size) {
-                      results.push(createCriteria(target, taxonomy, vocabulary));
+                      results.push(RqlQueryService.createCriteria(target, taxonomy, vocabulary, null, $scope.lang));
                     }
                     total++;
                   }
@@ -459,7 +424,7 @@ angular.module('obiba.mica.search')
       };
 
       var selectTerm = function (target, taxonomy, vocabulary, term) {
-        selectCriteria(createCriteria(target, taxonomy, vocabulary, term));
+        selectCriteria(RqlQueryService.createCriteria(target, taxonomy, vocabulary, term, $scope.lang));
       };
 
       var onTypeChanged = function (type) {
