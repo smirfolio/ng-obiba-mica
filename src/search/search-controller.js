@@ -62,7 +62,8 @@ angular.module('obiba.mica.search')
               LocalizedValues,
               ObibaSearchConfig,
               RqlQueryService) {
-      console.log(ObibaSearchConfig.getOptions());
+
+      $scope.settingsDisplay = ObibaSearchConfig.getOptions();
 
       function onError(response) {
         AlertService.alert({
@@ -102,10 +103,24 @@ angular.module('obiba.mica.search')
         throw new Error('Invalid query type: ' + type);
       }
 
+      function getDefaultQueryType() {
+        if ($scope.settingsDisplay.variables.showSearchTab) {
+          return QUERY_TYPES.VARIABLES;
+        }
+        else {
+          var result =  Object.keys($scope.settingsDisplay).filter(function (key) {
+            return $scope.settingsDisplay[key].showSearchTab===1;
+          });
+          console.log(result);
+          return result[result.length-1];
+        }
+      }
+
+
       function validateQueryData() {
         try {
           var search = $location.search();
-          var type = search.type || QUERY_TYPES.VARIABLES;
+          var type = search.type || getDefaultQueryType();
           var display = search.display || DISPLAY_TYPES.LIST;
           var query = search.query || getDefaultQuery(type);
           validateType(type);
@@ -419,7 +434,14 @@ angular.module('obiba.mica.search')
     '$scope',
     'QUERY_TYPES',
     'DISPLAY_TYPES',
-    function ($scope, QUERY_TYPES, DISPLAY_TYPES) {
+    'ObibaSearchConfig',
+    function ($scope,
+              QUERY_TYPES,
+              DISPLAY_TYPES,
+              ObibaSearchConfig) {
+
+      $scope.settingsDisplay = ObibaSearchConfig.getOptions();
+
       $scope.selectDisplay = function (display) {
         console.log('Display', display);
         $scope.display = display;
@@ -435,10 +457,10 @@ angular.module('obiba.mica.search')
 
       $scope.$watch('type', function () {
         $scope.activeTarget = {
-          networks: $scope.type === QUERY_TYPES.NETWORKS || false,
-          studies: $scope.type === QUERY_TYPES.STUDIES || false,
-          datasets: $scope.type === QUERY_TYPES.DATASETS || false,
-          variables: $scope.type === QUERY_TYPES.VARIABLES || false
+          networks: ($scope.type === QUERY_TYPES.NETWORKS && $scope.settingsDisplay.networks.showSearchTab) || false,
+          studies: ($scope.type === QUERY_TYPES.STUDIES && $scope.settingsDisplay.studies.showSearchTab) || false,
+          datasets: ($scope.type === QUERY_TYPES.DATASETS && $scope.settingsDisplay.datasets.showSearchTab) || false,
+          variables: ($scope.type === QUERY_TYPES.VARIABLES && $scope.settingsDisplay.variables.showSearchTab) || false
         };
       });
 
