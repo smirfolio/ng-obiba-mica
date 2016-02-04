@@ -10,14 +10,41 @@
 
 'use strict';
 
+
+var QUERY_TYPES = {
+  NETWORKS: 'networks',
+  STUDIES: 'studies',
+  DATASETS: 'datasets',
+  VARIABLES: 'variables'
+};
+
+var QUERY_TARGETS = {
+  NETWORKS: 'networks',
+  STUDIES: 'studies',
+  DATASETS: 'datasets',
+  VARIABLES: 'variables'
+};
+
+function targetToType(target) {
+  switch (target.toLocaleString()) {
+    case 'network':
+      return 'networks';
+    case 'study':
+      return 'studies';
+    case 'dataset':
+        return 'datasets';
+    case'variable':
+      return 'variables';
+  }
+
+  throw new Error('Invalid target: ' + target);
+}
+
 angular.module('obiba.mica.search')
 
-  .constant('QUERY_TYPES', {
-    NETWORKS: 'networks',
-    STUDIES: 'studies',
-    DATASETS: 'datasets',
-    VARIABLES: 'variables'
-  })
+  .constant('QUERY_TYPES', QUERY_TYPES)
+
+  .constant('QUERY_TARGETS', QUERY_TARGETS)
 
   .constant('DISPLAY_TYPES', {
     LIST: 'list',
@@ -127,9 +154,8 @@ angular.module('obiba.mica.search')
           validateDisplay(display);
           new RqlParser().parse(query);
           var rqlQuery = new RqlParser().parse(query);
-          //console.log('>>>> Found node', RqlQueryService.variableNode(rqlQuery));
+          // TODO implement RqlQueryService.buildCriteria to take care of all types
           RqlQueryService.buildVariableCriteria(rqlQuery, $scope.lang).then(function (criteriaList) {
-            console.log('CRITERIAS', criteriaList);
             criteriaList.forEach(function (criterion) {
               selectCriteria(criterion);
             });
@@ -476,8 +502,10 @@ angular.module('obiba.mica.search')
 
   .controller('CriterionDropdownController', [
     '$scope',
+    'RqlQueryService',
     'LocalizedValues',
-    function ($scope, LocalizedValues) {
+    'JoinQuerySearchResource',
+    function ($scope, RqlQueryService, LocalizedValues, JoinQuerySearchResource) {
       console.log('QueryDropdownController', $scope);
 
       var isSelected = function (name) {
@@ -509,7 +537,32 @@ angular.module('obiba.mica.search')
         return text.length > 40 ? text.substring(0, 40) + '...' : text;
       };
 
-      $scope.selectedTerms = [];
+      var openDropdown = function() {
+        if ($scope.open) {
+          $scope.open = false;
+          return;
+        }
+
+        var target = $scope.criterion.target;
+        var joinQuery =
+          RqlQueryService.prepareCriteriaTermsQuery(
+            target,
+            $scope.query,
+            $scope.criterion.taxonomy.name,
+            $scope.criterion.vocabulary.name);
+
+
+        JoinQuerySearchResource[targetToType(target)]({query: joinQuery}).$promise.then(function (response) {
+          console.log('GOT THE RESULT', response);
+          $scope.open = true;
+        });
+      };
+
+      $scope.selectedTerms = $scope.criterion.selectedTerms.map(function(term){
+        return term.name;
+      });
+      $scope.isOpen = false;
+      $scope.openDropdown = openDropdown;
       $scope.selectAll = selectAll;
       $scope.deselectAll = function () { $scope.selectedTerms = []; };
       $scope.toggleSelection = toggleSelection;
