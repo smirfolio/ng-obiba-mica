@@ -312,10 +312,18 @@ angular.module('obiba.mica.search')
 
   .service('ObibaSearchConfig', function () {
     var options = {
-      networks: null,
-      studies: null,
-      datasets: null,
-      variables: null
+      networks: {
+        showSearchTab:1
+      },
+      studies: {
+        showSearchTab:1
+      },
+      datasets: {
+        showSearchTab:1
+      },
+      variables: {
+        showSearchTab:1
+      }
     };
 
     this.setOptions = function (newOptions) {
