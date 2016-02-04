@@ -2368,10 +2368,18 @@ angular.module('obiba.mica.search')
 
   .service('ObibaSearchConfig', function () {
     var options = {
-      networks: null,
-      studies: null,
-      datasets: null,
-      variables: null
+      networks: {
+        showSearchTab:1
+      },
+      studies: {
+        showSearchTab:1
+      },
+      datasets: {
+        showSearchTab:1
+      },
+      variables: {
+        showSearchTab:1
+      }
     };
 
     this.setOptions = function (newOptions) {
@@ -3491,14 +3499,6 @@ angular.module("search/views/coverage-search-result-table-template.html", []).ru
     "  <div class=\"table-responsive\" ng-if=\"table.taxonomyHeaders.length > 0\">\n" +
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
-    "      <!--<tr>-->\n" +
-    "        <!--<th rowspan=\"3\" translate>study.label</th>-->\n" +
-    "        <!--<th ng-repeat=\"header in table.taxonomyHeaders\" title=\"{{header.taxonomy.descriptions[0].value}}\"-->\n" +
-    "          <!--colspan=\"{{header.termsCount}}\">-->\n" +
-    "          <!--{{header.taxonomy.titles[0].value}}-->\n" +
-    "        <!--</th>-->\n" +
-    "        <!--<th rowspan=\"3\" translate>all</th>-->\n" +
-    "      <!--</tr>-->\n" +
     "      <tr>\n" +
     "        <th rowspan=\"2\" translate>study.label</th>\n" +
     "        <th ng-repeat=\"header in table.vocabularyHeaders\" title=\"{{header.vocabulary.descriptions[0].value}}\"\n" +
@@ -3541,9 +3541,9 @@ angular.module("search/views/coverage-search-result-table-template.html", []).ru
     "    </table>\n" +
     "  </div>\n" +
     "\n" +
-    "      <pre>\n" +
-    "{{table | json}}\n" +
-    "      </pre>\n" +
+    "      <!--<pre>-->\n" +
+    "<!--{{table | json}}-->\n" +
+    "      <!--</pre>-->\n" +
     "</div>");
 }]);
 
