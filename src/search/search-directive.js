@@ -103,8 +103,9 @@ angular.module('obiba.mica.search')
       restrict: 'EA',
       replace: true,
       scope: {
-        table: '='
+        result: '='
       },
+      controller: 'CoverageResultTableController',
       templateUrl: 'search/views/coverage-search-result-table-template.html'
     };
   }])

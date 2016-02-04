@@ -1,5 +1,7 @@
 <div>
-  <div class="table-responsive">
+  <p class="help-block" ng-if="table.taxonomyHeaders.length === 0" translate>no-coverage</p>
+
+  <div class="table-responsive" ng-if="table.taxonomyHeaders.length > 0">
     <table class="table table-bordered table-striped">
       <thead>
       <tr>
@@ -43,7 +45,7 @@
           <a>{{hit}}</a>
         </th>
         <th>
-          <a>{{table.response.totalHits}}</a>
+          <a>{{table.totalHits}}</a>
         </th>
       </tr>
       </tfoot>
@@ -51,6 +53,6 @@
   </div>
 
       <!--<pre>-->
-<!--{{table.response | json}}-->
+<!--{{table | json}}-->
       <!--</pre>-->
 </div>

@@ -477,4 +477,27 @@ angular.module('obiba.mica.search')
         return deferred.promise;
       };
 
+      /**
+       * Append the aggregate and bucket operations to the variable.
+       *
+       * @param query
+       * @param bucketArgs
+       * @returns the new query
+       */
+      this.prepareCoverageQuery = function(query, bucketArgs) {
+        var parsedQuery = new RqlParser().parse(query);
+        var aggregate = new RqlQuery('aggregate');
+        var bucket = new RqlQuery('bucket');
+        bucketArgs.forEach(function(b){
+          bucket.args.push(b);
+        });
+        aggregate.args.push(bucket);
+        parsedQuery.args.forEach(function(arg) {
+          if(arg.name === 'variable') {
+            arg.args.push(aggregate);
+          }
+        });
+        return parsedQuery.serializeArgs(parsedQuery.args);
+      };
+
     }]);
