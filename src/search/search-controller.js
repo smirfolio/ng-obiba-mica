@@ -523,9 +523,9 @@ angular.module('obiba.mica.search')
           total: []
         };
         if (response.taxonomies) {
+          var termsCount = 0;
           response.taxonomies.forEach(function (taxo) {
             if (taxo.vocabularies) {
-              var termsCount = 0;
               taxo.vocabularies.forEach(function (voc) {
                 if (voc.terms) {
                   voc.terms.forEach(function (trm) {

@@ -4,19 +4,21 @@
   <div class="table-responsive" ng-if="table.taxonomyHeaders.length > 0">
     <table class="table table-bordered table-striped">
       <thead>
+      <!--<tr>-->
+        <!--<th rowspan="3" translate>study.label</th>-->
+        <!--<th ng-repeat="header in table.taxonomyHeaders" title="{{header.taxonomy.descriptions[0].value}}"-->
+          <!--colspan="{{header.termsCount}}">-->
+          <!--{{header.taxonomy.titles[0].value}}-->
+        <!--</th>-->
+        <!--<th rowspan="3" translate>all</th>-->
+      <!--</tr>-->
       <tr>
-        <th rowspan="3" translate>study.label</th>
-        <th ng-repeat="header in table.taxonomyHeaders" title="{{header.taxonomy.descriptions[0].value}}"
-          colspan="{{header.termsCount}}">
-          {{header.taxonomy.titles[0].value}}
-        </th>
-        <th rowspan="3" translate>all</th>
-      </tr>
-      <tr>
+        <th rowspan="2" translate>study.label</th>
         <th ng-repeat="header in table.vocabularyHeaders" title="{{header.vocabulary.descriptions[0].value}}"
           colspan="{{header.termsCount}}">
           {{header.vocabulary.titles[0].value}}
         </th>
+        <th rowspan="2" translate>all</th>
       </tr>
       <tr>
         <th ng-repeat="header in table.termHeaders" title="{{header.term.descriptions[0].value}}">
@@ -52,7 +54,7 @@
     </table>
   </div>
 
-      <!--<pre>-->
-<!--{{table | json}}-->
-      <!--</pre>-->
+      <pre>
+{{table | json}}
+      </pre>
 </div>
