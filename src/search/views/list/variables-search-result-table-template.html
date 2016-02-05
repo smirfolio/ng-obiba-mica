@@ -14,34 +14,30 @@
       <table class="table table-bordered table-striped">
         <thead>
         <tr>
-          <th translate>acronym</th>
           <th translate>name</th>
-          <th translate>type</th>
-          <th translate>networks</th>
-          <th translate>studies</th>
-          <th translate>variables</th>
+          <th translate>label</th>
+          <th translate>study</th>
+          <th translate>dataset</th>
         </tr>
         </thead>
         <tbody>
 
         <tr ng-repeat="summary in summaries">
           <td>
-            <localized value="summary.acronym" lang="lang"></localized>
+            <a href>
+              {{summary.name}}
+            </a>
           </td>
           <td>
-            <localized value="summary.name" lang="lang"></localized>
+            <localized value="summary.variableLabel" lang="lang"></localized>
           </td>
           <td>
-            <localized value="summary.type" lang="lang"></localized>
+            <localized value="summary.studyAcronym" lang="lang"></localized>
           </td>
           <td>
-            {{summary['obiba.mica.CountStatsDto.datasetCountStats'].networks}}
-          </td>
-          <td>
-            {{summary['obiba.mica.CountStatsDto.datasetCountStats'].studies}}
-          </td>
-          <td>
-            {{summary['obiba.mica.CountStatsDto.datasetCountStats'].variables}}
+            <a href>
+              <localized value="summary.datasetAcronym" lang="lang"></localized>
+            </a>
           </td>
         </tr>
         </tbody>
