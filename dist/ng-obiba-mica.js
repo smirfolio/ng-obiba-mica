@@ -1283,7 +1283,7 @@ function targetToType(target) {
     case 'study':
       return 'studies';
     case 'dataset':
-        return 'datasets';
+      return 'datasets';
     case'variable':
       return 'variables';
   }
@@ -1386,11 +1386,11 @@ angular.module('obiba.mica.search')
           return QUERY_TYPES.VARIABLES;
         }
         else {
-          var result =  Object.keys($scope.settingsDisplay).filter(function (key) {
-            return $scope.settingsDisplay[key].showSearchTab===1;
+          var result = Object.keys($scope.settingsDisplay).filter(function (key) {
+            return $scope.settingsDisplay[key].showSearchTab === 1;
           });
           console.log(result);
-          return result[result.length-1];
+          return result[result.length - 1];
         }
       }
 
@@ -1450,8 +1450,15 @@ angular.module('obiba.mica.search')
                 onError);
               break;
             case DISPLAY_TYPES.GRAPHICS:
-              // TODO
-              $scope.search.loading = false;
+              JoinQuerySearchResource.studies({
+                  query: RqlQueryService.prepareGraphicsQuery($scope.search.query,
+                    ['methods.designs', 'populations.selectionCriteria.countriesIso', 'populations.dataCollectionEvents.bioSamples'])
+                },
+                function onSuccess(response) {
+                  $scope.search.result = response;
+                  $scope.search.loading = false;
+                },
+                onError);
               break;
           }
         }
@@ -1792,7 +1799,7 @@ angular.module('obiba.mica.search')
         return text.length > 40 ? text.substring(0, 40) + '...' : text;
       };
 
-      var openDropdown = function() {
+      var openDropdown = function () {
         if ($scope.open) {
           $scope.open = false;
           return;
@@ -1813,7 +1820,7 @@ angular.module('obiba.mica.search')
         });
       };
 
-      $scope.selectedTerms = $scope.criterion.selectedTerms.map(function(term){
+      $scope.selectedTerms = $scope.criterion.selectedTerms.map(function (term) {
         return term.name;
       });
       $scope.isOpen = false;
@@ -1933,13 +1940,18 @@ angular.module('obiba.mica.search')
       });
 
       $scope.showMissing = true;
-      $scope.toggleMissing = function(value) {
+      $scope.toggleMissing = function (value) {
         $scope.showMissing = value;
       };
       $scope.keys = Object.keys;
 
-    }]);
-;/*
+    }])
+
+  .controller('GraphicsResultController', [
+    '$scope',
+    function ($scope) {
+
+    }]);;/*
  * Copyright (c) 2016 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
@@ -2053,6 +2065,19 @@ angular.module('obiba.mica.search')
       },
       controller: 'CoverageResultTableController',
       templateUrl: 'search/views/coverage/coverage-search-result-table-template.html'
+    };
+  }])
+
+  .directive('graphicsResult', [function () {
+    return {
+      restrict: 'EA',
+      replace: true,
+      scope: {
+        result: '=',
+        loading: '='
+      },
+      controller: 'GraphicsResultController',
+      templateUrl: 'search/views/graphics/graphics-search-result-template.html'
     };
   }])
 
@@ -2725,6 +2750,35 @@ angular.module('obiba.mica.search')
         return parsedQuery.serializeArgs(parsedQuery.args);
       };
 
+      this.prepareGraphicsQuery = function(query, aggregateArgs) {
+        var parsedQuery = new RqlParser().parse(query);
+        // aggregate
+        var aggregate = new RqlQuery('aggregate');
+        aggregateArgs.forEach(function(a){
+          aggregate.args.push(a);
+        });
+        // limit
+        var limit = new RqlQuery('limit');
+        limit.args.push(0);
+        limit.args.push(0);
+        // study
+        var study;
+        parsedQuery.args.forEach(function(arg) {
+          if(arg.name === 'study') {
+            study = arg;
+          }
+        });
+        if(!study) {
+          study = new RqlQuery('study');
+          parsedQuery.args.push(study);
+        }
+        study.args.push(aggregate);
+        study.args.push(limit);
+        // facet
+        parsedQuery.args.push(new RqlQuery('facet'));
+        return parsedQuery.serializeArgs(parsedQuery.args);
+      };
+
     }]);
 ;/*
  * Copyright (c) 2014 OBiBa. All rights reserved.
@@ -3112,7 +3166,7 @@ angular.module('obiba.mica.localized')
         return this.for(values, lang, 'lang', 'value');
       };
     });
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria-panel-template.html', 'search/views/criterion-dropdown-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html', 'search/views/taxonomies-view.html', 'search/views/taxonomy-panel-template.html', 'search/views/taxonomy-template.html', 'search/views/term-panel-template.html', 'search/views/vocabulary-panel-template.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria-panel-template.html', 'search/views/criterion-dropdown-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html', 'search/views/taxonomies-view.html', 'search/views/taxonomy-panel-template.html', 'search/views/taxonomy-template.html', 'search/views/term-panel-template.html', 'search/views/vocabulary-panel-template.html']);
 
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
@@ -3769,6 +3823,16 @@ angular.module("search/views/criterion-dropdown-template.html", []).run(["$templ
     "</span>");
 }]);
 
+angular.module("search/views/graphics/graphics-search-result-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/graphics/graphics-search-result-template.html",
+    "<div>\n" +
+    "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
+    "        <pre class=\"voffset2\">\n" +
+    "{{result | json}}\n" +
+    "      </pre>\n" +
+    "</div>");
+}]);
+
 angular.module("search/views/list/datasets-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/list/datasets-search-result-table-template.html",
     "<div>\n" +
@@ -4067,9 +4131,7 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
     "\n" +
     "    <uib-tab heading=\"{{'graphics' | translate}}\" active=\"activeDisplay.graphics\"\n" +
     "      ng-click=\"selectDisplay(DISPLAY_TYPES.GRAPHICS)\">\n" +
-    "      <pre class=\"voffset2\">\n" +
-    "{{dto | json}}\n" +
-    "      </pre>\n" +
+    "      <graphics-result result=\"dto\" loading=\"loading\" class=\"voffset2\"></graphics-result>\n" +
     "    </uib-tab>\n" +
     "\n" +
     "  </uib-tabset>\n" +

@@ -32,7 +32,7 @@ function targetToType(target) {
     case 'study':
       return 'studies';
     case 'dataset':
-        return 'datasets';
+      return 'datasets';
     case'variable':
       return 'variables';
   }
@@ -135,11 +135,11 @@ angular.module('obiba.mica.search')
           return QUERY_TYPES.VARIABLES;
         }
         else {
-          var result =  Object.keys($scope.settingsDisplay).filter(function (key) {
-            return $scope.settingsDisplay[key].showSearchTab===1;
+          var result = Object.keys($scope.settingsDisplay).filter(function (key) {
+            return $scope.settingsDisplay[key].showSearchTab === 1;
           });
           console.log(result);
-          return result[result.length-1];
+          return result[result.length - 1];
         }
       }
 
@@ -199,8 +199,15 @@ angular.module('obiba.mica.search')
                 onError);
               break;
             case DISPLAY_TYPES.GRAPHICS:
-              // TODO
-              $scope.search.loading = false;
+              JoinQuerySearchResource.studies({
+                  query: RqlQueryService.prepareGraphicsQuery($scope.search.query,
+                    ['methods.designs', 'populations.selectionCriteria.countriesIso', 'populations.dataCollectionEvents.bioSamples'])
+                },
+                function onSuccess(response) {
+                  $scope.search.result = response;
+                  $scope.search.loading = false;
+                },
+                onError);
               break;
           }
         }
@@ -541,7 +548,7 @@ angular.module('obiba.mica.search')
         return text.length > 40 ? text.substring(0, 40) + '...' : text;
       };
 
-      var openDropdown = function() {
+      var openDropdown = function () {
         if ($scope.open) {
           $scope.open = false;
           return;
@@ -562,7 +569,7 @@ angular.module('obiba.mica.search')
         });
       };
 
-      $scope.selectedTerms = $scope.criterion.selectedTerms.map(function(term){
+      $scope.selectedTerms = $scope.criterion.selectedTerms.map(function (term) {
         return term.name;
       });
       $scope.isOpen = false;
@@ -682,9 +689,15 @@ angular.module('obiba.mica.search')
       });
 
       $scope.showMissing = true;
-      $scope.toggleMissing = function(value) {
+      $scope.toggleMissing = function (value) {
         $scope.showMissing = value;
       };
       $scope.keys = Object.keys;
+
+    }])
+
+  .controller('GraphicsResultController', [
+    '$scope',
+    function ($scope) {
 
     }]);
