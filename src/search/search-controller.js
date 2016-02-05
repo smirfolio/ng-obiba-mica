@@ -180,12 +180,13 @@ angular.module('obiba.mica.search')
 
       function executeSearchQuery() {
         if (validateQueryData()) {
-          $scope.search.result = null;
+          $scope.search.loading = true;
           switch ($scope.search.display) {
             case DISPLAY_TYPES.LIST:
               JoinQuerySearchResource[$scope.search.type]({query: $scope.search.query},
                 function onSuccess(response) {
                   $scope.search.result = response;
+                  $scope.search.loading = false;
                 },
                 onError);
               break;
@@ -193,11 +194,13 @@ angular.module('obiba.mica.search')
               JoinQueryCoverageResource.get({query: RqlQueryService.prepareCoverageQuery($scope.search.query, ['studyIds'])},
                 function onSuccess(response) {
                   $scope.search.result = response;
+                  $scope.search.loading = false;
                 },
                 onError);
               break;
             case DISPLAY_TYPES.GRAPHICS:
               // TODO
+              $scope.search.loading = false;
               break;
           }
         }
@@ -401,7 +404,8 @@ angular.module('obiba.mica.search')
         query: null,
         type: null,
         result: null,
-        criteria: []
+        criteria: [],
+        loading: false
       };
 
       $scope.documents = {
