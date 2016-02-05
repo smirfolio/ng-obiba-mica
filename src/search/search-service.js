@@ -594,4 +594,33 @@ angular.module('obiba.mica.search')
         return parsedQuery.serializeArgs(parsedQuery.args);
       };
 
+      this.prepareGraphicsQuery = function(query, aggregateArgs) {
+        var parsedQuery = new RqlParser().parse(query);
+        // aggregate
+        var aggregate = new RqlQuery('aggregate');
+        aggregateArgs.forEach(function(a){
+          aggregate.args.push(a);
+        });
+        // limit
+        var limit = new RqlQuery('limit');
+        limit.args.push(0);
+        limit.args.push(0);
+        // study
+        var study;
+        parsedQuery.args.forEach(function(arg) {
+          if(arg.name === 'study') {
+            study = arg;
+          }
+        });
+        if(!study) {
+          study = new RqlQuery('study');
+          parsedQuery.args.push(study);
+        }
+        study.args.push(aggregate);
+        study.args.push(limit);
+        // facet
+        parsedQuery.args.push(new RqlQuery('facet'));
+        return parsedQuery.serializeArgs(parsedQuery.args);
+      };
+
     }]);

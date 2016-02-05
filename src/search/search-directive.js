@@ -115,6 +115,19 @@ angular.module('obiba.mica.search')
     };
   }])
 
+  .directive('graphicsResult', [function () {
+    return {
+      restrict: 'EA',
+      replace: true,
+      scope: {
+        result: '=',
+        loading: '='
+      },
+      controller: 'GraphicsResultController',
+      templateUrl: 'search/views/graphics/graphics-search-result-template.html'
+    };
+  }])
+
   .directive('resultPanel', [function () {
     return {
       restrict: 'EA',

@@ -45,9 +45,7 @@
 
     <uib-tab heading="{{'graphics' | translate}}" active="activeDisplay.graphics"
       ng-click="selectDisplay(DISPLAY_TYPES.GRAPHICS)">
-      <pre class="voffset2">
-{{dto | json}}
-      </pre>
+      <graphics-result result="dto" loading="loading" class="voffset2"></graphics-result>
     </uib-tab>
 
   </uib-tabset>
