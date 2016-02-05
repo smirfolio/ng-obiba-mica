@@ -1855,11 +1855,13 @@ angular.module('obiba.mica.search')
         if (response.taxonomies) {
           var termsCount = 0;
           response.taxonomies.forEach(function (taxo) {
+            var taxonomyTermsCount = 0;
             if (taxo.vocabularies) {
               taxo.vocabularies.forEach(function (voc) {
                 if (voc.terms) {
                   voc.terms.forEach(function (trm) {
                     termsCount++;
+                    taxonomyTermsCount++;
                     termHeaders.push({
                       taxonomy: taxo.taxonomy,
                       vocabulary: voc.vocabulary,
@@ -1893,7 +1895,7 @@ angular.module('obiba.mica.search')
               });
               taxonomyHeaders.push({
                 taxonomy: taxo.taxonomy,
-                termsCount: termsCount
+                termsCount: taxonomyTermsCount
               });
             }
           });
@@ -1911,7 +1913,7 @@ angular.module('obiba.mica.search')
           });
         });
 
-        return {
+        $scope.table = {
           taxonomyHeaders: taxonomyHeaders,
           vocabularyHeaders: vocabularyHeaders,
           termHeaders: termHeaders,
@@ -1924,9 +1926,17 @@ angular.module('obiba.mica.search')
 
       $scope.$watch('result', function () {
         if ($scope.result) {
-          $scope.table = processCoverageResponse();
+          processCoverageResponse();
+        } else {
+          $scope.table = null;
         }
       });
+
+      $scope.showMissing = true;
+      $scope.toggleMissing = function(value) {
+        $scope.showMissing = value;
+      };
+      $scope.keys = Object.keys;
 
     }]);
 ;/*
@@ -3649,7 +3659,16 @@ angular.module("search/views/coverage-search-result-table-template.html", []).ru
     "\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
+    "\n" +
     "  <div class=\"table-responsive\" ng-if=\"table.taxonomyHeaders.length > 0\">\n" +
+    "\n" +
+    "    <div class=\"pull-right\">\n" +
+    "      <a href ng-click=\"toggleMissing(false)\" ng-if=\"showMissing\" translate>coverage-hide-missing</a>\n" +
+    "      <a href ng-click=\"toggleMissing(true)\" ng-if=\"!showMissing\" translate>coverage-show-missing</a>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div class=\"clearfix\"></div>\n" +
+    "\n" +
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
     "      <tr>\n" +
@@ -3668,14 +3687,17 @@ angular.module("search/views/coverage-search-result-table-template.html", []).ru
     "      </thead>\n" +
     "      <tbody>\n" +
     "\n" +
-    "      <tr ng-repeat=\"row in table.rows.studyIds\">\n" +
-    "        <td title=\"{{row.description}}\">{{row.title}}</td>\n" +
+    "      <tr ng-repeat=\"row in table.rows.studyIds\" ng-if=\"showMissing || table.termHeaders.length == keys(row.hits).length\">\n" +
+    "        <td>\n" +
+    "          <a href title=\"{{row.description}}\">{{row.title}}</a>\n" +
+    "          <a href ng-if=\"false\" class=\"pull-right\"><i class=\"fa fa-plus-square\"></i></a>\n" +
+    "        </td>\n" +
     "        <td ng-repeat=\"h in table.termHeaders\">\n" +
     "          <span class=\"label label-info\" ng-if=\"row.hits[$index + 1]\">{{row.hits[$index + 1]}}</span>\n" +
     "          <span ng-if=\"!row.hits[$index + 1]\">0</span>\n" +
     "        </td>\n" +
     "        <th>\n" +
-    "          <a>{{row.totalHits}}</a>\n" +
+    "          <a href>{{row.totalHits}}</a>\n" +
     "        </th>\n" +
     "      </tr>\n" +
     "\n" +
@@ -3684,10 +3706,10 @@ angular.module("search/views/coverage-search-result-table-template.html", []).ru
     "      <tr>\n" +
     "        <th translate>all</th>\n" +
     "        <th ng-repeat=\"hit in table.footers.total\">\n" +
-    "          <a>{{hit}}</a>\n" +
+    "          <a href>{{hit}}</a>\n" +
     "        </th>\n" +
     "        <th>\n" +
-    "          <a>{{table.totalHits}}</a>\n" +
+    "          <a href>{{table.totalHits}}</a>\n" +
     "        </th>\n" +
     "      </tr>\n" +
     "      </tfoot>\n" +

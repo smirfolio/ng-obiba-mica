@@ -3,7 +3,16 @@
 
   <div ng-if="loading" class="loading"></div>
 
+
   <div class="table-responsive" ng-if="table.taxonomyHeaders.length > 0">
+
+    <div class="pull-right">
+      <a href ng-click="toggleMissing(false)" ng-if="showMissing" translate>coverage-hide-missing</a>
+      <a href ng-click="toggleMissing(true)" ng-if="!showMissing" translate>coverage-show-missing</a>
+    </div>
+
+    <div class="clearfix"></div>
+
     <table class="table table-bordered table-striped">
       <thead>
       <tr>
@@ -22,14 +31,17 @@
       </thead>
       <tbody>
 
-      <tr ng-repeat="row in table.rows.studyIds">
-        <td title="{{row.description}}">{{row.title}}</td>
+      <tr ng-repeat="row in table.rows.studyIds" ng-if="showMissing || table.termHeaders.length == keys(row.hits).length">
+        <td>
+          <a href title="{{row.description}}">{{row.title}}</a>
+          <a href ng-if="false" class="pull-right"><i class="fa fa-plus-square"></i></a>
+        </td>
         <td ng-repeat="h in table.termHeaders">
           <span class="label label-info" ng-if="row.hits[$index + 1]">{{row.hits[$index + 1]}}</span>
           <span ng-if="!row.hits[$index + 1]">0</span>
         </td>
         <th>
-          <a>{{row.totalHits}}</a>
+          <a href>{{row.totalHits}}</a>
         </th>
       </tr>
 
@@ -38,10 +50,10 @@
       <tr>
         <th translate>all</th>
         <th ng-repeat="hit in table.footers.total">
-          <a>{{hit}}</a>
+          <a href>{{hit}}</a>
         </th>
         <th>
-          <a>{{table.totalHits}}</a>
+          <a href>{{table.totalHits}}</a>
         </th>
       </tr>
       </tfoot>

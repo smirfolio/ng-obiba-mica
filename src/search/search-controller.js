@@ -604,11 +604,13 @@ angular.module('obiba.mica.search')
         if (response.taxonomies) {
           var termsCount = 0;
           response.taxonomies.forEach(function (taxo) {
+            var taxonomyTermsCount = 0;
             if (taxo.vocabularies) {
               taxo.vocabularies.forEach(function (voc) {
                 if (voc.terms) {
                   voc.terms.forEach(function (trm) {
                     termsCount++;
+                    taxonomyTermsCount++;
                     termHeaders.push({
                       taxonomy: taxo.taxonomy,
                       vocabulary: voc.vocabulary,
@@ -642,7 +644,7 @@ angular.module('obiba.mica.search')
               });
               taxonomyHeaders.push({
                 taxonomy: taxo.taxonomy,
-                termsCount: termsCount
+                termsCount: taxonomyTermsCount
               });
             }
           });
@@ -660,7 +662,7 @@ angular.module('obiba.mica.search')
           });
         });
 
-        return {
+        $scope.table = {
           taxonomyHeaders: taxonomyHeaders,
           vocabularyHeaders: vocabularyHeaders,
           termHeaders: termHeaders,
@@ -673,8 +675,16 @@ angular.module('obiba.mica.search')
 
       $scope.$watch('result', function () {
         if ($scope.result) {
-          $scope.table = processCoverageResponse();
+          processCoverageResponse();
+        } else {
+          $scope.table = null;
         }
       });
+
+      $scope.showMissing = true;
+      $scope.toggleMissing = function(value) {
+        $scope.showMissing = value;
+      };
+      $scope.keys = Object.keys;
 
     }]);
