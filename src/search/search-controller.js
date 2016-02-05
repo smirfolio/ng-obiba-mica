@@ -201,7 +201,7 @@ angular.module('obiba.mica.search')
             case DISPLAY_TYPES.GRAPHICS:
               JoinQuerySearchResource.studies({
                   query: RqlQueryService.prepareGraphicsQuery($scope.search.query,
-                    ['methods.designs', 'populations.selectionCriteria.countriesIso', 'populations.dataCollectionEvents.bioSamples'])
+                    ['methods.designs', 'populations.selectionCriteria.countriesIso', 'populations.dataCollectionEvents.bioSamples', 'numberOfParticipants.participant.number'])
                 },
                 function onSuccess(response) {
                   $scope.search.result = response;
