@@ -1855,11 +1855,13 @@ angular.module('obiba.mica.search')
         if (response.taxonomies) {
           var termsCount = 0;
           response.taxonomies.forEach(function (taxo) {
+            var taxonomyTermsCount = 0;
             if (taxo.vocabularies) {
               taxo.vocabularies.forEach(function (voc) {
                 if (voc.terms) {
                   voc.terms.forEach(function (trm) {
                     termsCount++;
+                    taxonomyTermsCount++;
                     termHeaders.push({
                       taxonomy: taxo.taxonomy,
                       vocabulary: voc.vocabulary,
@@ -1893,7 +1895,7 @@ angular.module('obiba.mica.search')
               });
               taxonomyHeaders.push({
                 taxonomy: taxo.taxonomy,
-                termsCount: termsCount
+                termsCount: taxonomyTermsCount
               });
             }
           });
@@ -1911,7 +1913,7 @@ angular.module('obiba.mica.search')
           });
         });
 
-        return {
+        $scope.table = {
           taxonomyHeaders: taxonomyHeaders,
           vocabularyHeaders: vocabularyHeaders,
           termHeaders: termHeaders,
@@ -1924,9 +1926,17 @@ angular.module('obiba.mica.search')
 
       $scope.$watch('result', function () {
         if ($scope.result) {
-          $scope.table = processCoverageResponse();
+          processCoverageResponse();
+        } else {
+          $scope.table = null;
         }
       });
+
+      $scope.showMissing = true;
+      $scope.toggleMissing = function(value) {
+        $scope.showMissing = value;
+      };
+      $scope.keys = Object.keys;
 
     }]);
 ;/*
@@ -1993,7 +2003,7 @@ angular.module('obiba.mica.search')
         summaries: '=',
         loading: '='
       },
-      templateUrl: 'search/views/networks-search-result-table-template.html'
+      templateUrl: 'search/views/list/networks-search-result-table-template.html'
     };
   }])
 
@@ -2005,7 +2015,7 @@ angular.module('obiba.mica.search')
         summaries: '=',
         loading: '='
       },
-      templateUrl: 'search/views/datasets-search-result-table-template.html'
+      templateUrl: 'search/views/list/datasets-search-result-table-template.html'
     };
   }])
 
@@ -2017,7 +2027,7 @@ angular.module('obiba.mica.search')
         summaries: '=',
         loading: '='
       },
-      templateUrl: 'search/views/studies-search-result-table-template.html'
+      templateUrl: 'search/views/list/studies-search-result-table-template.html'
     };
   }])
 
@@ -2029,7 +2039,7 @@ angular.module('obiba.mica.search')
         summaries: '=',
         loading: '='
       },
-      templateUrl: 'search/views/variables-search-result-table-template.html'
+      templateUrl: 'search/views/list/variables-search-result-table-template.html'
     };
   }])
 
@@ -2042,7 +2052,7 @@ angular.module('obiba.mica.search')
         loading: '='
       },
       controller: 'CoverageResultTableController',
-      templateUrl: 'search/views/coverage-search-result-table-template.html'
+      templateUrl: 'search/views/coverage/coverage-search-result-table-template.html'
     };
   }])
 
@@ -3102,7 +3112,7 @@ angular.module('obiba.mica.localized')
         return this.for(values, lang, 'lang', 'value');
       };
     });
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/coverage-search-result-table-template.html', 'search/views/criteria-panel-template.html', 'search/views/criterion-dropdown-template.html', 'search/views/datasets-search-result-table-template.html', 'search/views/networks-search-result-table-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html', 'search/views/studies-search-result-table-template.html', 'search/views/taxonomies-view.html', 'search/views/taxonomy-panel-template.html', 'search/views/taxonomy-template.html', 'search/views/term-panel-template.html', 'search/views/variables-search-result-table-template.html', 'search/views/vocabulary-panel-template.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria-panel-template.html', 'search/views/criterion-dropdown-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html', 'search/views/taxonomies-view.html', 'search/views/taxonomy-panel-template.html', 'search/views/taxonomy-template.html', 'search/views/term-panel-template.html', 'search/views/vocabulary-panel-template.html']);
 
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
@@ -3642,14 +3652,23 @@ angular.module("localized/localized-textarea-template.html", []).run(["$template
     "</div>");
 }]);
 
-angular.module("search/views/coverage-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("search/views/coverage-search-result-table-template.html",
+angular.module("search/views/coverage/coverage-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/coverage/coverage-search-result-table-template.html",
     "<div>\n" +
     "  <p class=\"help-block\" ng-if=\"!loading && table.taxonomyHeaders.length === 0\" translate>no-coverage</p>\n" +
     "\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
+    "\n" +
     "  <div class=\"table-responsive\" ng-if=\"table.taxonomyHeaders.length > 0\">\n" +
+    "\n" +
+    "    <div class=\"pull-right\">\n" +
+    "      <a href ng-click=\"toggleMissing(false)\" ng-if=\"showMissing\" translate>coverage-hide-missing</a>\n" +
+    "      <a href ng-click=\"toggleMissing(true)\" ng-if=\"!showMissing\" translate>coverage-show-missing</a>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div class=\"clearfix\"></div>\n" +
+    "\n" +
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
     "      <tr>\n" +
@@ -3668,14 +3687,17 @@ angular.module("search/views/coverage-search-result-table-template.html", []).ru
     "      </thead>\n" +
     "      <tbody>\n" +
     "\n" +
-    "      <tr ng-repeat=\"row in table.rows.studyIds\">\n" +
-    "        <td title=\"{{row.description}}\">{{row.title}}</td>\n" +
+    "      <tr ng-repeat=\"row in table.rows.studyIds\" ng-if=\"showMissing || table.termHeaders.length == keys(row.hits).length\">\n" +
+    "        <td>\n" +
+    "          <a href title=\"{{row.description}}\">{{row.title}}</a>\n" +
+    "          <a href ng-if=\"false\" class=\"pull-right\"><i class=\"fa fa-plus-square\"></i></a>\n" +
+    "        </td>\n" +
     "        <td ng-repeat=\"h in table.termHeaders\">\n" +
     "          <span class=\"label label-info\" ng-if=\"row.hits[$index + 1]\">{{row.hits[$index + 1]}}</span>\n" +
     "          <span ng-if=\"!row.hits[$index + 1]\">0</span>\n" +
     "        </td>\n" +
     "        <th>\n" +
-    "          <a>{{row.totalHits}}</a>\n" +
+    "          <a href>{{row.totalHits}}</a>\n" +
     "        </th>\n" +
     "      </tr>\n" +
     "\n" +
@@ -3684,10 +3706,10 @@ angular.module("search/views/coverage-search-result-table-template.html", []).ru
     "      <tr>\n" +
     "        <th translate>all</th>\n" +
     "        <th ng-repeat=\"hit in table.footers.total\">\n" +
-    "          <a>{{hit}}</a>\n" +
+    "          <a href>{{hit}}</a>\n" +
     "        </th>\n" +
     "        <th>\n" +
-    "          <a>{{table.totalHits}}</a>\n" +
+    "          <a href>{{table.totalHits}}</a>\n" +
     "        </th>\n" +
     "      </tr>\n" +
     "      </tfoot>\n" +
@@ -3747,8 +3769,8 @@ angular.module("search/views/criterion-dropdown-template.html", []).run(["$templ
     "</span>");
 }]);
 
-angular.module("search/views/datasets-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("search/views/datasets-search-result-table-template.html",
+angular.module("search/views/list/datasets-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/list/datasets-search-result-table-template.html",
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
@@ -3777,7 +3799,9 @@ angular.module("search/views/datasets-search-result-table-template.html", []).ru
     "\n" +
     "        <tr ng-repeat=\"summary in summaries\">\n" +
     "          <td>\n" +
-    "            <localized value=\"summary.acronym\" lang=\"lang\"></localized>\n" +
+    "            <a href>\n" +
+    "              <localized value=\"summary.acronym\" lang=\"lang\"></localized>\n" +
+    "            </a>\n" +
     "          </td>\n" +
     "          <td>\n" +
     "            <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
@@ -3802,8 +3826,8 @@ angular.module("search/views/datasets-search-result-table-template.html", []).ru
     "</div>");
 }]);
 
-angular.module("search/views/networks-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("search/views/networks-search-result-table-template.html",
+angular.module("search/views/list/networks-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/list/networks-search-result-table-template.html",
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
@@ -3840,7 +3864,9 @@ angular.module("search/views/networks-search-result-table-template.html", []).ru
     "\n" +
     "        <tr ng-repeat=\"summary in summaries\">\n" +
     "          <td>\n" +
-    "            <localized value=\"summary.acronym\" lang=\"lang\"></localized>\n" +
+    "            <a href>\n" +
+    "              <localized value=\"summary.acronym\" lang=\"lang\"></localized>\n" +
+    "            </a>\n" +
     "          </td>\n" +
     "          <td>\n" +
     "            <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
@@ -3856,6 +3882,133 @@ angular.module("search/views/networks-search-result-table-template.html", []).ru
     "          </td>\n" +
     "          <td>\n" +
     "            {{summary['obiba.mica.CountStatsDto.networkCountStats'].variables}}\n" +
+    "          </td>\n" +
+    "        </tr>\n" +
+    "        </tbody>\n" +
+    "      </table>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "</div>");
+}]);
+
+angular.module("search/views/list/studies-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/list/studies-search-result-table-template.html",
+    "<div>\n" +
+    "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
+    "\n" +
+    "  <div ng-show=\"summaries.length > 0\">\n" +
+    "\n" +
+    "    <div class=\"row voffset2\">\n" +
+    "      <div class=\"col-xs-4\">\n" +
+    "      </div>\n" +
+    "      <div class=\"col-xs-8\">\n" +
+    "        <dir-pagination-controls class=\"pull-right\"></dir-pagination-controls>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div class=\"table-responsive\">\n" +
+    "      <table class=\"table table-bordered table-striped\">\n" +
+    "        <thead>\n" +
+    "        <tr>\n" +
+    "          <th translate>acronym</th>\n" +
+    "          <th translate>name</th>\n" +
+    "          <th translate>design</th>\n" +
+    "          <th translate>participants</th>\n" +
+    "          <th translate>networks</th>\n" +
+    "          <th translate colspan=\"2\">datasets</th>\n" +
+    "          <th translate>variables</th>\n" +
+    "        </tr>\n" +
+    "        <tr>\n" +
+    "          <th></th>\n" +
+    "          <th></th>\n" +
+    "          <th></th>\n" +
+    "          <th></th>\n" +
+    "          <th></th>\n" +
+    "          <th translate>study</th>\n" +
+    "          <th translate>harmonization</th>\n" +
+    "          <th></th>\n" +
+    "        </tr>\n" +
+    "        </thead>\n" +
+    "        <tbody>\n" +
+    "\n" +
+    "        <tr ng-repeat=\"summary in summaries\">\n" +
+    "          <td>\n" +
+    "            <a href>\n" +
+    "              <localized value=\"summary.acronym\" lang=\"lang\"></localized>\n" +
+    "            </a>\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            {{summary.designs.join(', ')}}\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            {{summary.targetNumber.number}}\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            {{summary['obiba.mica.CountStatsDto.studyCountStats'].networks}}\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            {{summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets}}\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            {{summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets}}\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            {{summary['obiba.mica.CountStatsDto.studyCountStats'].variables}}\n" +
+    "          </td>\n" +
+    "        </tr>\n" +
+    "        </tbody>\n" +
+    "      </table>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "</div>\n" +
+    "");
+}]);
+
+angular.module("search/views/list/variables-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/list/variables-search-result-table-template.html",
+    "<div>\n" +
+    "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
+    "\n" +
+    "  <div ng-show=\"summaries.length > 0\">\n" +
+    "    <div class=\"row voffset2\">\n" +
+    "      <div class=\"col-xs-4\">\n" +
+    "      </div>\n" +
+    "      <div class=\"col-xs-8\">\n" +
+    "        <dir-pagination-controls class=\"pull-right\"></dir-pagination-controls>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div class=\"table-responsive\">\n" +
+    "      <table class=\"table table-bordered table-striped\">\n" +
+    "        <thead>\n" +
+    "        <tr>\n" +
+    "          <th translate>name</th>\n" +
+    "          <th translate>label</th>\n" +
+    "          <th translate>study</th>\n" +
+    "          <th translate>dataset</th>\n" +
+    "        </tr>\n" +
+    "        </thead>\n" +
+    "        <tbody>\n" +
+    "\n" +
+    "        <tr ng-repeat=\"summary in summaries\">\n" +
+    "          <td>\n" +
+    "            <a href>\n" +
+    "              {{summary.name}}\n" +
+    "            </a>\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            <localized value=\"summary.variableLabel\" lang=\"lang\"></localized>\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            <localized value=\"summary.studyAcronym\" lang=\"lang\"></localized>\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            <a href>\n" +
+    "              <localized value=\"summary.datasetAcronym\" lang=\"lang\"></localized>\n" +
+    "            </a>\n" +
     "          </td>\n" +
     "        </tr>\n" +
     "        </tbody>\n" +
@@ -4010,80 +4163,6 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "    <result-panel display=\"search.display\" type=\"search.type\" dto=\"search.result\" loading=\"search.loading\" on-type-changed=\"onTypeChanged\"></result-panel>\n" +
     "  </div>\n" +
     "</div>");
-}]);
-
-angular.module("search/views/studies-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("search/views/studies-search-result-table-template.html",
-    "<div>\n" +
-    "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
-    "\n" +
-    "  <div ng-show=\"summaries.length > 0\">\n" +
-    "\n" +
-    "    <div class=\"row voffset2\">\n" +
-    "      <div class=\"col-xs-4\">\n" +
-    "      </div>\n" +
-    "      <div class=\"col-xs-8\">\n" +
-    "        <dir-pagination-controls class=\"pull-right\"></dir-pagination-controls>\n" +
-    "      </div>\n" +
-    "    </div>\n" +
-    "\n" +
-    "    <div class=\"table-responsive\">\n" +
-    "      <table class=\"table table-bordered table-striped\">\n" +
-    "        <thead>\n" +
-    "        <tr>\n" +
-    "          <th translate>acronym</th>\n" +
-    "          <th translate>name</th>\n" +
-    "          <th translate>design</th>\n" +
-    "          <th translate>participants</th>\n" +
-    "          <th translate>networks</th>\n" +
-    "          <th translate colspan=\"2\">datasets</th>\n" +
-    "          <th translate>variables</th>\n" +
-    "        </tr>\n" +
-    "        <tr>\n" +
-    "          <th></th>\n" +
-    "          <th></th>\n" +
-    "          <th></th>\n" +
-    "          <th></th>\n" +
-    "          <th></th>\n" +
-    "          <th translate>study</th>\n" +
-    "          <th translate>harmonization</th>\n" +
-    "          <th></th>\n" +
-    "        </tr>\n" +
-    "        </thead>\n" +
-    "        <tbody>\n" +
-    "\n" +
-    "        <tr ng-repeat=\"summary in summaries\">\n" +
-    "          <td>\n" +
-    "            <localized value=\"summary.acronym\" lang=\"lang\"></localized>\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            {{summary.designs.join(', ')}}\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            {{summary.targetNumber.number}}\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            {{summary['obiba.mica.CountStatsDto.studyCountStats'].networks}}\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            {{summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets}}\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            {{summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets}}\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            {{summary['obiba.mica.CountStatsDto.studyCountStats'].variables}}\n" +
-    "          </td>\n" +
-    "        </tr>\n" +
-    "        </tbody>\n" +
-    "      </table>\n" +
-    "    </div>\n" +
-    "  </div>\n" +
-    "</div>\n" +
-    "");
 }]);
 
 angular.module("search/views/taxonomies-view.html", []).run(["$templateCache", function($templateCache) {
@@ -4266,53 +4345,6 @@ angular.module("search/views/term-panel-template.html", []).run(["$templateCache
     "  <p ng-repeat=\"label in term.description\" ng-if=\"label.locale === lang\">\n" +
     "    <span class=\"help-block\">{{label.text}}</span>\n" +
     "  </p>\n" +
-    "</div>");
-}]);
-
-angular.module("search/views/variables-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("search/views/variables-search-result-table-template.html",
-    "<div>\n" +
-    "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
-    "\n" +
-    "  <div ng-show=\"summaries.length > 0\">\n" +
-    "    <div class=\"row voffset2\">\n" +
-    "      <div class=\"col-xs-4\">\n" +
-    "      </div>\n" +
-    "      <div class=\"col-xs-8\">\n" +
-    "        <dir-pagination-controls class=\"pull-right\"></dir-pagination-controls>\n" +
-    "      </div>\n" +
-    "    </div>\n" +
-    "\n" +
-    "    <div class=\"table-responsive\">\n" +
-    "      <table class=\"table table-bordered table-striped\">\n" +
-    "        <thead>\n" +
-    "        <tr>\n" +
-    "          <th translate>name</th>\n" +
-    "          <th translate>label</th>\n" +
-    "          <th translate>study</th>\n" +
-    "          <th translate>dataset</th>\n" +
-    "        </tr>\n" +
-    "        </thead>\n" +
-    "        <tbody>\n" +
-    "\n" +
-    "        <tr ng-repeat=\"summary in summaries\">\n" +
-    "          <td>\n" +
-    "            {{summary.name}}\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            <localized value=\"summary.variableLabel\" lang=\"lang\"></localized>\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            <localized value=\"summary.studyAcronym\" lang=\"lang\"></localized>\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            <localized value=\"summary.datasetAcronym\" lang=\"lang\"></localized>\n" +
-    "          </td>\n" +
-    "        </tr>\n" +
-    "        </tbody>\n" +
-    "      </table>\n" +
-    "    </div>\n" +
-    "  </div>\n" +
     "</div>");
 }]);
 

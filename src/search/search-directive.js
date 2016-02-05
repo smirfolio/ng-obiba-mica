@@ -62,7 +62,7 @@ angular.module('obiba.mica.search')
         summaries: '=',
         loading: '='
       },
-      templateUrl: 'search/views/networks-search-result-table-template.html'
+      templateUrl: 'search/views/list/networks-search-result-table-template.html'
     };
   }])
 
@@ -74,7 +74,7 @@ angular.module('obiba.mica.search')
         summaries: '=',
         loading: '='
       },
-      templateUrl: 'search/views/datasets-search-result-table-template.html'
+      templateUrl: 'search/views/list/datasets-search-result-table-template.html'
     };
   }])
 
@@ -86,7 +86,7 @@ angular.module('obiba.mica.search')
         summaries: '=',
         loading: '='
       },
-      templateUrl: 'search/views/studies-search-result-table-template.html'
+      templateUrl: 'search/views/list/studies-search-result-table-template.html'
     };
   }])
 
@@ -98,7 +98,7 @@ angular.module('obiba.mica.search')
         summaries: '=',
         loading: '='
       },
-      templateUrl: 'search/views/variables-search-result-table-template.html'
+      templateUrl: 'search/views/list/variables-search-result-table-template.html'
     };
   }])
 
@@ -111,7 +111,7 @@ angular.module('obiba.mica.search')
         loading: '='
       },
       controller: 'CoverageResultTableController',
-      templateUrl: 'search/views/coverage-search-result-table-template.html'
+      templateUrl: 'search/views/coverage/coverage-search-result-table-template.html'
     };
   }])
 
