@@ -132,6 +132,7 @@ angular.module('obiba.mica.search')
       replace: true,
       scope: {
         criterion: '=',
+        query: '=',
         onSelect: '=',
         onRemove: '='
       },
@@ -152,7 +153,8 @@ angular.module('obiba.mica.search')
       restrict: 'EA',
       replace: true,
       scope: {
-        criteria: '='
+        criteria: '=',
+        query: '='
       },
       controller: 'CriteriaPanelController',
       templateUrl: 'search/views/criteria-panel-template.html'
