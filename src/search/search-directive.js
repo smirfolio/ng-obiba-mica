@@ -59,7 +59,8 @@ angular.module('obiba.mica.search')
       restrict: 'EA',
       replace: true,
       scope: {
-        summaries: '='
+        summaries: '=',
+        loading: '='
       },
       templateUrl: 'search/views/networks-search-result-table-template.html'
     };
@@ -70,7 +71,8 @@ angular.module('obiba.mica.search')
       restrict: 'EA',
       replace: true,
       scope: {
-        summaries: '='
+        summaries: '=',
+        loading: '='
       },
       templateUrl: 'search/views/datasets-search-result-table-template.html'
     };
@@ -81,7 +83,8 @@ angular.module('obiba.mica.search')
       restrict: 'EA',
       replace: true,
       scope: {
-        summaries: '='
+        summaries: '=',
+        loading: '='
       },
       templateUrl: 'search/views/studies-search-result-table-template.html'
     };
@@ -92,7 +95,8 @@ angular.module('obiba.mica.search')
       restrict: 'EA',
       replace: true,
       scope: {
-        summaries: '='
+        summaries: '=',
+        loading: '='
       },
       templateUrl: 'search/views/variables-search-result-table-template.html'
     };
@@ -103,7 +107,8 @@ angular.module('obiba.mica.search')
       restrict: 'EA',
       replace: true,
       scope: {
-        result: '='
+        result: '=',
+        loading: '='
       },
       controller: 'CoverageResultTableController',
       templateUrl: 'search/views/coverage-search-result-table-template.html'
@@ -119,6 +124,7 @@ angular.module('obiba.mica.search')
         display: '=',
         dto: '=',
         lang: '=',
+        loading: '=',
         onTypeChanged: '='
       },
       controller: 'SearchResultController',

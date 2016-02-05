@@ -1,5 +1,7 @@
 <div>
-  <p class="help-block" ng-if="table.taxonomyHeaders.length === 0" translate>no-coverage</p>
+  <p class="help-block" ng-if="!loading && table.taxonomyHeaders.length === 0" translate>no-coverage</p>
+
+  <div ng-if="loading" class="loading"></div>
 
   <div class="table-responsive" ng-if="table.taxonomyHeaders.length > 0">
     <table class="table table-bordered table-striped">
