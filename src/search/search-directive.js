@@ -20,7 +20,7 @@ angular.module('obiba.mica.search')
         lang: '=',
         onNavigate: '='
       },
-      templateUrl: 'search/views/taxonomy-panel-template.html'
+      templateUrl: 'search/views/classifications/taxonomy-panel-template.html'
     };
   }])
 
@@ -34,7 +34,7 @@ angular.module('obiba.mica.search')
         lang: '=',
         onNavigate: '='
       },
-      templateUrl: 'search/views/vocabulary-panel-template.html'
+      templateUrl: 'search/views/classifications/vocabulary-panel-template.html'
     };
   }])
 
@@ -50,7 +50,7 @@ angular.module('obiba.mica.search')
         lang: '=',
         onSelect: '='
       },
-      templateUrl: 'search/views/term-panel-template.html'
+      templateUrl: 'search/views/classifications/term-panel-template.html'
     };
   }])
 
