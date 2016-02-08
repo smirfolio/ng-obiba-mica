@@ -10,7 +10,17 @@
 
 'use strict';
 
+/* global RQL_NODE */
+
+/* exported CRITERIA_ITEM_EVENT */
+var CRITERIA_ITEM_EVENT = {
+  selected: 'event:select-criteria-item',
+  deleted: 'event:delete-criteria-item'
+};
+
 angular.module('obiba.mica.search')
+
+
   .directive('taxonomyPanel', [function () {
     return {
       restrict: 'EA',
@@ -145,25 +155,101 @@ angular.module('obiba.mica.search')
     };
   }])
 
+  .directive('criteriaRoot', [function(){
+    return {
+      restrict: 'EA',
+      replace: true,
+      scope: {
+        item: '=',
+        onRemove: '=',
+        onSelect: '='
+      },
+      template: '<span ng-repeat="child in item.children"><criteria-target item="child"></criteria-target></span>',
+      link: function(scope) {
+        scope.$on(CRITERIA_ITEM_EVENT.deleted, function(event, item){
+          scope.onRemove(item);
+        });
+
+        scope.$on(CRITERIA_ITEM_EVENT.selected, function(){
+          scope.onSelect();
+        });
+      }
+    };
+  }])
+
+  .directive('criteriaTarget', [function(){
+    return {
+      restrict: 'EA',
+      replace: true,
+      scope: {
+        item: '='
+      },
+      template: '<span ng-repeat="child in item.children" ><criteria-node item="child"></criteria-node></span>',
+      link: function(scope) {
+        console.log('criteriaTarget', scope.item);
+      }
+    };
+  }])
+
+  .directive('criteriaNode', [function(){
+    return {
+      restrict: 'EA',
+      replace: true,
+      scope: {
+        item: '='
+      },
+      templateUrl: 'search/views/criteria-node-template.html',
+      link: function(scope) {
+        console.log('criteriaNode', scope.item);
+      }
+    };
+  }])
+
+  /**
+   * This directive is responsible to build the proper type of drop-down leaf
+   *
+   * TODO needs more specialization
+   */
+  .directive('criteriaLeaf', ['$compile',
+    function($compile){
+      return {
+        restrict: 'EA',
+        replace: true,
+        scope: {
+          item: '=',
+          parentType: '='
+        },
+        template: '<span></span>',
+        link: function(scope, element) {
+          console.log('criteriaLeaf', scope);
+
+          var template = '';
+          if (scope.item.type === RQL_NODE.OR) {
+            template = '<criteria-node item="item"></criteria-node>';
+            $compile(template)(scope, function(cloned){
+              element.append(cloned);
+            });
+          } else {
+            template = '<span criterion-dropdown criterion="item"></span>';
+            $compile(template)(scope, function(cloned){
+              element.append(cloned);
+            });
+          }
+        }
+      };
+    }])
+
   .directive('criterionDropdown', [function () {
     return {
       restrict: 'EA',
       replace: true,
       scope: {
         criterion: '=',
-        query: '=',
-        onSelect: '=',
-        onRemove: '='
+        query: '='
       },
       controller: 'CriterionDropdownController',
-      templateUrl: 'search/views/criterion-dropdown-template.html',
-      link: function(scope, element) {
-        scope.remove = function(id) {
-          scope.onRemove(id);
-          element.remove();
-          scope.$destroy();
-        };
-      }
+      templateUrl: 'search/views/criterion-dropdown-template.html'
+
     };
   }])
 
