@@ -469,12 +469,8 @@ angular.module('obiba.mica.search')
      * @returns {RqlQuery}
      */
     this.buildRqlQuery = function (item) {
-
       // TODO take care of other type (min, max, in, ...)
-      return this.inQuery(this.vocabularyFieldName(item.vocabulary), item.vocabulary.terms.map(function (term) {
-        return term.name;
-      }));
-
+      return this.inQuery(this.vocabularyFieldName(item.vocabulary), item.term ? item.term.name : []);
     };
 
     /**
