@@ -2031,11 +2031,17 @@ angular.module('obiba.mica.search')
           bucket.args.push(b);
         });
         aggregate.args.push(bucket);
+        var variable;
         parsedQuery.args.forEach(function (arg) {
-          if (arg.name === 'variable') {
-            arg.args.push(aggregate);
+          if (!variable && arg.name === 'variable') {
+            variable = arg;
           }
         });
+        if(!variable) {
+          variable = new RqlQuery('variable');
+          parsedQuery.args.push(variable);
+        }
+        variable.args.push(aggregate);
         return parsedQuery.serializeArgs(parsedQuery.args);
       };
 
