@@ -2212,6 +2212,7 @@ angular.module('obiba.mica.search')
 /* global CRITERIA_ITEM_EVENT */
 /* global QUERY_TARGETS */
 /* global QUERY_TYPES */
+/* global RQL_NODE */
 
 function targetToType(target) {
   switch (target.toLocaleString()) {
@@ -2456,12 +2457,14 @@ angular.module('obiba.mica.search')
       var refreshQuery = function() {
         var query = new RqlQuery().serializeArgs($scope.search.rqlQuery.args);
         var search = $location.search();
+        // TODO bug when there other queries such as locale etc
         if ('' === query) {
           delete search.query;
         } else {
           search.query = query;
         }
         $location.search(search).replace();
+        executeSearchQuery();
       };
 
       var clearSearch = function () {
@@ -2722,21 +2725,14 @@ angular.module('obiba.mica.search')
     'JoinQuerySearchResource',
     'RqlQueryUtils',
     function ($scope, RqlQueryService, LocalizedValues, JoinQuerySearchResource, RqlQueryUtils) {
-      $scope.remove = function() {
-        $scope.$emit(CRITERIA_ITEM_EVENT.deleted, $scope.criterion);
-      };
 
       var isSelected = function (name) {
         return $scope.selectedTerms.indexOf(name) !== -1;
       };
 
-      var selectAll = function () {
-        $scope.selectedTerms = $scope.criterion.vocabulary.terms.map(function (term) {
-          return term.name;
-        });
-      };
+      var toggleSelection = function (event, term) {
+        $scope.state.dirty = true;
 
-      var toggleSelection = function (term) {
         if (isSelected(term.name)) {
           $scope.selectedTerms = $scope.selectedTerms.filter(function (name) {
             return name !== term.name;
@@ -2752,16 +2748,34 @@ angular.module('obiba.mica.search')
         return LocalizedValues.forLocale(values, $scope.criterion.lang);
       };
 
-      var truncate = function (text) {
-        return text.length > 40 ? text.substring(0, 40) + '...' : text;
+      var truncate = function (text, size) {
+        var max = size || 40;
+        return text.length > max ? text.substring(0, max) + '...' : text;
+      };
+
+      var closeDropdown = function() {
+        if (!$scope.state.open) {
+          return;
+        }
+
+        var wasDirty = $scope.state.dirty;
+        $scope.state.open = false;
+        $scope.state.dirty = false;
+        $scope.$apply();
+        if (wasDirty) {
+          // trigger a query update
+          console.log('Send event',CRITERIA_ITEM_EVENT.selected);
+          $scope.$emit(CRITERIA_ITEM_EVENT.selected);
+        }
       };
 
       var openDropdown = function () {
-        if ($scope.open) {
-          $scope.open = false;
-          $scope.$emit(CRITERIA_ITEM_EVENT.selected);
+        if ($scope.state.open) {
+          closeDropdown();
           return;
         }
+
+        $scope.state.open = true;
 
         var target = $scope.criterion.target;
         var joinQuery =
@@ -2772,21 +2786,40 @@ angular.module('obiba.mica.search')
             $scope.criterion.vocabulary);
 
         JoinQuerySearchResource[targetToType(target)]({query: joinQuery}).$promise.then(function () {
-          $scope.open = true;
+          $scope.state.open = true;
         });
+      };
+
+      var updateFilter = function() {
+        RqlQueryUtils.updateQuery($scope.criterion.rqlQuery, [], RQL_NODE.MISSING === $scope.selectedFilter);
+        $scope.state.dirty = true;
+      };
+
+      var remove = function() {
+        $scope.$emit(CRITERIA_ITEM_EVENT.deleted, $scope.criterion);
+      };
+
+      var isInFilter = function() {
+        return $scope.selectedFilter === RQL_NODE.IN;
       };
 
       $scope.selectedTerms = $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.map(function (term) {
         return term.name;
       }) || [];
-      $scope.isOpen = false;
+
+      $scope.RQL_NODE = RQL_NODE;
+      $scope.state = {open: false, dirty: false};
+
+      $scope.selectedFilter = $scope.criterion.type;
+      $scope.remove = remove;
       $scope.openDropdown = openDropdown;
-      $scope.selectAll = selectAll;
-      $scope.deselectAll = function () { $scope.selectedTerms = []; };
+      $scope.closeDropdown = closeDropdown;
       $scope.toggleSelection = toggleSelection;
       $scope.isSelected = isSelected;
+      $scope.updateFilter = updateFilter;
       $scope.localize = localize;
       $scope.truncate = truncate;
+      $scope.isInFilter = isInFilter;
 
     }])
 
@@ -3175,7 +3208,7 @@ angular.module('obiba.mica.search')
       };
     }])
 
-  .directive('criterionDropdown', [function () {
+  .directive('criterionDropdown', ['$document', function ($document) {
     return {
       restrict: 'EA',
       replace: true,
@@ -3184,8 +3217,21 @@ angular.module('obiba.mica.search')
         query: '='
       },
       controller: 'CriterionDropdownController',
-      templateUrl: 'search/views/criterion-dropdown-template.html'
+      templateUrl: 'search/views/criterion-dropdown-template.html',//
+      link: function( $scope, $element){
+        var onDocumentClick = function (event) {
+          var isChild = document.querySelector('#'+$scope.criterion.vocabulary.name+'-dropdown').contains(event.target);
+          console.log('isChild', isChild);
+          if (!isChild) {
+            $scope.closeDropdown();
+          }
+        };
 
+        $document.on('click', onDocumentClick);
+        $element.on('$destroy', function () {
+          $document.off('click', onDocumentClick);
+        });
+      }
     };
   }])
 
@@ -4475,33 +4521,53 @@ angular.module("search/views/criteria/target-template.html", []).run(["$template
 
 angular.module("search/views/criterion-dropdown-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criterion-dropdown-template.html",
-    "<span class='btn-group btn-info' ng-class='{open: open}'>\n" +
-    "  <button class='btn btn-small btn-info dropdown'\n" +
-    "          ng-click='openDropdown()' title=\"{{localize(criterion.vocabulary.title)}}\">\n" +
+    "<span id=\"{{criterion.vocabulary.name}}-dropdown\" class='btn-group btn-info' ng-class='{open: state.open}'>\n" +
+    "  <button class=\"btn btn-info btn-xs dropdown\"\n" +
+    "          id=\"{{criterion.vocabulary.name}}-button\"\n" +
+    "          ng-click=\"openDropdown()\"\n" +
+    "          title=\"{{localize(criterion.vocabulary.title)}}\">\n" +
     "    {{truncate(localize(criterion.vocabulary.title))}}\n" +
     "    <span class='fa fa-caret-down'></span>\n" +
     "  </button>\n" +
-    "\n" +
-    "  <button class='btn btn-small btn-danger' ng-click='remove(criterion.id)'>\n" +
+    "  <button class='btn btn-xs btn-danger' ng-click='remove(criterion.id)'>\n" +
     "    <span class='fa fa-times'></span>\n" +
     "  </button>\n" +
     "\n" +
-    "  <ul class='dropdown-menu query-dropdown-menu' aria-labelledby='dropdownMenu'>\n" +
-    "    <li>\n" +
-    "      <a ng-click='selectAll()'><i class='fa fa-check'></i> Check All</a>\n" +
+    "\n" +
+    "  <ul class=\"dropdown-menu query-dropdown-menu\" aria-labelledby=\"{{criterion.vocabulary.name}}-button\">\n" +
+    "    <li class=\"btn-group\" >\n" +
+    "      <ul class=\"criteria-radio-list\">\n" +
+    "        <li>\n" +
+    "          <label>\n" +
+    "            <input ng-click=\"updateFilter()\" type=\"radio\" ng-model=\"selectedFilter\" value=\"{{RQL_NODE.EXISTS}}\">\n" +
+    "            {{'any' | translate}}\n" +
+    "          </label>\n" +
+    "        </li>\n" +
+    "        <li>\n" +
+    "          <label>\n" +
+    "            <input ng-click=\"updateFilter()\" type=\"radio\" ng-model=\"selectedFilter\" value=\"{{RQL_NODE.MISSING}}\">\n" +
+    "            {{'none' | translate}}\n" +
+    "          </label>\n" +
+    "        </li>\n" +
+    "        <li>\n" +
+    "          <label>\n" +
+    "            <input ng-click=\"updateFilter()\" type=\"radio\" ng-model=\"selectedFilter\" value=\"{{RQL_NODE.IN}}\">\n" +
+    "            {{'in' | translate}}\n" +
+    "          </label>\n" +
+    "        </li>\n" +
+    "      </ul>\n" +
     "    </li>\n" +
-    "    <li>\n" +
-    "      <a ng-click='deselectAll();'><i class='fa fa-times'></i> Uncheck All</a>\n" +
-    "    </li>\n" +
-    "    <li class='divider'></li>\n" +
-    "    <li ng-repeat='term in criterion.vocabulary.terms'>\n" +
-    "      <a href ng-click='toggleSelection(term)' title=\"{{localize(term.title)}}\">\n" +
+    "    <li ng-show=\"isInFilter()\" class='divider'></li>\n" +
+    "    <li ng-show=\"isInFilter()\"  ng-repeat='term in criterion.vocabulary.terms'>\n" +
+    "      <a href ng-click='toggleSelection($event, term)' title=\"{{localize(term.title)}}\">\n" +
     "        {{truncate(localize(term.title))}} <span ng-show=\"isSelected(term.name)\"\n" +
-    "                                                     class=\"fa fa-check pull-right\"></span>\n" +
+    "                                                 class=\"fa fa-check pull-right\"></span>\n" +
     "      </a>\n" +
     "    </li>\n" +
     "  </ul>\n" +
-    "</span>");
+    "</span>\n" +
+    "\n" +
+    "");
 }]);
 
 angular.module("search/views/graphics/graphics-search-result-template.html", []).run(["$templateCache", function($templateCache) {

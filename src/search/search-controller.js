@@ -13,6 +13,7 @@
 /* global CRITERIA_ITEM_EVENT */
 /* global QUERY_TARGETS */
 /* global QUERY_TYPES */
+/* global RQL_NODE */
 
 function targetToType(target) {
   switch (target.toLocaleString()) {
@@ -257,12 +258,14 @@ angular.module('obiba.mica.search')
       var refreshQuery = function() {
         var query = new RqlQuery().serializeArgs($scope.search.rqlQuery.args);
         var search = $location.search();
+        // TODO bug when there other queries such as locale etc
         if ('' === query) {
           delete search.query;
         } else {
           search.query = query;
         }
         $location.search(search).replace();
+        executeSearchQuery();
       };
 
       var clearSearch = function () {
@@ -523,21 +526,14 @@ angular.module('obiba.mica.search')
     'JoinQuerySearchResource',
     'RqlQueryUtils',
     function ($scope, RqlQueryService, LocalizedValues, JoinQuerySearchResource, RqlQueryUtils) {
-      $scope.remove = function() {
-        $scope.$emit(CRITERIA_ITEM_EVENT.deleted, $scope.criterion);
-      };
 
       var isSelected = function (name) {
         return $scope.selectedTerms.indexOf(name) !== -1;
       };
 
-      var selectAll = function () {
-        $scope.selectedTerms = $scope.criterion.vocabulary.terms.map(function (term) {
-          return term.name;
-        });
-      };
+      var toggleSelection = function (event, term) {
+        $scope.state.dirty = true;
 
-      var toggleSelection = function (term) {
         if (isSelected(term.name)) {
           $scope.selectedTerms = $scope.selectedTerms.filter(function (name) {
             return name !== term.name;
@@ -553,16 +549,34 @@ angular.module('obiba.mica.search')
         return LocalizedValues.forLocale(values, $scope.criterion.lang);
       };
 
-      var truncate = function (text) {
-        return text.length > 40 ? text.substring(0, 40) + '...' : text;
+      var truncate = function (text, size) {
+        var max = size || 40;
+        return text.length > max ? text.substring(0, max) + '...' : text;
+      };
+
+      var closeDropdown = function() {
+        if (!$scope.state.open) {
+          return;
+        }
+
+        var wasDirty = $scope.state.dirty;
+        $scope.state.open = false;
+        $scope.state.dirty = false;
+        $scope.$apply();
+        if (wasDirty) {
+          // trigger a query update
+          console.log('Send event',CRITERIA_ITEM_EVENT.selected);
+          $scope.$emit(CRITERIA_ITEM_EVENT.selected);
+        }
       };
 
       var openDropdown = function () {
-        if ($scope.open) {
-          $scope.open = false;
-          $scope.$emit(CRITERIA_ITEM_EVENT.selected);
+        if ($scope.state.open) {
+          closeDropdown();
           return;
         }
+
+        $scope.state.open = true;
 
         var target = $scope.criterion.target;
         var joinQuery =
@@ -573,21 +587,40 @@ angular.module('obiba.mica.search')
             $scope.criterion.vocabulary);
 
         JoinQuerySearchResource[targetToType(target)]({query: joinQuery}).$promise.then(function () {
-          $scope.open = true;
+          $scope.state.open = true;
         });
+      };
+
+      var updateFilter = function() {
+        RqlQueryUtils.updateQuery($scope.criterion.rqlQuery, [], RQL_NODE.MISSING === $scope.selectedFilter);
+        $scope.state.dirty = true;
+      };
+
+      var remove = function() {
+        $scope.$emit(CRITERIA_ITEM_EVENT.deleted, $scope.criterion);
+      };
+
+      var isInFilter = function() {
+        return $scope.selectedFilter === RQL_NODE.IN;
       };
 
       $scope.selectedTerms = $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.map(function (term) {
         return term.name;
       }) || [];
-      $scope.isOpen = false;
+
+      $scope.RQL_NODE = RQL_NODE;
+      $scope.state = {open: false, dirty: false};
+
+      $scope.selectedFilter = $scope.criterion.type;
+      $scope.remove = remove;
       $scope.openDropdown = openDropdown;
-      $scope.selectAll = selectAll;
-      $scope.deselectAll = function () { $scope.selectedTerms = []; };
+      $scope.closeDropdown = closeDropdown;
       $scope.toggleSelection = toggleSelection;
       $scope.isSelected = isSelected;
+      $scope.updateFilter = updateFilter;
       $scope.localize = localize;
       $scope.truncate = truncate;
+      $scope.isInFilter = isInFilter;
 
     }])
 
