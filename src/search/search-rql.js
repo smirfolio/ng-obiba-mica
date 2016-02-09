@@ -451,9 +451,13 @@ angular.module('obiba.mica.search')
      * @returns {*}
      */
     this.vocabularyFieldName = function (vocabulary) {
-      var field = vocabulary.attributes.filter(function (attribute) {
-        return 'field' === attribute.key;
-      }).pop();
+      var field;
+
+      if(vocabulary.attributes) {
+        field = vocabulary.attributes.filter(function (attribute) {
+          return 'field' === attribute.key;
+        }).pop();
+      }
 
       return field ? field.value : vocabulary.name;
     };
