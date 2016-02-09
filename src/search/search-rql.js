@@ -166,7 +166,7 @@ function CriteriaItemBuilder(LocalizedValues, useLang) {
 }
 
 /**
- * Abstract class for all criteria builders
+ * Class for all criteria builders
  * @param rootRql
  * @param rootItem
  * @param taxonomies
@@ -174,7 +174,7 @@ function CriteriaItemBuilder(LocalizedValues, useLang) {
  * @param lang
  * @constructor
  */
-function AbstractCriteriaBuilder(rootRql, rootItem, taxonomies, LocalizedValues, lang) {
+function CriteriaBuilder(rootRql, rootItem, taxonomies, LocalizedValues, lang) {
 
   /**
    * Helper to get a builder
@@ -208,37 +208,17 @@ function AbstractCriteriaBuilder(rootRql, rootItem, taxonomies, LocalizedValues,
   this.buildLeafItem = function (targetTaxonomy, targetVocabulary, targetTerms, node, parentItem) {
     var self = this;
 
-    var foundTaxonmy = this.taxonomies.filter(function (taxonomy) {
-      return targetTaxonomy === taxonomy.name;
-    });
-
-    if (foundTaxonmy.length === 0) {
-      throw new Error('Could not find taxonomy:', targetTaxonomy);
-    }
-
-    foundTaxonmy = foundTaxonmy[0];
-
-    var foundVocabulary = foundTaxonmy.vocabularies.filter(function (vocabulary) {
-      return targetVocabulary === vocabulary.name;
-    });
-
-    if (foundVocabulary.length === 0) {
-      throw new Error('Could not find vocabulary:', targetVocabulary);
-    }
-
     var foundCount = 0;
-    foundVocabulary = foundVocabulary[0];
-
     var builder = new CriteriaItemBuilder(self.LocalizedValues, self.lang)
       .type(node.name)
       .target(self.target)
-      .taxonomy(foundTaxonmy)
-      .vocabulary(foundVocabulary)
+      .taxonomy(targetTaxonomy)
+      .vocabulary(targetVocabulary)
       .rqlQuery(node)
       .parent(parentItem);
 
-    if (foundVocabulary.terms) {
-      foundVocabulary.terms.some(function (term) {
+    if (targetVocabulary.terms) {
+      targetVocabulary.terms.some(function (term) {
         if (targetTerms.indexOf(term.name) !== -1) {
           builder.selectedTerm(term).build();
           foundCount++;
@@ -255,17 +235,63 @@ function AbstractCriteriaBuilder(rootRql, rootItem, taxonomies, LocalizedValues,
 }
 
 /**
+ * Search for the taxonomy vocabulary corresponding to the provided field name. Can be defined either in the
+ * vocabulary field attribute or be the vocabulary name.
+ * @param field
+ * @returns {{taxonomy: null, vocabulary: null}}
+ */
+CriteriaBuilder.prototype.fieldToVocabulary = function (field) {
+  var found = {
+    taxonomy: null,
+    vocabulary: null
+  };
+
+  this.taxonomies.forEach(function (taxonomy) {
+    if (found.taxonomy === null && taxonomy.vocabularies) {
+      taxonomy.vocabularies.forEach(function (vocabulary) {
+        if (found.vocabulary === null && vocabulary.attributes) {
+          vocabulary.attributes.forEach(function (attr) {
+            if (attr.key === 'field' && attr.value === field) {
+              found.taxonomy = taxonomy;
+              found.vocabulary = vocabulary;
+            }
+          });
+        }
+        if (found.vocabulary === null && vocabulary.name === field) {
+          found.taxonomy = taxonomy;
+          found.vocabulary = vocabulary;
+        }
+      });
+    }
+  });
+
+  return found;
+};
+
+/**
  * This method is where a criteria gets created
  */
-AbstractCriteriaBuilder.prototype.visitLeaf = function (/*node*/) {
+CriteriaBuilder.prototype.visitLeaf = function (node, parentItem) {
+  console.log('CriteriaBuilder.visitLeaf');
 
+  var field = node.args[0];
+  var values = node.args[1];
+  var searchInfo = this.fieldToVocabulary(field);
+  var item =
+    this.buildLeafItem(searchInfo.taxonomy,
+      searchInfo.vocabulary,
+      values instanceof Array ? values : [values],
+      node,
+      parentItem);
+
+  parentItem.children.push(item);
 };
 
 /**
  * Returns all the criterias found
  * @returns {Array}
  */
-AbstractCriteriaBuilder.prototype.getRootItem = function (/*node*/) {
+CriteriaBuilder.prototype.getRootItem = function (/*node*/) {
   return this.rootItem;
 };
 
@@ -274,7 +300,7 @@ AbstractCriteriaBuilder.prototype.getRootItem = function (/*node*/) {
  * @param node
  * @param parentItem
  */
-AbstractCriteriaBuilder.prototype.visitCondition = function (node, parentItem) {
+CriteriaBuilder.prototype.visitCondition = function (node, parentItem) {
   var item = this.newCriteriaItemBuilder().parent(parentItem).rqlQuery(node).type(node.name).build();
   parentItem.children.push(item);
 
@@ -287,7 +313,7 @@ AbstractCriteriaBuilder.prototype.visitCondition = function (node, parentItem) {
  * @param node
  * @param parentItem
  */
-AbstractCriteriaBuilder.prototype.visitNot = function (node, parentItem) {
+CriteriaBuilder.prototype.visitNot = function (node, parentItem) {
   var item = this.newCriteriaItemBuilder().parent(parentItem).rqlQuery(node).type(node.name).build();
   parentItem.children.push(item);
 
@@ -299,7 +325,7 @@ AbstractCriteriaBuilder.prototype.visitNot = function (node, parentItem) {
  * @param node
  * @param parentItem
  */
-AbstractCriteriaBuilder.prototype.visit = function (node, parentItem) {
+CriteriaBuilder.prototype.visit = function (node, parentItem) {
 
   // TODO needs to add more types
   switch (node.name) {
@@ -332,55 +358,12 @@ AbstractCriteriaBuilder.prototype.visit = function (node, parentItem) {
 /**
  * Builds a criteria list for this target
  */
-AbstractCriteriaBuilder.prototype.build = function () {
+CriteriaBuilder.prototype.build = function () {
   var self = this;
   this.rootRql.args.forEach(function (node) {
     self.visit(node, self.rootItem);
   });
 };
-
-/**
- * Variable criteria builder
- * @param rootRql
- * @param taxonomies
- * @param criteriaItemBuilder
- * @param lang
- * @constructor
- */
-
-var VariableCriteriaBuilder = function (rootRql, rootItem, taxonomies, LocalizedValues, lang) {
-  AbstractCriteriaBuilder.call(this, rootRql, rootItem, taxonomies, LocalizedValues, lang);
-  this.initialize(RQL_NODE.VARIABLE);
-
-  this.parserFieldName = function (name) {
-    var re = /(\w+)__(\w+)/;
-    var m = re.exec(name.replace(/attributes\./, '').replace(/\.\w+$/, ''));
-
-    if (m && m.length > 2) {
-      return {taxonomy: m[1], vocabulary: m[2]};
-    }
-
-    throw new Error('Invalid field name', name);
-  };
-};
-
-VariableCriteriaBuilder.prototype = Object.create(AbstractCriteriaBuilder.prototype);
-
-VariableCriteriaBuilder.prototype.visitLeaf = function (node, parentItem) {
-  console.log('VariableCriteriaBuilder.visitLeaf');
-  var field = node.args[0];
-  var values = node.args[1];
-  var searchInfo = this.parserFieldName(field);
-  var item =
-    this.buildLeafItem(searchInfo.taxonomy,
-      searchInfo.vocabulary,
-      values instanceof Array ? values : [values],
-      node,
-      parentItem);
-
-  parentItem.children.push(item);
-};
-
 
 angular.module('obiba.mica.search')
 
@@ -484,7 +467,7 @@ angular.module('obiba.mica.search')
     this.buildRqlQuery = function (item) {
 
       // TODO take care of other type (min, max, in, ...)
-      return this.inQuery(this.vocabularyFieldName(item.vocabulary), item.vocabulary.terms.map(function(term) {
+      return this.inQuery(this.vocabularyFieldName(item.vocabulary), item.vocabulary.terms.map(function (term) {
         return term.name;
       }));
 
@@ -538,10 +521,12 @@ angular.module('obiba.mica.search')
     'LocalizedValues',
     'RqlQueryUtils',
     function ($q, TaxonomiesResource, LocalizedValues, RqlQueryUtils) {
-      var variableTaxonomies = null;
-      var studyTaxonomies = null;
-      //var networkTaxonomies = null;
-      //var datasetTaxonomies = null;
+      var taxonomiesCache = {
+        variable: null,
+        dataset: null,
+        study: null,
+        network: null
+      };
 
       function isLeafCriteria(item) {
         switch (item.type) {
@@ -690,70 +675,28 @@ angular.module('obiba.mica.search')
        *
        * @type {{variable: builders.variable, study: builders.study}}
        */
-      this.builders = {
+      this.builders = function (target, rootRql, rootItem, lang) {
+        var deferred = $q.defer();
 
-        /**
-         * Builds the Vairable criteria tree
-         *
-         * @param rootRql
-         * @param rootItem
-         * @param lang
-         * @returns {*}
-         */
-        variable: function (rootRql, rootItem, lang) {
-          var deferred = $q.defer();
-
-          function build(rootRql, rootItem) {
-            var builder = new VariableCriteriaBuilder(rootRql, rootItem, variableTaxonomies, LocalizedValues, lang);
-            builder.build();
-            deferred.resolve(builder.getRootItem());
-          }
-
-          if (variableTaxonomies) {
-            build(rootRql, rootItem);
-          } else {
-            TaxonomiesResource.get({
-              target: QUERY_TARGETS.VARIABLE
-            }).$promise.then(function (response) {
-              variableTaxonomies = response;
-              build(rootRql, rootItem);
-            });
-          }
-
-          return deferred.promise;
-        },
-
-        /**
-         * Builds the Vairable criteria tree
-         *
-         * @param rootRql
-         * @param rootItem
-         * @param lang
-         * @returns {*}
-         */
-        study: function (rootRql/*, rootItem, lang*/) {
-          var deferred = $q.defer();
-
-          function build(/*node*/) {
-            /*
-             var builder = new VariableCriteriaBuilder(node, self.variableTaxonomies, LocalizedValues, lang);
-             builder.build();*/
-            deferred.resolve({}/*builder.getRootItem()*/);
-          }
-
-          if (studyTaxonomies) {
-            build(rootRql);
-          } else {
-            TaxonomiesResource.get({
-              target: QUERY_TARGETS.STUDY
-            }).$promise.then(function (response) {
-              studyTaxonomies = response;
-              build(rootRql);
-            });
-          }
-
-          return deferred.promise;
+        function build(rootRql, rootItem) {
+          var builder = new CriteriaBuilder(rootRql, rootItem, taxonomiesCache[target], LocalizedValues, lang);
+          builder.initialize(target);
+          builder.build();
+          deferred.resolve(builder.getRootItem());
         }
+
+        if (taxonomiesCache[target]) {
+          build(rootRql, rootItem);
+        } else {
+          TaxonomiesResource.get({
+            target: target
+          }).$promise.then(function (response) {
+            taxonomiesCache[target] = response;
+            build(rootRql, rootItem);
+          });
+        }
+
+        return deferred.promise;
       };
 
       /**
@@ -783,7 +726,7 @@ angular.module('obiba.mica.search')
         });
 
         queries.forEach(function (node) {
-          self.builders[node.name](node, rootItem, lang).then(function (item) {
+          self.builders(node.name, node, rootItem, lang).then(function (item) {
             rootItem.children.push(item);
             resolvedCount++;
             if (resolvedCount === queries.length) {
@@ -837,11 +780,17 @@ angular.module('obiba.mica.search')
           bucket.args.push(b);
         });
         aggregate.args.push(bucket);
+        var variable;
         parsedQuery.args.forEach(function (arg) {
-          if (arg.name === 'variable') {
-            arg.args.push(aggregate);
+          if (!variable && arg.name === 'variable') {
+            variable = arg;
           }
         });
+        if(!variable) {
+          variable = new RqlQuery('variable');
+          parsedQuery.args.push(variable);
+        }
+        variable.args.push(aggregate);
         return parsedQuery.serializeArgs(parsedQuery.args);
       };
 
