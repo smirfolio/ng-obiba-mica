@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-02-08
+ * Date: 2016-02-09
  */
 'use strict';
 
@@ -2939,9 +2939,47 @@ angular.module('obiba.mica.search')
 
     }])
 
-  .controller('GraphicsResultController', [
+  .controller('GraphicsResultController', ['GraphicChartsConfig', 'GraphicChartsUtils',
     '$scope',
-    function () {
+    function (GraphicChartsConfig, GraphicChartsUtils, $scope) {
+      //var aggs = ['methods.designs', 'populations.selectionCriteria.countriesIso', 'populations.dataCollectionEvents.bioSamples', 'numberOfParticipants.participant.number']
+      $scope.$watch('result', function (result) {
+        if (result) {
+          var geoStudies = GraphicChartsUtils.getArrayByAggregation('populations-selectionCriteria-countriesIso', result.studyResultDto, 'country', $scope.lang);
+          geoStudies.unshift(['Country', 'Nbr of Studies']);
+
+          var methodDesignStudies = GraphicChartsUtils.getArrayByAggregation('methods-designs', result.studyResultDto, null, $scope.lang);
+          methodDesignStudies.unshift(['Study design', 'Number of studies']);
+
+          var bioSamplesStudies = GraphicChartsUtils.getArrayByAggregation('populations-dataCollectionEvents-bioSamples', result.studyResultDto, null, $scope.lang);
+          bioSamplesStudies.unshift(['Collected biological samples', 'Number of studies']);
+
+          $scope.chartObjects = {
+            geoChartOptions: {
+              chartObject: {
+                options: GraphicChartsConfig.getOptions().ChartsOptions.geoChartOptions.options,
+                type: 'GeoChart',
+                data: geoStudies
+              }
+            },
+            studiesDesigns: {
+              chartObject: {
+                options: GraphicChartsConfig.getOptions().ChartsOptions.studiesDesigns.options,
+                type: 'BarChart',
+                data: methodDesignStudies
+              }
+            },
+            biologicalSamples: {
+              chartObject: {
+                options : GraphicChartsConfig.getOptions().ChartsOptions.biologicalSamples.options,
+                type: 'PieChart',
+                data: bioSamplesStudies
+              }
+            }
+          };
+
+        }
+      });
 
     }]);
 ;/*
@@ -3333,7 +3371,7 @@ angular.module('obiba.mica.graphics')
 
       GraphicChartsData.getData(function (StudiesData) {
         if (StudiesData) {
-          $scope.ItemDataJSon = GraphicChartsUtils.getArrayByAggregation($scope.chartAggregationName, StudiesData[$scope.chartEntityDto], $scope.fieldTransformer);
+          $scope.ItemDataJSon = GraphicChartsUtils.getArrayByAggregation($scope.chartAggregationName, StudiesData[$scope.chartEntityDto], $scope.fieldTransformer, $scope.lang);
           $scope.ItemDataJSon.unshift($scope.chartHeader);
           if ($scope.ItemDataJSon) {
             $scope.chartObject = {};
@@ -3370,7 +3408,51 @@ angular.module('obiba.mica.graphics')
     var factory = {
       options: {
         entityIds: 'NaN',
-        entityType: null
+        entityType: null,
+          ChartsOptions : {
+            geoChartOptions : {
+              options : {
+                backgroundColor: {fill: 'transparent'},
+                title : 'Distribution of studies by participants countries of residence',
+                colors : [
+                  '#4db300',
+                  '#409400',
+                  '#317000',
+                  '#235200'
+                  ],
+                width : 500 ,
+                height :300
+              }
+            },
+            studiesDesigns : {
+              options : {
+                backgroundColor: {fill: 'transparent'},
+                title : 'Distribution of studies by study design',
+                colors : ['#006600',
+                  '#009900',
+                  '#009966',
+                  '#009933',
+                  '#66CC33'],
+                width : 500 ,
+                height :300
+              }
+            },
+            biologicalSamples : {
+              options : {
+                backgroundColor: {fill: 'transparent'},
+                title : 'Distribution of studies by Biological Samples',
+                colors : ['#006600',
+                  '#009900',
+                  '#009966',
+                  '#009933',
+                  '#66CC33'],
+                width : 500 ,
+                height :300
+              }
+            }
+
+          }
+
       }
     };
     factory.setOptions = function (newOptions) {
@@ -3391,11 +3473,9 @@ angular.module('obiba.mica.graphics')
   })
   .service('GraphicChartsUtils', [
     'CountriesIsoUtils',
-    'LocalizedStringService',
-    function (CountriesIsoUtils,
-              LocalizedStringService) {
-
-      this.getArrayByAggregation = function (AggregationName, EntityDto, fieldTransformer) {
+    function (CountriesIsoUtils
+              ) {
+      this.getArrayByAggregation = function (AggregationName, EntityDto, fieldTransformer, lang) {
         var ArrayData = [];
         angular.forEach(EntityDto.aggs, function (aggragation) {
           var itemName = [];
@@ -3404,7 +3484,7 @@ angular.module('obiba.mica.graphics')
             angular.forEach(aggragation['obiba.mica.TermsAggregationResultDto.terms'], function (term) {
               switch (fieldTransformer) {
                 case 'country' :
-                  itemName.name = CountriesIsoUtils.findByCode(term.title.toUpperCase(), LocalizedStringService.getLocal());
+                  itemName.name = CountriesIsoUtils.findByCode(term.key.toUpperCase(), lang);
                   break;
                 default :
                   itemName.name = term.title;
@@ -4531,9 +4611,12 @@ angular.module("search/views/graphics/graphics-search-result-template.html", [])
   $templateCache.put("search/views/graphics/graphics-search-result-template.html",
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
-    "        <pre class=\"voffset2\">\n" +
-    "{{result | json}}\n" +
-    "      </pre>\n" +
+    "<div class=\"row\">\n" +
+    "  <div ng-repeat=\"chart in chartObjects \">\n" +
+    "    <div class=\"col-md-6\" google-chart chart=\"chart.chartObject\">\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "</div>\n" +
     "</div>");
 }]);
 
