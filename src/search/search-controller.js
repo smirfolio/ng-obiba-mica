@@ -687,8 +687,46 @@ angular.module('obiba.mica.search')
 
     }])
 
-  .controller('GraphicsResultController', [
+  .controller('GraphicsResultController', ['GraphicChartsConfig', 'GraphicChartsUtils',
     '$scope',
-    function () {
+    function (GraphicChartsConfig, GraphicChartsUtils, $scope) {
+      //var aggs = ['methods.designs', 'populations.selectionCriteria.countriesIso', 'populations.dataCollectionEvents.bioSamples', 'numberOfParticipants.participant.number']
+      $scope.$watch('result', function (result) {
+        if (result) {
+          var geoStudies = GraphicChartsUtils.getArrayByAggregation('populations-selectionCriteria-countriesIso', result.studyResultDto, 'country', $scope.lang);
+          geoStudies.unshift(['Country', 'Nbr of Studies']);
+
+          var methodDesignStudies = GraphicChartsUtils.getArrayByAggregation('methods-designs', result.studyResultDto, null, $scope.lang);
+          methodDesignStudies.unshift(['Study design', 'Number of studies']);
+
+          var bioSamplesStudies = GraphicChartsUtils.getArrayByAggregation('populations-dataCollectionEvents-bioSamples', result.studyResultDto, null, $scope.lang);
+          bioSamplesStudies.unshift(['Collected biological samples', 'Number of studies']);
+
+          $scope.chartObjects = {
+            geoChartOptions: {
+              chartObject: {
+                options: GraphicChartsConfig.getOptions().ChartsOptions.geoChartOptions.options,
+                type: 'GeoChart',
+                data: geoStudies
+              }
+            },
+            studiesDesigns: {
+              chartObject: {
+                options: GraphicChartsConfig.getOptions().ChartsOptions.studiesDesigns.options,
+                type: 'BarChart',
+                data: methodDesignStudies
+              }
+            },
+            biologicalSamples: {
+              chartObject: {
+                options : GraphicChartsConfig.getOptions().ChartsOptions.biologicalSamples.options,
+                type: 'PieChart',
+                data: bioSamplesStudies
+              }
+            }
+          };
+
+        }
+      });
 
     }]);

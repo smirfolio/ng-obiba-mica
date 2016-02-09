@@ -21,7 +21,51 @@ angular.module('obiba.mica.graphics')
     var factory = {
       options: {
         entityIds: 'NaN',
-        entityType: null
+        entityType: null,
+          ChartsOptions : {
+            geoChartOptions : {
+              options : {
+                backgroundColor: {fill: 'transparent'},
+                title : 'Distribution of studies by participants countries of residence',
+                colors : [
+                  '#4db300',
+                  '#409400',
+                  '#317000',
+                  '#235200'
+                  ],
+                width : 500 ,
+                height :300
+              }
+            },
+            studiesDesigns : {
+              options : {
+                backgroundColor: {fill: 'transparent'},
+                title : 'Distribution of studies by study design',
+                colors : ['#006600',
+                  '#009900',
+                  '#009966',
+                  '#009933',
+                  '#66CC33'],
+                width : 500 ,
+                height :300
+              }
+            },
+            biologicalSamples : {
+              options : {
+                backgroundColor: {fill: 'transparent'},
+                title : 'Distribution of studies by Biological Samples',
+                colors : ['#006600',
+                  '#009900',
+                  '#009966',
+                  '#009933',
+                  '#66CC33'],
+                width : 500 ,
+                height :300
+              }
+            }
+
+          }
+
       }
     };
     factory.setOptions = function (newOptions) {
@@ -42,11 +86,9 @@ angular.module('obiba.mica.graphics')
   })
   .service('GraphicChartsUtils', [
     'CountriesIsoUtils',
-    'LocalizedStringService',
-    function (CountriesIsoUtils,
-              LocalizedStringService) {
-
-      this.getArrayByAggregation = function (AggregationName, EntityDto, fieldTransformer) {
+    function (CountriesIsoUtils
+              ) {
+      this.getArrayByAggregation = function (AggregationName, EntityDto, fieldTransformer, lang) {
         var ArrayData = [];
         angular.forEach(EntityDto.aggs, function (aggragation) {
           var itemName = [];
@@ -55,7 +97,7 @@ angular.module('obiba.mica.graphics')
             angular.forEach(aggragation['obiba.mica.TermsAggregationResultDto.terms'], function (term) {
               switch (fieldTransformer) {
                 case 'country' :
-                  itemName.name = CountriesIsoUtils.findByCode(term.title.toUpperCase(), LocalizedStringService.getLocal());
+                  itemName.name = CountriesIsoUtils.findByCode(term.key.toUpperCase(), lang);
                   break;
                 default :
                   itemName.name = term.title;
