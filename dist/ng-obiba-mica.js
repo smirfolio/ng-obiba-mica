@@ -2353,7 +2353,7 @@ angular.module('obiba.mica.search')
             case DISPLAY_TYPES.LIST:
               JoinQuerySearchResource[$scope.search.type]({query: $scope.search.query},
                 function onSuccess(response) {
-                  $scope.search.result = response;
+                  $scope.search.result.list = response;
                   $scope.search.loading = false;
                 },
                 onError);
@@ -2361,7 +2361,7 @@ angular.module('obiba.mica.search')
             case DISPLAY_TYPES.COVERAGE:
               JoinQueryCoverageResource.get({query: RqlQueryService.prepareCoverageQuery($scope.search.query, ['studyIds'])},
                 function onSuccess(response) {
-                  $scope.search.result = response;
+                  $scope.search.result.coverage = response;
                   $scope.search.loading = false;
                 },
                 onError);
@@ -2372,7 +2372,7 @@ angular.module('obiba.mica.search')
                     ['methods.designs', 'populations.selectionCriteria.countriesIso', 'populations.dataCollectionEvents.bioSamples', 'numberOfParticipants.participant.number'])
                 },
                 function onSuccess(response) {
-                  $scope.search.result = response;
+                  $scope.search.result.graphics = response;
                   $scope.search.loading = false;
                 },
                 onError);
@@ -2618,7 +2618,11 @@ angular.module('obiba.mica.search')
         query: null,
         rqlQuery: null,
         type: null,
-        result: null,
+        result: {
+          list: null,
+          coverage: null,
+          graphics: null
+        },
         criteria: [],
         loading: false
       };
@@ -3082,7 +3086,7 @@ angular.module('obiba.mica.search')
       scope: {
         type: '=',
         display: '=',
-        dto: '=',
+        result: '=',
         lang: '=',
         loading: '=',
         onTypeChanged: '='
@@ -4779,30 +4783,30 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
     "\n" +
     "        <!-- Variables -->\n" +
     "        <uib-tab ng-show=\"settingsDisplay.variables.showSearchTab\" active=\"activeTarget.variables\" ng-click=\"selectTarget(QUERY_TYPES.VARIABLES)\"\n" +
-    "          heading=\"{{'variables' | translate}} ({{dto.variableResultDto.totalHits}})\">\n" +
+    "          heading=\"{{'variables' | translate}} ({{result.list.variableResultDto.totalHits}})\">\n" +
     "          <variables-result-table  loading=\"loading\"\n" +
-    "            summaries=\"dto.variableResultDto['obiba.mica.DatasetVariableResultDto.result'].summaries\"></variables-result-table>\n" +
+    "            summaries=\"result.list.variableResultDto['obiba.mica.DatasetVariableResultDto.result'].summaries\"></variables-result-table>\n" +
     "        </uib-tab>\n" +
     "\n" +
     "        <!-- Datasets -->\n" +
     "        <uib-tab ng-show=\"settingsDisplay.datasets.showSearchTab\" active=\"activeTarget.datasets\" ng-click=\"selectTarget(QUERY_TYPES.DATASETS)\"\n" +
-    "          heading=\"{{'datasets' | translate}} ({{dto.datasetResultDto.totalHits}})\">\n" +
+    "          heading=\"{{'datasets' | translate}} ({{result.list.datasetResultDto.totalHits}})\">\n" +
     "          <datasets-result-table  loading=\"loading\"\n" +
-    "            summaries=\"dto.datasetResultDto['obiba.mica.DatasetResultDto.result'].datasets\"></datasets-result-table>\n" +
+    "            summaries=\"result.list.datasetResultDto['obiba.mica.DatasetResultDto.result'].datasets\"></datasets-result-table>\n" +
     "        </uib-tab>\n" +
     "\n" +
     "        <!-- Studies -->\n" +
     "        <uib-tab ng-show=\"settingsDisplay.studies.showSearchTab\" active=\"activeTarget.studies\" ng-click=\"selectTarget(QUERY_TYPES.STUDIES)\"\n" +
-    "          heading=\"{{'studies' | translate}} ({{dto.studyResultDto.totalHits}})\">\n" +
+    "          heading=\"{{'studies' | translate}} ({{result.list.studyResultDto.totalHits}})\">\n" +
     "          <studies-result-table  loading=\"loading\"\n" +
-    "            summaries=\"dto.studyResultDto['obiba.mica.StudyResultDto.result'].summaries\"></studies-result-table>\n" +
+    "            summaries=\"result.list.studyResultDto['obiba.mica.StudyResultDto.result'].summaries\"></studies-result-table>\n" +
     "        </uib-tab>\n" +
     "\n" +
     "        <!-- Networks -->\n" +
     "        <uib-tab ng-show=\"settingsDisplay.networks.showSearchTab\" active=\"activeTarget.networks\" ng-click=\"selectTarget(QUERY_TYPES.NETWORKS)\"\n" +
-    "          heading=\"{{'networks' | translate}} ({{dto.networkResultDto.totalHits}})\">\n" +
+    "          heading=\"{{'networks' | translate}} ({{result.list.networkResultDto.totalHits}})\">\n" +
     "          <networks-result-table  loading=\"loading\"\n" +
-    "            summaries=\"dto.networkResultDto['obiba.mica.NetworkResultDto.result'].networks\"></networks-result-table>\n" +
+    "            summaries=\"result.list.networkResultDto['obiba.mica.NetworkResultDto.result'].networks\"></networks-result-table>\n" +
     "        </uib-tab>\n" +
     "      </uib-tabset>\n" +
     "\n" +
@@ -4810,13 +4814,13 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
     "\n" +
     "    <uib-tab heading=\"{{'coverage' | translate}}\" active=\"activeDisplay.coverage\"\n" +
     "      ng-click=\"selectDisplay(DISPLAY_TYPES.COVERAGE)\">\n" +
-    "      <coverage-result-table result=\"dto\" loading=\"loading\" class=\"voffset2\"></coverage-result-table>\n" +
+    "      <coverage-result-table result=\"result.coverage\" loading=\"loading\" class=\"voffset2\"></coverage-result-table>\n" +
     "\n" +
     "    </uib-tab>\n" +
     "\n" +
     "    <uib-tab heading=\"{{'graphics' | translate}}\" active=\"activeDisplay.graphics\"\n" +
     "      ng-click=\"selectDisplay(DISPLAY_TYPES.GRAPHICS)\">\n" +
-    "      <graphics-result result=\"dto\" loading=\"loading\" class=\"voffset2\"></graphics-result>\n" +
+    "      <graphics-result result=\"result.graphics\" loading=\"loading\" class=\"voffset2\"></graphics-result>\n" +
     "    </uib-tab>\n" +
     "\n" +
     "  </uib-tabset>\n" +
@@ -4907,7 +4911,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "\n" +
     "  <!-- Results region -->\n" +
     "  <div>\n" +
-    "    <result-panel display=\"search.display\" type=\"search.type\" dto=\"search.result\" loading=\"search.loading\" on-type-changed=\"onTypeChanged\"></result-panel>\n" +
+    "    <result-panel display=\"search.display\" type=\"search.type\" result=\"search.result\" loading=\"search.loading\" on-type-changed=\"onTypeChanged\"></result-panel>\n" +
     "  </div>\n" +
     "</div>");
 }]);
