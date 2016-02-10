@@ -520,6 +520,18 @@ angular.module('obiba.mica.search')
 
     }])
 
+  .controller('CriterionLogicalController', [
+    '$scope',
+    function ($scope) {
+
+      var updateLogical = function(operator) {
+        console.log(operator);
+        console.log($scope.item);
+      };
+
+      $scope.updateLogical = updateLogical;
+    }])
+
   .controller('CriterionDropdownController', [
     '$scope',
     'RqlQueryService',
@@ -623,7 +635,6 @@ angular.module('obiba.mica.search')
       $scope.localize = localize;
       $scope.truncate = truncate;
       $scope.isInFilter = isInFilter;
-
     }])
 
   .controller('CoverageResultTableController', [
