@@ -59,6 +59,12 @@ var RQL_NODE = {
   MISSING: 'missing'
 };
 
+/* exported VOCABULARY_TYPES */
+var VOCABULARY_TYPES = {
+  STRING: 'string',
+  INTEGER: 'integer'
+};
+
 /**
  * Criteria Item builder
  */
@@ -510,6 +516,21 @@ angular.module('obiba.mica.search')
 
     };
 
+    this.vocabularyType = function(vocabulary) {
+      var type = VOCABULARY_TYPES.STRING;
+      if (vocabulary.attributes) {
+        vocabulary.attributes.some(function(attribute){
+          if (attribute.key === 'type') {
+            type = attribute.value;
+            return true;
+          }
+
+          return false;
+        });
+      }
+
+      return type;
+    };
   }])
 
 
