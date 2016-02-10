@@ -223,6 +223,8 @@ angular.module('obiba.mica.search')
       var selectTaxonomyTarget = function (target) {
         if (!$scope.taxonomiesShown) {
           angular.element('#taxonomies').collapse('show');
+        } else if ($scope.taxonomies.target === target) {
+          closeTaxonomies();
         }
         if ($scope.taxonomies.target !== target) {
           $scope.taxonomies.target = target;
