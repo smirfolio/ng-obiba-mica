@@ -239,7 +239,7 @@ angular.module('obiba.mica.search')
       };
     }])
 
-  .directive('criterionDropdown', [function () {
+  .directive('criterionDropdown', ['$document', function ($document) {
     return {
       restrict: 'EA',
       replace: true,
@@ -248,8 +248,21 @@ angular.module('obiba.mica.search')
         query: '='
       },
       controller: 'CriterionDropdownController',
-      templateUrl: 'search/views/criterion-dropdown-template.html'
+      templateUrl: 'search/views/criterion-dropdown-template.html',//
+      link: function( $scope, $element){
+        var onDocumentClick = function (event) {
+          var isChild = document.querySelector('#'+$scope.criterion.vocabulary.name+'-dropdown').contains(event.target);
+          console.log('isChild', isChild);
+          if (!isChild) {
+            $scope.closeDropdown();
+          }
+        };
 
+        $document.on('click', onDocumentClick);
+        $element.on('$destroy', function () {
+          $document.off('click', onDocumentClick);
+        });
+      }
     };
   }])
 
