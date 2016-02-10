@@ -4952,7 +4952,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "        </script>\n" +
     "        <a href>\n" +
     "        <span class=\"input-group input-group-sm no-padding-top\">\n" +
-    "          <input type=\"text\" ng-model=\"selectedCriteria\" placeholder=\"Search for criteria\"\n" +
+    "          <input type=\"text\" ng-model=\"selectedCriteria\" placeholder=\"{{'search.placeholder' | translate}}\"\n" +
     "            uib-typeahead=\"criteria for criteria in searchCriteria($viewValue)\"\n" +
     "            typeahead-min-length=\"2\"\n" +
     "            typeahead-loading=\"documents.search.active\"\n" +
@@ -4993,7 +4993,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "  </div>\n" +
     "\n" +
     "  <!-- Search criteria region -->\n" +
-    "  <div class=\"voffset2\">\n" +
+    "  <div class=\"voffset3\">\n" +
     "    <div class=\"row\">\n" +
     "      <div class=\"col-xs-12\">\n" +
     "        <div criteria-root item=\"search.criteria\" on-remove=\"removeCriteriaItem\" on-select=\"updateTerm\" on-refresh=\"refreshQuery\"></div>\n" +
@@ -5002,7 +5002,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "  </div>\n" +
     "\n" +
     "  <!-- Results region -->\n" +
-    "  <div class=\"voffset2\">\n" +
+    "  <div class=\"voffset3\">\n" +
     "    <result-panel display=\"search.display\" type=\"search.type\" result=\"search.result\" loading=\"search.loading\" on-type-changed=\"onTypeChanged\"></result-panel>\n" +
     "  </div>\n" +
     "</div>");
