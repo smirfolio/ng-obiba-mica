@@ -127,10 +127,10 @@ function CriteriaItemBuilder(LocalizedValues, useLang) {
    * This is
    */
   function prepareForLeaf() {
-    criteria.id = criteria.taxonomy.name + '::' + criteria.vocabulary.name;
+    criteria.id = criteria.taxonomy.name + '.' + criteria.vocabulary.name;
 
     if (criteria.term) {
-      criteria.id += ':' + criteria.term.name;
+      criteria.id += '.' + criteria.term.name;
 
       criteria.itemTitle = LocalizedValues.forLocale(criteria.term.title, criteria.lang);
       criteria.itemDescription = LocalizedValues.forLocale(criteria.term.description, criteria.lang);
@@ -246,24 +246,29 @@ CriteriaBuilder.prototype.fieldToVocabulary = function (field) {
     vocabulary: null
   };
 
-  this.taxonomies.forEach(function (taxonomy) {
-    if (found.taxonomy === null && taxonomy.vocabularies) {
-      taxonomy.vocabularies.forEach(function (vocabulary) {
-        if (found.vocabulary === null && vocabulary.attributes) {
-          vocabulary.attributes.forEach(function (attr) {
-            if (attr.key === 'field' && attr.value === field) {
-              found.taxonomy = taxonomy;
-              found.vocabulary = vocabulary;
-            }
-          });
-        }
-        if (found.vocabulary === null && vocabulary.name === field) {
-          found.taxonomy = taxonomy;
-          found.vocabulary = vocabulary;
-        }
-      });
-    }
+  var normalizedField = field;
+  if (field.indexOf('.') < 0) {
+    normalizedField = 'Mica_' + this.target + '.' + field;
+  }
+  var parts = normalizedField.split('.', 2);
+  var targetTaxonomy = parts[0];
+  var targetVocabulary = parts[1];
+
+  var foundTaxonomy = this.taxonomies.filter(function (taxonomy) {
+    return targetTaxonomy === taxonomy.name;
   });
+  if (foundTaxonomy.length === 0) {
+    throw new Error('Could not find taxonomy:', targetTaxonomy);
+  }
+  found.taxonomy = foundTaxonomy[0];
+
+  var foundVocabulary = found.taxonomy.vocabularies.filter(function (vocabulary) {
+    return targetVocabulary === vocabulary.name;
+  });
+  if (foundVocabulary.length === 0) {
+    throw new Error('Could not find vocabulary:', targetVocabulary);
+  }
+  found.vocabulary = foundVocabulary[0];
 
   return found;
 };
@@ -447,19 +452,12 @@ angular.module('obiba.mica.search')
     /**
      * Helper finding the vocabulary field, return name if none was found
      *
+     * @param taxonomy
      * @param vocabulary
      * @returns {*}
      */
-    this.vocabularyFieldName = function (vocabulary) {
-      var field;
-
-      if(vocabulary.attributes) {
-        field = vocabulary.attributes.filter(function (attribute) {
-          return 'field' === attribute.key;
-        }).pop();
-      }
-
-      return field ? field.value : vocabulary.name;
+    this.vocabularyFieldName = function (taxonomy, vocabulary) {
+      return taxonomy.name + '.' + vocabulary.name;
     };
 
     /**
@@ -470,7 +468,7 @@ angular.module('obiba.mica.search')
      */
     this.buildRqlQuery = function (item) {
       // TODO take care of other type (min, max, in, ...)
-      return this.inQuery(this.vocabularyFieldName(item.vocabulary), item.term ? item.term.name : []);
+      return this.inQuery(this.vocabularyFieldName(item.taxonomy, item.vocabulary), item.term ? item.term.name : []);
     };
 
     /**
@@ -747,11 +745,11 @@ angular.module('obiba.mica.search')
        * @param vocabulary
        * @returns the new query
        */
-      this.prepareCriteriaTermsQuery = function (target, query, vocabulary) {
+      this.prepareCriteriaTermsQuery = function (target, query, taxonomy, vocabulary) {
         var parsedQuery = new RqlParser().parse(query);
         var aggregate = new RqlQuery('aggregate');
         var facet = new RqlQuery('facet');
-        aggregate.args.push(RqlQueryUtils.vocabularyFieldName(vocabulary));
+        aggregate.args.push(RqlQueryUtils.vocabularyFieldName(taxonomy, vocabulary));
         parsedQuery.args.some(function (arg) {
           if (arg.name === target) {
             arg.args.push(aggregate);
