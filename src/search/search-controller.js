@@ -454,6 +454,7 @@ angular.module('obiba.mica.search')
       $scope.selectTaxonomyTarget = selectTaxonomyTarget;
       $scope.selectTerm = selectTerm;
       $scope.removeCriteriaItem = removeCriteriaItem;
+      $scope.refreshQuery = refreshQuery;
       $scope.closeTaxonomies = closeTaxonomies;
       $scope.onTypeChanged = onTypeChanged;
       $scope.onDisplayChanged = onDisplayChanged;
@@ -523,13 +524,10 @@ angular.module('obiba.mica.search')
   .controller('CriterionLogicalController', [
     '$scope',
     function ($scope) {
-
-      var updateLogical = function(operator) {
-        console.log(operator);
-        console.log($scope.item);
+      $scope.updateLogical = function(operator) {
+        $scope.item.rqlQuery.name = operator;
+        $scope.$emit(CRITERIA_ITEM_EVENT.refresh);
       };
-
-      $scope.updateLogical = updateLogical;
     }])
 
   .controller('CriterionDropdownController', [
