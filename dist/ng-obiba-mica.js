@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-02-09
+ * Date: 2016-02-10
  */
 'use strict';
 
@@ -1378,10 +1378,10 @@ function CriteriaItemBuilder(LocalizedValues, useLang) {
    * This is
    */
   function prepareForLeaf() {
-    criteria.id = criteria.taxonomy.name + '::' + criteria.vocabulary.name;
+    criteria.id = criteria.taxonomy.name + '.' + criteria.vocabulary.name;
 
     if (criteria.term) {
-      criteria.id += ':' + criteria.term.name;
+      criteria.id += '.' + criteria.term.name;
 
       criteria.itemTitle = LocalizedValues.forLocale(criteria.term.title, criteria.lang);
       criteria.itemDescription = LocalizedValues.forLocale(criteria.term.description, criteria.lang);
@@ -1497,24 +1497,29 @@ CriteriaBuilder.prototype.fieldToVocabulary = function (field) {
     vocabulary: null
   };
 
-  this.taxonomies.forEach(function (taxonomy) {
-    if (found.taxonomy === null && taxonomy.vocabularies) {
-      taxonomy.vocabularies.forEach(function (vocabulary) {
-        if (found.vocabulary === null && vocabulary.attributes) {
-          vocabulary.attributes.forEach(function (attr) {
-            if (attr.key === 'field' && attr.value === field) {
-              found.taxonomy = taxonomy;
-              found.vocabulary = vocabulary;
-            }
-          });
-        }
-        if (found.vocabulary === null && vocabulary.name === field) {
-          found.taxonomy = taxonomy;
-          found.vocabulary = vocabulary;
-        }
-      });
-    }
+  var normalizedField = field;
+  if (field.indexOf('.') < 0) {
+    normalizedField = 'Mica_' + this.target + '.' + field;
+  }
+  var parts = normalizedField.split('.', 2);
+  var targetTaxonomy = parts[0];
+  var targetVocabulary = parts[1];
+
+  var foundTaxonomy = this.taxonomies.filter(function (taxonomy) {
+    return targetTaxonomy === taxonomy.name;
   });
+  if (foundTaxonomy.length === 0) {
+    throw new Error('Could not find taxonomy:', targetTaxonomy);
+  }
+  found.taxonomy = foundTaxonomy[0];
+
+  var foundVocabulary = found.taxonomy.vocabularies.filter(function (vocabulary) {
+    return targetVocabulary === vocabulary.name;
+  });
+  if (foundVocabulary.length === 0) {
+    throw new Error('Could not find vocabulary:', targetVocabulary);
+  }
+  found.vocabulary = foundVocabulary[0];
 
   return found;
 };
