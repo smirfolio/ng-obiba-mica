@@ -2677,6 +2677,7 @@ angular.module('obiba.mica.search')
       $scope.selectTaxonomyTarget = selectTaxonomyTarget;
       $scope.selectTerm = selectTerm;
       $scope.removeCriteriaItem = removeCriteriaItem;
+      $scope.refreshQuery = refreshQuery;
       $scope.closeTaxonomies = closeTaxonomies;
       $scope.onTypeChanged = onTypeChanged;
       $scope.onDisplayChanged = onDisplayChanged;
@@ -2746,13 +2747,10 @@ angular.module('obiba.mica.search')
   .controller('CriterionLogicalController', [
     '$scope',
     function ($scope) {
-
-      var updateLogical = function(operator) {
-        console.log(operator);
-        console.log($scope.item);
+      $scope.updateLogical = function(operator) {
+        $scope.item.rqlQuery.name = operator;
+        $scope.$emit(CRITERIA_ITEM_EVENT.refresh);
       };
-
-      $scope.updateLogical = updateLogical;
     }])
 
   .controller('CriterionDropdownController', [
@@ -3021,7 +3019,8 @@ angular.module('obiba.mica.search')
 /* exported CRITERIA_ITEM_EVENT */
 var CRITERIA_ITEM_EVENT = {
   selected: 'event:select-criteria-item',
-  deleted: 'event:delete-criteria-item'
+  deleted: 'event:delete-criteria-item',
+  refresh: 'event:refresh-criteria-item'
 };
 
 angular.module('obiba.mica.search')
@@ -3168,7 +3167,8 @@ angular.module('obiba.mica.search')
       scope: {
         item: '=',
         onRemove: '=',
-        onSelect: '='
+        onSelect: '=',
+        onRefresh: '='
       },
       template: '<span ng-repeat="child in item.children"><criteria-target item="child"></criteria-target></span>',
       link: function(scope) {
@@ -3178,6 +3178,10 @@ angular.module('obiba.mica.search')
 
         scope.$on(CRITERIA_ITEM_EVENT.selected, function(){
           scope.onSelect();
+        });
+
+        scope.$on(CRITERIA_ITEM_EVENT.refresh, function(){
+          scope.onRefresh();
         });
       }
     };
@@ -4992,7 +4996,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "  <div class=\"voffset2\">\n" +
     "    <div class=\"row\">\n" +
     "      <div class=\"col-xs-12\">\n" +
-    "        <div criteria-root item=\"search.criteria\" on-remove=\"removeCriteriaItem\" on-select=\"updateTerm\"></div>\n" +
+    "        <div criteria-root item=\"search.criteria\" on-remove=\"removeCriteriaItem\" on-select=\"updateTerm\" on-refresh=\"refreshQuery\"></div>\n" +
     "      </div>\n" +
     "    </div>\n" +
     "  </div>\n" +

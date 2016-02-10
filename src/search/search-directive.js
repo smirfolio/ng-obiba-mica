@@ -15,7 +15,8 @@
 /* exported CRITERIA_ITEM_EVENT */
 var CRITERIA_ITEM_EVENT = {
   selected: 'event:select-criteria-item',
-  deleted: 'event:delete-criteria-item'
+  deleted: 'event:delete-criteria-item',
+  refresh: 'event:refresh-criteria-item'
 };
 
 angular.module('obiba.mica.search')
@@ -162,7 +163,8 @@ angular.module('obiba.mica.search')
       scope: {
         item: '=',
         onRemove: '=',
-        onSelect: '='
+        onSelect: '=',
+        onRefresh: '='
       },
       template: '<span ng-repeat="child in item.children"><criteria-target item="child"></criteria-target></span>',
       link: function(scope) {
@@ -172,6 +174,10 @@ angular.module('obiba.mica.search')
 
         scope.$on(CRITERIA_ITEM_EVENT.selected, function(){
           scope.onSelect();
+        });
+
+        scope.$on(CRITERIA_ITEM_EVENT.refresh, function(){
+          scope.onRefresh();
         });
       }
     };
