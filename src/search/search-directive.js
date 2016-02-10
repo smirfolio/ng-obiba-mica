@@ -198,6 +198,7 @@ angular.module('obiba.mica.search')
       scope: {
         item: '='
       },
+      controller: 'CriterionLogicalController',
       templateUrl: 'search/views/criteria/criteria-node-template.html',
       link: function(scope) {
         console.log('criteriaNode', scope.item);
@@ -224,7 +225,7 @@ angular.module('obiba.mica.search')
           console.log('criteriaLeaf', scope);
 
           var template = '';
-          if (scope.item.type === RQL_NODE.OR) {
+          if (scope.item.type === RQL_NODE.OR || scope.item.type === RQL_NODE.AND || scope.item.type === RQL_NODE.NAND) {
             template = '<criteria-node item="item"></criteria-node>';
             $compile(template)(scope, function(cloned){
               element.append(cloned);

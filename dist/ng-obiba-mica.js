@@ -1289,6 +1289,7 @@ var RQL_NODE = {
   LIMIT: 'limit',
   SORT: 'sort',
   AND: 'and',
+  NAND: 'nand',
   OR: 'or',
   NOT: 'not',
   FACET: 'facet',
@@ -1595,6 +1596,7 @@ CriteriaBuilder.prototype.visit = function (node, parentItem) {
       this.visitNot(node, parentItem);
       break;
     case RQL_NODE.AND:
+    case RQL_NODE.NAND:
     case RQL_NODE.OR:
       this.visitCondition(node, parentItem);
       break;
@@ -1642,6 +1644,7 @@ angular.module('obiba.mica.search')
       var target = targetNode.args.filter(function (query) {
         switch (query.name) {
           case RQL_NODE.AND:
+          case RQL_NODE.NAND:
           case RQL_NODE.OR:
           case RQL_NODE.NOT:
           case RQL_NODE.IN:
@@ -1883,7 +1886,7 @@ angular.module('obiba.mica.search')
 
         parentQuery.args.splice(index, 1);
 
-        if ([RQL_NODE.OR, RQL_NODE.AND].indexOf(parent.type) !== -1) {
+        if ([RQL_NODE.OR, RQL_NODE.AND, RQL_NODE.NAND].indexOf(parent.type) !== -1) {
           deleteNodeCriteriaWithOrphans(parent);
         } else if (parentQuery.args.length === 0) {
           deleteNode(parent);
@@ -2740,6 +2743,19 @@ angular.module('obiba.mica.search')
 
     }])
 
+  .controller('CriterionLogicalController', [
+    '$scope',
+    'RqlQueryService',
+    function ($scope, RqlQueryService) {
+
+      var updateLogical = function(operator) {
+        console.log(operator);
+        console.log($scope.item);
+      };
+
+      $scope.updateLogical = updateLogical;
+    }])
+
   .controller('CriterionDropdownController', [
     '$scope',
     'RqlQueryService',
@@ -2826,6 +2842,10 @@ angular.module('obiba.mica.search')
         return $scope.selectedFilter === RQL_NODE.IN;
       };
 
+      var updateLogical = function(operator) {
+        console.log(operator);
+      };
+
       $scope.selectedTerms = $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.map(function (term) {
         return term.name;
       }) || [];
@@ -2843,7 +2863,7 @@ angular.module('obiba.mica.search')
       $scope.localize = localize;
       $scope.truncate = truncate;
       $scope.isInFilter = isInFilter;
-
+      $scope.updateLogical = updateLogical;
     }])
 
   .controller('CoverageResultTableController', [
@@ -3190,6 +3210,7 @@ angular.module('obiba.mica.search')
       scope: {
         item: '='
       },
+      controller: 'CriterionLogicalController',
       templateUrl: 'search/views/criteria/criteria-node-template.html',
       link: function(scope) {
         console.log('criteriaNode', scope.item);
@@ -3216,7 +3237,7 @@ angular.module('obiba.mica.search')
           console.log('criteriaLeaf', scope);
 
           var template = '';
-          if (scope.item.type === RQL_NODE.OR) {
+          if (scope.item.type === RQL_NODE.OR || scope.item.type === RQL_NODE.AND || scope.item.type === RQL_NODE.NAND) {
             template = '<criteria-node item="item"></criteria-node>';
             $compile(template)(scope, function(cloned){
               element.append(cloned);
@@ -3724,7 +3745,7 @@ angular.module('obiba.mica.localized')
         return this.for(values, lang, 'lang', 'value');
       };
     });
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/condition-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html']);
 
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
@@ -4501,32 +4522,24 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "</div>");
 }]);
 
-angular.module("search/views/criteria/condition-template.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("search/views/criteria/condition-template.html",
-    "<span>\n" +
-    "  {{item.id}}\n" +
-    "  <span criterion-dropdown\n" +
-    "        ng-repeat=\"criterion in children\"\n" +
-    "        criterion=\"criterion\"\n" +
-    "        query=\"query\"\n" +
-    "        on-select=\"selectTerm\"\n" +
-    "        on-remove=\"removeCriteria\"\n" +
-    "        class=\"hoffset2\"></span>\n" +
-    "\n" +
-    "  <span ng-if=\"item.children.length > 1\">\n" +
-    "    AND\n" +
-    "\n" +
-    "  </span>\n" +
-    "</span>");
-}]);
-
 angular.module("search/views/criteria/criteria-node-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criteria-node-template.html",
     "<span>\n" +
     "  <span ng-if=\"item.children.length > 0\">\n" +
-    "    {{item.type}}(<span ng-repeat=\"child in item.children\">\n" +
-    "      <criteria-leaf item=\"child\" parent-type=\"$parent.item.type\"></criteria-leaf>\n" +
-    "    </span>)\n" +
+    "    <criteria-leaf item=\"item.children[0]\" parent-type=\"$parent.item.type\"></criteria-leaf>\n" +
+    "\n" +
+    "    <div class=\"btn-group\" uib-dropdown is-open=\"status.isopen\">\n" +
+    "      <button id=\"single-button\" type=\"button\" class=\"btn btn-default btn-xs\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
+    "        {{item.type | translate}} <span class=\"caret\"></span>\n" +
+    "      </button>\n" +
+    "      <ul uib-dropdown-menu role=\"menu\" aria-labelledby=\"single-button\">\n" +
+    "        <li role=\"menuitem\" ng-if=\"item.type !== 'or'\"><a href ng-click=\"updateLogical('or')\" translate>or</a></li>\n" +
+    "        <li role=\"menuitem\" ng-if=\"item.type !== 'and'\"><a href ng-click=\"updateLogical('and')\" translate>and</a></li>\n" +
+    "        <li role=\"menuitem\" ng-if=\"item.type !== 'nand'\"><a href ng-click=\"updateLogical('nand')\" translate>nand</a></li>\n" +
+    "      </ul>\n" +
+    "    </div>\n" +
+    "    <criteria-leaf item=\"item.children[1]\" parent-type=\"$parent.item.type\"></criteria-leaf>\n" +
+    "\n" +
     "  </span>\n" +
     "  <span ng-if=\"item.children.length === 0\">\n" +
     "    <criteria-leaf item=\"item\" parent-type=\"item.parent.type\"></criteria-leaf>\n" +
@@ -4982,8 +4995,8 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "  </div>\n" +
     "\n" +
     "  <!-- Search criteria region -->\n" +
-    "  <div class=\"voffset4\">\n" +
-    "    <div class=\"row voffset4\">\n" +
+    "  <div class=\"voffset2\">\n" +
+    "    <div class=\"row\">\n" +
     "      <div class=\"col-xs-12\">\n" +
     "        <div criteria-root item=\"search.criteria\" on-remove=\"removeCriteriaItem\" on-select=\"updateTerm\"></div>\n" +
     "      </div>\n" +
@@ -4991,7 +5004,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "  </div>\n" +
     "\n" +
     "  <!-- Results region -->\n" +
-    "  <div>\n" +
+    "  <div class=\"voffset2\">\n" +
     "    <result-panel display=\"search.display\" type=\"search.type\" result=\"search.result\" loading=\"search.loading\" on-type-changed=\"onTypeChanged\"></result-panel>\n" +
     "  </div>\n" +
     "</div>");
