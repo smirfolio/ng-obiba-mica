@@ -1703,19 +1703,12 @@ angular.module('obiba.mica.search')
     /**
      * Helper finding the vocabulary field, return name if none was found
      *
+     * @param taxonomy
      * @param vocabulary
      * @returns {*}
      */
-    this.vocabularyFieldName = function (vocabulary) {
-      var field;
-
-      if(vocabulary.attributes) {
-        field = vocabulary.attributes.filter(function (attribute) {
-          return 'field' === attribute.key;
-        }).pop();
-      }
-
-      return field ? field.value : vocabulary.name;
+    this.vocabularyFieldName = function (taxonomy, vocabulary) {
+      return taxonomy.name + '.' + vocabulary.name;
     };
 
     /**
@@ -1726,7 +1719,7 @@ angular.module('obiba.mica.search')
      */
     this.buildRqlQuery = function (item) {
       // TODO take care of other type (min, max, in, ...)
-      return this.inQuery(this.vocabularyFieldName(item.vocabulary), item.term ? item.term.name : []);
+      return this.inQuery(this.vocabularyFieldName(item.taxonomy, item.vocabulary), item.term ? item.term.name : []);
     };
 
     /**
@@ -2003,11 +1996,11 @@ angular.module('obiba.mica.search')
        * @param vocabulary
        * @returns the new query
        */
-      this.prepareCriteriaTermsQuery = function (target, query, vocabulary) {
+      this.prepareCriteriaTermsQuery = function (target, query, taxonomy, vocabulary) {
         var parsedQuery = new RqlParser().parse(query);
         var aggregate = new RqlQuery('aggregate');
         var facet = new RqlQuery('facet');
-        aggregate.args.push(RqlQueryUtils.vocabularyFieldName(vocabulary));
+        aggregate.args.push(RqlQueryUtils.vocabularyFieldName(taxonomy, vocabulary));
         parsedQuery.args.some(function (arg) {
           if (arg.name === target) {
             arg.args.push(aggregate);
@@ -2775,6 +2768,7 @@ angular.module('obiba.mica.search')
           RqlQueryService.prepareCriteriaTermsQuery(
             target,
             $scope.query,
+            $scope.criterion.taxonomy,
             $scope.criterion.vocabulary);
 
         JoinQuerySearchResource[targetToType(target)]({query: joinQuery}).$promise.then(function () {

@@ -569,6 +569,7 @@ angular.module('obiba.mica.search')
           RqlQueryService.prepareCriteriaTermsQuery(
             target,
             $scope.query,
+            $scope.criterion.taxonomy,
             $scope.criterion.vocabulary);
 
         JoinQuerySearchResource[targetToType(target)]({query: joinQuery}).$promise.then(function () {
