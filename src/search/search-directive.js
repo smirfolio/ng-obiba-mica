@@ -198,7 +198,7 @@ angular.module('obiba.mica.search')
       scope: {
         item: '='
       },
-      templateUrl: 'search/views/criteria-node-template.html',
+      templateUrl: 'search/views/criteria/criteria-node-template.html',
       link: function(scope) {
         console.log('criteriaNode', scope.item);
       }
@@ -248,11 +248,10 @@ angular.module('obiba.mica.search')
         query: '='
       },
       controller: 'CriterionDropdownController',
-      templateUrl: 'search/views/criterion-dropdown-template.html',//
+      templateUrl: 'search/views/criteria/criterion-dropdown-template.html',//
       link: function( $scope, $element){
         var onDocumentClick = function (event) {
           var isChild = document.querySelector('#'+$scope.criterion.vocabulary.name+'-dropdown').contains(event.target);
-          console.log('isChild', isChild);
           if (!isChild) {
             $scope.closeDropdown();
           }

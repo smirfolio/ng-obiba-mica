@@ -267,7 +267,6 @@ angular.module('obiba.mica.search')
           search.query = query;
         }
         $location.search(search).replace();
-        executeSearchQuery();
       };
 
       var clearSearch = function () {
@@ -529,6 +528,7 @@ angular.module('obiba.mica.search')
     'RqlQueryUtils',
     function ($scope, RqlQueryService, LocalizedValues, JoinQuerySearchResource, RqlQueryUtils) {
 
+      console.log('TYPE', RqlQueryUtils.vocabularyType($scope.criterion.vocabulary));
       var isSelected = function (name) {
         return $scope.selectedTerms.indexOf(name) !== -1;
       };
