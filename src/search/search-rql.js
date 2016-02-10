@@ -553,6 +553,19 @@ angular.module('obiba.mica.search')
     this.vocabularyField = function(vocabulary) {
       return vocabularyAttributeValue(vocabulary, 'field', vocabulary.name);
     };
+
+    this.addLocaleQuery = function(rqlQuery, locale) {
+      var found = rqlQuery.args.filter(function(arg){
+        return arg.name === RQL_NODE.LOCALE;
+      }).pop();
+
+      if (!found) {
+        var localeQuery = new RqlQuery('locale');
+        localeQuery.args.push(locale);
+        rqlQuery.args.push(localeQuery);
+      }
+    };
+
   }])
 
 
