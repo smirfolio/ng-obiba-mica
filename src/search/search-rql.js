@@ -40,6 +40,7 @@ var RQL_NODE = {
   AND: 'and',
   NAND: 'nand',
   OR: 'or',
+  NOR: 'nor',
   NOT: 'not',
   FACET: 'facet',
   LOCALE: 'locale',
@@ -347,6 +348,7 @@ CriteriaBuilder.prototype.visit = function (node, parentItem) {
     case RQL_NODE.AND:
     case RQL_NODE.NAND:
     case RQL_NODE.OR:
+    case RQL_NODE.NOR:
       this.visitCondition(node, parentItem);
       break;
 
@@ -395,6 +397,7 @@ angular.module('obiba.mica.search')
           case RQL_NODE.AND:
           case RQL_NODE.NAND:
           case RQL_NODE.OR:
+          case RQL_NODE.NOR:
           case RQL_NODE.NOT:
           case RQL_NODE.IN:
           case RQL_NODE.OUT:
@@ -651,7 +654,7 @@ angular.module('obiba.mica.search')
 
         parentQuery.args.splice(index, 1);
 
-        if ([RQL_NODE.OR, RQL_NODE.AND, RQL_NODE.NAND].indexOf(parent.type) !== -1) {
+        if ([RQL_NODE.OR, RQL_NODE.AND, RQL_NODE.NAND, RQL_NODE.NOR].indexOf(parent.type) !== -1) {
           deleteNodeCriteriaWithOrphans(parent);
         } else if (parentQuery.args.length === 0) {
           deleteNode(parent);

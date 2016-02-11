@@ -1291,6 +1291,7 @@ var RQL_NODE = {
   AND: 'and',
   NAND: 'nand',
   OR: 'or',
+  NOR: 'nor',
   NOT: 'not',
   FACET: 'facet',
   LOCALE: 'locale',
@@ -1598,6 +1599,7 @@ CriteriaBuilder.prototype.visit = function (node, parentItem) {
     case RQL_NODE.AND:
     case RQL_NODE.NAND:
     case RQL_NODE.OR:
+    case RQL_NODE.NOR:
       this.visitCondition(node, parentItem);
       break;
 
@@ -1646,6 +1648,7 @@ angular.module('obiba.mica.search')
           case RQL_NODE.AND:
           case RQL_NODE.NAND:
           case RQL_NODE.OR:
+          case RQL_NODE.NOR:
           case RQL_NODE.NOT:
           case RQL_NODE.IN:
           case RQL_NODE.OUT:
@@ -1902,7 +1905,7 @@ angular.module('obiba.mica.search')
 
         parentQuery.args.splice(index, 1);
 
-        if ([RQL_NODE.OR, RQL_NODE.AND, RQL_NODE.NAND].indexOf(parent.type) !== -1) {
+        if ([RQL_NODE.OR, RQL_NODE.AND, RQL_NODE.NAND, RQL_NODE.NOR].indexOf(parent.type) !== -1) {
           deleteNodeCriteriaWithOrphans(parent);
         } else if (parentQuery.args.length === 0) {
           deleteNode(parent);
@@ -3016,9 +3019,7 @@ angular.module('obiba.mica.search')
 /* exported CRITERIA_ITEM_EVENT */
 var CRITERIA_ITEM_EVENT = {
   deleted: 'event:delete-criteria-item',
-  refresh: 'event:refresh-criteria-item',
-  requestAggs: 'event:request-aggs-criteria-item',
-  receivedAggs: 'event:request-aggs-criteria-item'
+  refresh: 'event:refresh-criteria-item'
 };
 
 angular.module('obiba.mica.search')
@@ -3232,7 +3233,7 @@ angular.module('obiba.mica.search')
           console.log('criteriaLeaf >>>', scope.query);
 
           var template = '';
-          if (scope.item.type === RQL_NODE.OR || scope.item.type === RQL_NODE.AND || scope.item.type === RQL_NODE.NAND) {
+          if (scope.item.type === RQL_NODE.OR || scope.item.type === RQL_NODE.AND || scope.item.type === RQL_NODE.NAND || scope.item.type === RQL_NODE.NOR) {
             template = '<criteria-node item="item" query="query"></criteria-node>';
             $compile(template)(scope, function(cloned){
               element.append(cloned);
@@ -4530,6 +4531,7 @@ angular.module("search/views/criteria/criteria-node-template.html", []).run(["$t
     "      <ul uib-dropdown-menu role=\"menu\" aria-labelledby=\"single-button\">\n" +
     "        <li role=\"menuitem\" ng-if=\"item.type !== 'or'\"><a href ng-click=\"updateLogical('or')\" translate>or</a></li>\n" +
     "        <li role=\"menuitem\" ng-if=\"item.type !== 'and'\"><a href ng-click=\"updateLogical('and')\" translate>and</a></li>\n" +
+    "        <li role=\"menuitem\" ng-if=\"item.type !== 'nor'\"><a href ng-click=\"updateLogical('nor')\" translate>nor</a></li>\n" +
     "        <li role=\"menuitem\" ng-if=\"item.type !== 'nand'\"><a href ng-click=\"updateLogical('nand')\" translate>nand</a></li>\n" +
     "      </ul>\n" +
     "    </div>\n" +
@@ -5035,7 +5037,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "  </div>\n" +
     "\n" +
     "  <!-- Results region -->\n" +
-    "  <div class=\"voffset3\">\n" +
+    "  <div class=\"voffset3\" ng-if=\"search.query\">\n" +
     "    <result-panel display=\"search.display\" type=\"search.type\" result=\"search.result\" loading=\"search.loading\" on-type-changed=\"onTypeChanged\"></result-panel>\n" +
     "  </div>\n" +
     "</div>");
