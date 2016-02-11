@@ -39,10 +39,12 @@ angular.module('obiba.mica.search')
       restrict: 'EA',
       replace: true,
       scope: {
+        target: '=',
         taxonomy: '=',
         vocabulary: '=',
         lang: '=',
-        onNavigate: '='
+        onNavigate: '=',
+        onSelect: '='
       },
       templateUrl: 'search/views/classifications/vocabulary-panel-template.html'
     };
