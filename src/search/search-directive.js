@@ -14,7 +14,6 @@
 
 /* exported CRITERIA_ITEM_EVENT */
 var CRITERIA_ITEM_EVENT = {
-  selected: 'event:select-criteria-item',
   deleted: 'event:delete-criteria-item',
   refresh: 'event:refresh-criteria-item'
 };
@@ -172,10 +171,6 @@ angular.module('obiba.mica.search')
           scope.onRemove(item);
         });
 
-        scope.$on(CRITERIA_ITEM_EVENT.selected, function(){
-          scope.onSelect();
-        });
-
         scope.$on(CRITERIA_ITEM_EVENT.refresh, function(){
           scope.onRefresh();
         });
@@ -260,7 +255,7 @@ angular.module('obiba.mica.search')
         var onDocumentClick = function (event) {
           var isChild = document.querySelector('#'+$scope.criterion.vocabulary.name+'-dropdown').contains(event.target);
           if (!isChild) {
-            $scope.closeDropdown();
+            $scope.$apply('closeDropdown()');
           }
         };
 

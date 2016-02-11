@@ -379,10 +379,6 @@ angular.module('obiba.mica.search')
         selectCriteria(RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, term, $scope.lang));
       };
 
-      var updateTerm = function() {
-        refreshQuery();
-      };
-
       var onTypeChanged = function (type) {
         if (type) {
           validateType(type);
@@ -459,9 +455,7 @@ angular.module('obiba.mica.search')
       $scope.onTypeChanged = onTypeChanged;
       $scope.onDisplayChanged = onDisplayChanged;
       $scope.taxonomiesShown = false;
-      $scope.updateTerm = updateTerm;
 
-      //// TODO replace with angular code
       angular.element('#taxonomies').on('show.bs.collapse', function () {
         $scope.taxonomiesShown = true;
       });
@@ -574,11 +568,10 @@ angular.module('obiba.mica.search')
         var wasDirty = $scope.state.dirty;
         $scope.state.open = false;
         $scope.state.dirty = false;
-        $scope.$apply();
         if (wasDirty) {
           // trigger a query update
-          console.log('Send event',CRITERIA_ITEM_EVENT.selected);
-          $scope.$emit(CRITERIA_ITEM_EVENT.selected);
+          console.log('Send event',CRITERIA_ITEM_EVENT.refresh);
+          $scope.$emit(CRITERIA_ITEM_EVENT.refresh);
         }
       };
 

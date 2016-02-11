@@ -1,0 +1,32 @@
+<ul class="dropdown-menu query-dropdown-menu" aria-labelledby="{{criterion.vocabulary.name}}-button">
+
+<li class="btn-group" >
+  <ul class="criteria-radio-list">
+    <li>
+      <label>
+        <input ng-click="updateFilter()" type="radio" ng-model="selectedFilter" value="{{RQL_NODE.EXISTS}}">
+        {{'any' | translate}}
+      </label>
+    </li>
+    <li>
+      <label>
+        <input ng-click="updateFilter()" type="radio" ng-model="selectedFilter" value="{{RQL_NODE.MISSING}}">
+        {{'none' | translate}}
+      </label>
+    </li>
+    <li>
+      <label>
+        <input ng-click="updateFilter()" type="radio" ng-model="selectedFilter" value="{{RQL_NODE.IN}}">
+        {{'in' | translate}}
+      </label>
+    </li>
+  </ul>
+</li>
+<li ng-show="isInFilter()" class='divider'></li>
+<li ng-show="isInFilter()"  ng-repeat='term in criterion.vocabulary.terms'>
+  <a href ng-click='toggleSelection($event, term)' title="{{localize(term.title)}}">
+    {{truncate(localize(term.title))}} <span ng-show="isSelected(term.name)"
+                                             class="fa fa-check pull-right"></span>
+  </a>
+</li>
+</ul>
