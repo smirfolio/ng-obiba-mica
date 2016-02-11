@@ -472,17 +472,6 @@ angular.module('obiba.mica.search')
     };
 
     /**
-     * Helper finding the vocabulary field, return name if none was found
-     *
-     * @param taxonomy
-     * @param vocabulary
-     * @returns {*}
-     */
-    this.vocabularyFieldName = function (taxonomy, vocabulary) {
-      return taxonomy.name + '.' + vocabulary.name;
-    };
-
-    /**
      * Creates a RqlQuery from an item
      *
      * @param item
@@ -490,7 +479,7 @@ angular.module('obiba.mica.search')
      */
     this.buildRqlQuery = function (item) {
       // TODO take care of other type (min, max, in, ...)
-      return this.inQuery(this.vocabularyFieldName(item.taxonomy, item.vocabulary), item.term ? item.term.name : []);
+      return this.inQuery(this.criteriaId(item.taxonomy, item.vocabulary), item.term ? item.term.name : []);
     };
 
     /**
@@ -560,6 +549,16 @@ angular.module('obiba.mica.search')
       }
     };
 
+    /**
+     * Helper finding the vocabulary field, return name if none was found
+     *
+     * @param taxonomy
+     * @param vocabulary
+     * @returns {*}
+     */
+    this.criteriaId = function (taxonomy, vocabulary) {
+      return taxonomy.name + '.' + vocabulary.name;
+    };
 
     this.vocabularyType = function(vocabulary) {
       return vocabularyAttributeValue(vocabulary, 'type', VOCABULARY_TYPES.STRING);
@@ -812,7 +811,7 @@ angular.module('obiba.mica.search')
         }).pop();
 
         if (targetQuery) {
-          targetQuery.args.push(RqlQueryUtils.aggregate([RqlQueryUtils.vocabularyField(item.vocabulary)]));
+          targetQuery.args.push(RqlQueryUtils.aggregate([RqlQueryUtils.criteriaId(item.taxonomy, item.vocabulary)]));
         }
         parsedQuery.args.push(new RqlQuery(RQL_NODE.FACET));
 

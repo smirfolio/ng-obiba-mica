@@ -212,9 +212,7 @@ angular.module('obiba.mica.search')
   }])
 
   /**
-   * This directive is responsible to build the proper type of drop-down leaf
-   *
-   * TODO needs more specialization
+   * This directive creates a hierarchical structure matching that of a RqlQuery tree.
    */
   .directive('criteriaLeaf', ['$compile',
     function($compile){
@@ -246,6 +244,10 @@ angular.module('obiba.mica.search')
       };
     }])
 
+  /**
+   * This directive serves as the container for each time of criterion based on a vocabulary type.
+   * Specialize contents types as directives and share the state with this container.
+   */
   .directive('criterionDropdown', ['$document', function ($document) {
     return {
       restrict: 'EA',
@@ -272,15 +274,19 @@ angular.module('obiba.mica.search')
     };
   }])
 
-  .directive('criteriaPanel', [function () {
+  /**
+   * Directive specialized for vocabulary of type String
+   */
+  .directive('stringCriterionTerms', [function () {
     return {
       restrict: 'EA',
       replace: true,
       scope: {
-        criteria: '=',
-        query: '='
+        criterion: '=',
+        query: '=',
+        state: '='
       },
-      controller: 'CriteriaPanelController',
-      templateUrl: 'search/views/criteria-panel-template.html'
+      controller: 'StringCriterionTermsController',
+      templateUrl: 'search/views/criteria/criterion-string-terms-template.html'
     };
   }]);

@@ -30,6 +30,39 @@ function targetToType(target) {
   throw new Error('Invalid target: ' + target);
 }
 
+/**
+ * State shared between Criterion DropDown and its content directives
+ *
+ * @constructor
+ */
+function CriterionState() {
+  var onOpenCallbacks = [];
+  var onCloseCallbacks = [];
+
+  this.dirty = false;
+  this.open = false;
+
+  this.addOnOpen = function(callback) {
+    onOpenCallbacks.push(callback);
+  };
+
+  this.addOnClose = function(callback) {
+    onCloseCallbacks.push(callback);
+  };
+
+  this.onOpen =function() {
+    onOpenCallbacks.forEach(function(callback) {
+      callback();
+    });
+  };
+
+  this.onClose = function() {
+    onCloseCallbacks.forEach(function(callback) {
+      callback();
+    });
+  };
+}
+
 var DISPLAY_TYPES = {
   LIST: 'list',
   COVERAGE: 'coverage',
@@ -529,58 +562,22 @@ angular.module('obiba.mica.search')
       };
     }])
 
-  .controller('CriterionDropdownController', [
-    '$scope',
-    'RqlQueryService',
-    'LocalizedValues',
-    'JoinQuerySearchResource',
-    'RqlQueryUtils',
-    function ($scope, RqlQueryService, LocalizedValues, JoinQuerySearchResource, RqlQueryUtils) {
-
-      console.log('TYPE', RqlQueryUtils.vocabularyType($scope.criterion.vocabulary));
-      var isSelected = function (name) {
-        return $scope.checkboxTerms.indexOf(name) !== -1;
-      };
-
-      var setDirty = function() {
-        $scope.state.dirty = true;
-      };
-
-      var clearDirty = function() {
-        $scope.state.dirty = false;
-      };
-
-      var updateSelection = function() {
-        setDirty();
-        var selected = [];
-        Object.keys($scope.checkboxTerms).forEach(function(key) {
-          if ($scope.checkboxTerms[key]) {
-            selected.push(key);
-          }
-        });
-        RqlQueryUtils.updateQuery($scope.criterion.rqlQuery, selected);
-      };
-
-      var localize = function (values) {
-        return LocalizedValues.forLocale(values, $scope.criterion.lang);
-      };
-
-      var truncate = function (text, size) {
-        var max = size || 30;
-        return text.length > max ? text.substring(0, max) + '...' : text;
-      };
+  .controller('CriterionDropdownController', ['$scope', 'StringUtils',
+    function ($scope, StringUtils) {
+      console.log('CriterionDropdownController -', $scope.criterion.vocabulary.name);
 
       var closeDropdown = function() {
         if (!$scope.state.open) {
           return;
         }
 
+        $scope.state.onClose();
+
         var wasDirty = $scope.state.dirty;
         $scope.state.open = false;
-        clearDirty();
+        $scope.state.dirty = false;
         if (wasDirty) {
           // trigger a query update
-          console.log('Send event', CRITERIA_ITEM_EVENT.refresh);
           $scope.$emit(CRITERIA_ITEM_EVENT.refresh);
         }
       };
@@ -592,7 +589,57 @@ angular.module('obiba.mica.search')
         }
 
         $scope.state.open = true;
+        $scope.state.onOpen();
+      };
 
+      var remove = function() {
+        $scope.$emit(CRITERIA_ITEM_EVENT.deleted, $scope.criterion);
+      };
+
+      $scope.state = new CriterionState();
+      $scope.localize = function(values) {
+        return StringUtils.localize(values, $scope.criterion.lang);
+      };
+      $scope.truncate = StringUtils.truncate;
+      $scope.remove = remove;
+      $scope.openDropdown = openDropdown;
+      $scope.closeDropdown = closeDropdown;
+    }])
+
+  .controller('StringCriterionTermsController', [
+    '$scope',
+    'RqlQueryService',
+    'StringUtils',
+    'JoinQuerySearchResource',
+    'RqlQueryUtils',
+    function ($scope, RqlQueryService, StringUtils, JoinQuerySearchResource, RqlQueryUtils) {
+      console.log('StringCriterionTermsController');
+
+      var isSelected = function (name) {
+        return $scope.checkboxTerms.indexOf(name) !== -1;
+      };
+
+      var updateSelection = function() {
+        $scope.state.dirty = true;
+        var selected = [];
+        Object.keys($scope.checkboxTerms).forEach(function(key) {
+          if ($scope.checkboxTerms[key]) {
+            selected.push(key);
+          }
+        });
+        RqlQueryUtils.updateQuery($scope.criterion.rqlQuery, selected);
+      };
+
+      var updateFilter = function() {
+        RqlQueryUtils.updateQuery($scope.criterion.rqlQuery, [], RQL_NODE.MISSING === $scope.selectedFilter);
+        $scope.state.dirty = true;
+      };
+
+      var isInFilter = function() {
+        return $scope.selectedFilter === RQL_NODE.IN;
+      };
+
+      var onOpen = function() {
         var target = $scope.criterion.target;
         var joinQuery = RqlQueryService.prepareCriteriaTermsQuery($scope.query, $scope.criterion);
         JoinQuerySearchResource[targetToType(target)]({query: joinQuery}).$promise.then(function (joinQueryResponse) {
@@ -605,30 +652,16 @@ angular.module('obiba.mica.search')
         });
       };
 
-      var updateFilter = function() {
-        RqlQueryUtils.updateQuery($scope.criterion.rqlQuery, [], RQL_NODE.MISSING === $scope.selectedFilter);
-        setDirty();
-      };
-
-      var remove = function() {
-        $scope.$emit(CRITERIA_ITEM_EVENT.deleted, $scope.criterion);
-      };
-
-      var isInFilter = function() {
-        return $scope.selectedFilter === RQL_NODE.IN;
-      };
-
+      $scope.state.addOnOpen(onOpen);
       $scope.checkboxTerms = {};
       $scope.RQL_NODE = RQL_NODE;
-      $scope.state = {open: false, dirty: false};
       $scope.selectedFilter = $scope.criterion.type;
-      $scope.remove = remove;
-      $scope.openDropdown = openDropdown;
-      $scope.closeDropdown = closeDropdown;
       $scope.isSelected = isSelected;
       $scope.updateFilter = updateFilter;
-      $scope.localize = localize;
-      $scope.truncate = truncate;
+      $scope.localize = function(values) {
+        return StringUtils.localize(values, $scope.criterion.lang);
+      };
+      $scope.truncate = StringUtils.truncate;
       $scope.isInFilter = isInFilter;
       $scope.updateSelection = updateSelection;
     }])
