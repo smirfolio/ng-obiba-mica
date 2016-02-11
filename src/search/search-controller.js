@@ -55,7 +55,7 @@ angular.module('obiba.mica.search')
     'LocalizedValues',
     'ObibaSearchConfig',
     'RqlQueryService',
-
+    'RqlQueryUtils',
     function ($scope,
               $timeout,
               $routeParams,
@@ -71,7 +71,8 @@ angular.module('obiba.mica.search')
               ServerErrorUtils,
               LocalizedValues,
               ObibaSearchConfig,
-              RqlQueryService) {
+              RqlQueryService,
+              RqlQueryUtils) {
 
       $scope.settingsDisplay = ObibaSearchConfig.getOptions();
 
@@ -139,15 +140,19 @@ angular.module('obiba.mica.search')
       function executeSearchQuery() {
         if (validateQueryData()) {
           // build the criteria UI
-          RqlQueryService.createCriteria($scope.search.rqlQuery, $scope.lang).then(function(rootItem) {
+          RqlQueryService.createCriteria($scope.search.rqlQuery, $scope.lang).then(function (rootItem) {
             // criteria UI is updated here
             $scope.search.criteria = rootItem;
           });
 
+          var localizedRqlQuery = angular.copy($scope.search.rqlQuery);
+          RqlQueryUtils.addLocaleQuery(localizedRqlQuery, $scope.lang);
+          var localizedQuery = new RqlQuery().serializeArgs(localizedRqlQuery.args);
+
           $scope.search.loading = true;
           switch ($scope.search.display) {
             case DISPLAY_TYPES.LIST:
-              JoinQuerySearchResource[$scope.search.type]({query: $scope.search.query},
+              JoinQuerySearchResource[$scope.search.type]({query: localizedQuery},
                 function onSuccess(response) {
                   $scope.search.result.list = response;
                   $scope.search.loading = false;
@@ -155,7 +160,7 @@ angular.module('obiba.mica.search')
                 onError);
               break;
             case DISPLAY_TYPES.COVERAGE:
-              JoinQueryCoverageResource.get({query: RqlQueryService.prepareCoverageQuery($scope.search.query, ['studyIds'])},
+              JoinQueryCoverageResource.get({query: RqlQueryService.prepareCoverageQuery(localizedQuery, ['studyIds'])},
                 function onSuccess(response) {
                   $scope.search.result.coverage = response;
                   $scope.search.loading = false;
@@ -164,7 +169,7 @@ angular.module('obiba.mica.search')
               break;
             case DISPLAY_TYPES.GRAPHICS:
               JoinQuerySearchResource.studies({
-                  query: RqlQueryService.prepareGraphicsQuery($scope.search.query,
+                  query: RqlQueryService.prepareGraphicsQuery(localizedQuery,
                     ['methods.designs', 'populations.selectionCriteria.countriesIso', 'populations.dataCollectionEvents.bioSamples', 'numberOfParticipants.participant.number'])
                 },
                 function onSuccess(response) {
@@ -407,7 +412,7 @@ angular.module('obiba.mica.search')
       };
 
       $scope.QUERY_TYPES = QUERY_TYPES;
-      $scope.lang = 'en';
+      $scope.lang = LocalizedValues.getLocal();
 
       $scope.search = {
         query: null,
@@ -570,7 +575,7 @@ angular.module('obiba.mica.search')
         $scope.state.dirty = false;
         if (wasDirty) {
           // trigger a query update
-          console.log('Send event',CRITERIA_ITEM_EVENT.refresh);
+          console.log('Send event', CRITERIA_ITEM_EVENT.refresh);
           $scope.$emit(CRITERIA_ITEM_EVENT.refresh);
         }
       };
@@ -723,45 +728,91 @@ angular.module('obiba.mica.search')
 
     }])
 
-  .controller('GraphicsResultController', ['GraphicChartsConfig', 'GraphicChartsUtils',
+  .controller('GraphicsResultController', [
+    'GraphicChartsConfig',
+    'GraphicChartsUtils',
+    '$filter',
     '$scope',
-    function (GraphicChartsConfig, GraphicChartsUtils, $scope) {
-      //var aggs = ['methods.designs', 'populations.selectionCriteria.countriesIso', 'populations.dataCollectionEvents.bioSamples', 'numberOfParticipants.participant.number']
-      $scope.$watch('result', function (result) {
-        if (result) {
-          var geoStudies = GraphicChartsUtils.getArrayByAggregation('populations-selectionCriteria-countriesIso', result.studyResultDto, 'country', $scope.lang);
-          geoStudies.unshift(['Country', 'Nbr of Studies']);
+    function (GraphicChartsConfig,
+              GraphicChartsUtils,
+              $filter,
+              $scope) {
 
-          var methodDesignStudies = GraphicChartsUtils.getArrayByAggregation('methods-designs', result.studyResultDto, null, $scope.lang);
-          methodDesignStudies.unshift(['Study design', 'Number of studies']);
-
-          var bioSamplesStudies = GraphicChartsUtils.getArrayByAggregation('populations-dataCollectionEvents-bioSamples', result.studyResultDto, null, $scope.lang);
-          bioSamplesStudies.unshift(['Collected biological samples', 'Number of studies']);
-
-          $scope.chartObjects = {
-            geoChartOptions: {
-              chartObject: {
-                options: GraphicChartsConfig.getOptions().ChartsOptions.geoChartOptions.options,
-                type: 'GeoChart',
-                data: geoStudies
-              }
-            },
-            studiesDesigns: {
-              chartObject: {
-                options: GraphicChartsConfig.getOptions().ChartsOptions.studiesDesigns.options,
-                type: 'BarChart',
-                data: methodDesignStudies
-              }
-            },
-            biologicalSamples: {
-              chartObject: {
-                options : GraphicChartsConfig.getOptions().ChartsOptions.biologicalSamples.options,
-                type: 'PieChart',
-                data: bioSamplesStudies
-              }
-            }
+      var setChartObject = function (tem, dtoObject, header, title, options) {
+        var ChartObject = GraphicChartsUtils.getArrayByAggregation(tem, dtoObject);
+        if (ChartObject.length > 0) {
+          ChartObject.unshift(header);
+          angular.extend(options, {title: title});
+          return {
+            data: ChartObject,
+            options: options
           };
+        }
+        return false;
+      };
 
+      $scope.$watch('result', function (result) {
+        $scope.chartObjects={};
+        if (result) {
+          var geoStudies = setChartObject('populations-selectionCriteria-countriesIso',
+            result.studyResultDto,
+            [$filter('translate')('graphics.country'), $filter('translate')('graphics.nbr-studies')],
+            $filter('translate')('graphics.geo-chart-title') + ' (N = ' + result.studyResultDto.totalHits + ')',
+            GraphicChartsConfig.getOptions().ChartsOptions.geoChartOptions.options);
+
+
+          var methodDesignStudies = setChartObject('methods-designs',
+            result.studyResultDto,
+            [$filter('translate')('graphics.study-design'), $filter('translate')('graphics.nbr-studies')],
+            $filter('translate')('graphics.study-design-chart-title') + ' (N = ' + result.studyResultDto.totalHits + ')',
+            GraphicChartsConfig.getOptions().ChartsOptions.studiesDesigns.options);
+
+
+          var bioSamplesStudies = setChartObject('populations-dataCollectionEvents-bioSamples',
+            result.studyResultDto,
+            [$filter('translate')('graphics.bio-samples'), $filter('translate')('graphics.nbr-studies')],
+            $filter('translate')('graphics.bio-samples-chart-title') + ' (N = ' + result.studyResultDto.totalHits + ')',
+            GraphicChartsConfig.getOptions().ChartsOptions.biologicalSamples.options);
+
+          console.log('=========}}}}}}}}geo', geoStudies);
+
+          if (geoStudies) {
+            angular.extend($scope.chartObjects,
+              {
+                geoChartOptions: {
+                  chartObject: {
+                    geoTitle: geoStudies.options.title,
+                    options: geoStudies.options,
+                    type: 'GeoChart',
+                    data: geoStudies.data
+                  }
+                }
+              });
+          }
+          if (methodDesignStudies) {
+            angular.extend($scope.chartObjects,{
+              studiesDesigns: {
+                chartObject: {
+                  options: methodDesignStudies.options,
+                  type: 'BarChart',
+                  data: methodDesignStudies.data
+                }
+              }
+            });
+          }
+          if (bioSamplesStudies) {
+            angular.extend($scope.chartObjects,{
+              biologicalSamples: {
+                chartObject: {
+                  options: bioSamplesStudies.options,
+                  type: 'PieChart',
+                  data: bioSamplesStudies.data
+                }
+              }
+            });
+          }
+
+          console.log($scope.chartObjects);
         }
       });
 
