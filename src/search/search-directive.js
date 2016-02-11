@@ -161,11 +161,11 @@ angular.module('obiba.mica.search')
       replace: true,
       scope: {
         item: '=',
+        query: '=',
         onRemove: '=',
-        onSelect: '=',
         onRefresh: '='
       },
-      template: '<span ng-repeat="child in item.children"><criteria-target item="child"></criteria-target></span>',
+      template: '<span ng-repeat="child in item.children"><criteria-target item="child" query="$parent.query"></criteria-target></span>',
       link: function(scope) {
         scope.$on(CRITERIA_ITEM_EVENT.deleted, function(event, item){
           scope.onRemove(item);
@@ -183,11 +183,12 @@ angular.module('obiba.mica.search')
       restrict: 'EA',
       replace: true,
       scope: {
-        item: '='
+        item: '=',
+        query: '='
       },
-      template: '<span ng-repeat="child in item.children" ><criteria-node item="child"></criteria-node></span>',
+      template: '<span ng-repeat="child in item.children" ><criteria-node item="child" query="$parent.query"></criteria-node></span>',
       link: function(scope) {
-        console.log('criteriaTarget', scope.item);
+        console.log('criteriaTarget Query', scope.query);
       }
     };
   }])
@@ -197,12 +198,13 @@ angular.module('obiba.mica.search')
       restrict: 'EA',
       replace: true,
       scope: {
-        item: '='
+        item: '=',
+        query: '='
       },
       controller: 'CriterionLogicalController',
       templateUrl: 'search/views/criteria/criteria-node-template.html',
       link: function(scope) {
-        console.log('criteriaNode', scope.item);
+        console.log('criteriaNode', scope.query);
       }
     };
   }])
@@ -219,20 +221,21 @@ angular.module('obiba.mica.search')
         replace: true,
         scope: {
           item: '=',
+          query: '=',
           parentType: '='
         },
         template: '<span></span>',
         link: function(scope, element) {
-          console.log('criteriaLeaf', scope);
+          console.log('criteriaLeaf >>>', scope.query);
 
           var template = '';
           if (scope.item.type === RQL_NODE.OR || scope.item.type === RQL_NODE.AND || scope.item.type === RQL_NODE.NAND) {
-            template = '<criteria-node item="item"></criteria-node>';
+            template = '<criteria-node item="item" query="query"></criteria-node>';
             $compile(template)(scope, function(cloned){
               element.append(cloned);
             });
           } else {
-            template = '<span criterion-dropdown criterion="item"></span>';
+            template = '<span criterion-dropdown criterion="item" query="query"></span>';
             $compile(template)(scope, function(cloned){
               element.append(cloned);
             });
