@@ -13,7 +13,7 @@
         <li role="menuitem" ng-if="item.type !== 'nand'"><a href ng-click="updateLogical('nand')" translate>nand</a></li>
       </ul>
     </div>
-    <criteria-leaf item="item.children[1]" parent-type="$parent.item.type"></criteria-leaf>
+    <criteria-leaf item="item.children[1]" parent-type="$parent.item.type" query="query"></criteria-leaf>
 
   </span>
   <span ng-if="item.children.length === 0">
