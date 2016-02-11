@@ -117,17 +117,19 @@ function CriteriaItemBuilder(LocalizedValues, useLang) {
     return this;
   };
 
-  this.selectedTerm = function (value) {
+  this.selectedTerm = function (term) {
     if (!criteria.selectedTerms) {
       criteria.selectedTerms = [];
     }
 
-    criteria.selectedTerms.push(value);
+    criteria.selectedTerms.push(term.name);
     return this;
   };
 
-  this.selectedTerms = function (values) {
-    criteria.selectedTerms = values;
+  this.selectedTerms = function (terms) {
+    criteria.selectedTerms = terms.map(function(term){
+      return term.name;
+    });
     return this;
   };
 
@@ -546,14 +548,6 @@ angular.module('obiba.mica.search')
       return value;
     }
 
-    this.vocabularyType = function(vocabulary) {
-      return vocabularyAttributeValue(vocabulary, 'type', VOCABULARY_TYPES.STRING);
-    };
-
-    this.vocabularyField = function(vocabulary) {
-      return vocabularyAttributeValue(vocabulary, 'field', vocabulary.name);
-    };
-
     this.addLocaleQuery = function(rqlQuery, locale) {
       var found = rqlQuery.args.filter(function(arg){
         return arg.name === RQL_NODE.LOCALE;
@@ -566,6 +560,18 @@ angular.module('obiba.mica.search')
       }
     };
 
+
+    this.vocabularyType = function(vocabulary) {
+      return vocabularyAttributeValue(vocabulary, 'type', VOCABULARY_TYPES.STRING);
+    };
+
+    this.vocabularyField = function(vocabulary) {
+      return vocabularyAttributeValue(vocabulary, 'field', vocabulary.name);
+    };
+
+    this.vocabularyAlias = function(vocabulary) {
+      return vocabularyAttributeValue(vocabulary, 'alias', vocabulary.name);
+    };
   }])
 
 
@@ -869,6 +875,30 @@ angular.module('obiba.mica.search')
         // facet
         parsedQuery.args.push(new RqlQuery('facet'));
         return parsedQuery.serializeArgs(parsedQuery.args);
+      };
+
+      this.getTargetAggregegations =function(joinQueryResponse, criterion) {
+
+        var alias = RqlQueryUtils.vocabularyAlias(criterion.vocabulary);
+        var targetResponse = joinQueryResponse[criterion.target+'ResultDto'];
+
+        if (targetResponse && targetResponse.aggs) {
+          var taxonomy = targetResponse.aggs.filter(function(agg) {
+            return agg.aggregation === criterion.taxonomy.name;
+          }).pop();
+
+          if (taxonomy) {
+            var vocabulary = taxonomy.children.filter(function(agg) {
+              return agg.aggregation === alias;
+            }).pop();
+
+            if (vocabulary) {
+              return vocabulary['obiba.mica.TermsAggregationResultDto.terms'];
+            }
+          }
+        }
+
+        return [];
       };
 
     }]);
