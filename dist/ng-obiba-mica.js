@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-02-10
+ * Date: 2016-02-11
  */
 'use strict';
 
@@ -1683,6 +1683,14 @@ angular.module('obiba.mica.search')
       return query;
     };
 
+    this.aggregate = function (fields) {
+      var query = new RqlQuery(RQL_NODE.AGGREGATE);
+      fields.forEach(function(field) {
+        query.args.push(field);
+      });
+      return query;
+    };
+
     this.inQuery = function (field, terms) {
       var hasValues = terms && terms.length > 0;
       var name = hasValues ? RQL_NODE.IN : RQL_NODE.EXISTS;
@@ -1770,12 +1778,12 @@ angular.module('obiba.mica.search')
 
     };
 
-    this.vocabularyType = function(vocabulary) {
-      var type = VOCABULARY_TYPES.STRING;
+    function vocabularyAttributeValue(vocabulary, key, defaultValue) {
+      var value = defaultValue;
       if (vocabulary.attributes) {
         vocabulary.attributes.some(function(attribute){
-          if (attribute.key === 'type') {
-            type = attribute.value;
+          if (attribute.key === key) {
+            value = attribute.value;
             return true;
           }
 
@@ -1783,7 +1791,15 @@ angular.module('obiba.mica.search')
         });
       }
 
-      return type;
+      return value;
+    }
+
+    this.vocabularyType = function(vocabulary) {
+      return vocabularyAttributeValue(vocabulary, 'type', VOCABULARY_TYPES.STRING);
+    };
+
+    this.vocabularyField = function(vocabulary) {
+      return vocabularyAttributeValue(vocabulary, 'field', vocabulary.name);
     };
   }])
 
@@ -2014,26 +2030,20 @@ angular.module('obiba.mica.search')
       /**
        * Append the aggregate and facet for criteria term listing.
        *
-       * @param type
        * @param query
-       * @param taxonomy
-       * @param vocabulary
+       * @para
        * @returns the new query
        */
-      this.prepareCriteriaTermsQuery = function (target, query, taxonomy, vocabulary) {
+      this.prepareCriteriaTermsQuery = function (query, item) {
         var parsedQuery = new RqlParser().parse(query);
-        var aggregate = new RqlQuery('aggregate');
-        var facet = new RqlQuery('facet');
-        aggregate.args.push(RqlQueryUtils.vocabularyFieldName(taxonomy, vocabulary));
-        parsedQuery.args.some(function (arg) {
-          if (arg.name === target) {
-            arg.args.push(aggregate);
-            return true;
-          }
-          return false;
-        });
+        var targetQuery = parsedQuery.args.filter(function(node) {
+          return node.name === item.target;
+        }).pop();
 
-        parsedQuery.args.push(facet);
+        if (targetQuery) {
+          targetQuery.args.push(RqlQueryUtils.aggregate([RqlQueryUtils.vocabularyField(item.vocabulary)]));
+        }
+        parsedQuery.args.push(new RqlQuery(RQL_NODE.FACET));
 
         return parsedQuery.serializeArgs(parsedQuery.args);
       };
@@ -2807,13 +2817,7 @@ angular.module('obiba.mica.search')
         $scope.state.open = true;
 
         var target = $scope.criterion.target;
-        var joinQuery =
-          RqlQueryService.prepareCriteriaTermsQuery(
-            target,
-            $scope.query,
-            $scope.criterion.taxonomy,
-            $scope.criterion.vocabulary);
-
+        var joinQuery = RqlQueryService.prepareCriteriaTermsQuery($scope.query, $scope.criterion);
         JoinQuerySearchResource[targetToType(target)]({query: joinQuery}).$promise.then(function () {
           $scope.state.open = true;
         });
@@ -3012,7 +3016,9 @@ angular.module('obiba.mica.search')
 /* exported CRITERIA_ITEM_EVENT */
 var CRITERIA_ITEM_EVENT = {
   deleted: 'event:delete-criteria-item',
-  refresh: 'event:refresh-criteria-item'
+  refresh: 'event:refresh-criteria-item',
+  requestAggs: 'event:request-aggs-criteria-item',
+  receivedAggs: 'event:request-aggs-criteria-item'
 };
 
 angular.module('obiba.mica.search')
@@ -3158,11 +3164,11 @@ angular.module('obiba.mica.search')
       replace: true,
       scope: {
         item: '=',
+        query: '=',
         onRemove: '=',
-        onSelect: '=',
         onRefresh: '='
       },
-      template: '<span ng-repeat="child in item.children"><criteria-target item="child"></criteria-target></span>',
+      template: '<span ng-repeat="child in item.children"><criteria-target item="child" query="$parent.query"></criteria-target></span>',
       link: function(scope) {
         scope.$on(CRITERIA_ITEM_EVENT.deleted, function(event, item){
           scope.onRemove(item);
@@ -3180,11 +3186,12 @@ angular.module('obiba.mica.search')
       restrict: 'EA',
       replace: true,
       scope: {
-        item: '='
+        item: '=',
+        query: '='
       },
-      template: '<span ng-repeat="child in item.children" ><criteria-node item="child"></criteria-node></span>',
+      template: '<span ng-repeat="child in item.children" ><criteria-node item="child" query="$parent.query"></criteria-node></span>',
       link: function(scope) {
-        console.log('criteriaTarget', scope.item);
+        console.log('criteriaTarget Query', scope.query);
       }
     };
   }])
@@ -3194,12 +3201,13 @@ angular.module('obiba.mica.search')
       restrict: 'EA',
       replace: true,
       scope: {
-        item: '='
+        item: '=',
+        query: '='
       },
       controller: 'CriterionLogicalController',
       templateUrl: 'search/views/criteria/criteria-node-template.html',
       link: function(scope) {
-        console.log('criteriaNode', scope.item);
+        console.log('criteriaNode', scope.query);
       }
     };
   }])
@@ -3216,20 +3224,21 @@ angular.module('obiba.mica.search')
         replace: true,
         scope: {
           item: '=',
+          query: '=',
           parentType: '='
         },
         template: '<span></span>',
         link: function(scope, element) {
-          console.log('criteriaLeaf', scope);
+          console.log('criteriaLeaf >>>', scope.query);
 
           var template = '';
           if (scope.item.type === RQL_NODE.OR || scope.item.type === RQL_NODE.AND || scope.item.type === RQL_NODE.NAND) {
-            template = '<criteria-node item="item"></criteria-node>';
+            template = '<criteria-node item="item" query="query"></criteria-node>';
             $compile(template)(scope, function(cloned){
               element.append(cloned);
             });
           } else {
-            template = '<span criterion-dropdown criterion="item"></span>';
+            template = '<span criterion-dropdown criterion="item" query="query"></span>';
             $compile(template)(scope, function(cloned){
               element.append(cloned);
             });
@@ -4512,7 +4521,7 @@ angular.module("search/views/criteria/criteria-node-template.html", []).run(["$t
   $templateCache.put("search/views/criteria/criteria-node-template.html",
     "<span>\n" +
     "  <span ng-if=\"item.children.length > 0\">\n" +
-    "    <criteria-leaf item=\"item.children[0]\" parent-type=\"$parent.item.type\"></criteria-leaf>\n" +
+    "    <criteria-leaf item=\"item.children[0]\" parent-type=\"$parent.item.type\" query=\"query\"></criteria-leaf>\n" +
     "\n" +
     "    <div class=\"btn-group\" uib-dropdown is-open=\"status.isopen\">\n" +
     "      <button id=\"single-button\" type=\"button\" class=\"btn btn-default btn-xs\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
@@ -4528,7 +4537,7 @@ angular.module("search/views/criteria/criteria-node-template.html", []).run(["$t
     "\n" +
     "  </span>\n" +
     "  <span ng-if=\"item.children.length === 0\">\n" +
-    "    <criteria-leaf item=\"item\" parent-type=\"item.parent.type\"></criteria-leaf>\n" +
+    "    <criteria-leaf item=\"item\" parent-type=\"item.parent.type\" query=\"query\"></criteria-leaf>\n" +
     "  </span>\n" +
     "</span>");
 }]);
@@ -4546,7 +4555,6 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
     "  <button class='btn btn-xs btn-danger' ng-click='remove(criterion.id)'>\n" +
     "    <span class='fa fa-times'></span>\n" +
     "  </button>\n" +
-    "\n" +
     "\n" +
     "  <ul class=\"dropdown-menu query-dropdown-menu\" aria-labelledby=\"{{criterion.vocabulary.name}}-button\">\n" +
     "    <li class=\"btn-group\" >\n" +
@@ -5021,7 +5029,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "  <div class=\"voffset3\">\n" +
     "    <div class=\"row\">\n" +
     "      <div class=\"col-xs-12\">\n" +
-    "        <div criteria-root item=\"search.criteria\" on-remove=\"removeCriteriaItem\" on-refresh=\"refreshQuery\"></div>\n" +
+    "        <div criteria-root item=\"search.criteria\" query=\"search.query\" on-remove=\"removeCriteriaItem\" on-refresh=\"refreshQuery\"></div>\n" +
     "      </div>\n" +
     "    </div>\n" +
     "  </div>\n" +

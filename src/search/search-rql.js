@@ -432,6 +432,14 @@ angular.module('obiba.mica.search')
       return query;
     };
 
+    this.aggregate = function (fields) {
+      var query = new RqlQuery(RQL_NODE.AGGREGATE);
+      fields.forEach(function(field) {
+        query.args.push(field);
+      });
+      return query;
+    };
+
     this.inQuery = function (field, terms) {
       var hasValues = terms && terms.length > 0;
       var name = hasValues ? RQL_NODE.IN : RQL_NODE.EXISTS;
@@ -519,12 +527,12 @@ angular.module('obiba.mica.search')
 
     };
 
-    this.vocabularyType = function(vocabulary) {
-      var type = VOCABULARY_TYPES.STRING;
+    function vocabularyAttributeValue(vocabulary, key, defaultValue) {
+      var value = defaultValue;
       if (vocabulary.attributes) {
         vocabulary.attributes.some(function(attribute){
-          if (attribute.key === 'type') {
-            type = attribute.value;
+          if (attribute.key === key) {
+            value = attribute.value;
             return true;
           }
 
@@ -532,7 +540,15 @@ angular.module('obiba.mica.search')
         });
       }
 
-      return type;
+      return value;
+    }
+
+    this.vocabularyType = function(vocabulary) {
+      return vocabularyAttributeValue(vocabulary, 'type', VOCABULARY_TYPES.STRING);
+    };
+
+    this.vocabularyField = function(vocabulary) {
+      return vocabularyAttributeValue(vocabulary, 'field', vocabulary.name);
     };
   }])
 
@@ -763,26 +779,20 @@ angular.module('obiba.mica.search')
       /**
        * Append the aggregate and facet for criteria term listing.
        *
-       * @param type
        * @param query
-       * @param taxonomy
-       * @param vocabulary
+       * @para
        * @returns the new query
        */
-      this.prepareCriteriaTermsQuery = function (target, query, taxonomy, vocabulary) {
+      this.prepareCriteriaTermsQuery = function (query, item) {
         var parsedQuery = new RqlParser().parse(query);
-        var aggregate = new RqlQuery('aggregate');
-        var facet = new RqlQuery('facet');
-        aggregate.args.push(RqlQueryUtils.vocabularyFieldName(taxonomy, vocabulary));
-        parsedQuery.args.some(function (arg) {
-          if (arg.name === target) {
-            arg.args.push(aggregate);
-            return true;
-          }
-          return false;
-        });
+        var targetQuery = parsedQuery.args.filter(function(node) {
+          return node.name === item.target;
+        }).pop();
 
-        parsedQuery.args.push(facet);
+        if (targetQuery) {
+          targetQuery.args.push(RqlQueryUtils.aggregate([RqlQueryUtils.vocabularyField(item.vocabulary)]));
+        }
+        parsedQuery.args.push(new RqlQuery(RQL_NODE.FACET));
 
         return parsedQuery.serializeArgs(parsedQuery.args);
       };
