@@ -3107,10 +3107,12 @@ angular.module('obiba.mica.search')
       restrict: 'EA',
       replace: true,
       scope: {
+        target: '=',
         taxonomy: '=',
         vocabulary: '=',
         lang: '=',
-        onNavigate: '='
+        onNavigate: '=',
+        onSelect: '='
       },
       templateUrl: 'search/views/classifications/vocabulary-panel-template.html'
     };
@@ -4406,15 +4408,15 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "      </p>\n" +
     "      <div ng-repeat=\"vocabulary in taxonomies.taxonomy.vocabularies\" ng-if=\"$index % 3 == 0\" class=\"row\">\n" +
     "        <div class=\"col-md-4\">\n" +
-    "          <div vocabulary-panel taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index]\"\n" +
+    "          <div vocabulary-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index]\"\n" +
     "            lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
     "        </div>\n" +
     "        <div class=\"col-md-4\">\n" +
-    "          <div vocabulary-panel taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index + 1]\"\n" +
+    "          <div vocabulary-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index + 1]\"\n" +
     "            lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
     "        </div>\n" +
     "        <div class=\"col-md-4\">\n" +
-    "          <div vocabulary-panel taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index + 2]\"\n" +
+    "          <div vocabulary-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index + 2]\"\n" +
     "            lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
     "        </div>\n" +
     "      </div>\n" +
@@ -4492,9 +4494,15 @@ angular.module("search/views/classifications/vocabulary-panel-template.html", []
     "<div>\n" +
     "  <h4 ng-repeat=\"label in vocabulary.title\" ng-if=\"label.locale === lang\">\n" +
     "    <a href ng-click=\"onNavigate(taxonomy, vocabulary)\">{{label.text}}</a>\n" +
+    "    <a href ng-click=\"onSelect(target, taxonomy, vocabulary)\">\n" +
+    "      <small><i class=\"fa fa-plus-circle\" title=\"{{'add-query' | translate}}\"></i></small>\n" +
+    "    </a>\n" +
     "  </h4>\n" +
     "  <h4 ng-if=\"!vocabulary.title\">\n" +
     "    <a href ng-click=\"onNavigate(taxonomy, vocabulary)\">{{vocabulary.name}}</a>\n" +
+    "    <a href ng-click=\"onSelect(target, taxonomy, vocabulary)\">\n" +
+    "      <small><i class=\"fa fa-plus-circle\" title=\"{{'add-query' | translate}}\"></i></small>\n" +
+    "    </a>\n" +
     "  </h4>\n" +
     "  <p class=\"help-block\" ng-repeat=\"label in vocabulary.description\" ng-if=\"label.locale === lang\">\n" +
     "    {{label.text}}\n" +
@@ -4608,7 +4616,7 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
     "    {{truncate(localize(criterion.vocabulary.title))}}\n" +
     "    <span class='fa fa-caret-down'></span>\n" +
     "  </button>\n" +
-    "  <button class='btn btn-xs btn-danger' ng-click='remove(criterion.id)'>\n" +
+    "  <button class='btn btn-xs btn-default' ng-click='remove(criterion.id)'>\n" +
     "    <span class='fa fa-times'></span>\n" +
     "  </button>\n" +
     "\n" +
