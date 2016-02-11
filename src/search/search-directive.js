@@ -229,7 +229,7 @@ angular.module('obiba.mica.search')
           console.log('criteriaLeaf >>>', scope.query);
 
           var template = '';
-          if (scope.item.type === RQL_NODE.OR || scope.item.type === RQL_NODE.AND || scope.item.type === RQL_NODE.NAND) {
+          if (scope.item.type === RQL_NODE.OR || scope.item.type === RQL_NODE.AND || scope.item.type === RQL_NODE.NAND || scope.item.type === RQL_NODE.NOR) {
             template = '<criteria-node item="item" query="query"></criteria-node>';
             $compile(template)(scope, function(cloned){
               element.append(cloned);

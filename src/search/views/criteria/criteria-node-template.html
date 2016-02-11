@@ -9,6 +9,7 @@
       <ul uib-dropdown-menu role="menu" aria-labelledby="single-button">
         <li role="menuitem" ng-if="item.type !== 'or'"><a href ng-click="updateLogical('or')" translate>or</a></li>
         <li role="menuitem" ng-if="item.type !== 'and'"><a href ng-click="updateLogical('and')" translate>and</a></li>
+        <li role="menuitem" ng-if="item.type !== 'nor'"><a href ng-click="updateLogical('nor')" translate>nor</a></li>
         <li role="menuitem" ng-if="item.type !== 'nand'"><a href ng-click="updateLogical('nand')" translate>nand</a></li>
       </ul>
     </div>
