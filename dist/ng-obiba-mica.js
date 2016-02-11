@@ -4498,12 +4498,6 @@ angular.module("search/views/classifications/vocabulary-panel-template.html", []
     "      <small><i class=\"fa fa-plus-circle\" title=\"{{'add-query' | translate}}\"></i></small>\n" +
     "    </a>\n" +
     "  </h4>\n" +
-    "  <h4 ng-if=\"!vocabulary.title\">\n" +
-    "    <a href ng-click=\"onNavigate(taxonomy, vocabulary)\">{{vocabulary.name}}</a>\n" +
-    "    <a href ng-click=\"onSelect(target, taxonomy, vocabulary)\">\n" +
-    "      <small><i class=\"fa fa-plus-circle\" title=\"{{'add-query' | translate}}\"></i></small>\n" +
-    "    </a>\n" +
-    "  </h4>\n" +
     "  <p class=\"help-block\" ng-repeat=\"label in vocabulary.description\" ng-if=\"label.locale === lang\">\n" +
     "    {{label.text}}\n" +
     "  </p>\n" +
