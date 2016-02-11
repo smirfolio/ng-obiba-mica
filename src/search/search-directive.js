@@ -15,9 +15,7 @@
 /* exported CRITERIA_ITEM_EVENT */
 var CRITERIA_ITEM_EVENT = {
   deleted: 'event:delete-criteria-item',
-  refresh: 'event:refresh-criteria-item',
-  requestAggs: 'event:request-aggs-criteria-item',
-  receivedAggs: 'event:request-aggs-criteria-item'
+  refresh: 'event:refresh-criteria-item'
 };
 
 angular.module('obiba.mica.search')
