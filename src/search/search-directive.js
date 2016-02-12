@@ -260,7 +260,7 @@ angular.module('obiba.mica.search')
       templateUrl: 'search/views/criteria/criterion-dropdown-template.html',//
       link: function( $scope, $element){
         var onDocumentClick = function (event) {
-          var isChild = document.querySelector('#'+$scope.criterion.vocabulary.name+'-dropdown').contains(event.target);
+          var isChild = document.querySelector('#'+$scope.criterion.id.replace('.','-')+'-dropdown').contains(event.target);
           if (!isChild) {
             $scope.$apply('closeDropdown()');
           }
