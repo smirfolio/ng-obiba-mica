@@ -882,13 +882,24 @@ angular.module('obiba.mica.search')
         var targetResponse = joinQueryResponse[criterion.target+'ResultDto'];
 
         if (targetResponse && targetResponse.aggs) {
-          var agg = targetResponse.aggs.filter(function(agg) {
-            return agg.aggregation === alias;
+          var isProperty = criterion.taxonomy.name.startsWith('Mica_');
+          var filter = isProperty ? alias : criterion.taxonomy.name;
+          var filteredAgg = targetResponse.aggs.filter(function(agg) {
+            return agg.aggregation === filter;
           }).pop();
 
-          // TODO complement with known terms?
-          if(agg) {
-            return agg['obiba.mica.TermsAggregationResultDto.terms'];
+          if(filteredAgg) {
+            if(isProperty) {
+              return filteredAgg['obiba.mica.TermsAggregationResultDto.terms'];
+            } else {
+              var vocabularyAgg = filteredAgg.children.filter(function(agg) {
+                return agg.aggregation === alias;
+              }).pop();
+
+              if (vocabularyAgg) {
+                return vocabularyAgg['obiba.mica.TermsAggregationResultDto.terms'];
+              }
+            }
           }
         }
 
