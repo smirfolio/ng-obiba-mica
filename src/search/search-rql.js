@@ -422,6 +422,20 @@ angular.module('obiba.mica.search')
       return -1;
     }
 
+    this.hasTargetQuery = function(rootRql) {
+      return rootRql.args.filter(function(query) {
+          switch (query.name) {
+            case RQL_NODE.VARIABLE:
+            case RQL_NODE.DATASET:
+            case RQL_NODE.STUDY:
+            case RQL_NODE.NETWORK:
+              return true;
+            default:
+              return false;
+          }
+        }).length > 0;
+    };
+
     this.variableQuery = function () {
       return new RqlQuery(QUERY_TARGETS.VARIABLE);
     };
@@ -622,9 +636,9 @@ angular.module('obiba.mica.search')
 
         if (children) {
           if (children instanceof Array) {
-            parentQuery.args = parentQuery.args.concat(children);
+            parentQuery.args.splice.apply(parentQuery.args, [index, 0].concat(children));
           } else {
-            parentQuery.args.push(children);
+            parentQuery.args.splice(index, 0, children);
           }
         }
 
@@ -648,9 +662,9 @@ angular.module('obiba.mica.search')
 
         if (children) {
           if (children instanceof Array) {
-            parentQuery.args = parentQuery.args.concat(children);
+            parentQuery.args.splice.apply(parentQuery.args, [index, 0].concat(children));
           } else {
-            parentQuery.args.push(children);
+            parentQuery.args.splice(index, 0, children);
           }
         }
 
@@ -771,7 +785,7 @@ angular.module('obiba.mica.search')
         var deferred = $q.defer();
         var rootItem = new CriteriaItemBuilder().type(RQL_NODE.AND).rqlQuery(rootRql).build();
 
-        if (rootRql.args.length === 0) {
+        if (!RqlQueryUtils.hasTargetQuery(rootRql)) {
           deferred.resolve(rootItem);
           return deferred.promise;
         }
