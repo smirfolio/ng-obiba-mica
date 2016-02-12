@@ -24,13 +24,12 @@
   <li ng-show="isInFilter()" class='divider'></li>
   <li ng-show="isInFilter()">
     <ul class="no-padding criteria-list-terms">
-      <li class="criteria-list-item">
+      <li class="criteria-list-item" ng-show="terms && terms.length>10">
         <span class="input-group input-group-sm no-padding-top">
-          <input ng-model="searchText" type="text" class="form-control" aria-describedby="study-search">
+          <input ng-model="searchText" type="text" class="form-control" aria-describedby="term-search">
           <span class="input-group-addon" id="term-search"><i class="glyphicon glyphicon-search"></i></span>
         </span>
       </li>
-      <li></li>
       <li class="criteria-list-item" ng-show="isInFilter()" ng-repeat='term in terms | filter:searchText' title='{{term.title}}'>
           <span>
             <label class="control-label">

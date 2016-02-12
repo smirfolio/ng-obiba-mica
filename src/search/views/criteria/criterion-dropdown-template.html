@@ -1,6 +1,5 @@
-<span id="{{criterion.vocabulary.name}}-dropdown" class='btn-group btn-info' ng-class='{open: state.open}'>
+<span id="{{criterion.id.replace('.','-')}}-dropdown" class='btn-group btn-info' ng-class='{open: state.open}'>
   <button class="btn btn-info btn-xs dropdown"
-          id="{{criterion.vocabulary.name}}-button"
           ng-click="openDropdown()"
           title="{{localize(criterion.vocabulary.title)}}">
     {{truncate(localize(criterion.vocabulary.title))}}

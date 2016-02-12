@@ -613,7 +613,6 @@ angular.module('obiba.mica.search')
     'JoinQuerySearchResource',
     'RqlQueryUtils',
     function ($scope, RqlQueryService, StringUtils, JoinQuerySearchResource, RqlQueryUtils) {
-      console.log('StringCriterionTermsController');
 
       var isSelected = function (name) {
         return $scope.checkboxTerms.indexOf(name) !== -1;
