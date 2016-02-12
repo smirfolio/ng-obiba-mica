@@ -876,24 +876,19 @@ angular.module('obiba.mica.search')
         return parsedQuery.serializeArgs(parsedQuery.args);
       };
 
-      this.getTargetAggregegations =function(joinQueryResponse, criterion) {
+      this.getTargetAggregations = function(joinQueryResponse, criterion) {
 
         var alias = RqlQueryUtils.vocabularyAlias(criterion.vocabulary);
         var targetResponse = joinQueryResponse[criterion.target+'ResultDto'];
 
         if (targetResponse && targetResponse.aggs) {
-          var taxonomy = targetResponse.aggs.filter(function(agg) {
-            return agg.aggregation === criterion.taxonomy.name;
+          var agg = targetResponse.aggs.filter(function(agg) {
+            return agg.aggregation === alias;
           }).pop();
 
-          if (taxonomy) {
-            var vocabulary = taxonomy.children.filter(function(agg) {
-              return agg.aggregation === alias;
-            }).pop();
-
-            if (vocabulary) {
-              return vocabulary['obiba.mica.TermsAggregationResultDto.terms'];
-            }
+          // TODO complement with known terms?
+          if(agg) {
+            return agg['obiba.mica.TermsAggregationResultDto.terms'];
           }
         }
 

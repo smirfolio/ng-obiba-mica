@@ -644,11 +644,13 @@ angular.module('obiba.mica.search')
         var joinQuery = RqlQueryService.prepareCriteriaTermsQuery($scope.query, $scope.criterion);
         JoinQuerySearchResource[targetToType(target)]({query: joinQuery}).$promise.then(function (joinQueryResponse) {
           $scope.state.open = true;
-          $scope.terms = RqlQueryService.getTargetAggregegations(joinQueryResponse, $scope.criterion);
-          $scope.terms.forEach(function(term) {
-            $scope.checkboxTerms[term.key] =
-              $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.indexOf(term.key) !== -1;
-          });
+          $scope.terms = RqlQueryService.getTargetAggregations(joinQueryResponse, $scope.criterion);
+          if($scope.terms) {
+            $scope.terms.forEach(function(term) {
+              $scope.checkboxTerms[term.key] =
+                $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.indexOf(term.key) !== -1;
+            });
+          }
         });
       };
 
