@@ -4742,11 +4742,17 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
     "      </li>\n" +
     "    </ul>\n" +
     "  </li>\n" +
-    "  <li ng-show=\"isInFilter()\" class='divider'>\n" +
-    "  </li>\n" +
-    "  <li>\n" +
+    "  <li ng-show=\"isInFilter()\" class='divider'></li>\n" +
+    "  <li ng-show=\"isInFilter()\">\n" +
     "    <ul class=\"no-padding criteria-list-terms\">\n" +
-    "      <li class=\"criteria-list-item\" ng-show=\"isInFilter()\" ng-repeat='term in terms' title='{{term.title}}'>\n" +
+    "      <li class=\"criteria-list-item\">\n" +
+    "        <span class=\"input-group input-group-sm no-padding-top\">\n" +
+    "          <input ng-model=\"searchText\" type=\"text\" class=\"form-control\" aria-describedby=\"study-search\">\n" +
+    "          <span class=\"input-group-addon\" id=\"term-search\"><i class=\"glyphicon glyphicon-search\"></i></span>\n" +
+    "        </span>\n" +
+    "      </li>\n" +
+    "      <li></li>\n" +
+    "      <li class=\"criteria-list-item\" ng-show=\"isInFilter()\" ng-repeat='term in terms | filter:searchText' title='{{term.title}}'>\n" +
     "          <span>\n" +
     "            <label class=\"control-label\">\n" +
     "              <input ng-model=\"checkboxTerms[term.key]\"\n" +
