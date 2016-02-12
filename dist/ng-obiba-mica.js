@@ -19,7 +19,6 @@ function NgObibaMicaUrlProvider() {
     'DataAccessRequestStatusResource': 'ws/data-access-request/:id/_status?to=:status',
     'TempFileUploadResource': 'ws/files/temp',
     'TempFileResource': 'ws/files/temp/:id',
-    'PublishedStudiesSearchResource': 'ws/:type/_search',
     'TaxonomiesSearchResource': 'ws/taxonomies/_search',
     'TaxonomiesResource': 'ws/taxonomies/_filter',
     'TaxonomyResource': 'ws/taxonomy/:taxonomy/_filter',
@@ -163,7 +162,15 @@ angular.module('obiba.mica.utils', [])
     };
 
     return this;
-  }]);
+  }])
+  .service('GraphicChartsConfigurations', function(){
+  this.getClientConfig = function(){
+    return true;
+  };
+    this.setClientConfig = function(){
+      return true;
+    };
+});
 
 ;'use strict';
 
@@ -1263,7 +1270,12 @@ angular.module('obiba.mica.search', [
         form: {header: null, footer: null}
       }
     ));
-  }]);;/*
+  }])
+  .run(['GraphicChartsConfigurations',
+  function (GraphicChartsConfigurations) {
+    GraphicChartsConfigurations.setClientConfig();
+  }]);
+;/*
  * Copyright (c) 2016 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
@@ -3289,29 +3301,27 @@ angular.module('obiba.mica.search')
         }
         return false;
       };
-
+      var charOptions = GraphicChartsConfig.getOptions().ChartsOptions;
       $scope.$watch('result', function (result) {
         $scope.chartObjects={};
         if (result) {
           var geoStudies = setChartObject('populations-selectionCriteria-countriesIso',
             result.studyResultDto,
-            [$filter('translate')('graphics.country'), $filter('translate')('graphics.nbr-studies')],
-            $filter('translate')('graphics.geo-chart-title') + ' (N = ' + result.studyResultDto.totalHits + ')',
-            GraphicChartsConfig.getOptions().ChartsOptions.geoChartOptions.options);
-
+            [$filter('translate')(charOptions.geoChartOptions.header[0]), $filter('translate')(charOptions.geoChartOptions.header[1])],
+            $filter('translate')(charOptions.geoChartOptions.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
+            charOptions.geoChartOptions.options);
 
           var methodDesignStudies = setChartObject('methods-designs',
             result.studyResultDto,
-            [$filter('translate')('graphics.study-design'), $filter('translate')('graphics.nbr-studies')],
-            $filter('translate')('graphics.study-design-chart-title') + ' (N = ' + result.studyResultDto.totalHits + ')',
-            GraphicChartsConfig.getOptions().ChartsOptions.studiesDesigns.options);
-
+            [$filter('translate')(charOptions.studiesDesigns.header[0]), $filter('translate')(charOptions.studiesDesigns.header[1])],
+            $filter('translate')(charOptions.studiesDesigns.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
+            charOptions.studiesDesigns.options);
 
           var bioSamplesStudies = setChartObject('populations-dataCollectionEvents-bioSamples',
             result.studyResultDto,
-            [$filter('translate')('graphics.bio-samples'), $filter('translate')('graphics.nbr-studies')],
-            $filter('translate')('graphics.bio-samples-chart-title') + ' (N = ' + result.studyResultDto.totalHits + ')',
-            GraphicChartsConfig.getOptions().ChartsOptions.biologicalSamples.options);
+            [$filter('translate')(charOptions.biologicalSamples.header[0]), $filter('translate')(charOptions.biologicalSamples.header[1])],
+            $filter('translate')(charOptions.biologicalSamples.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
+            charOptions.biologicalSamples.options);
 
           if (geoStudies) {
             angular.extend($scope.chartObjects,
@@ -3349,7 +3359,6 @@ angular.module('obiba.mica.search')
             });
           }
 
-          console.log($scope.chartObjects);
         }
       });
 
@@ -3705,12 +3714,18 @@ function GraphicChartsDataProvider() {
     };
   }
 
-  this.$get = function (GraphicChartsDataResource, GraphicChartsConfig, GraphicChartsQuery) {
-    var queryDto = GraphicChartsQuery.queryDtoBuilder(GraphicChartsConfig.getOptions().entityIds);
-    return new DataProvider(GraphicChartsDataResource.get({
-      type: GraphicChartsConfig.getOptions().entityType,
-      id: GraphicChartsConfig.getOptions().entityIds
-    }, queryDto));
+  this.$get = function ($log, JoinQuerySearchResource, ServerErrorUtils, AlertService, GraphicChartsConfig, GraphicChartsQuery) {
+    var queryDto = GraphicChartsQuery.queryDtoBuilder(GraphicChartsConfig.getOptions().entityIds, GraphicChartsConfig.getOptions().entityType);
+
+    return new DataProvider(JoinQuerySearchResource.studies({
+        query: queryDto
+      },
+      function onSuccess (response) {
+          return response;
+      },
+      function (response) {
+        $log.error('Server error', response);
+      }));
   };
 }
 
@@ -3721,6 +3736,10 @@ angular.module('obiba.mica.graphics', [
   ])
   .config(['$provide', function ($provide) {
     $provide.provider('GraphicChartsData', GraphicChartsDataProvider);
+  }])
+  .run(['GraphicChartsConfigurations',
+  function (GraphicChartsConfigurations) {
+    GraphicChartsConfigurations.setClientConfig();
   }]);
 ;/*
  * Copyright (c) 2014 OBiBa. All rights reserved.
@@ -3747,7 +3766,8 @@ angular.module('obiba.mica.graphics')
         chartEntityDto: '@',
         chartOptionsName: '@',
         chartOptions: '=',
-        chartHeader: '='
+        chartHeader: '=',
+        chartTitle: '='
       },
       templateUrl: 'graphics/views/charts-directive.html',
       controller: 'GraphicChartsController'
@@ -3790,7 +3810,7 @@ angular.module('obiba.mica.graphics')
             $scope.chartObject.data = $scope.ItemDataJSon;
             $scope.chartObject.options = {backgroundColor: {fill: 'transparent'}};
             angular.extend($scope.chartObject.options, $scope.chartOptions);
-            $scope.chartObject.options.title = $scope.chartOptions.title + ' (N=' + StudiesData.studyResultDto.totalHits + ')';
+            $scope.chartObject.options.title = $filter('translate')($scope.chartTitle) + ' (N=' + StudiesData.studyResultDto.totalHits + ')';
           }
         }
       });
@@ -3811,8 +3831,12 @@ angular.module('obiba.mica.graphics')
 angular.module('obiba.mica.graphics')
   .factory('GraphicChartsDataResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
-      return $resource(ngObibaMicaUrl.getUrl('PublishedStudiesSearchResource'), {}, {
-        'get': {method: 'POST', errorHandler: true}
+      return $resource(ngObibaMicaUrl.getUrl('JoinQuerySearchResource'), {}, {
+        'studies': {
+          method: 'GET',
+          errorHandler: true,
+          params: {type: 'studies'}
+        }
       });
     }])
   .service('GraphicChartsConfig', function () {
@@ -3822,6 +3846,8 @@ angular.module('obiba.mica.graphics')
         entityType: null,
         ChartsOptions: {
           geoChartOptions: {
+            header : ['graphics.country', 'graphics.nbr-studies'],
+            title : 'graphics.geo-chart-title',
             options: {
               backgroundColor: {fill: 'transparent'},
               colors: [
@@ -3835,6 +3861,8 @@ angular.module('obiba.mica.graphics')
             }
           },
           studiesDesigns: {
+            header : ['graphics.study-design', 'graphics.nbr-studies'],
+            title : 'graphics.study-design-chart-title',
             options: {
               legend: {position: 'none'},
               backgroundColor: {fill: 'transparent'},
@@ -3848,6 +3876,8 @@ angular.module('obiba.mica.graphics')
             }
           },
           biologicalSamples: {
+            header : ['graphics.bio-samples', 'graphics.nbr-studies'],
+            title : 'graphics.bio-samples-chart-title',
             options: {
               backgroundColor: {fill: 'transparent'},
               colors: ['#006600',
@@ -3903,14 +3933,20 @@ angular.module('obiba.mica.graphics')
         return arrayData;
       };
     }])
-  .service('GraphicChartsQuery', [function () {
-    this.queryDtoBuilder = function (entityIds) {
+  .service('GraphicChartsQuery', ['RqlQueryService', 'RqlQueryUtils','LocalizedValues', function (RqlQueryService, RqlQueryUtils,LocalizedValues) {
+    this.queryDtoBuilder = function (entityIds, entityType) {
+      var query;
       if (!(entityIds) || entityIds === 'NaN') {
-        return '{"studyQueryDto":{"from":0,"size":0,"sort":{"field":"acronym.en","order":0}},"locale":"en","withFacets":true}';
+        query =  'study(exists(Mica_study.id))';
       }
-      else {
-        return '{"studyQueryDto":{"from":0,"size":0,"sort":{"field":"acronym.en","order":0}},"networkQueryDto":{"from":0,"size":0,"sort":{"field":"acronym.en","order":0},"filteredQuery":{"obiba.mica.LogicalFilterQueryDto.filter":{"fields":[{"field":{"field":"id","obiba.mica.TermsFilterQueryDto.terms":{"values":["' + entityIds + '"]}},"op":1}]}}},"locale":"en","withFacets":true}';
+      if(entityType && entityIds !== 'NaN') {
+        query =  entityType + '(in(Mica_'+ entityType +'.id,(' + entityIds + ')))';
       }
+      var localizedRqlQuery = angular.copy(new RqlParser().parse(query));
+      RqlQueryUtils.addLocaleQuery(localizedRqlQuery, LocalizedValues.getLocal());
+      var localizedQuery = new RqlQuery().serializeArgs(localizedRqlQuery.args);
+      return RqlQueryService.prepareGraphicsQuery(localizedQuery,
+        ['methods.designs', 'populations.selectionCriteria.countriesIso', 'populations.dataCollectionEvents.bioSamples', 'numberOfParticipants.participant.number']);
     };
   }]);
 ;'use strict';
