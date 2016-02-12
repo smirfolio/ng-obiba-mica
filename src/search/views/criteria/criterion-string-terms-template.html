@@ -30,7 +30,8 @@
           <span class="input-group-addon" id="term-search"><i class="glyphicon glyphicon-search"></i></span>
         </span>
       </li>
-      <li class="criteria-list-item" ng-show="isInFilter()" ng-repeat='term in terms | filter:searchText' title='{{term.title}}'>
+      <li></li>
+      <li class="criteria-list-item" ng-show="isInFilter()" ng-repeat="term in terms | regex:searchText:['key','title','description']" title='{{term.title}}'>
           <span>
             <label class="control-label">
               <input ng-model="checkboxTerms[term.key]"

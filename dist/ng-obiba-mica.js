@@ -2298,6 +2298,27 @@ angular.module('obiba.mica.search')
     this.getOptions = function () {
       return angular.copy(options);
     };
+  })
+
+  .filter('regex', function() {
+    return function(elements, regex, fields) {
+      console.log('>>>>> ', fields);
+      var out = [];
+
+      try {
+        var pattern = new RegExp(regex);
+        out = elements.filter(function(element) {
+          return fields.some(function(field){
+            return pattern.test(element[field]);
+          });
+        });
+        console.log('>>>>> ', out, fields);
+
+      } catch(e) {
+      }
+
+      return out;
+    };
   });
 ;/*
  * Copyright (c) 2016 OBiBa. All rights reserved.
@@ -4747,13 +4768,14 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
     "  <li ng-show=\"isInFilter()\" class='divider'></li>\n" +
     "  <li ng-show=\"isInFilter()\">\n" +
     "    <ul class=\"no-padding criteria-list-terms\">\n" +
-    "      <li class=\"criteria-list-item\" ng-show=\"terms && terms.length>10\">\n" +
+    "      <li class=\"criteria-list-item\" ng-show=\"terms && terms.length>5\">\n" +
     "        <span class=\"input-group input-group-sm no-padding-top\">\n" +
     "          <input ng-model=\"searchText\" type=\"text\" class=\"form-control\" aria-describedby=\"term-search\">\n" +
     "          <span class=\"input-group-addon\" id=\"term-search\"><i class=\"glyphicon glyphicon-search\"></i></span>\n" +
     "        </span>\n" +
     "      </li>\n" +
-    "      <li class=\"criteria-list-item\" ng-show=\"isInFilter()\" ng-repeat='term in terms | filter:searchText' title='{{term.title}}'>\n" +
+    "      <li></li>\n" +
+    "      <li class=\"criteria-list-item\" ng-show=\"isInFilter()\" ng-repeat=\"term in terms | regex:searchText:['key','title','description']\" title='{{term.title}}'>\n" +
     "          <span>\n" +
     "            <label class=\"control-label\">\n" +
     "              <input ng-model=\"checkboxTerms[term.key]\"\n" +
