@@ -4591,7 +4591,8 @@ angular.module("search/views/classifications/vocabulary-panel-template.html", []
   $templateCache.put("search/views/classifications/vocabulary-panel-template.html",
     "<div>\n" +
     "  <h4 ng-repeat=\"label in vocabulary.title\" ng-if=\"label.locale === lang\">\n" +
-    "    <a href ng-click=\"onNavigate(taxonomy, vocabulary)\">{{label.text}}</a>\n" +
+    "    <a href ng-click=\"onNavigate(taxonomy, vocabulary)\" ng-if=\"vocabulary.terms\">{{label.text}}</a>\n" +
+    "    <span ng-if=\"!vocabulary.terms\">{{label.text}}</span>\n" +
     "    <a href ng-click=\"onSelect(target, taxonomy, vocabulary)\">\n" +
     "      <small><i class=\"fa fa-plus-circle\" title=\"{{'add-query' | translate}}\"></i></small>\n" +
     "    </a>\n" +
