@@ -121,23 +121,4 @@ angular.module('obiba.mica.search')
     this.getOptions = function () {
       return angular.copy(options);
     };
-  })
-
-  .filter('regex', function() {
-    return function(elements, regex, fields) {
-      var out = [];
-
-      try {
-        var pattern = new RegExp(regex);
-        out = elements.filter(function(element) {
-          return fields.some(function(field){
-            return pattern.test(element[field]);
-          });
-        });
-
-      } catch(e) {
-      }
-
-      return out;
-    };
   });
