@@ -299,7 +299,6 @@ angular.module('obiba.mica.search')
       var refreshQuery = function() {
         var query = new RqlQuery().serializeArgs($scope.search.rqlQuery.args);
         var search = $location.search();
-        // TODO bug when there other queries such as locale etc
         if ('' === query) {
           delete search.query;
         } else {
