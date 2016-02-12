@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-02-11
+ * Date: 2016-02-12
  */
 'use strict';
 
@@ -4595,7 +4595,7 @@ angular.module("search/views/classifications/vocabulary-panel-template.html", []
 angular.module("search/views/coverage/coverage-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/coverage/coverage-search-result-table-template.html",
     "<div>\n" +
-    "  <p class=\"help-block\" ng-if=\"!loading && table.taxonomyHeaders.length === 0\" translate>no-coverage</p>\n" +
+    "  <p class=\"help-block\" ng-if=\"!loading && table.taxonomyHeaders.length === 0\" translate>search.no-coverage</p>\n" +
     "\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
@@ -4603,8 +4603,8 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "  <div class=\"table-responsive\" ng-if=\"table.taxonomyHeaders.length > 0\">\n" +
     "\n" +
     "    <div class=\"pull-right\">\n" +
-    "      <a href ng-click=\"toggleMissing(false)\" ng-if=\"showMissing\" translate>coverage-hide-missing</a>\n" +
-    "      <a href ng-click=\"toggleMissing(true)\" ng-if=\"!showMissing\" translate>coverage-show-missing</a>\n" +
+    "      <a href ng-click=\"toggleMissing(false)\" ng-if=\"showMissing\" translate>search.coverage-hide-missing</a>\n" +
+    "      <a href ng-click=\"toggleMissing(true)\" ng-if=\"!showMissing\" translate>search.coverage-show-missing</a>\n" +
     "    </div>\n" +
     "\n" +
     "    <div class=\"clearfix\"></div>\n" +
@@ -5030,7 +5030,7 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
     "\n" +
     "  <uib-tabset class=\"voffset2\" type=\"tabs\">\n" +
     "\n" +
-    "    <uib-tab heading=\"{{'list' | translate}}\" active=\"activeDisplay.list\" ng-click=\"selectDisplay(DISPLAY_TYPES.LIST)\">\n" +
+    "    <uib-tab heading=\"{{'search.list' | translate}}\" active=\"activeDisplay.list\" ng-click=\"selectDisplay(DISPLAY_TYPES.LIST)\">\n" +
     "\n" +
     "      <uib-tabset class=\"voffset2\" type=\"pills\">\n" +
     "\n" +
@@ -5065,13 +5065,13 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
     "\n" +
     "    </uib-tab>\n" +
     "\n" +
-    "    <uib-tab heading=\"{{'coverage' | translate}}\" active=\"activeDisplay.coverage\"\n" +
+    "    <uib-tab heading=\"{{'search.coverage' | translate}}\" active=\"activeDisplay.coverage\"\n" +
     "      ng-click=\"selectDisplay(DISPLAY_TYPES.COVERAGE)\">\n" +
     "      <coverage-result-table result=\"result.coverage\" loading=\"loading\" class=\"voffset2\"></coverage-result-table>\n" +
     "\n" +
     "    </uib-tab>\n" +
     "\n" +
-    "    <uib-tab heading=\"{{'graphics' | translate}}\" active=\"activeDisplay.graphics\"\n" +
+    "    <uib-tab heading=\"{{'search.graphics' | translate}}\" active=\"activeDisplay.graphics\"\n" +
     "      ng-click=\"selectDisplay(DISPLAY_TYPES.GRAPHICS)\">\n" +
     "      <graphics-result result=\"result.graphics\" loading=\"loading\" class=\"voffset2\"></graphics-result>\n" +
     "    </uib-tab>\n" +

@@ -1,5 +1,5 @@
 <div>
-  <p class="help-block" ng-if="!loading && table.taxonomyHeaders.length === 0" translate>no-coverage</p>
+  <p class="help-block" ng-if="!loading && table.taxonomyHeaders.length === 0" translate>search.no-coverage</p>
 
   <div ng-if="loading" class="loading"></div>
 
@@ -7,8 +7,8 @@
   <div class="table-responsive" ng-if="table.taxonomyHeaders.length > 0">
 
     <div class="pull-right">
-      <a href ng-click="toggleMissing(false)" ng-if="showMissing" translate>coverage-hide-missing</a>
-      <a href ng-click="toggleMissing(true)" ng-if="!showMissing" translate>coverage-show-missing</a>
+      <a href ng-click="toggleMissing(false)" ng-if="showMissing" translate>search.coverage-hide-missing</a>
+      <a href ng-click="toggleMissing(true)" ng-if="!showMissing" translate>search.coverage-show-missing</a>
     </div>
 
     <div class="clearfix"></div>
