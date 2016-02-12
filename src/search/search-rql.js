@@ -122,13 +122,19 @@ function CriteriaItemBuilder(LocalizedValues, useLang) {
       criteria.selectedTerms = [];
     }
 
-    criteria.selectedTerms.push(term.name);
+    criteria.selectedTerms.push(typeof term === 'string' ? term : term.name);
     return this;
   };
 
   this.selectedTerms = function (terms) {
-    criteria.selectedTerms = terms.map(function(term){
-      return term.name;
+    criteria.selectedTerms = terms.filter(function(term){
+      return term;
+    }).map(function(term){
+      if(typeof term === 'string') {
+        return term;
+      } else {
+        return term.name;
+      }
     });
     return this;
   };
@@ -218,7 +224,6 @@ function CriteriaBuilder(rootRql, rootItem, taxonomies, LocalizedValues, lang) {
   this.buildLeafItem = function (targetTaxonomy, targetVocabulary, targetTerms, node, parentItem) {
     var self = this;
 
-    var foundCount = 0;
     var builder = new CriteriaItemBuilder(self.LocalizedValues, self.lang)
       .type(node.name)
       .target(self.target)
@@ -227,17 +232,7 @@ function CriteriaBuilder(rootRql, rootItem, taxonomies, LocalizedValues, lang) {
       .rqlQuery(node)
       .parent(parentItem);
 
-    if (targetVocabulary.terms) {
-      targetVocabulary.terms.some(function (term) {
-        if (targetTerms.indexOf(term.name) !== -1) {
-          builder.selectedTerm(term).build();
-          foundCount++;
-
-          // stop searching
-          return foundCount === targetTerms.length;
-        }
-      });
-    }
+    builder.selectedTerms(targetTerms).build();
 
     return builder.build();
   };
