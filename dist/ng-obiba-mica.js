@@ -1275,6 +1275,58 @@ angular.module('obiba.mica.search', [
 
 'use strict';
 
+angular.module('obiba.mica.search')
+
+  .filter('regex', function() {
+    return function(elements, regex, fields) {
+      var out = [];
+
+      try {
+        var pattern = new RegExp(regex);
+        out = elements.filter(function(element) {
+          return fields.some(function(field){
+            return pattern.test(element[field]);
+          });
+        });
+
+      } catch(e) {
+      }
+
+      return out;
+    };
+  })
+
+  .filter('orderBySelection', function() {
+    return function (elements, selections) {
+      if (!elements){
+        return [];
+      }
+
+      var selected = [];
+      var unselected = [];
+
+      elements.forEach(function(element) {
+        if (selections[element.key]) {
+          selected.push(element);
+        } else {
+          unselected.push(element);
+        }
+      });
+
+      return selected.concat(unselected);
+    };
+  });;/*
+ * Copyright (c) 2016 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
 /* exported QUERY_TYPES */
 var QUERY_TYPES = {
   NETWORKS: 'networks',
@@ -2298,27 +2350,6 @@ angular.module('obiba.mica.search')
     this.getOptions = function () {
       return angular.copy(options);
     };
-  })
-
-  .filter('regex', function() {
-    return function(elements, regex, fields) {
-      console.log('>>>>> ', fields);
-      var out = [];
-
-      try {
-        var pattern = new RegExp(regex);
-        out = elements.filter(function(element) {
-          return fields.some(function(field){
-            return pattern.test(element[field]);
-          });
-        });
-        console.log('>>>>> ', out, fields);
-
-      } catch(e) {
-      }
-
-      return out;
-    };
   });
 ;/*
  * Copyright (c) 2016 OBiBa. All rights reserved.
@@ -2363,6 +2394,7 @@ function CriterionState() {
 
   this.dirty = false;
   this.open = false;
+  this.loading = true;
 
   this.addOnOpen = function(callback) {
     onOpenCallbacks.push(callback);
@@ -2961,10 +2993,11 @@ angular.module('obiba.mica.search')
       };
 
       var onOpen = function() {
+        $scope.state.loading = true;
         var target = $scope.criterion.target;
         var joinQuery = RqlQueryService.prepareCriteriaTermsQuery($scope.query, $scope.criterion);
         JoinQuerySearchResource[targetToType(target)]({query: joinQuery}).$promise.then(function (joinQueryResponse) {
-          $scope.state.open = true;
+          $scope.state.loading = false;
           $scope.terms = RqlQueryService.getTargetAggregations(joinQueryResponse, $scope.criterion);
           if($scope.terms) {
             $scope.terms.forEach(function(term) {
@@ -4766,16 +4799,23 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
     "    </ul>\n" +
     "  </li>\n" +
     "  <li ng-show=\"isInFilter()\" class='divider'></li>\n" +
+    "  <li class=\"criteria-list-item\" ng-show=\"state.loading\">\n" +
+    "    <p class=\"voffset2 loading\">\n" +
+    "    </p>\n" +
+    "  </li>\n" +
     "  <li ng-show=\"isInFilter()\">\n" +
-    "    <ul class=\"no-padding criteria-list-terms\">\n" +
-    "      <li class=\"criteria-list-item\" ng-show=\"terms && terms.length>5\">\n" +
+    "    <ul ng-show=\"!state.loading\" class=\"no-padding criteria-list-terms\">\n" +
+    "      <li class=\"criteria-list-item\" ng-show=\"terms && terms.length>10\">\n" +
     "        <span class=\"input-group input-group-sm no-padding-top\">\n" +
     "          <input ng-model=\"searchText\" type=\"text\" class=\"form-control\" aria-describedby=\"term-search\">\n" +
     "          <span class=\"input-group-addon\" id=\"term-search\"><i class=\"glyphicon glyphicon-search\"></i></span>\n" +
     "        </span>\n" +
     "      </li>\n" +
-    "      <li></li>\n" +
-    "      <li class=\"criteria-list-item\" ng-show=\"isInFilter()\" ng-repeat=\"term in terms | regex:searchText:['key','title','description']\" title='{{term.title}}'>\n" +
+    "      <li ng-show=\"terms && terms.length>10\"></li>\n" +
+    "      <li class=\"criteria-list-item\"\n" +
+    "          ng-show=\"isInFilter()\"\n" +
+    "          ng-repeat=\"term in terms | orderBySelection:checkboxTerms | regex:searchText:['key','title','description'] \"\n" +
+    "          title='{{term.title}}'>\n" +
     "          <span>\n" +
     "            <label class=\"control-label\">\n" +
     "              <input ng-model=\"checkboxTerms[term.key]\"\n" +

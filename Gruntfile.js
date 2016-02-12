@@ -21,6 +21,7 @@ module.exports = function (grunt) {
           'src/access/data-access-request-router.js',
           'src/access/data-access-request-service.js',
           'src/search/search.js',
+          'src/search/search-filter.js',
           'src/search/search-rql.js',
           'src/search/search-service.js',
           'src/search/search-controller.js',

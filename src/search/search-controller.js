@@ -41,6 +41,7 @@ function CriterionState() {
 
   this.dirty = false;
   this.open = false;
+  this.loading = true;
 
   this.addOnOpen = function(callback) {
     onOpenCallbacks.push(callback);
@@ -639,10 +640,11 @@ angular.module('obiba.mica.search')
       };
 
       var onOpen = function() {
+        $scope.state.loading = true;
         var target = $scope.criterion.target;
         var joinQuery = RqlQueryService.prepareCriteriaTermsQuery($scope.query, $scope.criterion);
         JoinQuerySearchResource[targetToType(target)]({query: joinQuery}).$promise.then(function (joinQueryResponse) {
-          $scope.state.open = true;
+          $scope.state.loading = false;
           $scope.terms = RqlQueryService.getTargetAggregations(joinQueryResponse, $scope.criterion);
           if($scope.terms) {
             $scope.terms.forEach(function(term) {
