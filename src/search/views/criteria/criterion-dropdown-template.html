@@ -1,7 +1,9 @@
 <span id="{{criterion.id.replace('.','-')}}-dropdown" class='btn-group btn-info' ng-class='{open: state.open}'>
   <button class="btn btn-info btn-xs dropdown"
       ng-click="openDropdown()"
-      title="{{localize(criterion.vocabulary.title)}}">
+      uib-popover="{{localize(criterion.vocabulary.description ? criterion.vocabulary.description : criterion.vocabulary.title)}}"
+      popover-title="{{criterion.vocabulary.description ? localize(criterion.vocabulary.title) : null}}"
+      popover-trigger="mouseenter">
     {{truncate(localize(criterion.vocabulary.title))}}
     <span class='fa fa-caret-down'></span>
   </button>
