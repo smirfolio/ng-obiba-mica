@@ -244,6 +244,20 @@ angular.module('obiba.mica.search')
       };
     }])
 
+  .directive('numericCriterion', [function () {
+    return {
+      restrict: 'EA',
+      replace: true,
+      scope: {
+        criterion: '=',
+        query: '=',
+        state: '='
+      },
+      controller: 'NumericCriterionController',
+      templateUrl: 'search/views/criteria/criterion-numeric-template.html'
+    };
+  }])
+
   /**
    * This directive serves as the container for each time of criterion based on a vocabulary type.
    * Specialize contents types as directives and share the state with this container.

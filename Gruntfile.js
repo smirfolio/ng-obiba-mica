@@ -117,8 +117,14 @@ module.exports = function (grunt) {
         dest: 'dist/images/',
         src: ['**']
       }
+    },
+    watch: {
+        files: [
+          'src/**/*.html',
+          'src/**/*.js'
+        ],
+        tasks: ['default']
     }
-
   });
 
   grunt.loadNpmTasks('grunt-contrib-copy');
@@ -129,9 +135,10 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-html2js');
   grunt.loadNpmTasks('grunt-karma');
+  grunt.loadNpmTasks('grunt-contrib-watch');
 
   // TODO uncomment below and remove last line once unit tests are implemented
   //grunt.registerTask('default', ['clean:build', 'less', 'jshint', 'html2js', 'concat', 'clean:tmp', 'karma', 'uglify', 'copy']);
   grunt.registerTask('default', ['clean:build', 'less', 'jshint', 'html2js', 'concat', 'clean:tmp', 'uglify', 'copy']);
-
+  grunt.registerTask('watchChanges', ['watch']);
 };

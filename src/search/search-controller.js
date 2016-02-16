@@ -401,6 +401,7 @@ angular.module('obiba.mica.search')
         $scope.taxonomies.taxonomy = taxonomy;
         $scope.taxonomies.vocabulary = vocabulary;
         $scope.taxonomies.term = term;
+
         if (toFilter) {
           filterTaxonomies($scope.taxonomies.search.text);
         }
@@ -415,6 +416,11 @@ angular.module('obiba.mica.search')
        * @param term
        */
       var selectTerm = function (target, taxonomy, vocabulary, term) {
+        if (vocabulary && RqlQueryUtils.isNumericVocabulary(vocabulary)) {
+          selectCriteria(RqlQueryService.createCriteriaItem($scope.taxonomies.target, taxonomy, vocabulary, null, $scope.lang));
+          return;
+        }
+
         selectCriteria(RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, term, $scope.lang));
       };
 
@@ -563,8 +569,8 @@ angular.module('obiba.mica.search')
       };
     }])
 
-  .controller('CriterionDropdownController', ['$scope', 'StringUtils',
-    function ($scope, StringUtils) {
+  .controller('CriterionDropdownController', ['$scope', 'StringUtils', 'RqlQueryUtils',
+    function ($scope, StringUtils, RqlQueryUtils) {
       console.log('CriterionDropdownController -', $scope.criterion.vocabulary.name);
 
       var closeDropdown = function() {
@@ -601,10 +607,71 @@ angular.module('obiba.mica.search')
       $scope.localize = function(values) {
         return StringUtils.localize(values, $scope.criterion.lang);
       };
+      $scope.vocabularyType = function(vocabulary) {
+        return RqlQueryUtils.vocabularyType(vocabulary);
+      };
       $scope.truncate = StringUtils.truncate;
       $scope.remove = remove;
       $scope.openDropdown = openDropdown;
       $scope.closeDropdown = closeDropdown;
+    }])
+
+  .controller('NumericCriterionController', [
+    '$scope',
+    'RqlQueryService',
+    'LocalizedValues',
+    'JoinQuerySearchResource',
+    'RqlQueryUtils',
+    function ($scope, RqlQueryService, LocalizedValues, JoinQuerySearchResource) {
+      var range = $scope.criterion.rqlQuery.args[1];
+
+      if(angular.isArray(range)) {
+        $scope.from = $scope.criterion.rqlQuery.args[1][0];
+        $scope.to = $scope.criterion.rqlQuery.args[1][1];
+      } else {
+        $scope.from = $scope.criterion.rqlQuery.name === RQL_NODE.GE ? range : null;
+        $scope.to = $scope.criterion.rqlQuery.name === RQL_NODE.LE ? range : null;
+      }
+
+      var onOpen = function () {
+        var target = $scope.criterion.target;
+        var joinQuery = RqlQueryService.prepareCriteriaTermsQuery($scope.query, $scope.criterion);
+        JoinQuerySearchResource[targetToType(target)]({query: joinQuery}).$promise.then(function (joinQueryResponse) {
+          $scope.state.open = true;
+          var stats = RqlQueryService.getTargetAggregations(joinQueryResponse, $scope.criterion);
+
+          if (stats && stats.default) {
+            $scope.min = stats.default.min;
+            $scope.max = stats.default.max;
+          }
+        });
+      };
+
+      var onClose = function () {
+        $scope.updateSelection();
+      };
+
+      $scope.updateSelection = function() {
+        if (angular.isDefined($scope.from) && $scope.from !== null && angular.isDefined($scope.to) && $scope.to !== null) {
+          $scope.criterion.rqlQuery.name = RQL_NODE.BETWEEN;
+          $scope.criterion.rqlQuery.args[1] = [$scope.from, $scope.to];
+        } else if (angular.isDefined($scope.from) && $scope.from !== null) {
+          $scope.criterion.rqlQuery.name = RQL_NODE.GE;
+          $scope.criterion.rqlQuery.args[1] = $scope.from;
+        } else if (angular.isDefined($scope.to) && $scope.to !== null) {
+          $scope.criterion.rqlQuery.name = RQL_NODE.LE;
+          $scope.criterion.rqlQuery.args[1] = $scope.to;
+        } else {
+          $scope.criterion.rqlQuery.name = RQL_NODE.EXISTS;
+          $scope.criterion.rqlQuery.args.splice(1, 1);
+        }
+
+        $scope.state.dirty = true;
+      };
+
+      $scope.state.addOnClose(onClose);
+      $scope.state.addOnOpen(onOpen);
+      $scope.RQL_NODE = RQL_NODE;
     }])
 
   .controller('StringCriterionTermsController', [
