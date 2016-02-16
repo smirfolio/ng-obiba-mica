@@ -396,10 +396,11 @@ angular.module('obiba.mica.search')
         }
       };
 
-      var navigateTaxonomy = function (taxonomy, vocabulary) {
+      var navigateTaxonomy = function (taxonomy, vocabulary, term) {
         var toFilter = ($scope.taxonomies.taxonomy && !taxonomy) || ($scope.taxonomies.vocabulary && !vocabulary);
         $scope.taxonomies.taxonomy = taxonomy;
         $scope.taxonomies.vocabulary = vocabulary;
+        $scope.taxonomies.term = term;
         if (toFilter) {
           filterTaxonomies($scope.taxonomies.search.text);
         }
