@@ -3,8 +3,10 @@
       ng-click="openDropdown()"
       uib-popover="{{localize(criterion.vocabulary.description ? criterion.vocabulary.description : criterion.vocabulary.title)}}"
       popover-title="{{criterion.vocabulary.description ? localize(criterion.vocabulary.title) : null}}"
-      popover-trigger="mouseenter">
-    {{truncate(localize(criterion.vocabulary.title))}}
+      popover-placement="bottom"
+      popover-trigger="mouseenter"
+      title="{{localizeCriterion()}}">
+    {{truncate(localizeCriterion())}}
     <span class='fa fa-caret-down'></span>
   </button>
   <button class='btn btn-xs btn-default' ng-click='remove(criterion.id)'>
