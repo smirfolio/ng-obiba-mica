@@ -3012,6 +3012,42 @@ angular.module('obiba.mica.search')
       $scope.localize = function(values) {
         return StringUtils.localize(values, $scope.criterion.lang);
       };
+      $scope.localizeCriterion = function() {
+        var rqlQuery = $scope.criterion.rqlQuery;
+        if(rqlQuery.name === RQL_NODE.IN && $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.length>0) {
+          return $scope.criterion.selectedTerms.map(function(t) {
+            var found = $scope.criterion.vocabulary.terms.filter(function (arg) {
+              return arg.name === t;
+            }).pop();
+            return found ? StringUtils.localize(found.title, $scope.criterion.lang) : t;
+          }).join(' | ');
+        }
+        var operation = rqlQuery.name;
+        switch(rqlQuery.name) {
+          case RQL_NODE.EXISTS:
+            operation = ':any';
+            break;
+          case RQL_NODE.MISSING:
+            operation = ':none';
+            break;
+          case RQL_NODE.EQ:
+            operation = '=' + rqlQuery.args[1];
+            break;
+          case RQL_NODE.GE:
+            operation = '>' + rqlQuery.args[1];
+            break;
+          case RQL_NODE.LE:
+            operation = '<' + rqlQuery.args[1];
+            break;
+          case RQL_NODE.BETWEEN:
+            operation = ':[' + rqlQuery.args[1] + '[';
+            break;
+          case RQL_NODE.IN:
+            operation = '';
+            break;
+        }
+        return StringUtils.localize($scope.criterion.vocabulary.title, $scope.criterion.lang) + operation;
+      };
       $scope.vocabularyType = function(vocabulary) {
         return RqlQueryUtils.vocabularyType(vocabulary);
       };
@@ -3276,8 +3312,6 @@ angular.module('obiba.mica.search')
             [$filter('translate')('graphics.bio-samples'), $filter('translate')('graphics.nbr-studies')],
             $filter('translate')('graphics.bio-samples-chart-title') + ' (N = ' + result.studyResultDto.totalHits + ')',
             GraphicChartsConfig.getOptions().ChartsOptions.biologicalSamples.options);
-
-          console.log('=========}}}}}}}}geo', geoStudies);
 
           if (geoStudies) {
             angular.extend($scope.chartObjects,
@@ -4903,8 +4937,10 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
     "      ng-click=\"openDropdown()\"\n" +
     "      uib-popover=\"{{localize(criterion.vocabulary.description ? criterion.vocabulary.description : criterion.vocabulary.title)}}\"\n" +
     "      popover-title=\"{{criterion.vocabulary.description ? localize(criterion.vocabulary.title) : null}}\"\n" +
-    "      popover-trigger=\"mouseenter\">\n" +
-    "    {{truncate(localize(criterion.vocabulary.title))}}\n" +
+    "      popover-placement=\"bottom\"\n" +
+    "      popover-trigger=\"mouseenter\"\n" +
+    "      title=\"{{localizeCriterion()}}\">\n" +
+    "    {{truncate(localizeCriterion())}}\n" +
     "    <span class='fa fa-caret-down'></span>\n" +
     "  </button>\n" +
     "  <button class='btn btn-xs btn-default' ng-click='remove(criterion.id)'>\n" +
