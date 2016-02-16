@@ -1796,19 +1796,10 @@ angular.module('obiba.mica.search')
       return query;
     };
 
-    this.rangeQuery = function (field, min, max) {
-      var rqlNode = min && max ? RQL_NODE.BETWEEN : min ? RQL_NODE.GE : max ? RQL_NODE.LE : RQL_NODE.EXISTS;
-      var query = new RqlQuery(rqlNode);
+    this.rangeQuery = function (field, from, to) {
+      var query = new RqlQuery(RQL_NODE.BETWEEN);
       query.args.push(field);
-
-      if (min && max) {
-        query.args.push([min, max]);
-      } else if (min) {
-        query.args.push(min);
-      } else if (max) {
-        query.args.push(max);
-      }
-
+      self.updateRangeQuery(query, from, to);
       return query;
     };
 
@@ -1823,6 +1814,25 @@ angular.module('obiba.mica.search')
       }
 
       return query;
+    };
+
+    this.updateRangeQuery = function (query, from, to, missing) {
+      if (missing) {
+        query.name = RQL_NODE.MISSING;
+        query.args.splice(1, 1);
+      } else if (angular.isDefined(from) && from !== null && angular.isDefined(to) && to !== null) {
+        query.name = RQL_NODE.BETWEEN;
+        query.args[1] = [from, to];
+      } else if (angular.isDefined(from) && from !== null) {
+        query.name = RQL_NODE.GE;
+        query.args[1] = from;
+      } else if (angular.isDefined(to) && to !== null) {
+        query.name = RQL_NODE.LE;
+        query.args[1] = to;
+      } else {
+        query.name = RQL_NODE.EXISTS;
+        query.args.splice(1, 1);
+      }
     };
 
     /**
@@ -3017,10 +3027,9 @@ angular.module('obiba.mica.search')
     'LocalizedValues',
     'JoinQuerySearchResource',
     'RqlQueryUtils',
-    function ($scope, RqlQueryService, LocalizedValues, JoinQuerySearchResource) {
+    function ($scope, RqlQueryService, LocalizedValues, JoinQuerySearchResource, RqlQueryUtils) {
       var range = $scope.criterion.rqlQuery.args[1];
-
-      if(angular.isArray(range)) {
+      if (angular.isArray(range)) {
         $scope.from = $scope.criterion.rqlQuery.args[1][0];
         $scope.to = $scope.criterion.rqlQuery.args[1][1];
       } else {
@@ -3028,11 +3037,10 @@ angular.module('obiba.mica.search')
         $scope.to = $scope.criterion.rqlQuery.name === RQL_NODE.LE ? range : null;
       }
 
-      var onOpen = function () {
-        var target = $scope.criterion.target;
-        var joinQuery = RqlQueryService.prepareCriteriaTermsQuery($scope.query, $scope.criterion);
+      var updateLimits = function() {
+        var target = $scope.criterion.target,
+          joinQuery = RqlQueryService.prepareCriteriaTermsQuery($scope.query, $scope.criterion);
         JoinQuerySearchResource[targetToType(target)]({query: joinQuery}).$promise.then(function (joinQueryResponse) {
-          $scope.state.open = true;
           var stats = RqlQueryService.getTargetAggregations(joinQueryResponse, $scope.criterion);
 
           if (stats && stats.default) {
@@ -3042,31 +3050,22 @@ angular.module('obiba.mica.search')
         });
       };
 
+      var onOpen = function () {
+        updateLimits();
+      };
+
       var onClose = function () {
         $scope.updateSelection();
       };
 
       $scope.updateSelection = function() {
-        if (angular.isDefined($scope.from) && $scope.from !== null && angular.isDefined($scope.to) && $scope.to !== null) {
-          $scope.criterion.rqlQuery.name = RQL_NODE.BETWEEN;
-          $scope.criterion.rqlQuery.args[1] = [$scope.from, $scope.to];
-        } else if (angular.isDefined($scope.from) && $scope.from !== null) {
-          $scope.criterion.rqlQuery.name = RQL_NODE.GE;
-          $scope.criterion.rqlQuery.args[1] = $scope.from;
-        } else if (angular.isDefined($scope.to) && $scope.to !== null) {
-          $scope.criterion.rqlQuery.name = RQL_NODE.LE;
-          $scope.criterion.rqlQuery.args[1] = $scope.to;
-        } else {
-          $scope.criterion.rqlQuery.name = RQL_NODE.EXISTS;
-          $scope.criterion.rqlQuery.args.splice(1, 1);
-        }
-
+        RqlQueryUtils.updateRangeQuery($scope.criterion.rqlQuery, $scope.from, $scope.to, $scope.selectMissing);
         $scope.state.dirty = true;
       };
 
+      $scope.selectMissing = $scope.criterion.rqlQuery.name === RQL_NODE.MISSING;
       $scope.state.addOnClose(onClose);
       $scope.state.addOnOpen(onOpen);
-      $scope.RQL_NODE = RQL_NODE;
     }])
 
   .controller('StringCriterionTermsController', [
@@ -4922,8 +4921,25 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
 angular.module("search/views/criteria/criterion-numeric-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criterion-numeric-template.html",
     "<ul class=\"dropdown-menu query-dropdown-menu\" aria-labelledby=\"{{criterion.vocabulary.name}}-button\">\n" +
-    "  <li class=\"btn-group criteria-list-item\">\n" +
-    "    <form novalidate ng-submit=\"updateSelection()\">\n" +
+    "  <li class=\"btn-group\">\n" +
+    "    <ul class=\"criteria-list-item\">\n" +
+    "      <li>\n" +
+    "        <label>\n" +
+    "          <input ng-click=\"updateSelection()\" type=\"radio\" ng-model=\"selectMissing\" ng-value=\"false\">\n" +
+    "          {{'any' | translate}}\n" +
+    "        </label>\n" +
+    "      </li>\n" +
+    "      <li>\n" +
+    "        <label>\n" +
+    "          <input ng-click=\"updateSelection()\" type=\"radio\" ng-model=\"selectMissing\" ng-value=\"true\">\n" +
+    "          {{'none' | translate}}\n" +
+    "        </label>\n" +
+    "      </li>\n" +
+    "    </ul>\n" +
+    "  </li>\n" +
+    "  <li ng-show=\"!selectMissing\" class='divider'></li>\n" +
+    "  <li ng-show=\"!selectMissing\" class=\"btn-group criteria-list-item\">\n" +
+    "    <form novalidate>\n" +
     "      <div class=\"form-group\">\n" +
     "        <label for=\"{{criterion.vocabulary.name}}-from\" translate>from</label>\n" +
     "        <input type=\"number\" class=\"form-control\" id=\"{{criterion.vocabulary.name}}-from\" placeholder=\"{{min}}\" ng-model=\"from\">\n" +

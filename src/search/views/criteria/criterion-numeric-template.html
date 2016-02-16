@@ -1,6 +1,23 @@
 <ul class="dropdown-menu query-dropdown-menu" aria-labelledby="{{criterion.vocabulary.name}}-button">
-  <li class="btn-group criteria-list-item">
-    <form novalidate ng-submit="updateSelection()">
+  <li class="btn-group">
+    <ul class="criteria-list-item">
+      <li>
+        <label>
+          <input ng-click="updateSelection()" type="radio" ng-model="selectMissing" ng-value="false">
+          {{'any' | translate}}
+        </label>
+      </li>
+      <li>
+        <label>
+          <input ng-click="updateSelection()" type="radio" ng-model="selectMissing" ng-value="true">
+          {{'none' | translate}}
+        </label>
+      </li>
+    </ul>
+  </li>
+  <li ng-show="!selectMissing" class='divider'></li>
+  <li ng-show="!selectMissing" class="btn-group criteria-list-item">
+    <form novalidate>
       <div class="form-group">
         <label for="{{criterion.vocabulary.name}}-from" translate>from</label>
         <input type="number" class="form-control" id="{{criterion.vocabulary.name}}-from" placeholder="{{min}}" ng-model="from">

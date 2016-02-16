@@ -622,10 +622,9 @@ angular.module('obiba.mica.search')
     'LocalizedValues',
     'JoinQuerySearchResource',
     'RqlQueryUtils',
-    function ($scope, RqlQueryService, LocalizedValues, JoinQuerySearchResource) {
+    function ($scope, RqlQueryService, LocalizedValues, JoinQuerySearchResource, RqlQueryUtils) {
       var range = $scope.criterion.rqlQuery.args[1];
-
-      if(angular.isArray(range)) {
+      if (angular.isArray(range)) {
         $scope.from = $scope.criterion.rqlQuery.args[1][0];
         $scope.to = $scope.criterion.rqlQuery.args[1][1];
       } else {
@@ -633,11 +632,10 @@ angular.module('obiba.mica.search')
         $scope.to = $scope.criterion.rqlQuery.name === RQL_NODE.LE ? range : null;
       }
 
-      var onOpen = function () {
-        var target = $scope.criterion.target;
-        var joinQuery = RqlQueryService.prepareCriteriaTermsQuery($scope.query, $scope.criterion);
+      var updateLimits = function() {
+        var target = $scope.criterion.target,
+          joinQuery = RqlQueryService.prepareCriteriaTermsQuery($scope.query, $scope.criterion);
         JoinQuerySearchResource[targetToType(target)]({query: joinQuery}).$promise.then(function (joinQueryResponse) {
-          $scope.state.open = true;
           var stats = RqlQueryService.getTargetAggregations(joinQueryResponse, $scope.criterion);
 
           if (stats && stats.default) {
@@ -647,31 +645,22 @@ angular.module('obiba.mica.search')
         });
       };
 
+      var onOpen = function () {
+        updateLimits();
+      };
+
       var onClose = function () {
         $scope.updateSelection();
       };
 
       $scope.updateSelection = function() {
-        if (angular.isDefined($scope.from) && $scope.from !== null && angular.isDefined($scope.to) && $scope.to !== null) {
-          $scope.criterion.rqlQuery.name = RQL_NODE.BETWEEN;
-          $scope.criterion.rqlQuery.args[1] = [$scope.from, $scope.to];
-        } else if (angular.isDefined($scope.from) && $scope.from !== null) {
-          $scope.criterion.rqlQuery.name = RQL_NODE.GE;
-          $scope.criterion.rqlQuery.args[1] = $scope.from;
-        } else if (angular.isDefined($scope.to) && $scope.to !== null) {
-          $scope.criterion.rqlQuery.name = RQL_NODE.LE;
-          $scope.criterion.rqlQuery.args[1] = $scope.to;
-        } else {
-          $scope.criterion.rqlQuery.name = RQL_NODE.EXISTS;
-          $scope.criterion.rqlQuery.args.splice(1, 1);
-        }
-
+        RqlQueryUtils.updateRangeQuery($scope.criterion.rqlQuery, $scope.from, $scope.to, $scope.selectMissing);
         $scope.state.dirty = true;
       };
 
+      $scope.selectMissing = $scope.criterion.rqlQuery.name === RQL_NODE.MISSING;
       $scope.state.addOnClose(onClose);
       $scope.state.addOnOpen(onOpen);
-      $scope.RQL_NODE = RQL_NODE;
     }])
 
   .controller('StringCriterionTermsController', [

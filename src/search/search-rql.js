@@ -479,19 +479,10 @@ angular.module('obiba.mica.search')
       return query;
     };
 
-    this.rangeQuery = function (field, min, max) {
-      var rqlNode = min && max ? RQL_NODE.BETWEEN : min ? RQL_NODE.GE : max ? RQL_NODE.LE : RQL_NODE.EXISTS;
-      var query = new RqlQuery(rqlNode);
+    this.rangeQuery = function (field, from, to) {
+      var query = new RqlQuery(RQL_NODE.BETWEEN);
       query.args.push(field);
-
-      if (min && max) {
-        query.args.push([min, max]);
-      } else if (min) {
-        query.args.push(min);
-      } else if (max) {
-        query.args.push(max);
-      }
-
+      self.updateRangeQuery(query, from, to);
       return query;
     };
 
@@ -506,6 +497,25 @@ angular.module('obiba.mica.search')
       }
 
       return query;
+    };
+
+    this.updateRangeQuery = function (query, from, to, missing) {
+      if (missing) {
+        query.name = RQL_NODE.MISSING;
+        query.args.splice(1, 1);
+      } else if (angular.isDefined(from) && from !== null && angular.isDefined(to) && to !== null) {
+        query.name = RQL_NODE.BETWEEN;
+        query.args[1] = [from, to];
+      } else if (angular.isDefined(from) && from !== null) {
+        query.name = RQL_NODE.GE;
+        query.args[1] = from;
+      } else if (angular.isDefined(to) && to !== null) {
+        query.name = RQL_NODE.LE;
+        query.args[1] = to;
+      } else {
+        query.name = RQL_NODE.EXISTS;
+        query.args.splice(1, 1);
+      }
     };
 
     /**
