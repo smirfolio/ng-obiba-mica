@@ -4902,7 +4902,9 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
     "<span id=\"{{criterion.id.replace('.','-')}}-dropdown\" class='btn-group btn-info' ng-class='{open: state.open}'>\n" +
     "  <button class=\"btn btn-info btn-xs dropdown\"\n" +
     "      ng-click=\"openDropdown()\"\n" +
-    "      title=\"{{localize(criterion.vocabulary.title)}}\">\n" +
+    "      uib-popover=\"{{localize(criterion.vocabulary.description ? criterion.vocabulary.description : criterion.vocabulary.title)}}\"\n" +
+    "      popover-title=\"{{criterion.vocabulary.description ? localize(criterion.vocabulary.title) : null}}\"\n" +
+    "      popover-trigger=\"mouseenter\">\n" +
     "    {{truncate(localize(criterion.vocabulary.title))}}\n" +
     "    <span class='fa fa-caret-down'></span>\n" +
     "  </button>\n" +
@@ -4976,8 +4978,11 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
     "      <li ng-show=\"terms && terms.length>10\"></li>\n" +
     "      <li class=\"criteria-list-item\"\n" +
     "          ng-show=\"isInFilter()\"\n" +
-    "          ng-repeat=\"term in terms | orderBySelection:checkboxTerms | regex:searchText:['key','title','description'] \"\n" +
-    "          title='{{term.title}}'>\n" +
+    "          ng-repeat=\"term in terms | orderBySelection:checkboxTerms | regex:searchText:['key','title','description']\"\n" +
+    "          uib-popover=\"{{term.description ? term.description : term.title}}\"\n" +
+    "          popover-title=\"{{term.description ? term.title : null}}\"\n" +
+    "          popover-placement=\"left\"\n" +
+    "          popover-trigger=\"mouseenter\">\n" +
     "          <span>\n" +
     "            <label class=\"control-label\">\n" +
     "              <input ng-model=\"checkboxTerms[term.key]\"\n" +

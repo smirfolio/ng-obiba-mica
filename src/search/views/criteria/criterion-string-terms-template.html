@@ -37,8 +37,11 @@
       <li ng-show="terms && terms.length>10"></li>
       <li class="criteria-list-item"
           ng-show="isInFilter()"
-          ng-repeat="term in terms | orderBySelection:checkboxTerms | regex:searchText:['key','title','description'] "
-          title='{{term.title}}'>
+          ng-repeat="term in terms | orderBySelection:checkboxTerms | regex:searchText:['key','title','description']"
+          uib-popover="{{term.description ? term.description : term.title}}"
+          popover-title="{{term.description ? term.title : null}}"
+          popover-placement="left"
+          popover-trigger="mouseenter">
           <span>
             <label class="control-label">
               <input ng-model="checkboxTerms[term.key]"
