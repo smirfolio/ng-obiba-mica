@@ -190,10 +190,7 @@ angular.module('obiba.mica.search')
         item: '=',
         query: '='
       },
-      template: '<div class="voffset2">' +
-      '<span title="{{\'search.\' + item.target + \'-where\' | translate}}"><i class="{{\'i-obiba-\' + item.target}}"></i></span>' +
-      '<criteria-node item="child" query="$parent.query" ng-repeat="child in item.children"></criteria-node>' +
-      '</div>'
+      templateUrl: 'search/views/criteria/criteria-target-template.html'
     };
   }])
 

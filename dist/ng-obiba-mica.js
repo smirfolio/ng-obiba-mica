@@ -2703,7 +2703,24 @@ angular.module('obiba.mica.search')
             // criteria UI is updated here
             console.log(result.root);
             $scope.search.criteria = result.root;
-
+            if($scope.search.criteria && $scope.search.criteria.children) {
+              $scope.search.criteria.children.sort(function(a,b){
+                if(a.target === 'network' || b.target === 'variable') {
+                  return -1;
+                }
+                if(a.target === 'variable' || b.target === 'network') {
+                  return 1;
+                }
+                if (a.target < b.target) {
+                  return 1;
+                }
+                if (a.target > b.target) {
+                  return -1;
+                }
+                // a must be equal to b
+                return 0;
+              });
+            }
             $scope.search.criteriaItemMap = result.map;
           });
 
@@ -3674,10 +3691,7 @@ angular.module('obiba.mica.search')
         item: '=',
         query: '='
       },
-      template: '<div class="voffset2">' +
-      '<span title="{{\'search.\' + item.target + \'-where\' | translate}}"><i class="{{\'i-obiba-\' + item.target}}"></i></span>' +
-      '<criteria-node item="child" query="$parent.query" ng-repeat="child in item.children"></criteria-node>' +
-      '</div>'
+      templateUrl: 'search/views/criteria/criteria-target-template.html'
     };
   }])
 
@@ -4257,7 +4271,7 @@ angular.module('obiba.mica.localized')
         return 'en';
       };
     });
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html']);
 
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
@@ -5062,7 +5076,7 @@ angular.module("search/views/criteria/criteria-node-template.html", []).run(["$t
     "  <span ng-if=\"item.children.length > 0\">\n" +
     "    <criteria-leaf item=\"item.children[0]\" parent-type=\"$parent.item.type\" query=\"query\"></criteria-leaf>\n" +
     "\n" +
-    "    <div class=\"btn-group\" uib-dropdown is-open=\"status.isopen\">\n" +
+    "    <div class=\"btn-group voffset1\" uib-dropdown is-open=\"status.isopen\">\n" +
     "      <button id=\"single-button\" type=\"button\" class=\"btn btn-default btn-xs\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
     "        {{item.type | translate}} <span class=\"caret\"></span>\n" +
     "      </button>\n" +
@@ -5082,9 +5096,27 @@ angular.module("search/views/criteria/criteria-node-template.html", []).run(["$t
     "</span>");
 }]);
 
+angular.module("search/views/criteria/criteria-target-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/criteria/criteria-target-template.html",
+    "<table class=\"voffset2\">\n" +
+    "  <tbody>\n" +
+    "  <tr>\n" +
+    "    <td>\n" +
+    "      <div class=\"voffset1\" title=\"{{'search.' + item.target + '-where' | translate}}\">\n" +
+    "        <i class=\"{{'i-obiba-' + item.target}}\">&nbsp;</i>\n" +
+    "      </div>\n" +
+    "    </td>\n" +
+    "    <td>\n" +
+    "      <criteria-node item=\"child\" query=\"$parent.query\" ng-repeat=\"child in item.children\"></criteria-node>\n" +
+    "    </td>\n" +
+    "  </tr>\n" +
+    "  </tbody>\n" +
+    "</table>");
+}]);
+
 angular.module("search/views/criteria/criterion-dropdown-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criterion-dropdown-template.html",
-    "<div id=\"{{criterion.id.replace('.','-')}}-dropdown\" class='btn-group btn-info' ng-class='{open: state.open}'>\n" +
+    "<div id=\"{{criterion.id.replace('.','-')}}-dropdown\" class='btn-group btn-info voffset1' ng-class='{open: state.open}'>\n" +
     "\n" +
     "  <button class=\"btn btn-info btn-xs dropdown\"\n" +
     "    ng-click=\"openDropdown()\"\n" +
@@ -5546,8 +5578,8 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "  <div>\n" +
     "    <!--<div>-->\n" +
     "    <div class=\"row\">\n" +
-    "      <div class=\"col-xs-3\"></div>\n" +
-    "      <div class=\"col-xs-6\">\n" +
+    "      <div class=\"col-md-3\"></div>\n" +
+    "      <div class=\"col-md-6\">\n" +
     "        <script type=\"text/ng-template\" id=\"customTemplate.html\">\n" +
     "          <a ng-if=\"match.model.id\">\n" +
     "            <span title=\"{{match.model.target + '-classifications' | translate}}\">\n" +
@@ -5585,8 +5617,8 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      </div>\n" +
     "    </div>\n" +
     "    <div class=\"row\">\n" +
-    "      <div class=\"col-xs-3\"></div>\n" +
-    "      <div class=\"col-xs-6\">\n" +
+    "      <div class=\"col-md-3\"></div>\n" +
+    "      <div class=\"col-md-6\">\n" +
     "        <ul class=\"nav nav-pills\">\n" +
     "          <li ng-show=\"settingsDisplay.variables.showSearchTab\" ng-class=\"{'active': taxonomies.target === 'variable' && taxonomiesShown}\"\n" +
     "            title=\"{{'variable-classifications' | translate}}\">\n" +
@@ -5615,7 +5647,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "  <!-- Search criteria region -->\n" +
     "  <div class=\"voffset3\">\n" +
     "    <div class=\"row\">\n" +
-    "      <div class=\"col-xs-12\">\n" +
+    "      <div class=\"col-md-12\">\n" +
     "        <div criteria-root item=\"search.criteria\" query=\"search.query\" on-remove=\"removeCriteriaItem\" on-refresh=\"refreshQuery\"></div>\n" +
     "      </div>\n" +
     "    </div>\n" +
