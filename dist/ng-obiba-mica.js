@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-02-17
+ * Date: 2016-02-18
  */
 'use strict';
 
@@ -1271,6 +1271,25 @@ angular.module('obiba.mica.search', [
       }
     ));
   }])
+  .config(['$provide', '$injector', function ($provide) {
+    $provide.provider('ngObibaMicaSearch', function () {
+      var localeResolver = ['LocalizedValues', function(LocalizedValues) {
+        return LocalizedValues.getLocale();
+      }];
+
+      this.setLocaleResolver = function(resolver) {
+        localeResolver = resolver;
+      };
+
+      this.$get = ['$q', '$injector', function ngObibaMicaSearchFactory($q, $injector) {
+        return {
+          getLocale: function(success, error) {
+            return $q.when($injector.invoke(localeResolver), success, error);
+          }
+        };
+      }];
+    });
+  }])
   .run(['GraphicChartsConfigurations',
   function (GraphicChartsConfigurations) {
     GraphicChartsConfigurations.setClientConfig();
@@ -2259,7 +2278,7 @@ angular.module('obiba.mica.search')
        * @para
        * @returns the new query
        */
-      this.prepareCriteriaTermsQuery = function (query, item) {
+      this.prepareCriteriaTermsQuery = function (query, item, lang) {
         var parsedQuery = new RqlParser().parse(query);
         var targetQuery = parsedQuery.args.filter(function (node) {
           return node.name === item.target;
@@ -2269,7 +2288,12 @@ angular.module('obiba.mica.search')
           targetQuery.args.push(RqlQueryUtils.aggregate([RqlQueryUtils.criteriaId(item.taxonomy, item.vocabulary)]));
           targetQuery.args.push(RqlQueryUtils.limit(0, 0));
         }
+
         parsedQuery.args.push(new RqlQuery(RQL_NODE.FACET));
+
+        if (lang) {
+          RqlQueryUtils.addLocaleQuery(parsedQuery, lang);
+        }
 
         return parsedQuery.serializeArgs(parsedQuery.args);
       };
@@ -2493,6 +2517,18 @@ angular.module('obiba.mica.search')
       });
     }])
 
+  .service('SearchContext', function() {
+    var selectedLocale = null;
+
+    this.setLocale = function(locale) {
+      selectedLocale = locale;
+    };
+
+    this.currentLocale = function() {
+      return selectedLocale;
+    };
+  })
+
   .service('ObibaSearchConfig', function () {
     var options = {
       networks: {
@@ -2523,6 +2559,7 @@ angular.module('obiba.mica.search')
       return angular.copy(options);
     };
   });
+
 ;/*
  * Copyright (c) 2016 OBiBa. All rights reserved.
  *
@@ -2608,6 +2645,7 @@ angular.module('obiba.mica.search')
     'TaxonomyResource',
     'VocabularyResource',
     'ngObibaMicaSearchTemplateUrl',
+    'ngObibaMicaSearch',
     'JoinQuerySearchResource',
     'JoinQueryCoverageResource',
     'AlertService',
@@ -2616,6 +2654,7 @@ angular.module('obiba.mica.search')
     'ObibaSearchConfig',
     'RqlQueryService',
     'RqlQueryUtils',
+    'SearchContext',
     function ($scope,
               $timeout,
               $routeParams,
@@ -2625,6 +2664,7 @@ angular.module('obiba.mica.search')
               TaxonomyResource,
               VocabularyResource,
               ngObibaMicaSearchTemplateUrl,
+              ngObibaMicaSearch,
               JoinQuerySearchResource,
               JoinQueryCoverageResource,
               AlertService,
@@ -2632,7 +2672,24 @@ angular.module('obiba.mica.search')
               LocalizedValues,
               ObibaSearchConfig,
               RqlQueryService,
-              RqlQueryUtils) {
+              RqlQueryUtils,
+              SearchContext) {
+      $scope.lang = LocalizedValues.getLocal();
+
+      ngObibaMicaSearch.getLocale(function(locales) {
+        if (angular.isArray(locales)) {
+          $scope.tabs = locales;
+          $scope.setLocale(locales[0]);
+        } else {
+          $scope.setLocale(locales || $scope.lang);
+        }
+      });
+
+      $scope.setLocale = function(locale) {
+        $scope.lang = locale;
+        SearchContext.setLocale($scope.lang);
+        executeSearchQuery();
+      };
 
       $scope.settingsDisplay = ObibaSearchConfig.getOptions();
 
@@ -2665,6 +2722,7 @@ angular.module('obiba.mica.search')
           var result = Object.keys($scope.settingsDisplay).filter(function (key) {
             return $scope.settingsDisplay[key].showSearchTab === 1;
           });
+
           return result[result.length - 1];
         }
       }
@@ -2867,7 +2925,7 @@ angular.module('obiba.mica.search')
         // search for taxonomy terms
         // search for matching variables/studies/... count
         return TaxonomiesSearchResource.get({
-          query: query
+          query: query, locale: $scope.lang
         }).$promise.then(function (response) {
           if (response) {
             var results = [];
@@ -3005,7 +3063,6 @@ angular.module('obiba.mica.search')
       };
 
       $scope.QUERY_TYPES = QUERY_TYPES;
-      $scope.lang = LocalizedValues.getLocal();
 
       $scope.search = {
         query: null,
@@ -3211,8 +3268,11 @@ angular.module('obiba.mica.search')
     'LocalizedValues',
     'JoinQuerySearchResource',
     'RqlQueryUtils',
-    function ($scope, RqlQueryService, LocalizedValues, JoinQuerySearchResource, RqlQueryUtils) {
+    'SearchContext',
+    function ($scope, RqlQueryService, LocalizedValues, JoinQuerySearchResource, RqlQueryUtils, SearchContext) {
+      $scope.lang = SearchContext.currentLocale();
       var range = $scope.criterion.rqlQuery.args[1];
+
       if (angular.isArray(range)) {
         $scope.from = $scope.criterion.rqlQuery.args[1][0];
         $scope.to = $scope.criterion.rqlQuery.args[1][1];
@@ -3258,7 +3318,9 @@ angular.module('obiba.mica.search')
     'StringUtils',
     'JoinQuerySearchResource',
     'RqlQueryUtils',
-    function ($scope, RqlQueryService, StringUtils, JoinQuerySearchResource, RqlQueryUtils) {
+    'SearchContext',
+    function ($scope, RqlQueryService, StringUtils, JoinQuerySearchResource, RqlQueryUtils, SearchContext) {
+      $scope.lang = SearchContext.currentLocale();
 
       var isSelected = function (name) {
         return $scope.checkboxTerms.indexOf(name) !== -1;
@@ -3287,7 +3349,8 @@ angular.module('obiba.mica.search')
       var onOpen = function () {
         $scope.state.loading = true;
         var target = $scope.criterion.target;
-        var joinQuery = RqlQueryService.prepareCriteriaTermsQuery($scope.query, $scope.criterion);
+        var joinQuery = RqlQueryService.prepareCriteriaTermsQuery($scope.query, $scope.criterion, $scope.lang);
+
         JoinQuerySearchResource[targetToType(target)]({query: joinQuery}).$promise.then(function (joinQueryResponse) {
           $scope.state.loading = false;
           $scope.terms = RqlQueryService.getTargetAggregations(joinQueryResponse, $scope.criterion);
@@ -3520,7 +3583,6 @@ var CRITERIA_ITEM_EVENT = {
 };
 
 angular.module('obiba.mica.search')
-
 
   .directive('taxonomyPanel', [function () {
     return {
@@ -4267,6 +4329,7 @@ angular.module('obiba.mica.localized')
       this.forLang = function (values, lang) {
         return this.for(values, lang, 'lang', 'value');
       };
+
       this.getLocal = function () {
         return 'en';
       };
@@ -5574,8 +5637,13 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "\n" +
     "  <obiba-alert id=\"SearchController\"></obiba-alert>\n" +
     "\n" +
+    "  <!-- Nav tabs -->\n" +
+    "  <ul class=\"nav nav-tabs\" role=\"tablist\">\n" +
+    "    <li ng-repeat=\"tab in tabs\" role=\"presentation\" ng-class=\"{ active: tab === lang }\"><a href role=\"tab\" ng-click=\"setLocale(tab)\">{{'language.' + tab | translate}}</a></li>\n" +
+    "  </ul>\n" +
+    "\n" +
     "  <!-- Classifications region -->\n" +
-    "  <div>\n" +
+    "  <div class=\"tab-content\">\n" +
     "    <!--<div>-->\n" +
     "    <div class=\"row\">\n" +
     "      <div class=\"col-md-3\"></div>\n" +

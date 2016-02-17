@@ -4,8 +4,13 @@
 
   <obiba-alert id="SearchController"></obiba-alert>
 
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li ng-repeat="tab in tabs" role="presentation" ng-class="{ active: tab === lang }"><a href role="tab" ng-click="setLocale(tab)">{{'language.' + tab | translate}}</a></li>
+  </ul>
+
   <!-- Classifications region -->
-  <div>
+  <div class="tab-content">
     <!--<div>-->
     <div class="row">
       <div class="col-md-3"></div>

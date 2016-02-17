@@ -930,7 +930,7 @@ angular.module('obiba.mica.search')
        * @para
        * @returns the new query
        */
-      this.prepareCriteriaTermsQuery = function (query, item) {
+      this.prepareCriteriaTermsQuery = function (query, item, lang) {
         var parsedQuery = new RqlParser().parse(query);
         var targetQuery = parsedQuery.args.filter(function (node) {
           return node.name === item.target;
@@ -940,7 +940,12 @@ angular.module('obiba.mica.search')
           targetQuery.args.push(RqlQueryUtils.aggregate([RqlQueryUtils.criteriaId(item.taxonomy, item.vocabulary)]));
           targetQuery.args.push(RqlQueryUtils.limit(0, 0));
         }
+
         parsedQuery.args.push(new RqlQuery(RQL_NODE.FACET));
+
+        if (lang) {
+          RqlQueryUtils.addLocaleQuery(parsedQuery, lang);
+        }
 
         return parsedQuery.serializeArgs(parsedQuery.args);
       };
