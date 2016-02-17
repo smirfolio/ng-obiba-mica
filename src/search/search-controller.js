@@ -178,7 +178,24 @@ angular.module('obiba.mica.search')
             // criteria UI is updated here
             console.log(result.root);
             $scope.search.criteria = result.root;
-
+            if($scope.search.criteria && $scope.search.criteria.children) {
+              $scope.search.criteria.children.sort(function(a,b){
+                if(a.target === 'network' || b.target === 'variable') {
+                  return -1;
+                }
+                if(a.target === 'variable' || b.target === 'network') {
+                  return 1;
+                }
+                if (a.target < b.target) {
+                  return 1;
+                }
+                if (a.target > b.target) {
+                  return -1;
+                }
+                // a must be equal to b
+                return 0;
+              });
+            }
             $scope.search.criteriaItemMap = result.map;
           });
 
