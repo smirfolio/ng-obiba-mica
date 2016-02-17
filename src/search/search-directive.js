@@ -167,7 +167,9 @@ angular.module('obiba.mica.search')
         onRemove: '=',
         onRefresh: '='
       },
-      template: '<span ng-repeat="child in item.children"><criteria-target item="child" query="$parent.query"></criteria-target></span>',
+      template: '<div ng-repeat="child in item.children">' +
+      '<criteria-target item="child" query="$parent.query"></criteria-target>' +
+      '</div>',
       link: function(scope) {
         scope.$on(CRITERIA_ITEM_EVENT.deleted, function(event, item){
           scope.onRemove(item);
@@ -188,10 +190,10 @@ angular.module('obiba.mica.search')
         item: '=',
         query: '='
       },
-      template: '<span ng-repeat="child in item.children" ><criteria-node item="child" query="$parent.query"></criteria-node></span>',
-      link: function(scope) {
-        console.log('criteriaTarget Query', scope.query);
-      }
+      template: '<div class="voffset2">' +
+      '<span title="{{\'search.\' + item.target + \'-where\' | translate}}"><i class="{{\'i-obiba-\' + item.target}}"></i></span>' +
+      '<criteria-node item="child" query="$parent.query" ng-repeat="child in item.children"></criteria-node>' +
+      '</div>'
     };
   }])
 
@@ -204,10 +206,7 @@ angular.module('obiba.mica.search')
         query: '='
       },
       controller: 'CriterionLogicalController',
-      templateUrl: 'search/views/criteria/criteria-node-template.html',
-      link: function(scope) {
-        console.log('criteriaNode', scope.query);
-      }
+      templateUrl: 'search/views/criteria/criteria-node-template.html'
     };
   }])
 
@@ -226,8 +225,6 @@ angular.module('obiba.mica.search')
         },
         template: '<span></span>',
         link: function(scope, element) {
-          console.log('criteriaLeaf >>>', scope.query);
-
           var template = '';
           if (scope.item.type === RQL_NODE.OR || scope.item.type === RQL_NODE.AND || scope.item.type === RQL_NODE.NAND || scope.item.type === RQL_NODE.NOR) {
             template = '<criteria-node item="item" query="query"></criteria-node>';
@@ -235,7 +232,7 @@ angular.module('obiba.mica.search')
               element.append(cloned);
             });
           } else {
-            template = '<span criterion-dropdown criterion="item" query="query"></span>';
+            template = '<criterion-dropdown criterion="item" query="query"></criterion-dropdown>';
             $compile(template)(scope, function(cloned){
               element.append(cloned);
             });

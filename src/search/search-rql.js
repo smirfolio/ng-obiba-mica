@@ -294,8 +294,6 @@ CriteriaBuilder.prototype.fieldToVocabulary = function (field) {
  * This method is where a criteria gets created
  */
 CriteriaBuilder.prototype.visitLeaf = function (node, parentItem) {
-  console.log('CriteriaBuilder.visitLeaf');
-
   var field = node.args[0];
   var values = node.args[1];
   var searchInfo = this.fieldToVocabulary(field);

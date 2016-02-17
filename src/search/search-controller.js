@@ -140,7 +140,6 @@ angular.module('obiba.mica.search')
           var result = Object.keys($scope.settingsDisplay).filter(function (key) {
             return $scope.settingsDisplay[key].showSearchTab === 1;
           });
-          console.log(result);
           return result[result.length - 1];
         }
       }
@@ -177,7 +176,9 @@ angular.module('obiba.mica.search')
           // build the criteria UI
           RqlQueryService.createCriteria($scope.search.rqlQuery, $scope.lang).then(function (result) {
             // criteria UI is updated here
+            console.log(result.root);
             $scope.search.criteria = result.root;
+
             $scope.search.criteriaItemMap = result.map;
           });
 
@@ -383,8 +384,6 @@ angular.module('obiba.mica.search')
             RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item);
           }
 
-          console.log('Found duplicate', ($scope.search.criteriaItemMap[id] ? id : 'None'));
-
           refreshQuery();
           $scope.selectedCriteria = null;
         } else {
@@ -542,12 +541,10 @@ angular.module('obiba.mica.search')
       $scope.settingsDisplay = ObibaSearchConfig.getOptions();
 
       $scope.selectDisplay = function (display) {
-        console.log('Display', display);
         $scope.display = display;
         $scope.$parent.onDisplayChanged(display);
       };
       $scope.selectTarget = function (type) {
-        console.log('Target', type);
         $scope.type = type;
         $scope.$parent.onTypeChanged(type);
       };
@@ -584,8 +581,6 @@ angular.module('obiba.mica.search')
 
   .controller('CriterionDropdownController', ['$scope', 'StringUtils', 'RqlQueryUtils',
     function ($scope, StringUtils, RqlQueryUtils) {
-      console.log('CriterionDropdownController -', $scope.criterion.vocabulary.name);
-
       var closeDropdown = function () {
         if (!$scope.state.open) {
           return;
