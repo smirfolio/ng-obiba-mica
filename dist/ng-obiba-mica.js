@@ -2335,6 +2335,32 @@ angular.module('obiba.mica.search')
       };
 
       this.getTargetAggregations = function (joinQueryResponse, criterion) {
+
+        function addMissingTerms(aggs, vocabulary) {
+          var terms = vocabulary.terms;
+          if (terms && terms.length > 0) {
+            var keys = aggs.map(function(agg){
+              return agg.key;
+            });
+
+            var missingTerms = [];
+            terms.forEach(function(term) {
+              if (keys.indexOf(term.name) === -1) {
+                missingTerms.push({count: 0,
+                  default: 0,
+                  description: LocalizedValues.forLocale(term.description, 'en'), // TODO use locale provider
+                  key: term.name,
+                  title: LocalizedValues.forLocale(term.title,'en')
+                });
+              }
+            });
+
+            return aggs.concat(missingTerms);
+          }
+
+          return aggs;
+        }
+
         var alias = RqlQueryUtils.vocabularyAlias(criterion.vocabulary);
         var targetResponse = joinQueryResponse[criterion.target + 'ResultDto'];
 
@@ -2350,7 +2376,7 @@ angular.module('obiba.mica.search')
               if (RqlQueryUtils.isNumericVocabulary(criterion.vocabulary)) {
                 return filteredAgg['obiba.mica.StatsAggregationResultDto.stats'];
               } else {
-                return filteredAgg['obiba.mica.TermsAggregationResultDto.terms'];
+                return addMissingTerms(filteredAgg['obiba.mica.TermsAggregationResultDto.terms'],criterion.vocabulary);
               }
             } else {
               var vocabularyAgg = filteredAgg.children.filter(function (agg) {
@@ -2358,13 +2384,13 @@ angular.module('obiba.mica.search')
               }).pop();
 
               if (vocabularyAgg) {
-                return vocabularyAgg['obiba.mica.TermsAggregationResultDto.terms'];
+                return addMissingTerms(vocabularyAgg['obiba.mica.TermsAggregationResultDto.terms'], criterion.vocabulary);
               }
             }
           }
         }
 
-        return [];
+        return addMissingTerms([], criterion.vocabulary);
       };
 
     }]);
