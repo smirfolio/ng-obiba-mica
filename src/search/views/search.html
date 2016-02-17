@@ -15,7 +15,13 @@
             <span title="{{match.model.target + '-classifications' | translate}}">
               <i class="{{'i-obiba-' + match.model.target}}"></i>
             </span>
-            <span title="{{match.model.itemDescription}}">{{match.model.itemTitle}}</span>
+            <span
+              uib-popover-html="match.model.itemDescription | uibTypeaheadHighlight:query"
+              popover-title="{{match.model.itemTitle}}"
+              popover-placement="bottom"
+              popover-trigger="mouseenter"
+              ng-bind-html="match.model.itemTitle | uibTypeaheadHighlight:query">
+            </span>
             <small class="help-block no-margin hoffset3" title="{{match.model.itemParentDescription}}">
               {{match.model.itemParentTitle}}
             </small>
