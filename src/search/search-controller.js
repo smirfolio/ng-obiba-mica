@@ -14,6 +14,7 @@
 /* global QUERY_TARGETS */
 /* global QUERY_TYPES */
 /* global RQL_NODE */
+/* global CriteriaIdGenerator */
 
 function targetToType(target) {
   switch (target.toLocaleString()) {
@@ -174,9 +175,10 @@ angular.module('obiba.mica.search')
       function executeSearchQuery() {
         if (validateQueryData()) {
           // build the criteria UI
-          RqlQueryService.createCriteria($scope.search.rqlQuery, $scope.lang).then(function (rootItem) {
+          RqlQueryService.createCriteria($scope.search.rqlQuery, $scope.lang).then(function (result) {
             // criteria UI is updated here
-            $scope.search.criteria = rootItem;
+            $scope.search.criteria = result.root;
+            $scope.search.criteriaItemMap = result.map;
           });
 
           var localizedRqlQuery = angular.copy($scope.search.rqlQuery);
@@ -372,7 +374,17 @@ angular.module('obiba.mica.search')
        */
       var selectCriteria = function (item) {
         if (item.id) {
-          RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item);
+          var id = CriteriaIdGenerator.generate(item.taxonomy, item.vocabulary);
+          var existingItem = $scope.search.criteriaItemMap[id];
+          if (existingItem) {
+            RqlQueryService.updateCriteriaItem(existingItem, item);
+
+          } else {
+            RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item);
+          }
+
+          console.log('Found duplicate', ($scope.search.criteriaItemMap[id] ? id : 'None'));
+
           refreshQuery();
           $scope.selectedCriteria = null;
         } else {
@@ -464,6 +476,7 @@ angular.module('obiba.mica.search')
           graphics: null
         },
         criteria: [],
+        criteriaItemMap: {},
         loading: false
       };
 

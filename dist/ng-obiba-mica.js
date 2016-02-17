@@ -1396,6 +1396,15 @@ var VOCABULARY_TYPES = {
   INTEGER: 'integer'
 };
 
+/* exported CriteriaIdGenerator */
+var CriteriaIdGenerator = {
+  generate: function(taxonomy, vocabulary, term) {
+    return taxonomy && vocabulary ?
+      taxonomy.name + '.' + vocabulary.name + (term ? '.' + term.name : '') :
+      undefined;
+  }
+};
+
 /**
  * Criteria Item builder
  */
@@ -1472,11 +1481,7 @@ function CriteriaItemBuilder(LocalizedValues, useLang) {
    * This is
    */
   function prepareForLeaf() {
-    criteria.id = criteria.taxonomy.name + '.' + criteria.vocabulary.name;
-
     if (criteria.term) {
-      criteria.id += '.' + criteria.term.name;
-
       criteria.itemTitle = LocalizedValues.forLocale(criteria.term.title, criteria.lang);
       criteria.itemDescription = LocalizedValues.forLocale(criteria.term.description, criteria.lang);
       criteria.itemParentTitle = LocalizedValues.forLocale(criteria.vocabulary.title, criteria.lang);
@@ -1499,6 +1504,8 @@ function CriteriaItemBuilder(LocalizedValues, useLang) {
         criteria.itemParentTitle = criteria.taxonomy.name;
       }
     }
+
+    criteria.id = CriteriaIdGenerator.generate(criteria.taxonomy, criteria.vocabulary, criteria.term);
   }
 
   this.build = function () {
@@ -1530,6 +1537,7 @@ function CriteriaBuilder(rootRql, rootItem, taxonomies, LocalizedValues, lang) {
   };
 
   this.initialize = function (target) {
+    this.leafItemMap = {};
     this.target = target;
     this.rootRql = rootRql;
     this.taxonomies = taxonomies;
@@ -1627,6 +1635,8 @@ CriteriaBuilder.prototype.visitLeaf = function (node, parentItem) {
       node,
       parentItem);
 
+  this.leafItemMap[item.id] = item;
+
   parentItem.children.push(item);
 };
 
@@ -1634,8 +1644,16 @@ CriteriaBuilder.prototype.visitLeaf = function (node, parentItem) {
  * Returns all the criterias found
  * @returns {Array}
  */
-CriteriaBuilder.prototype.getRootItem = function (/*node*/) {
+CriteriaBuilder.prototype.getRootItem = function () {
   return this.rootItem;
+};
+
+/**
+ * Returns the leaf criteria item map needed for finding duplicates
+ * @returns {Array}
+ */
+CriteriaBuilder.prototype.getLeafItemMap = function () {
+  return this.leafItemMap;
 };
 
 /**
@@ -1756,6 +1774,12 @@ angular.module('obiba.mica.search')
       return -1;
     }
 
+    this.vocabularyTermNames = function(vocabulary) {
+      return vocabulary && vocabulary.terms ? vocabulary.terms.map(function(term) {
+        return term.name;
+      }) : [];
+    };
+
     this.hasTargetQuery = function(rootRql) {
       return rootRql.args.filter(function(query) {
           switch (query.name) {
@@ -1828,6 +1852,32 @@ angular.module('obiba.mica.search')
       return query;
     };
 
+    this.mergeInQueryArgValues = function (query, terms) {
+      var hasValues = terms && terms.length > 0;
+      query.name = hasValues ? RQL_NODE.IN : RQL_NODE.EXISTS;
+
+      if (hasValues) {
+        var current = query.args[1];
+        if (!current) {
+          query.args[1] = terms;
+        } else {
+          if (!(current instanceof Array)) {
+            current = [current];
+          }
+
+          var unique = terms.filter(function (term) {
+            return current.indexOf(term) === -1;
+          });
+
+          query.args[1] = current.concat(unique);
+        }
+      } else {
+        query.args.splice(1, 1);
+      }
+
+      return query;
+    };
+
     this.updateRangeQuery = function (query, from, to, missing) {
       if (missing) {
         query.name = RQL_NODE.MISSING;
@@ -1857,7 +1907,10 @@ angular.module('obiba.mica.search')
       if (self.isNumericVocabulary(item.vocabulary)) {
         return this.rangeQuery(this.criteriaId(item.taxonomy, item.vocabulary), null, null);
       } else {
-        return this.inQuery(this.criteriaId(item.taxonomy, item.vocabulary), item.term ? item.term.name : []);
+        return this.inQuery(
+          this.criteriaId(item.taxonomy, item.vocabulary),
+          item.term ? item.term.name : this.vocabularyTermNames(item.vocabulary)
+        );
       }
     };
 
@@ -1886,6 +1939,16 @@ angular.module('obiba.mica.search')
       }
 
       return parentQuery;
+    };
+
+    this.updateQueryArgValues = function(query, terms) {
+      switch (query.name) {
+        case RQL_NODE.IN:
+        case RQL_NODE.EXISTS:
+          this.mergeInQueryArgValues(query, terms);
+          break;
+      }
+
     };
 
     this.updateQuery = function (query, values, missing) {
@@ -2110,6 +2173,18 @@ angular.module('obiba.mica.search')
       };
 
       /**
+       * Update an exising item to the item tree
+       *
+       * @param rootItem
+       * @param item
+       */
+      this.updateCriteriaItem = function (existingItem, newItem) {
+        RqlQueryUtils.updateQueryArgValues(
+          existingItem.rqlQuery,
+          newItem.term ? [newItem.term.name] : RqlQueryUtils.vocabularyTermNames(newItem.vocabulary));
+      };
+
+      /**
        * Builders registry
        *
        * @type {{variable: builders.variable, study: builders.study}}
@@ -2121,7 +2196,7 @@ angular.module('obiba.mica.search')
           var builder = new CriteriaBuilder(rootRql, rootItem, taxonomiesCache[target], LocalizedValues, lang);
           builder.initialize(target);
           builder.build();
-          deferred.resolve(builder.getRootItem());
+          deferred.resolve({root: builder.getRootItem(), map: builder.getLeafItemMap()});
         }
 
         if (taxonomiesCache[target]) {
@@ -2148,9 +2223,10 @@ angular.module('obiba.mica.search')
       this.createCriteria = function (rootRql, lang) {
         var deferred = $q.defer();
         var rootItem = new CriteriaItemBuilder().type(RQL_NODE.AND).rqlQuery(rootRql).build();
+        var leafItemMap = {};
 
         if (!RqlQueryUtils.hasTargetQuery(rootRql)) {
-          deferred.resolve(rootItem);
+          deferred.resolve({root: rootItem, map: leafItemMap});
           return deferred.promise;
         }
 
@@ -2165,11 +2241,12 @@ angular.module('obiba.mica.search')
         });
 
         queries.forEach(function (node) {
-          self.builders(node.name, node, rootItem, lang).then(function (item) {
-            rootItem.children.push(item);
+          self.builders(node.name, node, rootItem, lang).then(function (result) {
+            rootItem.children.push(result.root);
+            leafItemMap = angular.extend(leafItemMap, result.map);
             resolvedCount++;
             if (resolvedCount === queries.length) {
-              deferred.resolve(rootItem);
+              deferred.resolve({root: rootItem, map: leafItemMap});
             }
           });
         });
@@ -2431,6 +2508,7 @@ angular.module('obiba.mica.search')
 /* global QUERY_TARGETS */
 /* global QUERY_TYPES */
 /* global RQL_NODE */
+/* global CriteriaIdGenerator */
 
 function targetToType(target) {
   switch (target.toLocaleString()) {
@@ -2591,9 +2669,10 @@ angular.module('obiba.mica.search')
       function executeSearchQuery() {
         if (validateQueryData()) {
           // build the criteria UI
-          RqlQueryService.createCriteria($scope.search.rqlQuery, $scope.lang).then(function (rootItem) {
+          RqlQueryService.createCriteria($scope.search.rqlQuery, $scope.lang).then(function (result) {
             // criteria UI is updated here
-            $scope.search.criteria = rootItem;
+            $scope.search.criteria = result.root;
+            $scope.search.criteriaItemMap = result.map;
           });
 
           var localizedRqlQuery = angular.copy($scope.search.rqlQuery);
@@ -2789,7 +2868,17 @@ angular.module('obiba.mica.search')
        */
       var selectCriteria = function (item) {
         if (item.id) {
-          RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item);
+          var id = CriteriaIdGenerator.generate(item.taxonomy, item.vocabulary);
+          var existingItem = $scope.search.criteriaItemMap[id];
+          if (existingItem) {
+            RqlQueryService.updateCriteriaItem(existingItem, item);
+
+          } else {
+            RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item);
+          }
+
+          console.log('Found duplicate', ($scope.search.criteriaItemMap[id] ? id : 'None'));
+
           refreshQuery();
           $scope.selectedCriteria = null;
         } else {
@@ -2881,6 +2970,7 @@ angular.module('obiba.mica.search')
           graphics: null
         },
         criteria: [],
+        criteriaItemMap: {},
         loading: false
       };
 
@@ -4975,12 +5065,12 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
     "\n" +
     "  <button class=\"btn btn-info btn-xs dropdown\"\n" +
     "    ng-click=\"openDropdown()\"\n" +
-    "    uib-popover=\"{{localize(criterion.vocabulary.description ? criterion.vocabulary.description : criterion.vocabulary.title)}}\"\n" +
-    "    popover-title=\"{{criterion.vocabulary.description ? localize(criterion.vocabulary.title) : null}}\"\n" +
-    "    popover-placement=\"bottom\"\n" +
-    "    popover-trigger=\"mouseenter\"\n" +
     "    title=\"{{localizeCriterion()}}\">\n" +
-    "    <span title=\"{{criterion.target + '-classifications' | translate}}\">\n" +
+    "    <span uib-popover=\"{{localize(criterion.vocabulary.description ? criterion.vocabulary.description : criterion.vocabulary.title)}}\"\n" +
+    "          popover-title=\"{{criterion.vocabulary.description ? localize(criterion.vocabulary.title) : null}}\"\n" +
+    "          popover-placement=\"bottom\"\n" +
+    "          popover-trigger=\"mouseenter\"\n" +
+    "      title=\"{{criterion.target + '-classifications' | translate}}\">\n" +
     "    <i class=\"{{'i-obiba-' + criterion.target}}\"> </i>\n" +
     "  </span>\n" +
     "    <span>\n" +
