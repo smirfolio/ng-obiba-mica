@@ -1,4 +1,4 @@
-<span id="{{criterion.id.replace('.','-')}}-dropdown" class='btn-group btn-info' ng-class='{open: state.open}'>
+<div id="{{criterion.id.replace('.','-')}}-dropdown" class='btn-group btn-info' ng-class='{open: state.open}'>
 
   <button class="btn btn-info btn-xs dropdown"
     ng-click="openDropdown()"
@@ -22,4 +22,4 @@
     state="state"></string-criterion-terms>
   <numeric-criterion ng-if="vocabularyType(criterion.vocabulary) === 'integer'" criterion="criterion" query="query"
     state="state"></numeric-criterion>
-</span>
+</div>

@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-02-16
+ * Date: 2016-02-17
  */
 'use strict';
 
@@ -4971,7 +4971,7 @@ angular.module("search/views/criteria/criteria-node-template.html", []).run(["$t
 
 angular.module("search/views/criteria/criterion-dropdown-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criterion-dropdown-template.html",
-    "<span id=\"{{criterion.id.replace('.','-')}}-dropdown\" class='btn-group btn-info' ng-class='{open: state.open}'>\n" +
+    "<div id=\"{{criterion.id.replace('.','-')}}-dropdown\" class='btn-group btn-info' ng-class='{open: state.open}'>\n" +
     "\n" +
     "  <button class=\"btn btn-info btn-xs dropdown\"\n" +
     "    ng-click=\"openDropdown()\"\n" +
@@ -4995,7 +4995,7 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
     "    state=\"state\"></string-criterion-terms>\n" +
     "  <numeric-criterion ng-if=\"vocabularyType(criterion.vocabulary) === 'integer'\" criterion=\"criterion\" query=\"query\"\n" +
     "    state=\"state\"></numeric-criterion>\n" +
-    "</span>\n" +
+    "</div>\n" +
     "");
 }]);
 
@@ -5078,7 +5078,7 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
     "          ng-repeat=\"term in terms | orderBySelection:checkboxTerms | regex:searchText:['key','title','description']\"\n" +
     "          uib-popover=\"{{term.description ? term.description : term.title}}\"\n" +
     "          popover-title=\"{{term.description ? term.title : null}}\"\n" +
-    "          popover-placement=\"left\"\n" +
+    "          popover-placement=\"bottom\"\n" +
     "          popover-trigger=\"mouseenter\">\n" +
     "          <span>\n" +
     "            <label class=\"control-label\">\n" +
@@ -5441,7 +5441,13 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "            <span title=\"{{match.model.target + '-classifications' | translate}}\">\n" +
     "              <i class=\"{{'i-obiba-' + match.model.target}}\"></i>\n" +
     "            </span>\n" +
-    "            <span title=\"{{match.model.itemDescription}}\">{{match.model.itemTitle}}</span>\n" +
+    "            <span\n" +
+    "              uib-popover-html=\"match.model.itemDescription | uibTypeaheadHighlight:query\"\n" +
+    "              popover-title=\"{{match.model.itemTitle}}\"\n" +
+    "              popover-placement=\"bottom\"\n" +
+    "              popover-trigger=\"mouseenter\"\n" +
+    "              ng-bind-html=\"match.model.itemTitle | uibTypeaheadHighlight:query\">\n" +
+    "            </span>\n" +
     "            <small class=\"help-block no-margin hoffset3\" title=\"{{match.model.itemParentDescription}}\">\n" +
     "              {{match.model.itemParentTitle}}\n" +
     "            </small>\n" +
