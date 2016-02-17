@@ -1623,8 +1623,6 @@ CriteriaBuilder.prototype.fieldToVocabulary = function (field) {
  * This method is where a criteria gets created
  */
 CriteriaBuilder.prototype.visitLeaf = function (node, parentItem) {
-  console.log('CriteriaBuilder.visitLeaf');
-
   var field = node.args[0];
   var values = node.args[1];
   var searchInfo = this.fieldToVocabulary(field);
@@ -2336,6 +2334,13 @@ angular.module('obiba.mica.search')
 
       this.getTargetAggregations = function (joinQueryResponse, criterion) {
 
+        /**
+         * Helper to merge the terms that are not in the aggregation list
+         *
+         * @param aggs
+         * @param vocabulary
+         * @returns Array of aggs
+         */
         function addMissingTerms(aggs, vocabulary) {
           var terms = vocabulary.terms;
           if (terms && terms.length > 0) {
@@ -2660,7 +2665,6 @@ angular.module('obiba.mica.search')
           var result = Object.keys($scope.settingsDisplay).filter(function (key) {
             return $scope.settingsDisplay[key].showSearchTab === 1;
           });
-          console.log(result);
           return result[result.length - 1];
         }
       }
@@ -2697,7 +2701,9 @@ angular.module('obiba.mica.search')
           // build the criteria UI
           RqlQueryService.createCriteria($scope.search.rqlQuery, $scope.lang).then(function (result) {
             // criteria UI is updated here
+            console.log(result.root);
             $scope.search.criteria = result.root;
+
             $scope.search.criteriaItemMap = result.map;
           });
 
@@ -2903,8 +2909,6 @@ angular.module('obiba.mica.search')
             RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item);
           }
 
-          console.log('Found duplicate', ($scope.search.criteriaItemMap[id] ? id : 'None'));
-
           refreshQuery();
           $scope.selectedCriteria = null;
         } else {
@@ -3062,12 +3066,10 @@ angular.module('obiba.mica.search')
       $scope.settingsDisplay = ObibaSearchConfig.getOptions();
 
       $scope.selectDisplay = function (display) {
-        console.log('Display', display);
         $scope.display = display;
         $scope.$parent.onDisplayChanged(display);
       };
       $scope.selectTarget = function (type) {
-        console.log('Target', type);
         $scope.type = type;
         $scope.$parent.onTypeChanged(type);
       };
@@ -3104,8 +3106,6 @@ angular.module('obiba.mica.search')
 
   .controller('CriterionDropdownController', ['$scope', 'StringUtils', 'RqlQueryUtils',
     function ($scope, StringUtils, RqlQueryUtils) {
-      console.log('CriterionDropdownController -', $scope.criterion.vocabulary.name);
-
       var closeDropdown = function () {
         if (!$scope.state.open) {
           return;
@@ -3651,7 +3651,9 @@ angular.module('obiba.mica.search')
         onRemove: '=',
         onRefresh: '='
       },
-      template: '<span ng-repeat="child in item.children"><criteria-target item="child" query="$parent.query"></criteria-target></span>',
+      template: '<div ng-repeat="child in item.children">' +
+      '<criteria-target item="child" query="$parent.query"></criteria-target>' +
+      '</div>',
       link: function(scope) {
         scope.$on(CRITERIA_ITEM_EVENT.deleted, function(event, item){
           scope.onRemove(item);
@@ -3672,10 +3674,10 @@ angular.module('obiba.mica.search')
         item: '=',
         query: '='
       },
-      template: '<span ng-repeat="child in item.children" ><criteria-node item="child" query="$parent.query"></criteria-node></span>',
-      link: function(scope) {
-        console.log('criteriaTarget Query', scope.query);
-      }
+      template: '<div class="voffset2">' +
+      '<span title="{{\'search.\' + item.target + \'-where\' | translate}}"><i class="{{\'i-obiba-\' + item.target}}"></i></span>' +
+      '<criteria-node item="child" query="$parent.query" ng-repeat="child in item.children"></criteria-node>' +
+      '</div>'
     };
   }])
 
@@ -3688,10 +3690,7 @@ angular.module('obiba.mica.search')
         query: '='
       },
       controller: 'CriterionLogicalController',
-      templateUrl: 'search/views/criteria/criteria-node-template.html',
-      link: function(scope) {
-        console.log('criteriaNode', scope.query);
-      }
+      templateUrl: 'search/views/criteria/criteria-node-template.html'
     };
   }])
 
@@ -3710,8 +3709,6 @@ angular.module('obiba.mica.search')
         },
         template: '<span></span>',
         link: function(scope, element) {
-          console.log('criteriaLeaf >>>', scope.query);
-
           var template = '';
           if (scope.item.type === RQL_NODE.OR || scope.item.type === RQL_NODE.AND || scope.item.type === RQL_NODE.NAND || scope.item.type === RQL_NODE.NOR) {
             template = '<criteria-node item="item" query="query"></criteria-node>';
@@ -3719,7 +3716,7 @@ angular.module('obiba.mica.search')
               element.append(cloned);
             });
           } else {
-            template = '<span criterion-dropdown criterion="item" query="query"></span>';
+            template = '<criterion-dropdown criterion="item" query="query"></criterion-dropdown>';
             $compile(template)(scope, function(cloned){
               element.append(cloned);
             });
@@ -5095,9 +5092,8 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
     "    <span uib-popover=\"{{localize(criterion.vocabulary.description ? criterion.vocabulary.description : criterion.vocabulary.title)}}\"\n" +
     "          popover-title=\"{{criterion.vocabulary.description ? localize(criterion.vocabulary.title) : null}}\"\n" +
     "          popover-placement=\"bottom\"\n" +
-    "          popover-trigger=\"mouseenter\"\n" +
-    "      title=\"{{criterion.target + '-classifications' | translate}}\">\n" +
-    "    <i class=\"{{'i-obiba-' + criterion.target}}\"> </i>\n" +
+    "          popover-trigger=\"mouseenter\">\n" +
+    "    <i class=\"fa fa-info-circle\"> </i>\n" +
     "  </span>\n" +
     "    <span>\n" +
     "    {{truncate(localizeCriterion())}}\n" +
