@@ -20,7 +20,6 @@ var CRITERIA_ITEM_EVENT = {
 
 angular.module('obiba.mica.search')
 
-
   .directive('taxonomyPanel', [function () {
     return {
       restrict: 'EA',

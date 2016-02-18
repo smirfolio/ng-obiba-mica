@@ -83,6 +83,7 @@ angular.module('obiba.mica.search')
     'TaxonomyResource',
     'VocabularyResource',
     'ngObibaMicaSearchTemplateUrl',
+    'ngObibaMicaSearch',
     'JoinQuerySearchResource',
     'JoinQueryCoverageResource',
     'AlertService',
@@ -91,6 +92,7 @@ angular.module('obiba.mica.search')
     'ObibaSearchConfig',
     'RqlQueryService',
     'RqlQueryUtils',
+    'SearchContext',
     function ($scope,
               $timeout,
               $routeParams,
@@ -100,6 +102,7 @@ angular.module('obiba.mica.search')
               TaxonomyResource,
               VocabularyResource,
               ngObibaMicaSearchTemplateUrl,
+              ngObibaMicaSearch,
               JoinQuerySearchResource,
               JoinQueryCoverageResource,
               AlertService,
@@ -107,7 +110,24 @@ angular.module('obiba.mica.search')
               LocalizedValues,
               ObibaSearchConfig,
               RqlQueryService,
-              RqlQueryUtils) {
+              RqlQueryUtils,
+              SearchContext) {
+      $scope.lang = LocalizedValues.getLocal();
+
+      ngObibaMicaSearch.getLocale(function(locales) {
+        if (angular.isArray(locales)) {
+          $scope.tabs = locales;
+          $scope.setLocale(locales[0]);
+        } else {
+          $scope.setLocale(locales || $scope.lang);
+        }
+      });
+
+      $scope.setLocale = function(locale) {
+        $scope.lang = locale;
+        SearchContext.setLocale($scope.lang);
+        executeSearchQuery();
+      };
 
       $scope.settingsDisplay = ObibaSearchConfig.getOptions();
 
@@ -140,6 +160,7 @@ angular.module('obiba.mica.search')
           var result = Object.keys($scope.settingsDisplay).filter(function (key) {
             return $scope.settingsDisplay[key].showSearchTab === 1;
           });
+
           return result[result.length - 1];
         }
       }
@@ -342,7 +363,7 @@ angular.module('obiba.mica.search')
         // search for taxonomy terms
         // search for matching variables/studies/... count
         return TaxonomiesSearchResource.get({
-          query: query
+          query: query, locale: $scope.lang
         }).$promise.then(function (response) {
           if (response) {
             var results = [];
@@ -480,7 +501,6 @@ angular.module('obiba.mica.search')
       };
 
       $scope.QUERY_TYPES = QUERY_TYPES;
-      $scope.lang = LocalizedValues.getLocal();
 
       $scope.search = {
         query: null,
@@ -686,8 +706,11 @@ angular.module('obiba.mica.search')
     'LocalizedValues',
     'JoinQuerySearchResource',
     'RqlQueryUtils',
-    function ($scope, RqlQueryService, LocalizedValues, JoinQuerySearchResource, RqlQueryUtils) {
+    'SearchContext',
+    function ($scope, RqlQueryService, LocalizedValues, JoinQuerySearchResource, RqlQueryUtils, SearchContext) {
+      $scope.lang = SearchContext.currentLocale();
       var range = $scope.criterion.rqlQuery.args[1];
+
       if (angular.isArray(range)) {
         $scope.from = $scope.criterion.rqlQuery.args[1][0];
         $scope.to = $scope.criterion.rqlQuery.args[1][1];
@@ -733,7 +756,9 @@ angular.module('obiba.mica.search')
     'StringUtils',
     'JoinQuerySearchResource',
     'RqlQueryUtils',
-    function ($scope, RqlQueryService, StringUtils, JoinQuerySearchResource, RqlQueryUtils) {
+    'SearchContext',
+    function ($scope, RqlQueryService, StringUtils, JoinQuerySearchResource, RqlQueryUtils, SearchContext) {
+      $scope.lang = SearchContext.currentLocale();
 
       var isSelected = function (name) {
         return $scope.checkboxTerms.indexOf(name) !== -1;
@@ -762,7 +787,8 @@ angular.module('obiba.mica.search')
       var onOpen = function () {
         $scope.state.loading = true;
         var target = $scope.criterion.target;
-        var joinQuery = RqlQueryService.prepareCriteriaTermsQuery($scope.query, $scope.criterion);
+        var joinQuery = RqlQueryService.prepareCriteriaTermsQuery($scope.query, $scope.criterion, $scope.lang);
+
         JoinQuerySearchResource[targetToType(target)]({query: joinQuery}).$promise.then(function (joinQueryResponse) {
           $scope.state.loading = false;
           $scope.terms = RqlQueryService.getTargetAggregations(joinQueryResponse, $scope.criterion);
