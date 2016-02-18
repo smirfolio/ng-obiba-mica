@@ -1,5 +1,5 @@
 <div>
-  <p class="help-block" ng-if="!loading && result.taxonomyHeaders.length === 0" translate>search.no-coverage</p>
+  <p class="help-block" ng-if="!loading && !result.taxonomyHeaders" translate>search.no-coverage</p>
 
   <div ng-if="loading" class="loading"></div>
 

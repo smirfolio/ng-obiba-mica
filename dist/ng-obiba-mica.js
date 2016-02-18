@@ -5156,7 +5156,7 @@ angular.module("search/views/classifications/vocabulary-panel-template.html", []
 angular.module("search/views/coverage/coverage-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/coverage/coverage-search-result-table-template.html",
     "<div>\n" +
-    "  <p class=\"help-block\" ng-if=\"!loading && result.taxonomyHeaders.length === 0\" translate>search.no-coverage</p>\n" +
+    "  <p class=\"help-block\" ng-if=\"!loading && !result.taxonomyHeaders\" translate>search.no-coverage</p>\n" +
     "\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
