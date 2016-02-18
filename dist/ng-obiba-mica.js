@@ -1409,6 +1409,38 @@ var RQL_NODE = {
   MISSING: 'missing'
 };
 
+/* exported targetToType */
+function targetToType(target) {
+  switch (target.toLocaleString()) {
+    case QUERY_TARGETS.NETWORK:
+      return QUERY_TYPES.NETWORKS;
+    case QUERY_TARGETS.STUDY:
+      return QUERY_TYPES.STUDIES;
+    case QUERY_TARGETS.DATASET:
+      return QUERY_TYPES.DATASETS;
+    case QUERY_TARGETS.VARIABLE:
+      return QUERY_TYPES.VARIABLES;
+  }
+
+  throw new Error('Invalid target: ' + target);
+}
+
+/* exported targetToType */
+function typeToTarget(type) {
+  switch (type.toLocaleString()) {
+    case QUERY_TYPES.NETWORKS:
+      return QUERY_TARGETS.NETWORK;
+    case QUERY_TYPES.STUDIES:
+      return QUERY_TARGETS.STUDY;
+    case QUERY_TYPES.DATASETS:
+      return QUERY_TARGETS.DATASET;
+    case QUERY_TYPES.VARIABLES:
+      return QUERY_TARGETS.VARIABLE;
+  }
+
+  throw new Error('Invalid type: ' + type);
+}
+
 /* exported VOCABULARY_TYPES */
 var VOCABULARY_TYPES = {
   STRING: 'string',
@@ -2006,6 +2038,18 @@ angular.module('obiba.mica.search')
       }
     };
 
+    this.addLimit = function (targetQuery, limitQuery) {
+      var found = targetQuery.args.filter(function (arg) {
+        return arg.name === RQL_NODE.LIMIT;
+      }).pop();
+
+      if (found) {
+        found.args = limitQuery.args;
+      } else {
+        targetQuery.args.push(limitQuery);
+      }
+    };
+
     /**
      * Helper finding the vocabulary field, return name if none was found
      *
@@ -2047,6 +2091,12 @@ angular.module('obiba.mica.search')
         study: null,
         network: null
       };
+
+      function findTargetQuery(target, query) {
+        return query.args.filter(function(arg){
+          return arg.name === target;
+        }).pop();
+      }
 
       function isLeafCriteria(item) {
         switch (item.type) {
@@ -2296,6 +2346,23 @@ angular.module('obiba.mica.search')
         }
 
         return parsedQuery.serializeArgs(parsedQuery.args);
+      };
+
+      this.prepareSearchQuery = function(type, query, pagination, lang) {
+        var rqlQuery = angular.copy(query);
+        var target = typeToTarget(type);
+        RqlQueryUtils.addLocaleQuery(rqlQuery, lang);
+        var targetQuery = findTargetQuery(target, rqlQuery);
+
+        if (!targetQuery) {
+          targetQuery = new RqlQuery(target);
+          rqlQuery.args.push(targetQuery);
+        }
+
+        var limit = pagination[target] || {from: 0, size: 10};
+        RqlQueryUtils.addLimit(targetQuery, RqlQueryUtils.limit(limit.from, limit.size));
+
+        return new RqlQuery().serializeArgs(rqlQuery.args);
       };
 
       /**
@@ -2577,21 +2644,7 @@ angular.module('obiba.mica.search')
 /* global QUERY_TYPES */
 /* global RQL_NODE */
 /* global CriteriaIdGenerator */
-
-function targetToType(target) {
-  switch (target.toLocaleString()) {
-    case QUERY_TARGETS.NETWORK:
-      return QUERY_TYPES.NETWORKS;
-    case QUERY_TARGETS.STUDY:
-      return QUERY_TYPES.STUDIES;
-    case QUERY_TARGETS.DATASET:
-      return QUERY_TYPES.DATASETS;
-    case QUERY_TARGETS.VARIABLE:
-      return QUERY_TYPES.VARIABLES;
-  }
-
-  throw new Error('Invalid target: ' + target);
-}
+/* global targetToType */
 
 /**
  * State shared between Criterion DropDown and its content directives
@@ -2759,7 +2812,6 @@ angular.module('obiba.mica.search')
           // build the criteria UI
           RqlQueryService.createCriteria($scope.search.rqlQuery, $scope.lang).then(function (result) {
             // criteria UI is updated here
-            console.log(result.root);
             $scope.search.criteria = result.root;
             if($scope.search.criteria && $scope.search.criteria.children) {
               $scope.search.criteria.children.sort(function(a,b){
@@ -2782,9 +2834,12 @@ angular.module('obiba.mica.search')
             $scope.search.criteriaItemMap = result.map;
           });
 
-          var localizedRqlQuery = angular.copy($scope.search.rqlQuery);
-          RqlQueryUtils.addLocaleQuery(localizedRqlQuery, $scope.lang);
-          var localizedQuery = new RqlQuery().serializeArgs(localizedRqlQuery.args);
+          var localizedQuery =
+            RqlQueryService.prepareSearchQuery(
+              $scope.search.type,
+              $scope.search.rqlQuery,
+              $scope.search.pagination,
+              $scope.lang);
 
           $scope.search.loading = true;
           switch ($scope.search.display) {
@@ -3044,6 +3099,11 @@ angular.module('obiba.mica.search')
         }
       };
 
+      var onPaginate = function(target, from, size){
+        $scope.search.pagination[target] = {from: from, size: size};
+        executeSearchQuery();
+      };
+
       var onDisplayChanged = function (display) {
         if (display) {
           validateDisplay(display);
@@ -3065,6 +3125,9 @@ angular.module('obiba.mica.search')
       $scope.QUERY_TYPES = QUERY_TYPES;
 
       $scope.search = {
+        pagination: {
+
+        },
         query: null,
         rqlQuery: null,
         type: null,
@@ -3110,6 +3173,7 @@ angular.module('obiba.mica.search')
       $scope.closeTaxonomies = closeTaxonomies;
       $scope.onTypeChanged = onTypeChanged;
       $scope.onDisplayChanged = onDisplayChanged;
+      $scope.onPaginate = onPaginate;
       $scope.taxonomiesShown = false;
 
       angular.element('#taxonomies').on('show.bs.collapse', function () {
@@ -3147,6 +3211,7 @@ angular.module('obiba.mica.search')
         $scope.type = type;
         $scope.$parent.onTypeChanged(type);
       };
+      $scope.QUERY_TARGETS = QUERY_TARGETS;
       $scope.QUERY_TYPES = QUERY_TYPES;
       $scope.DISPLAY_TYPES = DISPLAY_TYPES;
 
@@ -3469,7 +3534,60 @@ angular.module('obiba.mica.search')
         }
       });
 
-    }]);
+    }])
+
+  .controller('SearchResultPaginationController', ['$scope', function($scope){
+
+    function updateMaxSize() {
+      $scope.maxSize = Math.min(3, Math.ceil($scope.totalHits/$scope.pagination.selected.value));
+    }
+
+    function calculateRange() {
+      var pageSize = $scope.pagination.selected.value;
+      var current = $scope.pagination.currentPage;
+      $scope.pagination.from = pageSize * (current - 1) + 1;
+      $scope.pagination.to = Math.min($scope.totalHits, pageSize * current);
+    }
+
+    var pageChanged = function() {
+      calculateRange();
+      if ($scope.onChange) {
+        $scope.onChange(
+          $scope.target,
+          ($scope.pagination.currentPage - 1) * $scope.pagination.selected.value,
+          $scope.pagination.selected.value
+        );
+      }
+    };
+
+    var pageSizeChanged = function() {
+      updateMaxSize();
+      $scope.pagination.currentPage = 1;
+      pageChanged();
+    };
+
+    $scope.pageChanged = pageChanged;
+    $scope.pageSizeChanged = pageSizeChanged;
+    $scope.pageSizes = [
+      {label: '10', value:10},
+      {label: '20', value:20},
+      {label: '50', value:50},
+      {label: '100', value:100}
+    ];
+
+    $scope.pagination = {
+      selected: $scope.pageSizes[0],
+      currentPage: 1
+    };
+
+    $scope.$watch('totalHits', function() {
+      updateMaxSize();
+      calculateRange();
+    });
+
+
+  }]);
+
 ;/*
  * Copyright (c) 2016 OBiBa. All rights reserved.
  *
@@ -3621,7 +3739,8 @@ angular.module('obiba.mica.search')
         result: '=',
         lang: '=',
         loading: '=',
-        onTypeChanged: '='
+        onTypeChanged: '=',
+        onPaginate: '='
       },
       controller: 'SearchResultController',
       templateUrl: 'search/views/search-result-panel-template.html'
@@ -3767,6 +3886,20 @@ angular.module('obiba.mica.search')
       },
       controller: 'StringCriterionTermsController',
       templateUrl: 'search/views/criteria/criterion-string-terms-template.html'
+    };
+  }])
+
+  .directive('searchResultPagination', [function() {
+    return {
+      restrict: 'EA',
+      replace: true,
+      scope: {
+        target: '=',
+        totalHits: '=',
+        onChange: '='
+      },
+      controller: 'SearchResultPaginationController',
+      templateUrl: 'search/views/list/search-result-pagination-template.html'
     };
   }]);
 ;/*
@@ -4271,7 +4404,7 @@ angular.module('obiba.mica.localized')
         return 'en';
       };
     });
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html']);
 
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
@@ -5396,6 +5529,63 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
     "</div>");
 }]);
 
+angular.module("search/views/list/pagination-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/list/pagination-template.html",
+    "<span class=\"input-group voffset1\">\n" +
+    "  <ul class=\"pagination pagination-sm no-padding no-margin\">\n" +
+    "    <li ng-if=\"::boundaryLinks\" ng-class=\"{disabled: noPrevious()||ngDisabled}\" class=\"pagination-first\">\n" +
+    "      <a href ng-click=\"selectPage(1, $event)\">{{::getText('first')}}</a>\n" +
+    "    </li>\n" +
+    "    <li ng-if=\"::directionLinks\" ng-class=\"{disabled: noPrevious()||ngDisabled}\" class=\"pagination-prev\">\n" +
+    "      <a href ng-click=\"selectPage(page - 1, $event)\">{{::getText('previous')}}</a>\n" +
+    "    </li>\n" +
+    "    <li ng-repeat=\"page in pages track by $index\" ng-class=\"{active: page.active,disabled: ngDisabled&&!page.active}\"\n" +
+    "        class=\"pagination-page\">\n" +
+    "      <a href ng-click=\"selectPage(page.number, $event)\">{{page.text}}</a>\n" +
+    "    </li>\n" +
+    "    <li ng-if=\"::directionLinks\" ng-class=\"{disabled: noNext()||ngDisabled}\" class=\"pagination-next\">\n" +
+    "      <a href ng-click=\"selectPage(page + 1, $event)\">{{::getText('next')}}</a>\n" +
+    "    </li>\n" +
+    "    <li ng-if=\"::boundaryLinks\" ng-class=\"{disabled: noNext()||ngDisabled}\" class=\"pagination-last\">\n" +
+    "      <a href ng-click=\"selectPage(totalPages, $event)\">{{::getText('last')}}</a>\n" +
+    "    </li>\n" +
+    "  </ul>\n" +
+    "  <ul class=\"pagination no-margin pagination-sm\" ng-show=\"1 < totalPages\">\n" +
+    "    <li>\n" +
+    "      <a href ng-show=\"1 < totalPages\" class=\"pagination-total\">{{$parent.pagination.from}} - {{$parent.pagination.to}} {{'of' | translate}} {{totalItems}}</a>\n" +
+    "    </li>\n" +
+    "  </ul>\n" +
+    "</span>");
+}]);
+
+angular.module("search/views/list/search-result-pagination-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/list/search-result-pagination-template.html",
+    "<span ng-show=\"totalHits > 10\" class=\"form-inline\">\n" +
+    "  <span class=\"input-group\">\n" +
+    "    <select class=\"form-control form-select\"\n" +
+    "            ng-model=\"pagination.selected\"\n" +
+    "            ng-options=\"size.label for size in pageSizes\"\n" +
+    "            ng-change=\"pageSizeChanged()\"></select>\n" +
+    "  </span>\n" +
+    "\n" +
+    "  <span ng-show=\"maxSize > 1\"\n" +
+    "        uib-pagination\n" +
+    "        total-items=\"totalHits\"\n" +
+    "        max-size=\"maxSize\"\n" +
+    "        ng-model=\"pagination.currentPage\"\n" +
+    "        boundary-links=\"true\"\n" +
+    "        force-ellipses=\"true\"\n" +
+    "        items-per-page=\"pagination.selected.value\"\n" +
+    "        previous-text=\"&lsaquo;\"\n" +
+    "        next-text=\"&rsaquo;\"\n" +
+    "        first-text=\"&laquo;\"\n" +
+    "        last-text=\"&raquo;\"\n" +
+    "        template-url=\"search/views/list/pagination-template.html\"\n" +
+    "        ng-change=\"pageChanged()\">\n" +
+    "  </span>\n" +
+    "</span>");
+}]);
+
 angular.module("search/views/list/studies-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/list/studies-search-result-table-template.html",
     "<div>\n" +
@@ -5477,14 +5667,6 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
     "  <div ng-show=\"summaries.length > 0\">\n" +
-    "    <div class=\"row voffset2\">\n" +
-    "      <div class=\"col-xs-4\">\n" +
-    "      </div>\n" +
-    "      <div class=\"col-xs-8\">\n" +
-    "        <dir-pagination-controls class=\"pull-right\"></dir-pagination-controls>\n" +
-    "      </div>\n" +
-    "    </div>\n" +
-    "\n" +
     "    <div class=\"table-responsive\">\n" +
     "      <table class=\"table table-bordered table-striped\">\n" +
     "        <thead>\n" +
@@ -5525,7 +5707,6 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
 angular.module("search/views/search-result-panel-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-panel-template.html",
     "<div>\n" +
-    "\n" +
     "  <uib-tabset class=\"voffset2\" type=\"tabs\">\n" +
     "\n" +
     "    <uib-tab heading=\"{{'search.list' | translate}}\" active=\"activeDisplay.list\" ng-click=\"selectDisplay(DISPLAY_TYPES.LIST)\">\n" +
@@ -5535,6 +5716,13 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
     "        <!-- Variables -->\n" +
     "        <uib-tab ng-show=\"settingsDisplay.variables.showSearchTab\" active=\"activeTarget.variables\" ng-click=\"selectTarget(QUERY_TYPES.VARIABLES)\"\n" +
     "          heading=\"{{'variables' | translate}} ({{result.list.variableResultDto.totalHits}})\">\n" +
+    "          <span search-result-pagination\n" +
+    "                class=\"pull-right\"\n" +
+    "                target=\"QUERY_TARGETS.VARIABLE\"\n" +
+    "                total-hits=\"result.list.variableResultDto.totalHits\"\n" +
+    "                on-change=\"onPaginate\"></span>\n" +
+    "\n" +
+    "          <span class=\"clearfix\"></span>\n" +
     "          <variables-result-table  loading=\"loading\"\n" +
     "            summaries=\"result.list.variableResultDto['obiba.mica.DatasetVariableResultDto.result'].summaries\"></variables-result-table>\n" +
     "        </uib-tab>\n" +
@@ -5542,6 +5730,13 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
     "        <!-- Datasets -->\n" +
     "        <uib-tab ng-show=\"settingsDisplay.datasets.showSearchTab\" active=\"activeTarget.datasets\" ng-click=\"selectTarget(QUERY_TYPES.DATASETS)\"\n" +
     "          heading=\"{{'datasets' | translate}} ({{result.list.datasetResultDto.totalHits}})\">\n" +
+    "          <span search-result-pagination\n" +
+    "                class=\"pull-right\"\n" +
+    "                target=\"QUERY_TARGETS.DATASET\"\n" +
+    "                total-hits=\"result.list.datasetResultDto.totalHits\"\n" +
+    "                on-change=\"onPaginate\"></span>\n" +
+    "\n" +
+    "          <span class=\"clearfix\"></span>\n" +
     "          <datasets-result-table  loading=\"loading\"\n" +
     "            summaries=\"result.list.datasetResultDto['obiba.mica.DatasetResultDto.result'].datasets\"></datasets-result-table>\n" +
     "        </uib-tab>\n" +
@@ -5549,6 +5744,13 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
     "        <!-- Studies -->\n" +
     "        <uib-tab ng-show=\"settingsDisplay.studies.showSearchTab\" active=\"activeTarget.studies\" ng-click=\"selectTarget(QUERY_TYPES.STUDIES)\"\n" +
     "          heading=\"{{'studies' | translate}} ({{result.list.studyResultDto.totalHits}})\">\n" +
+    "          <span search-result-pagination\n" +
+    "                class=\"pull-right\"\n" +
+    "                target=\"QUERY_TARGETS.STUDY\"\n" +
+    "                total-hits=\"result.list.studyResultDto.totalHits\"\n" +
+    "                on-change=\"onPaginate\"></span>\n" +
+    "\n" +
+    "          <span class=\"clearfix\"></span>\n" +
     "          <studies-result-table  loading=\"loading\"\n" +
     "            summaries=\"result.list.studyResultDto['obiba.mica.StudyResultDto.result'].summaries\"></studies-result-table>\n" +
     "        </uib-tab>\n" +
@@ -5556,6 +5758,13 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
     "        <!-- Networks -->\n" +
     "        <uib-tab ng-show=\"settingsDisplay.networks.showSearchTab\" active=\"activeTarget.networks\" ng-click=\"selectTarget(QUERY_TYPES.NETWORKS)\"\n" +
     "          heading=\"{{'networks' | translate}} ({{result.list.networkResultDto.totalHits}})\">\n" +
+    "          <span search-result-pagination\n" +
+    "                class=\"pull-right\"\n" +
+    "                target=\"QUERY_TARGETS.NETWORK\"\n" +
+    "                total-hits=\"result.list.networkResultDto.totalHits\"\n" +
+    "                on-change=\"onPaginate\"></span>\n" +
+    "\n" +
+    "          <span class=\"clearfix\"></span>\n" +
     "          <networks-result-table  loading=\"loading\"\n" +
     "            summaries=\"result.list.networkResultDto['obiba.mica.NetworkResultDto.result'].networks\"></networks-result-table>\n" +
     "        </uib-tab>\n" +
@@ -5673,7 +5882,13 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "\n" +
     "  <!-- Results region -->\n" +
     "  <div class=\"voffset3\" ng-if=\"search.query\">\n" +
-    "    <result-panel display=\"search.display\" type=\"search.type\" result=\"search.result\" loading=\"search.loading\" on-type-changed=\"onTypeChanged\" lang=\"lang\"></result-panel>\n" +
+    "    <result-panel display=\"search.display\"\n" +
+    "                  type=\"search.type\"\n" +
+    "                  result=\"search.result\"\n" +
+    "                  loading=\"search.loading\"\n" +
+    "                  on-type-changed=\"onTypeChanged\"\n" +
+    "                  on-paginate=\"onPaginate\"\n" +
+    "                  lang=\"lang\"></result-panel>\n" +
     "  </div>\n" +
     "</div>");
 }]);
