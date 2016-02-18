@@ -1274,7 +1274,8 @@ angular.module('obiba.mica.search', [
   .config(['$provide', '$injector', function ($provide) {
     $provide.provider('ngObibaMicaSearch', function () {
       var localeResolver = ['LocalizedValues', function(LocalizedValues) {
-        return LocalizedValues.getLocale();
+        console.log(LocalizedValues.getLocal());
+        return LocalizedValues.getLocal();
       }];
 
       this.setLocaleResolver = function(resolver) {
@@ -3959,12 +3960,34 @@ angular.module('obiba.mica.graphics')
         chartOptionsName: '@',
         chartOptions: '=',
         chartHeader: '=',
-        chartTitle: '='
+        chartTitle: '=',
+        chartTableOptions: '=',
+        chartSelectGraphic: '='
       },
       templateUrl: 'graphics/views/charts-directive.html',
       controller: 'GraphicChartsController'
     };
-  }]);;/*
+  }])
+  .directive('obibaTable', [function () {
+  return {
+    restrict: 'EA',
+    replace: true,
+    scope: {
+      fieldTransformer: '@',
+      chartType: '@',
+      chartAggregationName: '@',
+      chartEntityDto: '@',
+      chartOptionsName: '@',
+      chartOptions: '=',
+      chartHeader: '=',
+      chartTitle: '=',
+      chartTableOptions: '=',
+      chartSelectGraphic: '='
+    },
+    templateUrl: 'graphics/views/tables-directive.html',
+    controller: 'GraphicChartsController'
+  };
+}]);;/*
  * Copyright (c) 2014 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
@@ -3992,18 +4015,31 @@ angular.module('obiba.mica.graphics')
               GraphicChartsUtils,
               GraphicChartsData) {
 
-      GraphicChartsData.getData(function (StudiesData) {
-        if (StudiesData) {
-          $scope.ItemDataJSon = GraphicChartsUtils.getArrayByAggregation($scope.chartAggregationName, StudiesData[$scope.chartEntityDto]);
-          $scope.ItemDataJSon.unshift($scope.chartHeader);
-          if ($scope.ItemDataJSon) {
-            $scope.chartObject = {};
-            $scope.chartObject.type = $scope.chartType;
-            $scope.chartObject.data = $scope.ItemDataJSon;
-            $scope.chartObject.options = {backgroundColor: {fill: 'transparent'}};
-            angular.extend($scope.chartObject.options, $scope.chartOptions);
-            $scope.chartObject.options.title = $filter('translate')($scope.chartTitle) + ' (N=' + StudiesData.studyResultDto.totalHits + ')';
-          }
+
+      $scope.$watch('chartSelectGraphic', function (newValue) {
+        if (newValue) {
+          GraphicChartsData.getData(function (StudiesData) {
+            if (StudiesData) {
+              $scope.ItemDataJSon = GraphicChartsUtils.getArrayByAggregation($scope.chartAggregationName, StudiesData[$scope.chartEntityDto]);
+              if ($scope.ItemDataJSon) {
+                if ($scope.chartType === 'Table') {
+                  $scope.chartObject = {};
+                  $scope.chartObject.header = [$filter('translate')($scope.chartHeader[0]), $filter('translate')($scope.chartHeader[1])];
+                  $scope.chartObject.type = $scope.chartType;
+                  $scope.chartObject.data = $scope.ItemDataJSon;
+                }
+                else {
+                  $scope.ItemDataJSon.unshift([$filter('translate')($scope.chartHeader[0]), $filter('translate')($scope.chartHeader[1])]);
+                  $scope.chartObject = {};
+                  $scope.chartObject.type = $scope.chartType;
+                  $scope.chartObject.data = $scope.ItemDataJSon;
+                  $scope.chartObject.options = {backgroundColor: {fill: 'transparent'}};
+                  angular.extend($scope.chartObject.options, $scope.chartOptions);
+                  $scope.chartObject.options.title = $filter('translate')($scope.chartTitle) + ' (N=' + StudiesData.studyResultDto.totalHits + ')';
+                }
+              }
+            }
+          });
         }
       });
 
@@ -4047,9 +4083,7 @@ angular.module('obiba.mica.graphics')
                 '#409400',
                 '#317000',
                 '#235200'
-              ],
-              width: 500,
-              height: 300
+              ]
             }
           },
           studiesDesigns: {
@@ -4062,9 +4096,7 @@ angular.module('obiba.mica.graphics')
                 '#009900',
                 '#009966',
                 '#009933',
-                '#66CC33'],
-              width: 500,
-              height: 300
+                '#66CC33']
             }
           },
           biologicalSamples: {
@@ -4076,9 +4108,7 @@ angular.module('obiba.mica.graphics')
                 '#009900',
                 '#009966',
                 '#009933',
-                '#66CC33'],
-              width: 500,
-              height: 300
+                '#66CC33']
             }
           }
 
@@ -4334,7 +4364,7 @@ angular.module('obiba.mica.localized')
         return 'en';
       };
     });
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html']);
 
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
@@ -4810,7 +4840,27 @@ angular.module("attachment/attachment-list-template.html", []).run(["$templateCa
 angular.module("graphics/views/charts-directive.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("graphics/views/charts-directive.html",
     "<div>\n" +
-    "  <div google-chart chart=\"chartObject\">\n" +
+    "  <div google-chart chart=\"chartObject\" style=\"min-height:350px; width:100%;\">\n" +
+    "  </div>\n" +
+    "</div>\n" +
+    "");
+}]);
+
+angular.module("graphics/views/tables-directive.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("graphics/views/tables-directive.html",
+    "<div>\n" +
+    "  <div  style=\"margin:25px;\">\n" +
+    "    <table class=\"table table-striped table-bordered\">\n" +
+    " <thead>\n" +
+    "      <th ng-repeat=\"header in chartObject.header\">{{header}}</th>\n" +
+    " </thead>\n" +
+    "      <tbody>\n" +
+    "      <tr ng-repeat=\"data in chartObject.data | orderBy:'-this[1]'\">\n" +
+    "        <td ng-repeat=\"row in data\">{{row}}</td>\n" +
+    "      </tr>\n" +
+    "      </tbody>\n" +
+    "\n" +
+    "    </table>\n" +
     "  </div>\n" +
     "</div>\n" +
     "");
@@ -5315,9 +5365,9 @@ angular.module("search/views/graphics/graphics-search-result-template.html", [])
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "<div class=\"row\">\n" +
-    "  <div ng-repeat=\"chart in chartObjects \">\n" +
+    "  <div class=\"col-md-6\" ng-repeat=\"chart in chartObjects \">\n" +
     "    <div ng-if=\"chart.chartObject.geoTitle\" style=\"font-family:Arial; font-weight:bold\">{{chart.chartObject.geoTitle}}</div>\n" +
-    "    <div class=\"col-md-6\" google-chart chart=\"chart.chartObject\">\n" +
+    "    <div google-chart chart=\"chart.chartObject\" style=\"min-height:350px; width:100%;\">\n" +
     "    </div>\n" +
     "  </div>\n" +
     "</div>\n" +

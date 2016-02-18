@@ -29,7 +29,7 @@ angular.module('obiba.mica.search', [
   .config(['$provide', '$injector', function ($provide) {
     $provide.provider('ngObibaMicaSearch', function () {
       var localeResolver = ['LocalizedValues', function(LocalizedValues) {
-        return LocalizedValues.getLocale();
+        return LocalizedValues.getLocal();
       }];
 
       this.setLocaleResolver = function(resolver) {
