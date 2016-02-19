@@ -117,7 +117,6 @@ angular.module('obiba.mica.search')
     this.datasetPage = function(id, type) {
       var dsType = (type === 'Study' ? 'study' : 'harmonization') + '-dataset';
       var result = id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('DatasetPage'), {':type': dsType, ':dataset': id}) : '';
-      console.log('Result', result);
       return result;
     };
 
