@@ -1,10 +1,30 @@
 <div>
-  <p class="help-block" ng-if="!loading && !result.taxonomyHeaders" translate>search.no-coverage</p>
+  <p class="help-block" ng-if="!loading && !table.taxonomyHeaders" translate>search.no-coverage</p>
 
   <div ng-if="loading" class="loading"></div>
 
 
-  <div class="table-responsive" ng-if="result.taxonomyHeaders.length > 0">
+  <div class="table-responsive" ng-if="table.taxonomyHeaders.length > 0">
+
+    <div class="pull-left">
+      <span translate>search.coverage-group-by</span>
+      <div class="btn-group" uib-dropdown is-open="status.isopen">
+        <button type="button" class="btn btn-primary btn-sm" uib-dropdown-toggle ng-disabled="disabled">
+          {{'search.coverage-buckets.' + bucket | translate}} <span class="caret"></span>
+        </button>
+        <ul uib-dropdown-menu role="menu">
+          <li role="menuitem" ng-if="bucket !== BUCKET_TYPES.STUDYIDS">
+            <a href ng-click="selectBucket(BUCKET_TYPES.STUDYIDS)" translate>search.coverage-buckets.studyIds</a>
+          </li>
+          <li role="menuitem" ng-if="bucket !== BUCKET_TYPES.DCEIDS">
+            <a href ng-click="selectBucket(BUCKET_TYPES.DCEIDS)" translate>search.coverage-buckets.dceIds</a>
+          </li>
+          <li role="menuitem" ng-if="bucket !== BUCKET_TYPES.NETWORKID">
+            <a href ng-click="selectBucket(BUCKET_TYPES.NETWORKID)" translate>search.coverage-buckets.networkId</a>
+          </li>
+        </ul>
+      </div>
+    </div>
 
     <div class="pull-right">
       <a href ng-click="toggleMissing(false)" ng-if="showMissing" translate>search.coverage-hide-missing</a>
@@ -16,26 +36,25 @@
     <table class="table table-bordered table-striped">
       <thead>
       <tr>
-        <th rowspan="2" translate>study.label</th>
-        <th ng-repeat="header in result.vocabularyHeaders" title="{{header.entity.descriptions[0].value}}"
+        <th rowspan="2" colspan="{{table.cols.colSpan}}" translate>{{'search.coverage-buckets.' + bucket}}</th>
+        <th ng-repeat="header in table.vocabularyHeaders" title="{{header.entity.descriptions[0].value}}"
           colspan="{{header.termsCount}}">
           {{header.entity.titles[0].value}}
         </th>
       </tr>
       <tr>
-        <th ng-repeat="header in result.termHeaders" title="{{header.entity.descriptions[0].value}}">
+        <th ng-repeat="header in table.termHeaders" title="{{header.entity.descriptions[0].value}}">
           {{header.entity.titles[0].value}}
         </th>
       </tr>
       </thead>
       <tbody>
 
-      <tr ng-repeat="row in result.rows" ng-if="showMissing || result.termHeaders.length == keys(row.hits).length">
-        <td>
-          <a href title="{{row.description}}">{{row.title}}</a>
-          <a href ng-if="false" class="pull-right"><i class="fa fa-plus-square"></i></a>
+      <tr ng-repeat="row in table.rows" ng-if="showMissing || table.termHeaders.length == keys(row.hits).length">
+        <td ng-repeat="col in table.cols.ids[row.value]" rowspan="{{col.rowSpan}}" ng-if="col.rowSpan > 0">
+          <a href title="{{col.description}}">{{col.title}}</a>
         </td>
-        <td ng-repeat="h in result.termHeaders">
+        <td ng-repeat="h in table.termHeaders">
           <span class="label label-info" ng-if="row.hits[$index]">{{row.hits[$index]}}</span>
           <span ng-if="!row.hits[$index]">0</span>
         </td>
@@ -44,8 +63,8 @@
       </tbody>
       <tfoot>
       <tr>
-        <th translate>all</th>
-        <th ng-repeat="header in result.termHeaders" title="{{header.entity.descriptions[0].value}}">
+        <th colspan="{{table.cols.colSpan}}" translate>all</th>
+        <th ng-repeat="header in table.termHeaders" title="{{header.entity.descriptions[0].value}}">
           {{header.hits}}
         </th>
       </tr>
@@ -53,7 +72,7 @@
     </table>
   </div>
 
-      <!--<pre>-->
-<!--{{table | json}}-->
-      <!--</pre>-->
+  <!--<pre>-->
+  <!--{{table.cols | json}}-->
+  <!--</pre>-->
 </div>
