@@ -13,6 +13,7 @@
 /* global CRITERIA_ITEM_EVENT */
 /* global QUERY_TARGETS */
 /* global QUERY_TYPES */
+/* global BUCKET_TYPES */
 /* global RQL_NODE */
 /* global CriteriaIdGenerator */
 /* global targetToType */
@@ -100,7 +101,7 @@ angular.module('obiba.mica.search')
               SearchContext) {
       $scope.lang = LocalizedValues.getLocal();
 
-      ngObibaMicaSearch.getLocale(function(locales) {
+      ngObibaMicaSearch.getLocale(function (locales) {
         if (angular.isArray(locales)) {
           $scope.tabs = locales;
           $scope.setLocale(locales[0]);
@@ -109,7 +110,7 @@ angular.module('obiba.mica.search')
         }
       });
 
-      $scope.setLocale = function(locale) {
+      $scope.setLocale = function (locale) {
         $scope.lang = locale;
         SearchContext.setLocale($scope.lang);
         executeSearchQuery();
@@ -132,6 +133,12 @@ angular.module('obiba.mica.search')
         }
       }
 
+      function validateBucket(bucket) {
+        if (!bucket || !BUCKET_TYPES[bucket.toUpperCase()]) {
+          throw new Error('Invalid bucket: ' + bucket);
+        }
+      }
+
       function validateDisplay(display) {
         if (!display || !DISPLAY_TYPES[display.toUpperCase()]) {
           throw new Error('Invalid display: ' + display);
@@ -151,16 +158,24 @@ angular.module('obiba.mica.search')
         }
       }
 
+      function getDefaultBucketType() {
+        // TODO settings
+        return BUCKET_TYPES.STUDYIDS;
+      }
+
       function validateQueryData() {
         try {
           var search = $location.search();
           var type = search.type || getDefaultQueryType();
+          var bucket = search.bucket || getDefaultBucketType();
           var display = search.display || DISPLAY_TYPES.LIST;
           var query = search.query || '';
           validateType(type);
+          validateBucket(bucket);
           validateDisplay(display);
 
           $scope.search.type = type;
+          $scope.search.bucket = bucket;
           $scope.search.display = display;
           $scope.search.query = query;
           $scope.search.rqlQuery = new RqlParser().parse(query);
@@ -184,12 +199,12 @@ angular.module('obiba.mica.search')
           RqlQueryService.createCriteria($scope.search.rqlQuery, $scope.lang).then(function (result) {
             // criteria UI is updated here
             $scope.search.criteria = result.root;
-            if($scope.search.criteria && $scope.search.criteria.children) {
-              $scope.search.criteria.children.sort(function(a,b){
-                if(a.target === 'network' || b.target === 'variable') {
+            if ($scope.search.criteria && $scope.search.criteria.children) {
+              $scope.search.criteria.children.sort(function (a, b) {
+                if (a.target === 'network' || b.target === 'variable') {
                   return -1;
                 }
-                if(a.target === 'variable' || b.target === 'network') {
+                if (a.target === 'variable' || b.target === 'network') {
                   return 1;
                 }
                 if (a.target < b.target) {
@@ -223,7 +238,7 @@ angular.module('obiba.mica.search')
                 onError);
               break;
             case DISPLAY_TYPES.COVERAGE:
-              JoinQueryCoverageResource.get({query: RqlQueryService.prepareCoverageQuery(localizedQuery, ['studyIds'])},
+              JoinQueryCoverageResource.get({query: RqlQueryService.prepareCoverageQuery(localizedQuery, [$scope.search.bucket])},
                 function onSuccess(response) {
                   $scope.search.result.coverage = response;
                   $scope.search.loading = false;
@@ -470,7 +485,16 @@ angular.module('obiba.mica.search')
         }
       };
 
-      var onPaginate = function(target, from, size){
+      var onBucketChanged = function (bucket) {
+        if (bucket) {
+          validateBucket(bucket);
+          var search = $location.search();
+          search.bucket = bucket;
+          $location.search(search).replace();
+        }
+      };
+
+      var onPaginate = function (target, from, size) {
         $scope.search.pagination[target] = {from: from, size: size};
         executeSearchQuery();
       };
@@ -494,14 +518,14 @@ angular.module('obiba.mica.search')
       };
 
       $scope.QUERY_TYPES = QUERY_TYPES;
+      $scope.BUCKET_TYPES = BUCKET_TYPES;
 
       $scope.search = {
-        pagination: {
-
-        },
+        pagination: {},
         query: null,
         rqlQuery: null,
         type: null,
+        bucket: null,
         result: {
           list: null,
           coverage: null,
@@ -543,6 +567,7 @@ angular.module('obiba.mica.search')
       $scope.refreshQuery = refreshQuery;
       $scope.closeTaxonomies = closeTaxonomies;
       $scope.onTypeChanged = onTypeChanged;
+      $scope.onBucketChanged = onBucketChanged;
       $scope.onDisplayChanged = onDisplayChanged;
       $scope.onPaginate = onPaginate;
       $scope.taxonomiesShown = false;
@@ -654,7 +679,7 @@ angular.module('obiba.mica.search')
         var rqlQuery = $scope.criterion.rqlQuery;
         if (rqlQuery.name === RQL_NODE.IN && $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.length > 0) {
           return $scope.criterion.selectedTerms.map(function (t) {
-            if(!$scope.criterion.vocabulary.terms) {
+            if (!$scope.criterion.vocabulary.terms) {
               return t;
             }
             var found = $scope.criterion.vocabulary.terms.filter(function (arg) {
@@ -820,6 +845,130 @@ angular.module('obiba.mica.search')
       $scope.toggleMissing = function (value) {
         $scope.showMissing = value;
       };
+
+      $scope.selectBucket = function (bucket) {
+        $scope.bucket = bucket;
+        $scope.$parent.onBucketChanged(bucket);
+      };
+      $scope.rowspans = {};
+
+      $scope.getSpan = function (study, population) {
+        var length = 0;
+        if (population) {
+          var prefix = study + ':' + population;
+          length = $scope.result.rows.filter(function (row) {
+            return row.title.startsWith(prefix + ':');
+          }).length;
+          $scope.rowspans[prefix] = length;
+          return length;
+        } else {
+          length = $scope.result.rows.filter(function (row) {
+            return row.title.startsWith(study + ':');
+          }).length;
+          $scope.rowspans[study] = length;
+          return length;
+        }
+      };
+
+      $scope.hasSpan = function (study, population) {
+        if (population) {
+          return $scope.rowspans[study + ':' + population] > 0;
+        } else {
+          return $scope.rowspans[study] > 0;
+        }
+      };
+
+      function splitIds() {
+        var cols = {
+          colSpan: $scope.bucket === BUCKET_TYPES.DCEIDS ? 3 : 1,
+          ids: {}
+        };
+
+        var rowSpans = {};
+        function appendRowSpan(id) {
+          var rowSpan;
+          if (!rowSpans[id]) {
+            rowSpan = 1;
+            rowSpans[id] = 1;
+          } else {
+            rowSpan = 0;
+            rowSpans[id] = rowSpans[id] + 1;
+          }
+          return rowSpan;
+        }
+
+        $scope.result.rows.forEach(function (row) {
+          cols.ids[row.value] = [];
+          if ($scope.bucket === BUCKET_TYPES.DCEIDS) {
+            var ids = row.value.split(':');
+            var titles = row.title.split(':');
+            var descriptions = row.description.split(':');
+            var rowSpan;
+            var id;
+
+            // study
+            id = ids[0];
+            rowSpan = appendRowSpan(id);
+            cols.ids[row.value].push({
+              id: id,
+              title: titles[0],
+              description: descriptions[0],
+              rowSpan: rowSpan
+            });
+
+            // population
+            id = ids[0] + ':' + ids[1];
+            rowSpan = appendRowSpan(id);
+            cols.ids[row.value].push({
+              id: id,
+              title: titles[1],
+              description: descriptions[1],
+              rowSpan: rowSpan
+            });
+
+            // dce
+            cols.ids[row.value].push({
+              id: row.value,
+              title: titles[2],
+              description: descriptions[2],
+              rowSpan: 1
+            });
+          } else {
+            cols.ids[row.value].push({
+              id: row.value,
+              title: row.title,
+              description: row.description,
+              rowSpan: 1
+            });
+          }
+
+        });
+
+        // adjust the rowspans
+        if ($scope.bucket === BUCKET_TYPES.DCEIDS) {
+          $scope.result.rows.forEach(function (row) {
+            if(cols.ids[row.value][0].rowSpan > 0) {
+              cols.ids[row.value][0].rowSpan = rowSpans[cols.ids[row.value][0].id];
+            }
+            if(cols.ids[row.value][1].rowSpan > 0) {
+              cols.ids[row.value][1].rowSpan = rowSpans[cols.ids[row.value][1].id];
+            }
+          });
+        }
+
+        return cols;
+      }
+
+      $scope.BUCKET_TYPES = BUCKET_TYPES;
+
+      $scope.$watch('result', function () {
+        $scope.table = {};
+        $scope.table.cols = [];
+        if ($scope.result) {
+          $scope.table = $scope.result;
+          $scope.table.cols = splitIds();
+        }
+      });
     }])
 
   .controller('GraphicsResultController', [
@@ -907,10 +1056,10 @@ angular.module('obiba.mica.search')
 
     }])
 
-  .controller('SearchResultPaginationController', ['$scope', function($scope){
+  .controller('SearchResultPaginationController', ['$scope', function ($scope) {
 
     function updateMaxSize() {
-      $scope.maxSize = Math.min(3, Math.ceil($scope.totalHits/$scope.pagination.selected.value));
+      $scope.maxSize = Math.min(3, Math.ceil($scope.totalHits / $scope.pagination.selected.value));
     }
 
     function calculateRange() {
@@ -920,7 +1069,7 @@ angular.module('obiba.mica.search')
       $scope.pagination.to = Math.min($scope.totalHits, pageSize * current);
     }
 
-    var pageChanged = function() {
+    var pageChanged = function () {
       calculateRange();
       if ($scope.onChange) {
         $scope.onChange(
@@ -931,7 +1080,7 @@ angular.module('obiba.mica.search')
       }
     };
 
-    var pageSizeChanged = function() {
+    var pageSizeChanged = function () {
       updateMaxSize();
       $scope.pagination.currentPage = 1;
       pageChanged();
@@ -940,10 +1089,10 @@ angular.module('obiba.mica.search')
     $scope.pageChanged = pageChanged;
     $scope.pageSizeChanged = pageSizeChanged;
     $scope.pageSizes = [
-      {label: '10', value:10},
-      {label: '20', value:20},
-      {label: '50', value:50},
-      {label: '100', value:100}
+      {label: '10', value: 10},
+      {label: '20', value: 20},
+      {label: '50', value: 50},
+      {label: '100', value: 100}
     ];
 
     $scope.pagination = {
@@ -951,7 +1100,7 @@ angular.module('obiba.mica.search')
       currentPage: 1
     };
 
-    $scope.$watch('totalHits', function() {
+    $scope.$watch('totalHits', function () {
       updateMaxSize();
       calculateRange();
     });

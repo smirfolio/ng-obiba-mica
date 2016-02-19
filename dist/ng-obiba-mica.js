@@ -1374,6 +1374,13 @@ var QUERY_TARGETS = {
   VARIABLE: 'variable'
 };
 
+/* exported BUCKET_TYPES */
+var BUCKET_TYPES = {
+  NETWORKID: 'networkId',
+  STUDYIDS: 'studyIds',
+  DCEIDS: 'dceIds'
+};
+
 /* exported RQL_NODE */
 var RQL_NODE = {
   // target nodes
@@ -2658,6 +2665,7 @@ angular.module('obiba.mica.search')
 /* global CRITERIA_ITEM_EVENT */
 /* global QUERY_TARGETS */
 /* global QUERY_TYPES */
+/* global BUCKET_TYPES */
 /* global RQL_NODE */
 /* global CriteriaIdGenerator */
 /* global targetToType */
@@ -2745,7 +2753,7 @@ angular.module('obiba.mica.search')
               SearchContext) {
       $scope.lang = LocalizedValues.getLocal();
 
-      ngObibaMicaSearch.getLocale(function(locales) {
+      ngObibaMicaSearch.getLocale(function (locales) {
         if (angular.isArray(locales)) {
           $scope.tabs = locales;
           $scope.setLocale(locales[0]);
@@ -2754,7 +2762,7 @@ angular.module('obiba.mica.search')
         }
       });
 
-      $scope.setLocale = function(locale) {
+      $scope.setLocale = function (locale) {
         $scope.lang = locale;
         SearchContext.setLocale($scope.lang);
         executeSearchQuery();
@@ -2777,6 +2785,12 @@ angular.module('obiba.mica.search')
         }
       }
 
+      function validateBucket(bucket) {
+        if (!bucket || !BUCKET_TYPES[bucket.toUpperCase()]) {
+          throw new Error('Invalid bucket: ' + bucket);
+        }
+      }
+
       function validateDisplay(display) {
         if (!display || !DISPLAY_TYPES[display.toUpperCase()]) {
           throw new Error('Invalid display: ' + display);
@@ -2796,16 +2810,24 @@ angular.module('obiba.mica.search')
         }
       }
 
+      function getDefaultBucketType() {
+        // TODO settings
+        return BUCKET_TYPES.STUDYIDS;
+      }
+
       function validateQueryData() {
         try {
           var search = $location.search();
           var type = search.type || getDefaultQueryType();
+          var bucket = search.bucket || getDefaultBucketType();
           var display = search.display || DISPLAY_TYPES.LIST;
           var query = search.query || '';
           validateType(type);
+          validateBucket(bucket);
           validateDisplay(display);
 
           $scope.search.type = type;
+          $scope.search.bucket = bucket;
           $scope.search.display = display;
           $scope.search.query = query;
           $scope.search.rqlQuery = new RqlParser().parse(query);
@@ -2829,12 +2851,12 @@ angular.module('obiba.mica.search')
           RqlQueryService.createCriteria($scope.search.rqlQuery, $scope.lang).then(function (result) {
             // criteria UI is updated here
             $scope.search.criteria = result.root;
-            if($scope.search.criteria && $scope.search.criteria.children) {
-              $scope.search.criteria.children.sort(function(a,b){
-                if(a.target === 'network' || b.target === 'variable') {
+            if ($scope.search.criteria && $scope.search.criteria.children) {
+              $scope.search.criteria.children.sort(function (a, b) {
+                if (a.target === 'network' || b.target === 'variable') {
                   return -1;
                 }
-                if(a.target === 'variable' || b.target === 'network') {
+                if (a.target === 'variable' || b.target === 'network') {
                   return 1;
                 }
                 if (a.target < b.target) {
@@ -2868,7 +2890,7 @@ angular.module('obiba.mica.search')
                 onError);
               break;
             case DISPLAY_TYPES.COVERAGE:
-              JoinQueryCoverageResource.get({query: RqlQueryService.prepareCoverageQuery(localizedQuery, ['studyIds'])},
+              JoinQueryCoverageResource.get({query: RqlQueryService.prepareCoverageQuery(localizedQuery, [$scope.search.bucket])},
                 function onSuccess(response) {
                   $scope.search.result.coverage = response;
                   $scope.search.loading = false;
@@ -3115,7 +3137,16 @@ angular.module('obiba.mica.search')
         }
       };
 
-      var onPaginate = function(target, from, size){
+      var onBucketChanged = function (bucket) {
+        if (bucket) {
+          validateBucket(bucket);
+          var search = $location.search();
+          search.bucket = bucket;
+          $location.search(search).replace();
+        }
+      };
+
+      var onPaginate = function (target, from, size) {
         $scope.search.pagination[target] = {from: from, size: size};
         executeSearchQuery();
       };
@@ -3139,14 +3170,14 @@ angular.module('obiba.mica.search')
       };
 
       $scope.QUERY_TYPES = QUERY_TYPES;
+      $scope.BUCKET_TYPES = BUCKET_TYPES;
 
       $scope.search = {
-        pagination: {
-
-        },
+        pagination: {},
         query: null,
         rqlQuery: null,
         type: null,
+        bucket: null,
         result: {
           list: null,
           coverage: null,
@@ -3188,6 +3219,7 @@ angular.module('obiba.mica.search')
       $scope.refreshQuery = refreshQuery;
       $scope.closeTaxonomies = closeTaxonomies;
       $scope.onTypeChanged = onTypeChanged;
+      $scope.onBucketChanged = onBucketChanged;
       $scope.onDisplayChanged = onDisplayChanged;
       $scope.onPaginate = onPaginate;
       $scope.taxonomiesShown = false;
@@ -3299,7 +3331,7 @@ angular.module('obiba.mica.search')
         var rqlQuery = $scope.criterion.rqlQuery;
         if (rqlQuery.name === RQL_NODE.IN && $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.length > 0) {
           return $scope.criterion.selectedTerms.map(function (t) {
-            if(!$scope.criterion.vocabulary.terms) {
+            if (!$scope.criterion.vocabulary.terms) {
               return t;
             }
             var found = $scope.criterion.vocabulary.terms.filter(function (arg) {
@@ -3465,6 +3497,130 @@ angular.module('obiba.mica.search')
       $scope.toggleMissing = function (value) {
         $scope.showMissing = value;
       };
+
+      $scope.selectBucket = function (bucket) {
+        $scope.bucket = bucket;
+        $scope.$parent.onBucketChanged(bucket);
+      };
+      $scope.rowspans = {};
+
+      $scope.getSpan = function (study, population) {
+        var length = 0;
+        if (population) {
+          var prefix = study + ':' + population;
+          length = $scope.result.rows.filter(function (row) {
+            return row.title.startsWith(prefix + ':');
+          }).length;
+          $scope.rowspans[prefix] = length;
+          return length;
+        } else {
+          length = $scope.result.rows.filter(function (row) {
+            return row.title.startsWith(study + ':');
+          }).length;
+          $scope.rowspans[study] = length;
+          return length;
+        }
+      };
+
+      $scope.hasSpan = function (study, population) {
+        if (population) {
+          return $scope.rowspans[study + ':' + population] > 0;
+        } else {
+          return $scope.rowspans[study] > 0;
+        }
+      };
+
+      function splitIds() {
+        var cols = {
+          colSpan: $scope.bucket === BUCKET_TYPES.DCEIDS ? 3 : 1,
+          ids: {}
+        };
+
+        var rowSpans = {};
+        function appendRowSpan(id) {
+          var rowSpan;
+          if (!rowSpans[id]) {
+            rowSpan = 1;
+            rowSpans[id] = 1;
+          } else {
+            rowSpan = 0;
+            rowSpans[id] = rowSpans[id] + 1;
+          }
+          return rowSpan;
+        }
+
+        $scope.result.rows.forEach(function (row) {
+          cols.ids[row.value] = [];
+          if ($scope.bucket === BUCKET_TYPES.DCEIDS) {
+            var ids = row.value.split(':');
+            var titles = row.title.split(':');
+            var descriptions = row.description.split(':');
+            var rowSpan;
+            var id;
+
+            // study
+            id = ids[0];
+            rowSpan = appendRowSpan(id);
+            cols.ids[row.value].push({
+              id: id,
+              title: titles[0],
+              description: descriptions[0],
+              rowSpan: rowSpan
+            });
+
+            // population
+            id = ids[0] + ':' + ids[1];
+            rowSpan = appendRowSpan(id);
+            cols.ids[row.value].push({
+              id: id,
+              title: titles[1],
+              description: descriptions[1],
+              rowSpan: rowSpan
+            });
+
+            // dce
+            cols.ids[row.value].push({
+              id: row.value,
+              title: titles[2],
+              description: descriptions[2],
+              rowSpan: 1
+            });
+          } else {
+            cols.ids[row.value].push({
+              id: row.value,
+              title: row.title,
+              description: row.description,
+              rowSpan: 1
+            });
+          }
+
+        });
+
+        // adjust the rowspans
+        if ($scope.bucket === BUCKET_TYPES.DCEIDS) {
+          $scope.result.rows.forEach(function (row) {
+            if(cols.ids[row.value][0].rowSpan > 0) {
+              cols.ids[row.value][0].rowSpan = rowSpans[cols.ids[row.value][0].id];
+            }
+            if(cols.ids[row.value][1].rowSpan > 0) {
+              cols.ids[row.value][1].rowSpan = rowSpans[cols.ids[row.value][1].id];
+            }
+          });
+        }
+
+        return cols;
+      }
+
+      $scope.BUCKET_TYPES = BUCKET_TYPES;
+
+      $scope.$watch('result', function () {
+        $scope.table = {};
+        $scope.table.cols = [];
+        if ($scope.result) {
+          $scope.table = $scope.result;
+          $scope.table.cols = splitIds();
+        }
+      });
     }])
 
   .controller('GraphicsResultController', [
@@ -3552,10 +3708,10 @@ angular.module('obiba.mica.search')
 
     }])
 
-  .controller('SearchResultPaginationController', ['$scope', function($scope){
+  .controller('SearchResultPaginationController', ['$scope', function ($scope) {
 
     function updateMaxSize() {
-      $scope.maxSize = Math.min(3, Math.ceil($scope.totalHits/$scope.pagination.selected.value));
+      $scope.maxSize = Math.min(3, Math.ceil($scope.totalHits / $scope.pagination.selected.value));
     }
 
     function calculateRange() {
@@ -3565,7 +3721,7 @@ angular.module('obiba.mica.search')
       $scope.pagination.to = Math.min($scope.totalHits, pageSize * current);
     }
 
-    var pageChanged = function() {
+    var pageChanged = function () {
       calculateRange();
       if ($scope.onChange) {
         $scope.onChange(
@@ -3576,7 +3732,7 @@ angular.module('obiba.mica.search')
       }
     };
 
-    var pageSizeChanged = function() {
+    var pageSizeChanged = function () {
       updateMaxSize();
       $scope.pagination.currentPage = 1;
       pageChanged();
@@ -3585,10 +3741,10 @@ angular.module('obiba.mica.search')
     $scope.pageChanged = pageChanged;
     $scope.pageSizeChanged = pageSizeChanged;
     $scope.pageSizes = [
-      {label: '10', value:10},
-      {label: '20', value:20},
-      {label: '50', value:50},
-      {label: '100', value:100}
+      {label: '10', value: 10},
+      {label: '20', value: 20},
+      {label: '50', value: 50},
+      {label: '100', value: 100}
     ];
 
     $scope.pagination = {
@@ -3596,7 +3752,7 @@ angular.module('obiba.mica.search')
       currentPage: 1
     };
 
-    $scope.$watch('totalHits', function() {
+    $scope.$watch('totalHits', function () {
       updateMaxSize();
       calculateRange();
     });
@@ -3725,7 +3881,8 @@ angular.module('obiba.mica.search')
       replace: true,
       scope: {
         result: '=',
-        loading: '='
+        loading: '=',
+        bucket: '='
       },
       controller: 'CoverageResultTableController',
       templateUrl: 'search/views/coverage/coverage-search-result-table-template.html'
@@ -3751,11 +3908,13 @@ angular.module('obiba.mica.search')
       replace: true,
       scope: {
         type: '=',
+        bucket: '=',
         display: '=',
         result: '=',
         lang: '=',
         loading: '=',
         onTypeChanged: '=',
+        onBucketChanged: '=',
         onPaginate: '='
       },
       controller: 'SearchResultController',
@@ -5172,12 +5331,32 @@ angular.module("search/views/classifications/vocabulary-panel-template.html", []
 angular.module("search/views/coverage/coverage-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/coverage/coverage-search-result-table-template.html",
     "<div>\n" +
-    "  <p class=\"help-block\" ng-if=\"!loading && !result.taxonomyHeaders\" translate>search.no-coverage</p>\n" +
+    "  <p class=\"help-block\" ng-if=\"!loading && !table.taxonomyHeaders\" translate>search.no-coverage</p>\n" +
     "\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
     "\n" +
-    "  <div class=\"table-responsive\" ng-if=\"result.taxonomyHeaders.length > 0\">\n" +
+    "  <div class=\"table-responsive\" ng-if=\"table.taxonomyHeaders.length > 0\">\n" +
+    "\n" +
+    "    <div class=\"pull-left\">\n" +
+    "      <span translate>search.coverage-group-by</span>\n" +
+    "      <div class=\"btn-group\" uib-dropdown is-open=\"status.isopen\">\n" +
+    "        <button type=\"button\" class=\"btn btn-primary btn-sm\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
+    "          {{'search.coverage-buckets.' + bucket | translate}} <span class=\"caret\"></span>\n" +
+    "        </button>\n" +
+    "        <ul uib-dropdown-menu role=\"menu\">\n" +
+    "          <li role=\"menuitem\" ng-if=\"bucket !== BUCKET_TYPES.STUDYIDS\">\n" +
+    "            <a href ng-click=\"selectBucket(BUCKET_TYPES.STUDYIDS)\" translate>search.coverage-buckets.studyIds</a>\n" +
+    "          </li>\n" +
+    "          <li role=\"menuitem\" ng-if=\"bucket !== BUCKET_TYPES.DCEIDS\">\n" +
+    "            <a href ng-click=\"selectBucket(BUCKET_TYPES.DCEIDS)\" translate>search.coverage-buckets.dceIds</a>\n" +
+    "          </li>\n" +
+    "          <li role=\"menuitem\" ng-if=\"bucket !== BUCKET_TYPES.NETWORKID\">\n" +
+    "            <a href ng-click=\"selectBucket(BUCKET_TYPES.NETWORKID)\" translate>search.coverage-buckets.networkId</a>\n" +
+    "          </li>\n" +
+    "        </ul>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
     "\n" +
     "    <div class=\"pull-right\">\n" +
     "      <a href ng-click=\"toggleMissing(false)\" ng-if=\"showMissing\" translate>search.coverage-hide-missing</a>\n" +
@@ -5189,26 +5368,25 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
     "      <tr>\n" +
-    "        <th rowspan=\"2\" translate>study.label</th>\n" +
-    "        <th ng-repeat=\"header in result.vocabularyHeaders\" title=\"{{header.entity.descriptions[0].value}}\"\n" +
+    "        <th rowspan=\"2\" colspan=\"{{table.cols.colSpan}}\" translate>{{'search.coverage-buckets.' + bucket}}</th>\n" +
+    "        <th ng-repeat=\"header in table.vocabularyHeaders\" title=\"{{header.entity.descriptions[0].value}}\"\n" +
     "          colspan=\"{{header.termsCount}}\">\n" +
     "          {{header.entity.titles[0].value}}\n" +
     "        </th>\n" +
     "      </tr>\n" +
     "      <tr>\n" +
-    "        <th ng-repeat=\"header in result.termHeaders\" title=\"{{header.entity.descriptions[0].value}}\">\n" +
+    "        <th ng-repeat=\"header in table.termHeaders\" title=\"{{header.entity.descriptions[0].value}}\">\n" +
     "          {{header.entity.titles[0].value}}\n" +
     "        </th>\n" +
     "      </tr>\n" +
     "      </thead>\n" +
     "      <tbody>\n" +
     "\n" +
-    "      <tr ng-repeat=\"row in result.rows\" ng-if=\"showMissing || result.termHeaders.length == keys(row.hits).length\">\n" +
-    "        <td>\n" +
-    "          <a href title=\"{{row.description}}\">{{row.title}}</a>\n" +
-    "          <a href ng-if=\"false\" class=\"pull-right\"><i class=\"fa fa-plus-square\"></i></a>\n" +
+    "      <tr ng-repeat=\"row in table.rows\" ng-if=\"showMissing || table.termHeaders.length == keys(row.hits).length\">\n" +
+    "        <td ng-repeat=\"col in table.cols.ids[row.value]\" rowspan=\"{{col.rowSpan}}\" ng-if=\"col.rowSpan > 0\">\n" +
+    "          <a href title=\"{{col.description}}\">{{col.title}}</a>\n" +
     "        </td>\n" +
-    "        <td ng-repeat=\"h in result.termHeaders\">\n" +
+    "        <td ng-repeat=\"h in table.termHeaders\">\n" +
     "          <span class=\"label label-info\" ng-if=\"row.hits[$index]\">{{row.hits[$index]}}</span>\n" +
     "          <span ng-if=\"!row.hits[$index]\">0</span>\n" +
     "        </td>\n" +
@@ -5217,8 +5395,8 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "      </tbody>\n" +
     "      <tfoot>\n" +
     "      <tr>\n" +
-    "        <th translate>all</th>\n" +
-    "        <th ng-repeat=\"header in result.termHeaders\" title=\"{{header.entity.descriptions[0].value}}\">\n" +
+    "        <th colspan=\"{{table.cols.colSpan}}\" translate>all</th>\n" +
+    "        <th ng-repeat=\"header in table.termHeaders\" title=\"{{header.entity.descriptions[0].value}}\">\n" +
     "          {{header.hits}}\n" +
     "        </th>\n" +
     "      </tr>\n" +
@@ -5226,9 +5404,9 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "    </table>\n" +
     "  </div>\n" +
     "\n" +
-    "      <!--<pre>-->\n" +
-    "<!--{{table | json}}-->\n" +
-    "      <!--</pre>-->\n" +
+    "  <!--<pre>-->\n" +
+    "  <!--{{table.cols | json}}-->\n" +
+    "  <!--</pre>-->\n" +
     "</div>");
 }]);
 
@@ -5239,7 +5417,7 @@ angular.module("search/views/criteria/criteria-node-template.html", []).run(["$t
     "    <criteria-leaf item=\"item.children[0]\" parent-type=\"$parent.item.type\" query=\"query\"></criteria-leaf>\n" +
     "\n" +
     "    <div class=\"btn-group voffset1\" uib-dropdown is-open=\"status.isopen\">\n" +
-    "      <button id=\"single-button\" type=\"button\" class=\"btn btn-default btn-xs\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
+    "      <button type=\"button\" class=\"btn btn-default btn-xs\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
     "        {{item.type | translate}} <span class=\"caret\"></span>\n" +
     "      </button>\n" +
     "      <ul uib-dropdown-menu role=\"menu\" aria-labelledby=\"single-button\">\n" +
@@ -5790,7 +5968,7 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
     "\n" +
     "    <uib-tab heading=\"{{'search.coverage' | translate}}\" active=\"activeDisplay.coverage\"\n" +
     "      ng-click=\"selectDisplay(DISPLAY_TYPES.COVERAGE)\">\n" +
-    "      <coverage-result-table result=\"result.coverage\" loading=\"loading\" class=\"voffset2\"></coverage-result-table>\n" +
+    "      <coverage-result-table result=\"result.coverage\" loading=\"loading\" bucket=\"bucket\" class=\"voffset2\"></coverage-result-table>\n" +
     "\n" +
     "    </uib-tab>\n" +
     "\n" +
@@ -5818,7 +5996,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "  </ul>\n" +
     "\n" +
     "  <!-- Classifications region -->\n" +
-    "  <div class=\"tab-content\">\n" +
+    "  <div class=\"tab-content voffset4\">\n" +
     "    <!--<div>-->\n" +
     "    <div class=\"row\">\n" +
     "      <div class=\"col-md-3\"></div>\n" +
@@ -5900,9 +6078,11 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "  <div class=\"voffset3\" ng-if=\"search.query\">\n" +
     "    <result-panel display=\"search.display\"\n" +
     "                  type=\"search.type\"\n" +
+    "                  bucket=\"search.bucket\"\n" +
     "                  result=\"search.result\"\n" +
     "                  loading=\"search.loading\"\n" +
     "                  on-type-changed=\"onTypeChanged\"\n" +
+    "                  on-bucket-changed=\"onBucketChanged\"\n" +
     "                  on-paginate=\"onPaginate\"\n" +
     "                  lang=\"lang\"></result-panel>\n" +
     "  </div>\n" +

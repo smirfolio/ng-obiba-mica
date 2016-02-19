@@ -26,6 +26,13 @@ var QUERY_TARGETS = {
   VARIABLE: 'variable'
 };
 
+/* exported BUCKET_TYPES */
+var BUCKET_TYPES = {
+  NETWORKID: 'networkId',
+  STUDYIDS: 'studyIds',
+  DCEIDS: 'dceIds'
+};
+
 /* exported RQL_NODE */
 var RQL_NODE = {
   // target nodes
