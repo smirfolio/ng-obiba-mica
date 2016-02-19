@@ -641,10 +641,11 @@ angular.module('obiba.mica.search')
 
   .controller('CriterionDropdownController', [
     '$scope',
+    '$filter',
     'LocalizedValues',
     'RqlQueryUtils',
     'StringUtils',
-    function ($scope, LocalizedValues, RqlQueryUtils, StringUtils) {
+    function ($scope, $filter, LocalizedValues, RqlQueryUtils, StringUtils) {
       var closeDropdown = function () {
         if (!$scope.state.open) {
           return;
@@ -695,10 +696,10 @@ angular.module('obiba.mica.search')
         var operation = rqlQuery.name;
         switch (rqlQuery.name) {
           case RQL_NODE.EXISTS:
-            operation = ':any'; //TODO translate
+            operation = ':' + $filter('translate')('any');
             break;
           case RQL_NODE.MISSING:
-            operation = ':none'; //TODO translate
+            operation = ':' + $filter('translate')('none');
             break;
           case RQL_NODE.EQ:
             operation = '=' + rqlQuery.args[1];
@@ -710,7 +711,7 @@ angular.module('obiba.mica.search')
             operation = '<' + rqlQuery.args[1];
             break;
           case RQL_NODE.BETWEEN:
-            operation = ':[' + rqlQuery.args[1] + '[';
+            operation = ':[' + rqlQuery.args[1] + ')';
             break;
           case RQL_NODE.IN:
             operation = '';
