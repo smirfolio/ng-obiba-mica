@@ -5438,7 +5438,7 @@ angular.module("search/views/criteria/criteria-node-template.html", []).run(["$t
 
 angular.module("search/views/criteria/criteria-target-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criteria-target-template.html",
-    "<table class=\"voffset2\">\n" +
+    "<table style=\"border:none;\" class=\"voffset2\">\n" +
     "  <tbody>\n" +
     "  <tr>\n" +
     "    <td>\n" +
