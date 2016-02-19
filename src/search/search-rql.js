@@ -103,7 +103,8 @@ function typeToTarget(type) {
 /* exported VOCABULARY_TYPES */
 var VOCABULARY_TYPES = {
   STRING: 'string',
-  INTEGER: 'integer'
+  INTEGER: 'integer',
+  DECIMAL: 'decimal'
 };
 
 /* exported CriteriaIdGenerator */
@@ -617,7 +618,7 @@ angular.module('obiba.mica.search')
       } else {
         return this.inQuery(
           this.criteriaId(item.taxonomy, item.vocabulary),
-          item.term ? item.term.name : this.vocabularyTermNames(item.vocabulary)
+          item.term ? item.term.name : undefined
         );
       }
     };
@@ -733,7 +734,7 @@ angular.module('obiba.mica.search')
     };
 
     this.isNumericVocabulary = function(vocabulary) {
-      return !vocabulary.terms && self.vocabularyType(vocabulary) === VOCABULARY_TYPES.INTEGER;
+      return !vocabulary.terms && self.vocabularyType(vocabulary) in [VOCABULARY_TYPES.INTEGER, VOCABULARY_TYPES.DECIMAL];
     };
   }])
 
