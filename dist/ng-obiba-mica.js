@@ -24,8 +24,13 @@ function NgObibaMicaUrlProvider() {
     'TaxonomyResource': 'ws/taxonomy/:taxonomy/_filter',
     'VocabularyResource': 'ws/taxonomy/:taxonomy/vocabulary/:vocabulary/_filter',
     'JoinQuerySearchResource': 'ws/:type/_rql?query=:query',
-    'JoinQueryCoverageResource': 'ws/variables/_coverage?query=:query'
+    'JoinQueryCoverageResource': 'ws/variables/_coverage?query=:query',
+    'VariablePage': '',
+    'NetworkPage': '#/network/:network',
+    'StudyPage': '#/study/:study',
+    'DatasetPage': '#/:type/:dataset'
   };
+
   function UrlProvider(registry) {
     var urlRegistry = registry;
 
@@ -150,23 +155,12 @@ angular.module('obiba.mica.utils', [])
       };
     })
 
-  .service('StringUtils', ['LocalizedValues',function(LocalizedValues){
-
-    this.localize = function (values, lang) {
-      return LocalizedValues.forLocale(values, lang);
-    };
-
-    this.truncate = function (text, size) {
-      var max = size || 30;
-      return text.length > max ? text.substring(0, max) + '...' : text;
-    };
-
-    return this;
-  }])
   .service('GraphicChartsConfigurations', function(){
-  this.getClientConfig = function(){
-    return true;
-  };
+
+    this.getClientConfig = function(){
+      return true;
+    };
+
     this.setClientConfig = function(){
       return true;
     };
@@ -2620,6 +2614,26 @@ angular.module('obiba.mica.search')
     };
   })
 
+  .service('PageUrlService', ['ngObibaMicaUrl', 'StringUtils', function(ngObibaMicaUrl, StringUtils) {
+
+    this.studyPage = function(id) {
+      return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyPage'), {':study': id}) : '';
+    };
+
+    this.networkPage = function(id) {
+      return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('NetworkPage'), {':network': id}) : '';
+    };
+
+    this.datasetPage = function(id, type) {
+      var dsType = (type === 'Study' ? 'study' : 'harmonization') + '-dataset';
+      var result = id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('DatasetPage'), {':type': dsType, ':dataset': id}) : '';
+      console.log('Result', result);
+      return result;
+    };
+
+    return this;
+  }])
+
   .service('ObibaSearchConfig', function () {
     var options = {
       networks: {
@@ -3292,8 +3306,12 @@ angular.module('obiba.mica.search')
       };
     }])
 
-  .controller('CriterionDropdownController', ['$scope', 'StringUtils', 'RqlQueryUtils',
-    function ($scope, StringUtils, RqlQueryUtils) {
+  .controller('CriterionDropdownController', [
+    '$scope',
+    'LocalizedValues',
+    'RqlQueryUtils',
+    'StringUtils',
+    function ($scope, LocalizedValues, RqlQueryUtils, StringUtils) {
       var closeDropdown = function () {
         if (!$scope.state.open) {
           return;
@@ -3326,7 +3344,7 @@ angular.module('obiba.mica.search')
 
       $scope.state = new CriterionState();
       $scope.localize = function (values) {
-        return StringUtils.localize(values, $scope.criterion.lang);
+        return LocalizedValues.forLocale(values, $scope.criterion.lang);
       };
       $scope.localizeCriterion = function () {
         var rqlQuery = $scope.criterion.rqlQuery;
@@ -3338,7 +3356,7 @@ angular.module('obiba.mica.search')
             var found = $scope.criterion.vocabulary.terms.filter(function (arg) {
               return arg.name === t;
             }).pop();
-            return found ? StringUtils.localize(found.title, $scope.criterion.lang) : t;
+            return found ? LocalizedValues.forLocale(found.title, $scope.criterion.lang) : t;
           }).join(' | ');
         }
         var operation = rqlQuery.name;
@@ -3365,7 +3383,7 @@ angular.module('obiba.mica.search')
             operation = '';
             break;
         }
-        return StringUtils.localize($scope.criterion.vocabulary.title, $scope.criterion.lang) + operation;
+        return LocalizedValues.forLocale($scope.criterion.vocabulary.title, $scope.criterion.lang) + operation;
       };
       $scope.vocabularyType = function (vocabulary) {
         return RqlQueryUtils.vocabularyType(vocabulary);
@@ -3429,11 +3447,18 @@ angular.module('obiba.mica.search')
   .controller('StringCriterionTermsController', [
     '$scope',
     'RqlQueryService',
+    'LocalizedValues',
     'StringUtils',
     'JoinQuerySearchResource',
     'RqlQueryUtils',
     'SearchContext',
-    function ($scope, RqlQueryService, StringUtils, JoinQuerySearchResource, RqlQueryUtils, SearchContext) {
+    function ($scope,
+              RqlQueryService,
+              LocalizedValues,
+              StringUtils,
+              JoinQuerySearchResource,
+              RqlQueryUtils,
+              SearchContext) {
       $scope.lang = SearchContext.currentLocale();
 
       var isSelected = function (name) {
@@ -3484,7 +3509,7 @@ angular.module('obiba.mica.search')
       $scope.isSelected = isSelected;
       $scope.updateFilter = updateFilter;
       $scope.localize = function (values) {
-        return StringUtils.localize(values, $scope.criterion.lang);
+        return LocalizedValues.forLocale(values, $scope.criterion.lang);
       };
       $scope.truncate = StringUtils.truncate;
       $scope.isInFilter = isInFilter;
@@ -3828,7 +3853,7 @@ angular.module('obiba.mica.search')
     };
   }])
 
-  .directive('networksResultTable', [function () {
+  .directive('networksResultTable', ['PageUrlService', function (PageUrlService) {
     return {
       restrict: 'EA',
       replace: true,
@@ -3836,11 +3861,14 @@ angular.module('obiba.mica.search')
         summaries: '=',
         loading: '='
       },
-      templateUrl: 'search/views/list/networks-search-result-table-template.html'
+      templateUrl: 'search/views/list/networks-search-result-table-template.html',
+      link: function(scope) {
+        scope.PageUrlService = PageUrlService;
+      }
     };
   }])
 
-  .directive('datasetsResultTable', [function () {
+  .directive('datasetsResultTable', ['PageUrlService', function (PageUrlService) {
     return {
       restrict: 'EA',
       replace: true,
@@ -3848,11 +3876,14 @@ angular.module('obiba.mica.search')
         summaries: '=',
         loading: '='
       },
-      templateUrl: 'search/views/list/datasets-search-result-table-template.html'
+      templateUrl: 'search/views/list/datasets-search-result-table-template.html',
+      link: function(scope) {
+        scope.PageUrlService = PageUrlService;
+      }
     };
   }])
 
-  .directive('studiesResultTable', [function () {
+  .directive('studiesResultTable', ['PageUrlService', function (PageUrlService) {
     return {
       restrict: 'EA',
       replace: true,
@@ -3860,11 +3891,14 @@ angular.module('obiba.mica.search')
         summaries: '=',
         loading: '='
       },
-      templateUrl: 'search/views/list/studies-search-result-table-template.html'
+      templateUrl: 'search/views/list/studies-search-result-table-template.html',
+      link: function(scope) {
+        scope.PageUrlService = PageUrlService;
+      }
     };
   }])
 
-  .directive('variablesResultTable', [function () {
+  .directive('variablesResultTable', ['PageUrlService', function (PageUrlService) {
     return {
       restrict: 'EA',
       replace: true,
@@ -3872,7 +3906,10 @@ angular.module('obiba.mica.search')
         summaries: '=',
         loading: '='
       },
-      templateUrl: 'search/views/list/variables-search-result-table-template.html'
+      templateUrl: 'search/views/list/variables-search-result-table-template.html',
+      link: function(scope) {
+        scope.PageUrlService = PageUrlService;
+      }
     };
   }])
 
@@ -5632,7 +5669,7 @@ angular.module("search/views/list/datasets-search-result-table-template.html", [
     "\n" +
     "        <tr ng-repeat=\"summary in summaries\">\n" +
     "          <td>\n" +
-    "            <a href>\n" +
+    "            <a ng-href=\"{{PageUrlService.datasetPage(summary.id, summary.variableType)}}\">\n" +
     "              <localized value=\"summary.acronym\" lang=\"lang\"></localized>\n" +
     "            </a>\n" +
     "          </td>\n" +
@@ -5697,7 +5734,7 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
     "\n" +
     "        <tr ng-repeat=\"summary in summaries\">\n" +
     "          <td>\n" +
-    "            <a href>\n" +
+    "            <a ng-href=\"{{PageUrlService.networkPage(summary.id)}}\">\n" +
     "              <localized value=\"summary.acronym\" lang=\"lang\"></localized>\n" +
     "            </a>\n" +
     "          </td>\n" +
@@ -5822,7 +5859,7 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "        <tbody>\n" +
     "        <tr ng-repeat=\"summary in summaries\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "          <td>\n" +
-    "            <a href>\n" +
+    "            <a ng-href=\"{{PageUrlService.studyPage(summary.id)}}\">\n" +
     "              <localized value=\"summary.acronym\" lang=\"lang\"></localized>\n" +
     "            </a>\n" +
     "          </td>\n" +
@@ -5877,17 +5914,19 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
     "        <tr ng-repeat=\"summary in summaries\">\n" +
     "          <td>\n" +
     "            <a href>\n" +
-    "              {{summary.name}}\n" +
+    "                {{summary.name}}\n" +
     "            </a>\n" +
     "          </td>\n" +
     "          <td>\n" +
     "            <localized value=\"summary.variableLabel\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
     "          <td>\n" +
-    "            <localized value=\"summary.studyAcronym\" lang=\"lang\"></localized>\n" +
+    "            <a ng-href=\"{{PageUrlService.studyPage(summary.studyId)}}\">\n" +
+    "              <localized value=\"summary.studyAcronym\" lang=\"lang\"></localized>\n" +
+    "            </a>\n" +
     "          </td>\n" +
     "          <td>\n" +
-    "            <a href>\n" +
+    "            <a ng-href=\"{{PageUrlService.datasetPage(summary.datasetId, summary.variableType)}}\">\n" +
     "              <localized value=\"summary.datasetAcronym\" lang=\"lang\"></localized>\n" +
     "            </a>\n" +
     "          </td>\n" +

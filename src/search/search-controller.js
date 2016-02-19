@@ -639,8 +639,12 @@ angular.module('obiba.mica.search')
       };
     }])
 
-  .controller('CriterionDropdownController', ['$scope', 'StringUtils', 'RqlQueryUtils',
-    function ($scope, StringUtils, RqlQueryUtils) {
+  .controller('CriterionDropdownController', [
+    '$scope',
+    'LocalizedValues',
+    'RqlQueryUtils',
+    'StringUtils',
+    function ($scope, LocalizedValues, RqlQueryUtils, StringUtils) {
       var closeDropdown = function () {
         if (!$scope.state.open) {
           return;
@@ -673,7 +677,7 @@ angular.module('obiba.mica.search')
 
       $scope.state = new CriterionState();
       $scope.localize = function (values) {
-        return StringUtils.localize(values, $scope.criterion.lang);
+        return LocalizedValues.forLocale(values, $scope.criterion.lang);
       };
       $scope.localizeCriterion = function () {
         var rqlQuery = $scope.criterion.rqlQuery;
@@ -685,7 +689,7 @@ angular.module('obiba.mica.search')
             var found = $scope.criterion.vocabulary.terms.filter(function (arg) {
               return arg.name === t;
             }).pop();
-            return found ? StringUtils.localize(found.title, $scope.criterion.lang) : t;
+            return found ? LocalizedValues.forLocale(found.title, $scope.criterion.lang) : t;
           }).join(' | ');
         }
         var operation = rqlQuery.name;
@@ -712,7 +716,7 @@ angular.module('obiba.mica.search')
             operation = '';
             break;
         }
-        return StringUtils.localize($scope.criterion.vocabulary.title, $scope.criterion.lang) + operation;
+        return LocalizedValues.forLocale($scope.criterion.vocabulary.title, $scope.criterion.lang) + operation;
       };
       $scope.vocabularyType = function (vocabulary) {
         return RqlQueryUtils.vocabularyType(vocabulary);
@@ -776,11 +780,18 @@ angular.module('obiba.mica.search')
   .controller('StringCriterionTermsController', [
     '$scope',
     'RqlQueryService',
+    'LocalizedValues',
     'StringUtils',
     'JoinQuerySearchResource',
     'RqlQueryUtils',
     'SearchContext',
-    function ($scope, RqlQueryService, StringUtils, JoinQuerySearchResource, RqlQueryUtils, SearchContext) {
+    function ($scope,
+              RqlQueryService,
+              LocalizedValues,
+              StringUtils,
+              JoinQuerySearchResource,
+              RqlQueryUtils,
+              SearchContext) {
       $scope.lang = SearchContext.currentLocale();
 
       var isSelected = function (name) {
@@ -831,7 +842,7 @@ angular.module('obiba.mica.search')
       $scope.isSelected = isSelected;
       $scope.updateFilter = updateFilter;
       $scope.localize = function (values) {
-        return StringUtils.localize(values, $scope.criterion.lang);
+        return LocalizedValues.forLocale(values, $scope.criterion.lang);
       };
       $scope.truncate = StringUtils.truncate;
       $scope.isInFilter = isInFilter;
