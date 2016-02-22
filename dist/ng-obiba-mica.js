@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-02-19
+ * Date: 2016-02-22
  */
 'use strict';
 
@@ -3518,7 +3518,8 @@ angular.module('obiba.mica.search')
 
   .controller('CoverageResultTableController', [
     '$scope',
-    function ($scope) {
+    'PageUrlService',
+    function ($scope,PageUrlService) {
       $scope.showMissing = true;
       $scope.toggleMissing = function (value) {
         $scope.showMissing = value;
@@ -3556,6 +3557,18 @@ angular.module('obiba.mica.search')
         }
       };
 
+      function getBucketUrl(bucket, id) {
+        switch (bucket) {
+          case BUCKET_TYPES.STUDYIDS:
+          case BUCKET_TYPES.DCEIDS:
+            return PageUrlService.studyPage(id);
+          case BUCKET_TYPES.NETWORKID:
+            return PageUrlService.networkPage(id);
+        }
+
+        return '';
+      }
+
       function splitIds() {
         var cols = {
           colSpan: $scope.bucket === BUCKET_TYPES.DCEIDS ? 3 : 1,
@@ -3589,6 +3602,7 @@ angular.module('obiba.mica.search')
             rowSpan = appendRowSpan(id);
             cols.ids[row.value].push({
               id: id,
+              url: PageUrlService.studyPage(id),
               title: titles[0],
               description: descriptions[0],
               rowSpan: rowSpan
@@ -3599,6 +3613,7 @@ angular.module('obiba.mica.search')
             rowSpan = appendRowSpan(id);
             cols.ids[row.value].push({
               id: id,
+              url: PageUrlService.studyPage(ids[0]),
               title: titles[1],
               description: descriptions[1],
               rowSpan: rowSpan
@@ -3608,12 +3623,14 @@ angular.module('obiba.mica.search')
             cols.ids[row.value].push({
               id: row.value,
               title: titles[2],
+              url: PageUrlService.studyPage(ids[0]),
               description: descriptions[2],
               rowSpan: 1
             });
           } else {
             cols.ids[row.value].push({
               id: row.value,
+              url: getBucketUrl($scope.bucket, row.value),
               title: row.title,
               description: row.description,
               rowSpan: 1
@@ -5422,7 +5439,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "\n" +
     "      <tr ng-repeat=\"row in table.rows\" ng-if=\"showMissing || table.termHeaders.length == keys(row.hits).length\">\n" +
     "        <td ng-repeat=\"col in table.cols.ids[row.value]\" rowspan=\"{{col.rowSpan}}\" ng-if=\"col.rowSpan > 0\">\n" +
-    "          <a href title=\"{{col.description}}\">{{col.title}}</a>\n" +
+    "          <a href=\"{{col.url ? col.url : ''}}\" title=\"{{col.description}}\">{{col.title}}</a>\n" +
     "        </td>\n" +
     "        <td ng-repeat=\"h in table.termHeaders\">\n" +
     "          <span class=\"label label-info\" ng-if=\"row.hits[$index]\">{{row.hits[$index]}}</span>\n" +
