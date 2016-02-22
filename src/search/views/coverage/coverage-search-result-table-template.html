@@ -52,7 +52,7 @@
 
       <tr ng-repeat="row in table.rows" ng-if="showMissing || table.termHeaders.length == keys(row.hits).length">
         <td ng-repeat="col in table.cols.ids[row.value]" rowspan="{{col.rowSpan}}" ng-if="col.rowSpan > 0">
-          <a href title="{{col.description}}">{{col.title}}</a>
+          <a href="{{col.url ? col.url : ''}}" title="{{col.description}}">{{col.title}}</a>
         </td>
         <td ng-repeat="h in table.termHeaders">
           <span class="label label-info" ng-if="row.hits[$index]">{{row.hits[$index]}}</span>
