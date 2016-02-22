@@ -27,8 +27,11 @@
     </div>
 
     <div class="pull-right">
-      <a href ng-click="toggleMissing(false)" ng-if="showMissing" translate>search.coverage-hide-missing</a>
-      <a href ng-click="toggleMissing(true)" ng-if="!showMissing" translate>search.coverage-show-missing</a>
+      <a target="_self" class="btn btn-info btn-responsive" ng-href="{{downloadUrl()}}">
+        <i class="fa fa-download"></i> {{'download' | translate}}
+      </a>
+      <!--<a href ng-click="toggleMissing(false)" ng-if="showMissing" translate>search.coverage-hide-missing</a>-->
+      <!--<a href ng-click="toggleMissing(true)" ng-if="!showMissing" translate>search.coverage-show-missing</a>-->
     </div>
 
     <div class="clearfix"></div>

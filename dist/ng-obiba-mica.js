@@ -25,6 +25,7 @@ function NgObibaMicaUrlProvider() {
     'VocabularyResource': 'ws/taxonomy/:taxonomy/vocabulary/:vocabulary/_filter',
     'JoinQuerySearchResource': 'ws/:type/_rql?query=:query',
     'JoinQueryCoverageResource': 'ws/variables/_coverage?query=:query',
+    'JoinQueryCoverageDownloadResource': 'ws/variables/_coverage_download?query=:query',
     'VariablePage': '',
     'NetworkPage': '#/network/:network',
     'StudyPage': '#/study/:study',
@@ -2630,6 +2631,10 @@ angular.module('obiba.mica.search')
       return result;
     };
 
+    this.downloadCoverage = function(query) {
+      return StringUtils.replaceAll(ngObibaMicaUrl.getUrl('JoinQueryCoverageDownloadResource'), {':query': query});
+    };
+
     return this;
   }])
 
@@ -2896,6 +2901,7 @@ angular.module('obiba.mica.search')
           $scope.search.loading = true;
           switch ($scope.search.display) {
             case DISPLAY_TYPES.LIST:
+              $scope.search.executedQuery = localizedQuery;
               JoinQuerySearchResource[$scope.search.type]({query: localizedQuery},
                 function onSuccess(response) {
                   $scope.search.result.list = response;
@@ -2904,7 +2910,8 @@ angular.module('obiba.mica.search')
                 onError);
               break;
             case DISPLAY_TYPES.COVERAGE:
-              JoinQueryCoverageResource.get({query: RqlQueryService.prepareCoverageQuery(localizedQuery, [$scope.search.bucket])},
+              $scope.search.executedQuery = RqlQueryService.prepareCoverageQuery(localizedQuery, [$scope.search.bucket]);
+              JoinQueryCoverageResource.get({query: $scope.search.executedQuery},
                 function onSuccess(response) {
                   $scope.search.result.coverage = response;
                   $scope.search.loading = false;
@@ -2912,10 +2919,9 @@ angular.module('obiba.mica.search')
                 onError);
               break;
             case DISPLAY_TYPES.GRAPHICS:
-              JoinQuerySearchResource.studies({
-                  query: RqlQueryService.prepareGraphicsQuery(localizedQuery,
-                    ['methods.designs', 'populations.selectionCriteria.countriesIso', 'populations.dataCollectionEvents.bioSamples', 'numberOfParticipants.participant.number'])
-                },
+              $scope.search.executedQuery = RqlQueryService.prepareGraphicsQuery(localizedQuery,
+                ['methods.designs', 'populations.selectionCriteria.countriesIso', 'populations.dataCollectionEvents.bioSamples', 'numberOfParticipants.participant.number']);
+                JoinQuerySearchResource.studies({query: $scope.search.executedQuery},
                 function onSuccess(response) {
                   $scope.search.result.graphics = response;
                   $scope.search.loading = false;
@@ -3190,6 +3196,7 @@ angular.module('obiba.mica.search')
         pagination: {},
         query: null,
         rqlQuery: null,
+        executedQuery: null,
         type: null,
         bucket: null,
         result: {
@@ -3656,6 +3663,10 @@ angular.module('obiba.mica.search')
 
       $scope.BUCKET_TYPES = BUCKET_TYPES;
 
+      $scope.downloadUrl = function() {
+        return PageUrlService.downloadCoverage($scope.query);
+      };
+
       $scope.$watch('result', function () {
         $scope.table = {};
         $scope.table.cols = [];
@@ -3937,7 +3948,8 @@ angular.module('obiba.mica.search')
       scope: {
         result: '=',
         loading: '=',
-        bucket: '='
+        bucket: '=',
+        query: '='
       },
       controller: 'CoverageResultTableController',
       templateUrl: 'search/views/coverage/coverage-search-result-table-template.html'
@@ -3964,6 +3976,7 @@ angular.module('obiba.mica.search')
       scope: {
         type: '=',
         bucket: '=',
+        query: '=',
         display: '=',
         result: '=',
         lang: '=',
@@ -5414,8 +5427,11 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "    </div>\n" +
     "\n" +
     "    <div class=\"pull-right\">\n" +
-    "      <a href ng-click=\"toggleMissing(false)\" ng-if=\"showMissing\" translate>search.coverage-hide-missing</a>\n" +
-    "      <a href ng-click=\"toggleMissing(true)\" ng-if=\"!showMissing\" translate>search.coverage-show-missing</a>\n" +
+    "      <a target=\"_self\" class=\"btn btn-info btn-responsive\" ng-href=\"{{downloadUrl()}}\">\n" +
+    "        <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
+    "      </a>\n" +
+    "      <!--<a href ng-click=\"toggleMissing(false)\" ng-if=\"showMissing\" translate>search.coverage-hide-missing</a>-->\n" +
+    "      <!--<a href ng-click=\"toggleMissing(true)\" ng-if=\"!showMissing\" translate>search.coverage-show-missing</a>-->\n" +
     "    </div>\n" +
     "\n" +
     "    <div class=\"clearfix\"></div>\n" +
@@ -6025,7 +6041,7 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
     "\n" +
     "    <uib-tab heading=\"{{'search.coverage' | translate}}\" active=\"activeDisplay.coverage\"\n" +
     "      ng-click=\"selectDisplay(DISPLAY_TYPES.COVERAGE)\">\n" +
-    "      <coverage-result-table result=\"result.coverage\" loading=\"loading\" bucket=\"bucket\" class=\"voffset2\"></coverage-result-table>\n" +
+    "      <coverage-result-table result=\"result.coverage\" loading=\"loading\" bucket=\"bucket\" query=\"query\" class=\"voffset2\"></coverage-result-table>\n" +
     "\n" +
     "    </uib-tab>\n" +
     "\n" +
@@ -6136,6 +6152,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "    <result-panel display=\"search.display\"\n" +
     "                  type=\"search.type\"\n" +
     "                  bucket=\"search.bucket\"\n" +
+    "                  query=\"search.executedQuery\"\n" +
     "                  result=\"search.result\"\n" +
     "                  loading=\"search.loading\"\n" +
     "                  on-type-changed=\"onTypeChanged\"\n" +
