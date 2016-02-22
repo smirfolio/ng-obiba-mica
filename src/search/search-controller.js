@@ -239,7 +239,7 @@ angular.module('obiba.mica.search')
                 onError);
               break;
             case DISPLAY_TYPES.COVERAGE:
-              $scope.search.executedQuery = RqlQueryService.prepareCoverageQuery(localizedQuery, [$scope.search.bucket]);
+              $scope.search.executedQuery = RqlQueryService.prepareCoverageQuery(localizedQuery, $scope.search.bucket);
               JoinQueryCoverageResource.get({query: $scope.search.executedQuery},
                 function onSuccess(response) {
                   $scope.search.result.coverage = response;
@@ -999,7 +999,7 @@ angular.module('obiba.mica.search')
       $scope.$watch('result', function () {
         $scope.table = {};
         $scope.table.cols = [];
-        if ($scope.result) {
+        if ($scope.result && $scope.result.rows) {
           $scope.table = $scope.result;
           $scope.table.cols = splitIds();
         }
