@@ -2372,17 +2372,17 @@ angular.module('obiba.mica.search')
        * Append the aggregate and bucket operations to the variable.
        *
        * @param query
-       * @param bucketArgs
+       * @param bucketArg
        * @returns the new query
        */
-      this.prepareCoverageQuery = function (query, bucketArgs) {
+      this.prepareCoverageQuery = function (query, bucketArg) {
         var parsedQuery = new RqlParser().parse(query);
         var aggregate = new RqlQuery('aggregate');
+
         var bucket = new RqlQuery('bucket');
-        bucketArgs.forEach(function (b) {
-          bucket.args.push(b);
-        });
+        bucket.args.push(bucketArg);
         aggregate.args.push(bucket);
+
         var variable;
         parsedQuery.args.forEach(function (arg) {
           if (!variable && arg.name === 'variable') {
@@ -2393,6 +2393,21 @@ angular.module('obiba.mica.search')
           variable = new RqlQuery('variable');
           parsedQuery.args.push(variable);
         }
+
+        if(variable.args.length>0 && variable.args[0].name !== 'limit') {
+          var variableType = new RqlQuery('in');
+          variableType.args.push('Mica_variable.variableType');
+          if(bucketArg === 'networkId') {
+            variableType.args.push('dataschema');
+          } else {
+            variableType.args.push('study');
+          }
+          var andVariableType = new RqlQuery('and');
+          andVariableType.args.push(variableType);
+          andVariableType.args.push(variable.args[0]);
+          variable.args[0] = andVariableType;
+        }
+
         variable.args.push(aggregate);
         return parsedQuery.serializeArgs(parsedQuery.args);
       };
@@ -2910,7 +2925,7 @@ angular.module('obiba.mica.search')
                 onError);
               break;
             case DISPLAY_TYPES.COVERAGE:
-              $scope.search.executedQuery = RqlQueryService.prepareCoverageQuery(localizedQuery, [$scope.search.bucket]);
+              $scope.search.executedQuery = RqlQueryService.prepareCoverageQuery(localizedQuery, $scope.search.bucket);
               JoinQueryCoverageResource.get({query: $scope.search.executedQuery},
                 function onSuccess(response) {
                   $scope.search.result.coverage = response;
@@ -3670,7 +3685,7 @@ angular.module('obiba.mica.search')
       $scope.$watch('result', function () {
         $scope.table = {};
         $scope.table.cols = [];
-        if ($scope.result) {
+        if ($scope.result && $scope.result.rows) {
           $scope.table = $scope.result;
           $scope.table.cols = splitIds();
         }
