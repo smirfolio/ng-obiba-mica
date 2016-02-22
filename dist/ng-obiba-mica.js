@@ -5278,14 +5278,14 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "    <div ng-if=\"taxonomies.taxonomy\">\n" +
     "\n" +
     "      <div class=\"row\">\n" +
-    "        <div class=\"col-md-4\">\n" +
+    "        <div class=\"col-md-4 height3\">\n" +
     "          <h5 ng-repeat=\"label in taxonomies.taxonomy.title\" ng-if=\"label.locale === lang\">\n" +
     "            {{label.text}}\n" +
     "          </h5>\n" +
     "          <p class=\"help-block\" ng-repeat=\"label in taxonomies.taxonomy.description\" ng-if=\"label.locale === lang\">\n" +
     "            {{label.text}}\n" +
     "          </p>\n" +
-    "          <ul class=\"nav nav-pills nav-stacked height3\" ng-if=\"taxonomies.taxonomy.vocabularies\">\n" +
+    "          <ul class=\"nav nav-pills nav-stacked\" ng-if=\"taxonomies.taxonomy.vocabularies\">\n" +
     "            <li ng-repeat=\"vocabulary in taxonomies.taxonomy.vocabularies\" class=\"{{taxonomies.vocabulary.name === vocabulary.name ? 'active' : ''}}\">\n" +
     "              <a href ng-click=\"navigateTaxonomy(taxonomies.taxonomy, vocabulary)\">\n" +
     "                <span ng-repeat=\"label in vocabulary.title\" ng-if=\"label.locale === lang\">\n" +
@@ -5298,7 +5298,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "            </li>\n" +
     "          </ul>\n" +
     "        </div>\n" +
-    "        <div class=\"col-md-4\">\n" +
+    "        <div class=\"col-md-4 height3\">\n" +
     "          <div ng-if=\"taxonomies.vocabulary\">\n" +
     "            <h5 ng-repeat=\"label in taxonomies.vocabulary.title\" ng-if=\"label.locale === lang\">\n" +
     "              {{label.text}}\n" +
@@ -5312,7 +5312,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "                <span translate>add-query</span>\n" +
     "              </a>\n" +
     "            </div>\n" +
-    "            <ul class=\"nav nav-pills nav-stacked height3\" ng-if=\"taxonomies.vocabulary.terms\">\n" +
+    "            <ul class=\"nav nav-pills nav-stacked\" ng-if=\"taxonomies.vocabulary.terms\">\n" +
     "              <li ng-repeat=\"term in taxonomies.vocabulary.terms\" class=\"{{taxonomies.term.name === term.name ? 'active' : ''}}\">\n" +
     "                <a href ng-click=\"navigateTaxonomy(taxonomies.taxonomy, taxonomies.vocabulary, term)\">\n" +
     "                <span ng-repeat=\"label in term.title\" ng-if=\"label.locale === lang\">\n" +
@@ -5326,7 +5326,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "            </ul>\n" +
     "          </div>\n" +
     "        </div>\n" +
-    "        <div class=\"col-md-4\">\n" +
+    "        <div class=\"col-md-4 height3\">\n" +
     "          <div ng-if=\"taxonomies.term\">\n" +
     "            <h5 ng-repeat=\"label in taxonomies.term.title\" ng-if=\"label.locale === lang\">\n" +
     "              {{label.text}}\n" +
