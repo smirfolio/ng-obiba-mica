@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-02-22
+ * Date: 2016-02-23
  */
 'use strict';
 
@@ -5228,7 +5228,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "  <div class=\"panel-heading\">\n" +
     "    <div class=\"row\">\n" +
     "      <div class=\"col-md-8 voffset1\">\n" +
-    "        <ol class=\"mica-breadcrumb no-margin no-padding\">\n" +
+    "        <ol class=\"breadcrumb no-margin no-padding\">\n" +
     "          <li ng-if=\"!taxonomies.taxonomy\">\n" +
     "            {{'all-' + taxonomies.target + '-classifications' | translate}}\n" +
     "          </li>\n" +
@@ -5414,42 +5414,43 @@ angular.module("search/views/classifications/vocabulary-panel-template.html", []
 angular.module("search/views/coverage/coverage-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/coverage/coverage-search-result-table-template.html",
     "<div>\n" +
+    "  <div class=\"pull-left\">\n" +
+    "    <span translate>search.coverage-group-by</span>\n" +
+    "    <div class=\"btn-group\" uib-dropdown is-open=\"status.isopen\">\n" +
+    "      <button type=\"button\" class=\"btn btn-primary btn-sm\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
+    "        {{'search.coverage-buckets.' + bucket | translate}} <span class=\"caret\"></span>\n" +
+    "      </button>\n" +
+    "      <ul uib-dropdown-menu role=\"menu\">\n" +
+    "        <li role=\"menuitem\" ng-if=\"bucket !== BUCKET_TYPES.STUDYIDS\">\n" +
+    "          <a href ng-click=\"selectBucket(BUCKET_TYPES.STUDYIDS)\" translate>search.coverage-buckets.studyIds</a>\n" +
+    "        </li>\n" +
+    "        <li role=\"menuitem\" ng-if=\"bucket !== BUCKET_TYPES.DCEIDS\">\n" +
+    "          <a href ng-click=\"selectBucket(BUCKET_TYPES.DCEIDS)\" translate>search.coverage-buckets.dceIds</a>\n" +
+    "        </li>\n" +
+    "        <li role=\"menuitem\" ng-if=\"bucket !== BUCKET_TYPES.NETWORKID\">\n" +
+    "          <a href ng-click=\"selectBucket(BUCKET_TYPES.NETWORKID)\" translate>search.coverage-buckets.networkId</a>\n" +
+    "        </li>\n" +
+    "      </ul>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "\n" +
+    "  <div class=\"pull-right\" ng-if=\"table.taxonomyHeaders.length > 0\">\n" +
+    "    <a target=\"_self\" class=\"btn btn-info btn-responsive\" ng-href=\"{{downloadUrl()}}\">\n" +
+    "      <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
+    "    </a>\n" +
+    "    <!--<a href ng-click=\"toggleMissing(false)\" ng-if=\"showMissing\" translate>search.coverage-hide-missing</a>-->\n" +
+    "    <!--<a href ng-click=\"toggleMissing(true)\" ng-if=\"!showMissing\" translate>search.coverage-show-missing</a>-->\n" +
+    "  </div>\n" +
+    "\n" +
+    "  <div class=\"clearfix\"></div>\n" +
+    "\n" +
     "  <p class=\"help-block\" ng-if=\"!loading && !table.taxonomyHeaders\" translate>search.no-coverage</p>\n" +
     "\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
-    "\n" +
     "  <div class=\"table-responsive\" ng-if=\"table.taxonomyHeaders.length > 0\">\n" +
     "\n" +
-    "    <div class=\"pull-left\">\n" +
-    "      <span translate>search.coverage-group-by</span>\n" +
-    "      <div class=\"btn-group\" uib-dropdown is-open=\"status.isopen\">\n" +
-    "        <button type=\"button\" class=\"btn btn-primary btn-sm\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
-    "          {{'search.coverage-buckets.' + bucket | translate}} <span class=\"caret\"></span>\n" +
-    "        </button>\n" +
-    "        <ul uib-dropdown-menu role=\"menu\">\n" +
-    "          <li role=\"menuitem\" ng-if=\"bucket !== BUCKET_TYPES.STUDYIDS\">\n" +
-    "            <a href ng-click=\"selectBucket(BUCKET_TYPES.STUDYIDS)\" translate>search.coverage-buckets.studyIds</a>\n" +
-    "          </li>\n" +
-    "          <li role=\"menuitem\" ng-if=\"bucket !== BUCKET_TYPES.DCEIDS\">\n" +
-    "            <a href ng-click=\"selectBucket(BUCKET_TYPES.DCEIDS)\" translate>search.coverage-buckets.dceIds</a>\n" +
-    "          </li>\n" +
-    "          <li role=\"menuitem\" ng-if=\"bucket !== BUCKET_TYPES.NETWORKID\">\n" +
-    "            <a href ng-click=\"selectBucket(BUCKET_TYPES.NETWORKID)\" translate>search.coverage-buckets.networkId</a>\n" +
-    "          </li>\n" +
-    "        </ul>\n" +
-    "      </div>\n" +
-    "    </div>\n" +
     "\n" +
-    "    <div class=\"pull-right\">\n" +
-    "      <a target=\"_self\" class=\"btn btn-info btn-responsive\" ng-href=\"{{downloadUrl()}}\">\n" +
-    "        <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
-    "      </a>\n" +
-    "      <!--<a href ng-click=\"toggleMissing(false)\" ng-if=\"showMissing\" translate>search.coverage-hide-missing</a>-->\n" +
-    "      <!--<a href ng-click=\"toggleMissing(true)\" ng-if=\"!showMissing\" translate>search.coverage-show-missing</a>-->\n" +
-    "    </div>\n" +
-    "\n" +
-    "    <div class=\"clearfix\"></div>\n" +
     "\n" +
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
@@ -6079,12 +6080,13 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "  <obiba-alert id=\"SearchController\"></obiba-alert>\n" +
     "\n" +
     "  <!-- Nav tabs -->\n" +
-    "  <ul class=\"nav nav-tabs\" role=\"tablist\">\n" +
-    "    <li ng-repeat=\"tab in tabs\" role=\"presentation\" ng-class=\"{ active: tab === lang }\"><a href role=\"tab\" ng-click=\"setLocale(tab)\">{{'language.' + tab | translate}}</a></li>\n" +
+    "  <ul class=\"nav nav-tabs\" role=\"tablist\" ng-if=\"tabs && tabs.length>1\">\n" +
+    "    <li ng-repeat=\"tab in tabs\" role=\"presentation\" ng-class=\"{ active: tab === lang }\"><a href role=\"tab\"\n" +
+    "      ng-click=\"setLocale(tab)\">{{'language.' + tab | translate}}</a></li>\n" +
     "  </ul>\n" +
     "\n" +
     "  <!-- Classifications region -->\n" +
-    "  <div class=\"tab-content voffset4\">\n" +
+    "  <div class=\"{{tabs && tabs.length>1 ? 'tab-content voffset4' : ''}}\">\n" +
     "    <!--<div>-->\n" +
     "    <div class=\"row\">\n" +
     "      <div class=\"col-md-3\"></div>\n" +
@@ -6129,19 +6131,23 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      <div class=\"col-md-3\"></div>\n" +
     "      <div class=\"col-md-6\">\n" +
     "        <ul class=\"nav nav-pills\">\n" +
-    "          <li ng-show=\"settingsDisplay.variables.showSearchTab\" ng-class=\"{'active': taxonomies.target === 'variable' && taxonomiesShown}\"\n" +
+    "          <li ng-show=\"settingsDisplay.variables.showSearchTab\"\n" +
+    "            ng-class=\"{'active': taxonomies.target === 'variable' && taxonomiesShown}\"\n" +
     "            title=\"{{'variable-classifications' | translate}}\">\n" +
     "            <a ng-click=\"selectTaxonomyTarget('variable')\" translate>variables</a>\n" +
     "          </li>\n" +
-    "          <li ng-show=\"settingsDisplay.datasets.showSearchTab\" ng-class=\"{'active': taxonomies.target === 'dataset' && taxonomiesShown}\"\n" +
+    "          <li ng-show=\"settingsDisplay.datasets.showSearchTab\"\n" +
+    "            ng-class=\"{'active': taxonomies.target === 'dataset' && taxonomiesShown}\"\n" +
     "            title=\"{{'dataset-classifications' | translate}}\">\n" +
     "            <a ng-click=\"selectTaxonomyTarget('dataset')\" translate>datasets</a>\n" +
     "          </li>\n" +
-    "          <li ng-show=\"settingsDisplay.studies.showSearchTab\" ng-class=\"{'active': taxonomies.target === 'study' && taxonomiesShown}\"\n" +
+    "          <li ng-show=\"settingsDisplay.studies.showSearchTab\"\n" +
+    "            ng-class=\"{'active': taxonomies.target === 'study' && taxonomiesShown}\"\n" +
     "            title=\"{{'study-classifications' | translate}}\">\n" +
     "            <a ng-click=\"selectTaxonomyTarget('study')\" translate>studies</a>\n" +
     "          </li>\n" +
-    "          <li ng-show=\"settingsDisplay.networks.showSearchTab\" ng-class=\"{'active': taxonomies.target === 'network' && taxonomiesShown}\"\n" +
+    "          <li ng-show=\"settingsDisplay.networks.showSearchTab\"\n" +
+    "            ng-class=\"{'active': taxonomies.target === 'network' && taxonomiesShown}\"\n" +
     "            title=\"{{'network-classifications' | translate}}\">\n" +
     "            <a ng-click=\"selectTaxonomyTarget('network')\" translate>networks</a>\n" +
     "          </li>\n" +
@@ -6149,31 +6155,31 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      </div>\n" +
     "    </div>\n" +
     "    <div id=\"taxonomies\" class=\"collapse\">\n" +
-    "      <div ng-include=\"'search/views/classifications/taxonomies-view.html'\"></div>\n" +
+    "      <div ng-include=\"'search/views/classifications/taxonomies-view.html'\" class=\"voffset2\"></div>\n" +
     "    </div>\n" +
     "  </div>\n" +
     "\n" +
     "  <!-- Search criteria region -->\n" +
-    "  <div class=\"voffset3\">\n" +
-    "    <div class=\"row\">\n" +
-    "      <div class=\"col-md-12\">\n" +
-    "        <div criteria-root item=\"search.criteria\" query=\"search.query\" on-remove=\"removeCriteriaItem\" on-refresh=\"refreshQuery\"></div>\n" +
-    "      </div>\n" +
+    "  <div class=\"row\">\n" +
+    "    <div class=\"col-md-12\">\n" +
+    "      <div criteria-root item=\"search.criteria\" query=\"search.query\" on-remove=\"removeCriteriaItem\"\n" +
+    "        on-refresh=\"refreshQuery\"></div>\n" +
     "    </div>\n" +
     "  </div>\n" +
+    "\n" +
     "\n" +
     "  <!-- Results region -->\n" +
     "  <div class=\"voffset3\" ng-if=\"search.query\">\n" +
     "    <result-panel display=\"search.display\"\n" +
-    "                  type=\"search.type\"\n" +
-    "                  bucket=\"search.bucket\"\n" +
-    "                  query=\"search.executedQuery\"\n" +
-    "                  result=\"search.result\"\n" +
-    "                  loading=\"search.loading\"\n" +
-    "                  on-type-changed=\"onTypeChanged\"\n" +
-    "                  on-bucket-changed=\"onBucketChanged\"\n" +
-    "                  on-paginate=\"onPaginate\"\n" +
-    "                  lang=\"lang\"></result-panel>\n" +
+    "      type=\"search.type\"\n" +
+    "      bucket=\"search.bucket\"\n" +
+    "      query=\"search.executedQuery\"\n" +
+    "      result=\"search.result\"\n" +
+    "      loading=\"search.loading\"\n" +
+    "      on-type-changed=\"onTypeChanged\"\n" +
+    "      on-bucket-changed=\"onBucketChanged\"\n" +
+    "      on-paginate=\"onPaginate\"\n" +
+    "      lang=\"lang\"></result-panel>\n" +
     "  </div>\n" +
     "</div>");
 }]);
