@@ -949,7 +949,7 @@ angular.module('obiba.mica.search')
             rowSpan = appendRowSpan(id);
             cols.ids[row.value].push({
               id: id,
-              url: PageUrlService.studyPage(ids[0]),
+              url: PageUrlService.studyPopulationPage(ids[0], ids[1]),
               title: titles[1],
               description: descriptions[1],
               rowSpan: rowSpan
@@ -959,7 +959,7 @@ angular.module('obiba.mica.search')
             cols.ids[row.value].push({
               id: row.value,
               title: titles[2],
-              url: PageUrlService.studyPage(ids[0]),
+              url: PageUrlService.studyPopulationPage(ids[0], ids[1]),
               description: descriptions[2],
               rowSpan: 1
             });
