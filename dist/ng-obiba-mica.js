@@ -2457,9 +2457,9 @@ angular.module('obiba.mica.search')
           var variableType = new RqlQuery('in');
           variableType.args.push('Mica_variable.variableType');
           if(bucketArg === 'networkId') {
-            variableType.args.push('dataschema');
+            variableType.args.push('Dataschema');
           } else {
-            variableType.args.push('study');
+            variableType.args.push('Study');
           }
           var andVariableType = new RqlQuery('and');
           andVariableType.args.push(variableType);
@@ -2852,11 +2852,11 @@ angular.module('obiba.mica.search')
         study: $scope.options.studies.showSearchTab,
         network: $scope.options.networks.showSearchTab
       };
-      $scope.taxonomyTabsOrder = $scope.options.taxonomyTabsOrder.filter(function(t) {
+      $scope.taxonomyTabsOrder = $scope.options.taxonomyTabsOrder.filter(function (t) {
         return searchTaxonomyDisplay[t];
       });
       $scope.searchTabsOrder = $scope.options.searchTabsOrder;
-      $scope.resultTabsOrder = $scope.options.resultTabsOrder.filter(function(t) {
+      $scope.resultTabsOrder = $scope.options.resultTabsOrder.filter(function (t) {
         return searchTaxonomyDisplay[t];
       });
       $scope.lang = LocalizedValues.getLocal();
@@ -2869,21 +2869,6 @@ angular.module('obiba.mica.search')
         study: 'studies',
         network: 'networks',
         dataset: 'datasets'
-      };
-
-      ngObibaMicaSearch.getLocale(function (locales) {
-        if (angular.isArray(locales)) {
-          $scope.tabs = locales;
-          $scope.setLocale(locales[0]);
-        } else {
-          $scope.setLocale(locales || $scope.lang);
-        }
-      });
-
-      $scope.setLocale = function (locale) {
-        $scope.lang = locale;
-        SearchContext.setLocale($scope.lang);
-        executeSearchQuery();
       };
 
       function onError(response) {
@@ -3012,7 +2997,7 @@ angular.module('obiba.mica.search')
             case DISPLAY_TYPES.GRAPHICS:
               $scope.search.executedQuery = RqlQueryService.prepareGraphicsQuery(localizedQuery,
                 ['methods.designs', 'populations.selectionCriteria.countriesIso', 'populations.dataCollectionEvents.bioSamples', 'numberOfParticipants.participant.number']);
-                JoinQuerySearchResource.studies({query: $scope.search.executedQuery},
+              JoinQuerySearchResource.studies({query: $scope.search.executedQuery},
                 function onSuccess(response) {
                   $scope.search.result.graphics = response;
                   $scope.search.loading = false;
@@ -3023,8 +3008,74 @@ angular.module('obiba.mica.search')
         }
       }
 
+      ngObibaMicaSearch.getLocale(function (locales) {
+        if (angular.isArray(locales)) {
+          $scope.tabs = locales;
+          $scope.setLocale(locales[0]);
+        } else {
+          $scope.setLocale(locales || $scope.lang);
+        }
+      });
+
+      $scope.setLocale = function (locale) {
+        $scope.lang = locale;
+        SearchContext.setLocale($scope.lang);
+        executeSearchQuery();
+      };
+
       var closeTaxonomies = function () {
         angular.element('#taxonomies').collapse('hide');
+      };
+
+      var groupTaxonomies = function (taxonomies, target) {
+        var res = taxonomies.reduce(function (res, t) {
+          res[t.name] = t;
+          return res;
+        }, {});
+
+        return $scope.metaTaxonomy.$promise.then(function (metaTaxonomy) {
+          var targetVocabulary = metaTaxonomy.vocabularies.filter(function (v) {
+            return v.name === target;
+          })[0];
+
+          $scope.taxonomyGroups = targetVocabulary.terms.map(function (v) {
+            if (!v.terms) {
+              var taxonomy = res[v.name];
+
+              if (!taxonomy) {
+                return null;
+              }
+
+              taxonomy.title = v.title;
+              taxonomy.description = v.description;
+              return {title: null, taxonomies: [taxonomy]};
+            }
+
+            var taxonomies = v.terms.map(function (t) {
+                var taxonomy = res[t.name];
+
+                if (!taxonomy) {
+                  return null;
+                }
+
+                taxonomy.title = t.title;
+                taxonomy.description = t.description;
+                return taxonomy;
+              }).filter(function (t) {
+                return t;
+              }),
+              title = v.title.filter(function (t) { return t.locale === $scope.lang; })[0];
+            var description = v.description ? v.description.filter(function (t) { return t.locale === $scope.lang; })[0] : undefined;
+
+            return {
+              title: title ? title.text : null,
+              description: description ? description.text : null,
+              taxonomies: taxonomies
+            };
+          }).filter(function (t) {
+            return t;
+          });
+        });
       };
 
       var filterTaxonomies = function (query) {
@@ -3317,52 +3368,6 @@ angular.module('obiba.mica.search')
         target: 'variable',
         taxonomy: null,
         vocabulary: null
-      };
-
-      var groupTaxonomies = function (taxonomies, target) {
-        var res = taxonomies.reduce(function (res, t) {
-          res[t.name] = t;
-          return res;
-        }, {});
-
-        return $scope.metaTaxonomy.$promise.then(function (metaTaxonomy) {
-          var targetVocabulary = metaTaxonomy.vocabularies.filter(function(v) {
-            return v.name === target;
-          })[0];
-
-          $scope.taxonomyGroups = targetVocabulary.terms.map(function (v) {
-            if (!v.terms) {
-              var taxonomy = res[v.name];
-
-              if(!taxonomy) {
-                return null;
-              }
-
-              taxonomy.title = v.title;
-              taxonomy.description = v.description;
-              return {title: null, taxonomies: [taxonomy]};
-            }
-
-            var taxonomies = v.terms.map(function (t) {
-                var taxonomy = res[t.name];
-
-                if(!taxonomy) {
-                  return null;
-                }
-
-                taxonomy.title = t.title;
-                taxonomy.description = t.description;
-                return taxonomy;
-              }).filter(function (t) {
-                return t;
-              }),
-              title = v.title.filter(function (t) { return t.locale === $scope.lang; })[0];
-
-            return {title: title ? title.text : null, taxonomies: taxonomies};
-          }).filter(function(t) {
-            return t;
-          });
-        });
       };
 
       TaxonomiesResource.get({target: 'variable'}, function (taxonomies) {
@@ -3662,7 +3667,7 @@ angular.module('obiba.mica.search')
   .controller('CoverageResultTableController', [
     '$scope',
     'PageUrlService',
-    function ($scope,PageUrlService) {
+    function ($scope, PageUrlService) {
       $scope.showMissing = true;
       $scope.toggleMissing = function (value) {
         $scope.showMissing = value;
@@ -3719,6 +3724,7 @@ angular.module('obiba.mica.search')
         };
 
         var rowSpans = {};
+
         function appendRowSpan(id) {
           var rowSpan;
           if (!rowSpans[id]) {
@@ -3785,10 +3791,10 @@ angular.module('obiba.mica.search')
         // adjust the rowspans
         if ($scope.bucket === BUCKET_TYPES.DCEIDS) {
           $scope.result.rows.forEach(function (row) {
-            if(cols.ids[row.value][0].rowSpan > 0) {
+            if (cols.ids[row.value][0].rowSpan > 0) {
               cols.ids[row.value][0].rowSpan = rowSpans[cols.ids[row.value][0].id];
             }
-            if(cols.ids[row.value][1].rowSpan > 0) {
+            if (cols.ids[row.value][1].rowSpan > 0) {
               cols.ids[row.value][1].rowSpan = rowSpans[cols.ids[row.value][1].id];
             }
           });
@@ -3799,7 +3805,7 @@ angular.module('obiba.mica.search')
 
       $scope.BUCKET_TYPES = BUCKET_TYPES;
 
-      $scope.downloadUrl = function() {
+      $scope.downloadUrl = function () {
         return PageUrlService.downloadCoverage($scope.query);
       };
 
@@ -5398,6 +5404,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "    <div ng-if=\"!taxonomies.taxonomy\">\n" +
     "      <div ng-repeat=\"group in taxonomyGroups\">\n" +
     "        <h4 ng-if=\"group.title\">{{group.title}}</h4>\n" +
+    "        <p class=\"help-block\" ng-if=\"group.description\">{{group.description}}</p>\n" +
     "        <div ng-if=\"!taxonomies.taxonomy\">\n" +
     "          <div ng-repeat=\"taxonomy in group.taxonomies\" ng-if=\"$index % 3 == 0\" class=\"row\">\n" +
     "            <div class=\"col-md-4\">\n" +
