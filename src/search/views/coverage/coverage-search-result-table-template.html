@@ -1,40 +1,41 @@
 <div>
+  <div class="pull-left">
+    <span translate>search.coverage-group-by</span>
+    <div class="btn-group" uib-dropdown is-open="status.isopen">
+      <button type="button" class="btn btn-primary btn-sm" uib-dropdown-toggle ng-disabled="disabled">
+        {{'search.coverage-buckets.' + bucket | translate}} <span class="caret"></span>
+      </button>
+      <ul uib-dropdown-menu role="menu">
+        <li role="menuitem" ng-if="bucket !== BUCKET_TYPES.STUDYIDS">
+          <a href ng-click="selectBucket(BUCKET_TYPES.STUDYIDS)" translate>search.coverage-buckets.studyIds</a>
+        </li>
+        <li role="menuitem" ng-if="bucket !== BUCKET_TYPES.DCEIDS">
+          <a href ng-click="selectBucket(BUCKET_TYPES.DCEIDS)" translate>search.coverage-buckets.dceIds</a>
+        </li>
+        <li role="menuitem" ng-if="bucket !== BUCKET_TYPES.NETWORKID">
+          <a href ng-click="selectBucket(BUCKET_TYPES.NETWORKID)" translate>search.coverage-buckets.networkId</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="pull-right" ng-if="table.taxonomyHeaders.length > 0">
+    <a target="_self" class="btn btn-info btn-responsive" ng-href="{{downloadUrl()}}">
+      <i class="fa fa-download"></i> {{'download' | translate}}
+    </a>
+    <!--<a href ng-click="toggleMissing(false)" ng-if="showMissing" translate>search.coverage-hide-missing</a>-->
+    <!--<a href ng-click="toggleMissing(true)" ng-if="!showMissing" translate>search.coverage-show-missing</a>-->
+  </div>
+
+  <div class="clearfix"></div>
+
   <p class="help-block" ng-if="!loading && !table.taxonomyHeaders" translate>search.no-coverage</p>
 
   <div ng-if="loading" class="loading"></div>
 
-
   <div class="table-responsive" ng-if="table.taxonomyHeaders.length > 0">
 
-    <div class="pull-left">
-      <span translate>search.coverage-group-by</span>
-      <div class="btn-group" uib-dropdown is-open="status.isopen">
-        <button type="button" class="btn btn-primary btn-sm" uib-dropdown-toggle ng-disabled="disabled">
-          {{'search.coverage-buckets.' + bucket | translate}} <span class="caret"></span>
-        </button>
-        <ul uib-dropdown-menu role="menu">
-          <li role="menuitem" ng-if="bucket !== BUCKET_TYPES.STUDYIDS">
-            <a href ng-click="selectBucket(BUCKET_TYPES.STUDYIDS)" translate>search.coverage-buckets.studyIds</a>
-          </li>
-          <li role="menuitem" ng-if="bucket !== BUCKET_TYPES.DCEIDS">
-            <a href ng-click="selectBucket(BUCKET_TYPES.DCEIDS)" translate>search.coverage-buckets.dceIds</a>
-          </li>
-          <li role="menuitem" ng-if="bucket !== BUCKET_TYPES.NETWORKID">
-            <a href ng-click="selectBucket(BUCKET_TYPES.NETWORKID)" translate>search.coverage-buckets.networkId</a>
-          </li>
-        </ul>
-      </div>
-    </div>
 
-    <div class="pull-right">
-      <a target="_self" class="btn btn-info btn-responsive" ng-href="{{downloadUrl()}}">
-        <i class="fa fa-download"></i> {{'download' | translate}}
-      </a>
-      <!--<a href ng-click="toggleMissing(false)" ng-if="showMissing" translate>search.coverage-hide-missing</a>-->
-      <!--<a href ng-click="toggleMissing(true)" ng-if="!showMissing" translate>search.coverage-show-missing</a>-->
-    </div>
-
-    <div class="clearfix"></div>
 
     <table class="table table-bordered table-striped">
       <thead>
