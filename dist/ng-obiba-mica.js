@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-02-23
+ * Date: 2016-02-24
  */
 'use strict';
 
@@ -1309,7 +1309,7 @@ angular.module('obiba.mica.search')
       var out = [];
 
       try {
-        var pattern = new RegExp(regex);
+        var pattern = new RegExp(regex, 'i');
         out = elements.filter(function(element) {
           return fields.some(function(field){
             return pattern.test(element[field]);
