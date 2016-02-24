@@ -38,6 +38,7 @@
     <div ng-if="!taxonomies.taxonomy">
       <div ng-repeat="group in taxonomyGroups">
         <h4 ng-if="group.title">{{group.title}}</h4>
+        <p class="help-block" ng-if="group.description">{{group.description}}</p>
         <div ng-if="!taxonomies.taxonomy">
           <div ng-repeat="taxonomy in group.taxonomies" ng-if="$index % 3 == 0" class="row">
             <div class="col-md-4">
