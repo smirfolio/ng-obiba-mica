@@ -5841,14 +5841,6 @@ angular.module("search/views/list/datasets-search-result-table-template.html", [
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
     "  <div ng-show=\"summaries.length > 0\">\n" +
-    "    <div class=\"row voffset2\">\n" +
-    "      <div class=\"col-xs-4\">\n" +
-    "      </div>\n" +
-    "      <div class=\"col-xs-8\">\n" +
-    "        <dir-pagination-controls class=\"pull-right\"></dir-pagination-controls>\n" +
-    "      </div>\n" +
-    "    </div>\n" +
-    "\n" +
     "    <div class=\"table-responsive\">\n" +
     "      <table class=\"table table-bordered table-striped\">\n" +
     "        <thead>\n" +
@@ -5897,15 +5889,6 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
     "  <div ng-show=\"summaries.length > 0\">\n" +
-    "\n" +
-    "    <div class=\"row voffset2\">\n" +
-    "      <div class=\"col-xs-4\">\n" +
-    "      </div>\n" +
-    "      <div class=\"col-xs-8\">\n" +
-    "        <dir-pagination-controls class=\"pull-right\"></dir-pagination-controls>\n" +
-    "      </div>\n" +
-    "    </div>\n" +
-    "\n" +
     "    <div class=\"table-responsive\">\n" +
     "      <table class=\"table table-bordered table-striped\">\n" +
     "        <thead>\n" +
@@ -6019,15 +6002,6 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
     "  <div ng-show=\"summaries.length > 0\">\n" +
-    "\n" +
-    "    <div class=\"row voffset2\">\n" +
-    "      <div class=\"col-xs-4\">\n" +
-    "      </div>\n" +
-    "      <div class=\"col-xs-8\">\n" +
-    "        <dir-pagination-controls class=\"pull-right\"></dir-pagination-controls>\n" +
-    "      </div>\n" +
-    "    </div>\n" +
-    "\n" +
     "    <div class=\"table-responsive\">\n" +
     "      <table class=\"table table-bordered table-striped\">\n" +
     "        <thead>\n" +
