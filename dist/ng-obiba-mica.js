@@ -2112,6 +2112,18 @@ angular.module('obiba.mica.search')
       }
     };
 
+    this.addSort = function (targetQuery, sort) {
+      var found = targetQuery.args.filter(function (arg) {
+        return arg.name === RQL_NODE.SORT;
+      }).pop();
+
+      if (!found) {
+        var sortQuery = new RqlQuery('sort');
+        sortQuery.args.push(sort);
+        targetQuery.args.push(sortQuery);
+      }
+    };
+
     /**
      * Helper finding the vocabulary field, return name if none was found
      *
@@ -2410,7 +2422,7 @@ angular.module('obiba.mica.search')
         return parsedQuery.serializeArgs(parsedQuery.args);
       };
 
-      this.prepareSearchQuery = function(type, query, pagination, lang) {
+      this.prepareSearchQuery = function(type, query, pagination, lang, sort) {
         var rqlQuery = angular.copy(query);
         var target = typeToTarget(type);
         RqlQueryUtils.addLocaleQuery(rqlQuery, lang);
@@ -2423,6 +2435,10 @@ angular.module('obiba.mica.search')
 
         var limit = pagination[target] || {from: 0, size: 10};
         RqlQueryUtils.addLimit(targetQuery, RqlQueryUtils.limit(limit.from, limit.size));
+
+        if(sort) {
+          RqlQueryUtils.addSort(targetQuery, sort);
+        }
 
         return new RqlQuery().serializeArgs(rqlQuery.args);
       };
@@ -3002,7 +3018,9 @@ angular.module('obiba.mica.search')
               $scope.search.type,
               $scope.search.rqlQuery,
               $scope.search.pagination,
-              $scope.lang);
+              $scope.lang,
+              $scope.search.type === 'variables' ? 'name' : 'acronym.' + $scope.lang
+            );
 
           $scope.search.loading = true;
           switch ($scope.search.display) {
@@ -3448,12 +3466,14 @@ angular.module('obiba.mica.search')
       $scope.QUERY_TARGETS = QUERY_TARGETS;
       $scope.QUERY_TYPES = QUERY_TYPES;
       $scope.options = ngObibaMicaSearch.getOptions();
+
       var resultTypeDisplay = {
         variable: $scope.options.variables.showSearchTab,
         dataset: $scope.options.datasets.showSearchTab,
         study: $scope.options.studies.showSearchTab,
         network: $scope.options.networks.showSearchTab
       };
+
       $scope.activeDisplay = {};
       $scope.activeDisplay[$scope.display] = true;
       $scope.activeTarget = {};
@@ -4070,7 +4090,7 @@ angular.module('obiba.mica.search')
     };
   }])
 
-  .directive('datasetsResultTable', ['PageUrlService', 'ngObibaMicaSearch', function (PageUrlService, ngObibaMicaSearch) {
+  .directive('datasetsResultTable', ['PageUrlService', 'ngObibaMicaSearch', 'TaxonomyResource', function (PageUrlService, ngObibaMicaSearch, TaxonomyResource) {
     return {
       restrict: 'EA',
       replace: true,
@@ -4080,13 +4100,30 @@ angular.module('obiba.mica.search')
       },
       templateUrl: 'search/views/list/datasets-search-result-table-template.html',
       link: function(scope) {
+        scope.classNames = {};
+        TaxonomyResource.get({
+          target: 'dataset',
+          taxonomy: 'Mica_dataset'
+        }).$promise.then(function (taxonomy) {
+            scope.classNames = taxonomy.vocabularies.filter(function (v) {
+              return v.name === 'className';
+            })[0].terms.reduce(function (prev, t) {
+                prev[t.name] = t.title.map(function (t) {
+                  return {lang: t.locale, value: t.text};
+                });
+                return prev;
+              }, {});
+
+            console.log('>>>', scope.classNames);
+          });
+
         scope.options = ngObibaMicaSearch.getOptions().datasets.datasetsColumn;
         scope.PageUrlService = PageUrlService;
       }
     };
   }])
 
-  .directive('studiesResultTable', ['PageUrlService', 'ngObibaMicaSearch', function (PageUrlService, ngObibaMicaSearch) {
+  .directive('studiesResultTable', ['PageUrlService', 'ngObibaMicaSearch', 'TaxonomyResource', function (PageUrlService, ngObibaMicaSearch, TaxonomyResource) {
     return {
       restrict: 'EA',
       replace: true,
@@ -4096,6 +4133,25 @@ angular.module('obiba.mica.search')
       },
       templateUrl: 'search/views/list/studies-search-result-table-template.html',
       link: function(scope) {
+        scope.designs = {};
+        TaxonomyResource.get({
+          target: 'study',
+          taxonomy: 'Mica_study'
+        }).$promise.then(function (taxonomy) {
+            scope.designs = taxonomy.vocabularies.filter(function (v) {
+              return v.name === 'methods-designs';
+            })[0].terms.reduce(function (prev, t) {
+                prev[t.name] = t.title.map(function (t) {
+                  return {lang: t.locale, value: t.text};
+                });
+                return prev;
+              }, {});
+          });
+
+        scope.hasDatasource = function (datasources, id) {
+          return datasources.indexOf(id) > -1;
+        };
+
         scope.options = ngObibaMicaSearch.getOptions().studies.studiesColumn;
         scope.PageUrlService = PageUrlService;
       }
@@ -5912,7 +5968,7 @@ angular.module("search/views/list/datasets-search-result-table-template.html", [
     "        </tr>\n" +
     "        </thead>\n" +
     "        <tbody>\n" +
-    "        <tr ng-repeat=\"summary in summaries\">\n" +
+    "        <tr ng-repeat=\"summary in summaries\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "          <td>\n" +
     "            <a ng-href=\"{{PageUrlService.datasetPage(summary.id, summary.variableType)}}\">\n" +
     "              <localized value=\"summary.acronym\" lang=\"lang\"></localized>\n" +
@@ -5922,7 +5978,7 @@ angular.module("search/views/list/datasets-search-result-table-template.html", [
     "            <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
     "          <td ng-if=\"options.showDatasetsTypeColumn\">\n" +
-    "            <localized value=\"summary.type\" lang=\"lang\"></localized>\n" +
+    "            <localized value=\"classNames[summary.variableType + 'Dataset']\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
     "          <td ng-if=\"options.showDatasetsNetworkColumn\">\n" +
     "            {{summary['obiba.mica.CountStatsDto.datasetCountStats'].networks}}\n" +
@@ -5948,26 +6004,21 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
     "\n" +
     "  <div ng-show=\"summaries.length > 0\">\n" +
     "    <div class=\"table-responsive\">\n" +
-    "      <table class=\"table table-bordered table-striped\">\n" +
+    "      <table class=\"table table-bordered table-striped\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "        <thead>\n" +
     "        <tr>\n" +
-    "          <th translate>acronym</th>\n" +
-    "          <th translate>name</th>\n" +
-    "          <th translate ng-if=\"options.showNetworksStudiesColumn\">studies</th>\n" +
+    "          <th rowspan=\"2\" translate>acronym</th>\n" +
+    "          <th rowspan=\"2\" translate>name</th>\n" +
+    "          <th rowspan=\"2\" translate ng-if=\"options.showNetworksStudiesColumn\">studies</th>\n" +
     "          <th translate ng-attr-colspan=\"{{options.showNetworksStudyDatasetColumn + options.showNetworksHarmonizedDatasetColumn}}\">datasets</th>\n" +
-    "          <th translate ng-if=\"options.showNetworksVariablesColumn\">variables</th>\n" +
+    "          <th rowspan=\"2\" translate ng-if=\"options.showNetworksVariablesColumn\">variables</th>\n" +
     "        </tr>\n" +
     "        <tr>\n" +
-    "          <th></th>\n" +
-    "          <th></th>\n" +
-    "          <th ng-if=\"options.showNetworksStudiesColumn\"></th>\n" +
-    "          <th translate ng-if=\"options.showNetworksStudyDatasetColumn\">study</th>\n" +
-    "          <th translate ng-if=\"options.showNetworksHarmonizedDatasetColumn\">harmonization</th>\n" +
-    "          <th ng-if=\"options.showNetworksVariablesColumn\"></th>\n" +
+    "          <th translate ng-if=\"options.showNetworksStudyDatasetColumn\">search.study.label</th>\n" +
+    "          <th translate ng-if=\"options.showNetworksHarmonizedDatasetColumn\">search.harmonization</th>\n" +
     "        </tr>\n" +
     "        </thead>\n" +
     "        <tbody>\n" +
-    "\n" +
     "        <tr ng-repeat=\"summary in summaries\">\n" +
     "          <td>\n" +
     "            <a ng-href=\"{{PageUrlService.networkPage(summary.id)}}\">\n" +
@@ -5978,13 +6029,13 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
     "            <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
     "          <td ng-if=\"options.showNetworksStudiesColumn\">\n" +
-    "            {{summary['obiba.mica.CountStatsDto.networkCountStats'].studies}}\n" +
+    "            {{summary['obiba.mica.CountStatsDto.networkCountStats'].studies || '-'}}\n" +
     "          </td>\n" +
     "          <td ng-if=\"options.showNetworksStudyDatasetColumn\">\n" +
-    "            {{summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets}}\n" +
+    "            {{summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets || '-'}}\n" +
     "          </td>\n" +
     "          <td ng-if=\"options.showNetworksHarmonizedDatasetColumn\">\n" +
-    "            {{summary['obiba.mica.CountStatsDto.networkCountStats'].harmonizationDatasets}}\n" +
+    "            {{summary['obiba.mica.CountStatsDto.networkCountStats'].harmonizationDatasets || '-'}}\n" +
     "          </td>\n" +
     "          <td ng-if=\"options.showNetworksVariablesColumn\">\n" +
     "            {{summary['obiba.mica.CountStatsDto.networkCountStats'].variables}}\n" +
@@ -6064,23 +6115,22 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "      <table class=\"table table-bordered table-striped\">\n" +
     "        <thead>\n" +
     "        <tr>\n" +
-    "          <th translate>acronym</th>\n" +
-    "          <th translate>name</th>\n" +
-    "          <th translate>design</th>\n" +
-    "          <th translate>participants</th>\n" +
-    "          <th translate ng-if=\"options.showStudiesNetworksColumn\">networks</th>\n" +
+    "          <th rowspan=\"2\" translate>acronym</th>\n" +
+    "          <th rowspan=\"2\" translate>name</th>\n" +
+    "          <th rowspan=\"2\" translate>search.study.design</th>\n" +
+    "          <th translate colspan=\"4\">search.study.dataSources</th>\n" +
+    "          <th rowspan=\"2\" translate>search.study.participants</th>\n" +
+    "          <th rowspan=\"2\" translate ng-if=\"options.showStudiesNetworksColumn\">networks</th>\n" +
     "          <th translate ng-attr-colspan=\"{{options.showStudiesDatasetsColumn + options.showStudiesHarmonizedDatasetsColumn}}\">datasets</th>\n" +
-    "          <th translate ng-if=\"options.showStudiesVariablesColumn\">variables</th>\n" +
+    "          <th rowspan=\"2\" translate ng-if=\"options.showStudiesVariablesColumn\">variables</th>\n" +
     "        </tr>\n" +
     "        <tr>\n" +
-    "          <th></th>\n" +
-    "          <th></th>\n" +
-    "          <th></th>\n" +
-    "          <th></th>\n" +
-    "          <th ng-if=\"options.showStudiesNetworksColumn\"></th>\n" +
-    "          <th translate ng-if=\"options.showStudiesDatasetsColumn\">study</th>\n" +
-    "          <th translate ng-if=\"options.showStudiesHarmonizedDatasetsColumn\">harmonization</th>\n" +
-    "          <th ng-if=\"options.showStudiesVariablesColumn\"></th>\n" +
+    "          <th translate>search.study.quest</th>\n" +
+    "          <th translate>search.study.pm</th>\n" +
+    "          <th translate>search.study.bio</th>\n" +
+    "          <th translate>search.study.others</th>\n" +
+    "          <th translate ng-if=\"options.showStudiesDatasetsColumn\">search.study.label</th>\n" +
+    "          <th translate ng-if=\"options.showStudiesHarmonizedDatasetsColumn\">search.harmonization</th>\n" +
     "        </tr>\n" +
     "        </thead>\n" +
     "        <tbody>\n" +
@@ -6094,19 +6144,31 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "            <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
     "          <td>\n" +
-    "            {{summary.designs.join(', ')}}\n" +
+    "            <localized ng-repeat=\"d in summary.designs\" value=\"designs[d]\" lang=\"lang\"></localized>\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'questionnaires')\"></i><span ng-if=\"!hasDatasource(summary.dataSources, 'questionnaires')\">-</span>\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'physical_measures')\"></i><span ng-if=\"!hasDatasource(summary.dataSources, 'physical_measures')\">-</span>\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'biological_samples')\"></i><span ng-if=\"!hasDatasource(summary.dataSources, 'biological_samples')\">-</span>\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'others')\"></i><span ng-if=\"!hasDatasource(summary.dataSources, 'others')\">-</span>\n" +
     "          </td>\n" +
     "          <td>\n" +
     "            {{summary.targetNumber.number}}\n" +
     "          </td>\n" +
     "          <td ng-if=\"options.showStudiesNetworksColumn\">\n" +
-    "            {{summary['obiba.mica.CountStatsDto.studyCountStats'].networks}}\n" +
+    "            {{summary['obiba.mica.CountStatsDto.studyCountStats'].networks || '-'}}\n" +
     "          </td>\n" +
     "          <td ng-if=\"options.showStudiesDatasetsColumn\">\n" +
-    "            {{summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets}}\n" +
+    "            {{summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets || '-'}}\n" +
     "          </td>\n" +
     "          <td ng-if=\"options.showStudiesHarmonizedDatasetsColumn\">\n" +
-    "            {{summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets}}\n" +
+    "            {{summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets || '-'}}\n" +
     "          </td>\n" +
     "          <td ng-if=\"options.showStudiesVariablesColumn\">\n" +
     "            {{summary['obiba.mica.CountStatsDto.studyCountStats'].variables}}\n" +
@@ -6127,13 +6189,13 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
     "\n" +
     "  <div ng-show=\"summaries.length > 0\">\n" +
     "    <div class=\"table-responsive\">\n" +
-    "      <table class=\"table table-bordered table-striped\">\n" +
+    "      <table class=\"table table-bordered table-striped\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "        <thead>\n" +
     "        <tr>\n" +
     "          <th translate>name</th>\n" +
-    "          <th translate>label</th>\n" +
-    "          <th translate ng-if=\"options.showVariablesStudiesColumn\">study</th>\n" +
-    "          <th translate ng-if=\"options.showVariablesDatasetsColumn\">dataset</th>\n" +
+    "          <th translate>search.variable.label</th>\n" +
+    "          <th translate ng-if=\"options.showVariablesStudiesColumn\">study.label</th>\n" +
+    "          <th translate ng-if=\"options.showVariablesDatasetsColumn\">search.dataset.label</th>\n" +
     "        </tr>\n" +
     "        </thead>\n" +
     "        <tbody>\n" +
