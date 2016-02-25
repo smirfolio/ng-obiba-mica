@@ -5854,13 +5854,42 @@ angular.module("search/views/graphics/graphics-search-result-template.html", [])
   $templateCache.put("search/views/graphics/graphics-search-result-template.html",
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
-    "<div class=\"row\">\n" +
-    "  <div class=\"col-md-6\" ng-repeat=\"chart in chartObjects \">\n" +
-    "    <div ng-if=\"chart.chartObject.geoTitle\" style=\"font-family:Arial; font-weight:bold\">{{chart.chartObject.geoTitle}}</div>\n" +
-    "    <div google-chart chart=\"chart.chartObject\" style=\"min-height:350px; width:100%;\">\n" +
+    "\n" +
+    "  <div ng-repeat=\"chart in chartObjects\" class=\"panel panel-default\">\n" +
+    "    <div class=\"panel-heading\">\n" +
+    "      {{chart.chartObject.options.title}}\n" +
     "    </div>\n" +
+    "    <div class=\"panel-body\">\n" +
+    "      <div class=\"row\">\n" +
+    "        <div class=\"col-md-6\">\n" +
+    "          <div google-chart chart=\"chart.chartObject\" style=\"min-height:350px; width:100%;\"></div>\n" +
+    "        </div>\n" +
+    "        <div class=\"col-md-6\">\n" +
+    "          <div class=\"table-responsive\" ng-if=\"chart.chartObject.data && chart.chartObject.data.length>1\">\n" +
+    "            <table class=\"table table-bordered table-striped\">\n" +
+    "              <thead>\n" +
+    "              <tr>\n" +
+    "                <th>{{chart.chartObject.data[0][0]}}</th>\n" +
+    "                <th>{{chart.chartObject.data[0][1]}}</th>\n" +
+    "              </tr>\n" +
+    "              </thead>\n" +
+    "              <tbody>\n" +
+    "              <tr ng-repeat=\"row in chart.chartObject.data.slice(1)\">\n" +
+    "                <td>{{row[0]}}</td>\n" +
+    "                <td>{{row[1]}}</td>\n" +
+    "              </tr>\n" +
+    "              </tbody>\n" +
+    "            </table>\n" +
+    "          </div>\n" +
+    "        </div>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <!--<pre>-->\n" +
+    "    <!--{{chart | json}}-->\n" +
+    "    <!--</pre>-->\n" +
     "  </div>\n" +
-    "</div>\n" +
+    "\n" +
     "</div>");
 }]);
 
