@@ -5402,8 +5402,8 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "<div class=\"panel panel-default\">\n" +
     "  <div class=\"panel-heading\">\n" +
     "    <div class=\"row\">\n" +
-    "      <div class=\"col-md-8 voffset1\">\n" +
-    "        <ol class=\"breadcrumb no-margin no-padding\">\n" +
+    "      <div class=\"col-md-8\">\n" +
+    "        <ol class=\"breadcrumb no-margin no-padding pull-left\">\n" +
     "          <li ng-if=\"!taxonomies.taxonomy\">\n" +
     "            {{'all-' + taxonomies.target + '-classifications' | translate}}\n" +
     "          </li>\n" +
@@ -5418,12 +5418,8 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "        </ol>\n" +
     "      </div>\n" +
     "      <div class=\"col-md-4\">\n" +
-    "        <div class=\"form-inline pull-right\">\n" +
-    "          <div class=\"form-group\">\n" +
-    "            <span ng-click=\"closeTaxonomies()\" title=\"{{'close' | translate}}\" class=\"hoffset3\"><i\n" +
-    "              class=\"fa fa-close\"></i></span>\n" +
-    "          </div>\n" +
-    "        </div>\n" +
+    "        <span ng-click=\"closeTaxonomies()\" title=\"{{'close' | translate}}\" class=\"pull-right\"><i\n" +
+    "          class=\"fa fa-close\"></i></span>\n" +
     "      </div>\n" +
     "    </div>\n" +
     "  </div>\n" +
@@ -5441,11 +5437,11 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "            </div>\n" +
     "            <div class=\"col-md-4\">\n" +
     "              <div taxonomy-panel taxonomy=\"group.taxonomies[$index + 1]\" lang=\"lang\"\n" +
-    "                  on-navigate=\"navigateTaxonomy\"></div>\n" +
+    "                on-navigate=\"navigateTaxonomy\"></div>\n" +
     "            </div>\n" +
     "            <div class=\"col-md-4\">\n" +
     "              <div taxonomy-panel taxonomy=\"group.taxonomies[$index + 2]\" lang=\"lang\"\n" +
-    "                  on-navigate=\"navigateTaxonomy\"></div>\n" +
+    "                on-navigate=\"navigateTaxonomy\"></div>\n" +
     "            </div>\n" +
     "          </div>\n" +
     "        </div>\n" +
@@ -5462,7 +5458,8 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "            {{label.text}}\n" +
     "          </p>\n" +
     "          <ul class=\"nav nav-pills nav-stacked\" ng-if=\"taxonomies.taxonomy.vocabularies\">\n" +
-    "            <li ng-repeat=\"vocabulary in taxonomies.taxonomy.vocabularies\" class=\"{{taxonomies.vocabulary.name === vocabulary.name ? 'active' : ''}}\">\n" +
+    "            <li ng-repeat=\"vocabulary in taxonomies.taxonomy.vocabularies\"\n" +
+    "              class=\"{{taxonomies.vocabulary.name === vocabulary.name ? 'active' : ''}}\">\n" +
     "              <a href ng-click=\"navigateTaxonomy(taxonomies.taxonomy, vocabulary)\">\n" +
     "                <span ng-repeat=\"label in vocabulary.title\" ng-if=\"label.locale === lang\">\n" +
     "                  {{label.text}}\n" +
@@ -5483,13 +5480,15 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "              {{label.text}}\n" +
     "            </p>\n" +
     "            <div>\n" +
-    "              <a href class=\"btn btn-default btn-xs\" ng-click=\"selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary)\">\n" +
+    "              <a href class=\"btn btn-default btn-xs\"\n" +
+    "                ng-click=\"selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary)\">\n" +
     "                <i class=\"fa fa-plus-circle\"></i>\n" +
     "                <span translate>add-query</span>\n" +
     "              </a>\n" +
     "            </div>\n" +
     "            <ul class=\"nav nav-pills nav-stacked\" ng-if=\"taxonomies.vocabulary.terms\">\n" +
-    "              <li ng-repeat=\"term in taxonomies.vocabulary.terms\" class=\"{{taxonomies.term.name === term.name ? 'active' : ''}}\">\n" +
+    "              <li ng-repeat=\"term in taxonomies.vocabulary.terms\"\n" +
+    "                class=\"{{taxonomies.term.name === term.name ? 'active' : ''}}\">\n" +
     "                <a href ng-click=\"navigateTaxonomy(taxonomies.taxonomy, taxonomies.vocabulary, term)\">\n" +
     "                <span ng-repeat=\"label in term.title\" ng-if=\"label.locale === lang\">\n" +
     "                  {{label.text}}\n" +
@@ -5511,7 +5510,8 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "              <span class=\"help-block\">{{label.text}}</span>\n" +
     "            </p>\n" +
     "            <div>\n" +
-    "              <a href class=\"btn btn-default btn-xs\" ng-click=\"selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary, taxonomies.term)\">\n" +
+    "              <a href class=\"btn btn-default btn-xs\"\n" +
+    "                ng-click=\"selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary, taxonomies.term)\">\n" +
     "                <i class=\"fa fa-plus-circle\"></i>\n" +
     "                <span translate>add-query</span>\n" +
     "              </a>\n" +
