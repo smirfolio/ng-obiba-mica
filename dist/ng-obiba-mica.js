@@ -5525,9 +5525,9 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
 angular.module("search/views/classifications/taxonomy-panel-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/classifications/taxonomy-panel-template.html",
     "<div>\n" +
-    "  <h4 ng-repeat=\"label in taxonomy.title\" ng-if=\"label.locale === lang\">\n" +
+    "  <h5 ng-repeat=\"label in taxonomy.title\" ng-if=\"label.locale === lang\">\n" +
     "    <a href ng-click=\"onNavigate(taxonomy)\">{{label.text}}</a>\n" +
-    "  </h4>\n" +
+    "  </h5>\n" +
     "  <p class=\"help-block\" ng-repeat=\"label in taxonomy.description\" ng-if=\"label.locale === lang\">\n" +
     "    {{label.text}}\n" +
     "  </p>\n" +
