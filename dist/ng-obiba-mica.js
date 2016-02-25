@@ -3403,12 +3403,6 @@ angular.module('obiba.mica.search')
         vocabulary: null
       };
 
-      //TaxonomiesResource.get({target: 'variable'}, function (taxonomies) {
-      //  $scope.taxonomies.all = taxonomies;
-      //  groupTaxonomies(taxonomies, 'variable');
-      //});
-
-
       $scope.headerTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('view');
       $scope.clearFilterTaxonomies = clearFilterTaxonomies;
       $scope.searchCriteria = searchCriteria;
