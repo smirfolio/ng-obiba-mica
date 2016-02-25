@@ -140,7 +140,7 @@ angular.module('obiba.mica.search')
           });
 
         scope.hasDatasource = function (datasources, id) {
-          return datasources.indexOf(id) > -1;
+          return datasources && datasources.indexOf(id) > -1;
         };
 
         scope.options = ngObibaMicaSearch.getOptions().studies;

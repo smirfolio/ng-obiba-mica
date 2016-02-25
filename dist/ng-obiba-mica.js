@@ -2167,6 +2167,10 @@ angular.module('obiba.mica.search')
     this.isNumericVocabulary = function(vocabulary) {
       return !vocabulary.terms && (self.vocabularyType(vocabulary) === VOCABULARY_TYPES.INTEGER || self.vocabularyType(vocabulary) === VOCABULARY_TYPES.DECIMAL);
     };
+
+    this.isRangeVocabulary = function(vocabulary) {
+      return vocabulary.terms && (self.vocabularyType(vocabulary) === VOCABULARY_TYPES.INTEGER || self.vocabularyType(vocabulary) === VOCABULARY_TYPES.DECIMAL);
+    };
   }])
 
 
@@ -2598,7 +2602,9 @@ angular.module('obiba.mica.search')
               if (RqlQueryUtils.isNumericVocabulary(criterion.vocabulary)) {
                 return filteredAgg['obiba.mica.StatsAggregationResultDto.stats'];
               } else {
-                return addMissingTerms(filteredAgg['obiba.mica.TermsAggregationResultDto.terms'],criterion.vocabulary);
+                return RqlQueryUtils.isRangeVocabulary(criterion.vocabulary) ?
+                  addMissingTerms(filteredAgg['obiba.mica.RangeAggregationResultDto.ranges'],criterion.vocabulary) :
+                  addMissingTerms(filteredAgg['obiba.mica.TermsAggregationResultDto.terms'],criterion.vocabulary);
               }
             } else {
               var vocabularyAgg = filteredAgg.children.filter(function (agg) {
@@ -2606,7 +2612,9 @@ angular.module('obiba.mica.search')
               }).pop();
 
               if (vocabularyAgg) {
-                return addMissingTerms(vocabularyAgg['obiba.mica.TermsAggregationResultDto.terms'], criterion.vocabulary);
+                return RqlQueryUtils.isRangeVocabulary(criterion.vocabulary) ?
+                  addMissingTerms(filteredAgg['obiba.mica.RangeAggregationResultDto.ranges'],criterion.vocabulary) :
+                  addMissingTerms(filteredAgg['obiba.mica.TermsAggregationResultDto.terms'],criterion.vocabulary);
               }
             }
           }
@@ -3612,6 +3620,7 @@ angular.module('obiba.mica.search')
       $scope.remove = remove;
       $scope.openDropdown = openDropdown;
       $scope.closeDropdown = closeDropdown;
+      $scope.RqlQueryUtils = RqlQueryUtils;
     }])
 
   .controller('NumericCriterionController', [
@@ -4172,7 +4181,7 @@ angular.module('obiba.mica.search')
           });
 
         scope.hasDatasource = function (datasources, id) {
-          return datasources.indexOf(id) > -1;
+          return datasources && datasources.indexOf(id) > -1;
         };
 
         scope.options = ngObibaMicaSearch.getOptions().studies;
@@ -5833,9 +5842,11 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
     "  <button class='btn btn-xs btn-default' ng-click='remove(criterion.id)'>\n" +
     "    <span class='fa fa-times'></span>\n" +
     "  </button>\n" +
-    "  <string-criterion-terms ng-if=\"vocabularyType(criterion.vocabulary) === 'string'\" criterion=\"criterion\" query=\"query\"\n" +
-    "    state=\"state\"></string-criterion-terms>\n" +
-    "  <numeric-criterion ng-if=\"vocabularyType(criterion.vocabulary) === 'integer'\" criterion=\"criterion\" query=\"query\"\n" +
+    "  <string-criterion-terms\n" +
+    "    ng-if=\"vocabularyType(criterion.vocabulary) === 'string' || RqlQueryUtils.isRangeVocabulary(criterion.vocabulary)\"\n" +
+    "    criterion=\"criterion\" query=\"query\" state=\"state\"></string-criterion-terms>\n" +
+    "\n" +
+    "  <numeric-criterion ng-if=\"RqlQueryUtils.isNumericVocabulary(criterion.vocabulary)\" criterion=\"criterion\" query=\"query\"\n" +
     "    state=\"state\"></numeric-criterion>\n" +
     "</div>\n" +
     "");
