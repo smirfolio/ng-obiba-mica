@@ -249,7 +249,9 @@ angular.module('obiba.mica.search')
               $scope.search.type,
               $scope.search.rqlQuery,
               $scope.search.pagination,
-              $scope.lang);
+              $scope.lang,
+              $scope.search.type === 'variables' ? 'name' : 'acronym.' + $scope.lang
+            );
 
           $scope.search.loading = true;
           switch ($scope.search.display) {
@@ -695,12 +697,14 @@ angular.module('obiba.mica.search')
       $scope.QUERY_TARGETS = QUERY_TARGETS;
       $scope.QUERY_TYPES = QUERY_TYPES;
       $scope.options = ngObibaMicaSearch.getOptions();
+
       var resultTypeDisplay = {
         variable: $scope.options.variables.showSearchTab,
         dataset: $scope.options.datasets.showSearchTab,
         study: $scope.options.studies.showSearchTab,
         network: $scope.options.networks.showSearchTab
       };
+
       $scope.activeDisplay = {};
       $scope.activeDisplay[$scope.display] = true;
       $scope.activeTarget = {};
