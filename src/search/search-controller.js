@@ -385,20 +385,6 @@ angular.module('obiba.mica.search')
         filterTaxonomies(null);
       };
 
-      var filterTaxonomiesKeyUp = function (event) {
-        switch (event.keyCode) {
-          case 27: // ESC
-            if (!$scope.taxonomies.search.active) {
-              clearFilterTaxonomies();
-            }
-            break;
-
-          case 13: // Enter
-            filterTaxonomies($scope.taxonomies.search.text);
-            break;
-        }
-      };
-
       /**
        * Updates the URL location triggering a query execution
        */
@@ -626,7 +612,6 @@ angular.module('obiba.mica.search')
       $scope.searchCriteria = searchCriteria;
       $scope.selectCriteria = selectCriteria;
       $scope.searchKeyUp = searchKeyUp;
-      $scope.filterTaxonomiesKeyUp = filterTaxonomiesKeyUp;
       $scope.navigateTaxonomy = navigateTaxonomy;
       $scope.selectTaxonomyTarget = selectTaxonomyTarget;
       $scope.selectTerm = selectTerm;

@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-02-24
+ * Date: 2016-02-25
  */
 'use strict';
 
@@ -3138,20 +3138,6 @@ angular.module('obiba.mica.search')
         filterTaxonomies(null);
       };
 
-      var filterTaxonomiesKeyUp = function (event) {
-        switch (event.keyCode) {
-          case 27: // ESC
-            if (!$scope.taxonomies.search.active) {
-              clearFilterTaxonomies();
-            }
-            break;
-
-          case 13: // Enter
-            filterTaxonomies($scope.taxonomies.search.text);
-            break;
-        }
-      };
-
       /**
        * Updates the URL location triggering a query execution
        */
@@ -3379,7 +3365,6 @@ angular.module('obiba.mica.search')
       $scope.searchCriteria = searchCriteria;
       $scope.selectCriteria = selectCriteria;
       $scope.searchKeyUp = searchKeyUp;
-      $scope.filterTaxonomiesKeyUp = filterTaxonomiesKeyUp;
       $scope.navigateTaxonomy = navigateTaxonomy;
       $scope.selectTaxonomyTarget = selectTaxonomyTarget;
       $scope.selectTerm = selectTerm;
@@ -4547,7 +4532,8 @@ angular.module('obiba.mica.graphics')
                 '#e5edfb',
                 '#cfddf5',
                 '#a0b8e2',
-                '#88a4d4']
+                '#88a4d4'],
+              pieSliceTextStyle: {color: '#000000'}
             }
           }
 
@@ -5386,11 +5372,8 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "      <div class=\"col-md-4\">\n" +
     "        <div class=\"form-inline pull-right\">\n" +
     "          <div class=\"form-group\">\n" +
-    "            <span class=\"input-group input-group-sm no-padding-top\">\n" +
-    "              <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-filter\"></i></span>\n" +
-    "              <input ng-keyup=\"filterTaxonomiesKeyUp($event)\" ng-model=\"taxonomies.search.text\" type=\"text\"\n" +
-    "                class=\"form-control ng-pristine ng-untouched ng-valid\" aria-describedby=\"study-search\">\n" +
-    "            </span>\n" +
+    "            <span ng-click=\"closeTaxonomies()\" title=\"{{'close' | translate}}\" class=\"hoffset3\"><i\n" +
+    "              class=\"fa fa-close\"></i></span>\n" +
     "          </div>\n" +
     "        </div>\n" +
     "      </div>\n" +
