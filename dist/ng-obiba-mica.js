@@ -3454,6 +3454,10 @@ angular.module('obiba.mica.search')
         study: $scope.options.studies.showSearchTab,
         network: $scope.options.networks.showSearchTab
       };
+      $scope.activeDisplay = {};
+      $scope.activeDisplay[$scope.display] = true;
+      $scope.activeTarget = {};
+      $scope.activeTarget[$scope.type] = true;
 
       $scope.selectDisplay = function (display) {
         $scope.display = display;
@@ -6133,7 +6137,7 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
 
 angular.module("search/views/search-result-coverage-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-coverage-template.html",
-    "<uib-tab heading=\"{{'search.' + DISPLAY_TYPES.COVERAGE | translate}}\" select=\"selectDisplay(DISPLAY_TYPES.COVERAGE)\">\n" +
+    "<uib-tab heading=\"{{'search.' + DISPLAY_TYPES.COVERAGE | translate}}\" select=\"selectDisplay(DISPLAY_TYPES.COVERAGE)\" active=\"activeDisplay.coverage\">\n" +
     "  <coverage-result-table result=\"result.coverage\" loading=\"loading\" bucket=\"bucket\" query=\"query\"\n" +
     "      class=\"voffset2\"></coverage-result-table>\n" +
     "</uib-tab>");
@@ -6141,7 +6145,7 @@ angular.module("search/views/search-result-coverage-template.html", []).run(["$t
 
 angular.module("search/views/search-result-graphics-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-graphics-template.html",
-    "<uib-tab heading=\"{{'search.' + DISPLAY_TYPES.GRAPHICS | translate}}\" select=\"selectDisplay(DISPLAY_TYPES.GRAPHICS)\">\n" +
+    "<uib-tab heading=\"{{'search.' + DISPLAY_TYPES.GRAPHICS | translate}}\" select=\"selectDisplay(DISPLAY_TYPES.GRAPHICS)\" active=\"activeDisplay.graphics\">\n" +
     "  <graphics-result result=\"result.graphics\" loading=\"loading\" class=\"voffset2\"></graphics-result>\n" +
     "</uib-tab>");
 }]);
@@ -6200,7 +6204,7 @@ angular.module("search/views/search-result-list-study-template.html", []).run(["
 
 angular.module("search/views/search-result-list-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-template.html",
-    "<uib-tab heading=\"{{'search.' + DISPLAY_TYPES.LIST | translate}}\" select=\"selectDisplay(DISPLAY_TYPES.LIST)\">\n" +
+    "<uib-tab heading=\"{{'search.' + DISPLAY_TYPES.LIST | translate}}\" select=\"selectDisplay(DISPLAY_TYPES.LIST)\" active=\"activeDisplay.list\">\n" +
     "  <uib-tabset class=\"voffset2\" type=\"pills\">\n" +
     "    <ng-include include-replace ng-repeat=\"res in resultTabsOrder\"\n" +
     "        src=\"'search/views/search-result-list-' + res + '-template.html'\"></ng-include>\n" +

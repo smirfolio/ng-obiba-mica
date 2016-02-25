@@ -701,6 +701,10 @@ angular.module('obiba.mica.search')
         study: $scope.options.studies.showSearchTab,
         network: $scope.options.networks.showSearchTab
       };
+      $scope.activeDisplay = {};
+      $scope.activeDisplay[$scope.display] = true;
+      $scope.activeTarget = {};
+      $scope.activeTarget[$scope.type] = true;
 
       $scope.selectDisplay = function (display) {
         $scope.display = display;
