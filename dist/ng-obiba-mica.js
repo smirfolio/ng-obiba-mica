@@ -3171,6 +3171,8 @@ angular.module('obiba.mica.search')
           angular.element('#taxonomies').collapse('show');
         }
         $scope.taxonomies.target = target;
+        $scope.taxonomies.search.active = false;
+        $scope.taxonomies.all = null;
         $scope.taxonomies.taxonomy = null;
         $scope.taxonomies.vocabulary = null;
         $scope.taxonomies.term = null;
@@ -5769,7 +5771,7 @@ angular.module("search/views/criteria/criteria-node-template.html", []).run(["$t
 
 angular.module("search/views/criteria/criteria-target-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criteria-target-template.html",
-    "<table style=\"border:none;\" class=\"voffset2\" ng-if=\"item.children\">\n" +
+    "<table style=\"border:none;\" class=\"voffset2\">\n" +
     "  <tbody>\n" +
     "  <tr>\n" +
     "    <td>\n" +
