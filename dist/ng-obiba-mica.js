@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-02-25
+ * Date: 2016-02-26
  */
 'use strict';
 
@@ -5683,19 +5683,29 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "  <div class=\"table-responsive\" ng-if=\"table.taxonomyHeaders.length > 0\">\n" +
     "\n" +
     "\n" +
-    "\n" +
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
     "      <tr>\n" +
     "        <th rowspan=\"2\" colspan=\"{{table.cols.colSpan}}\" translate>{{'search.coverage-buckets.' + bucket}}</th>\n" +
-    "        <th ng-repeat=\"header in table.vocabularyHeaders\" title=\"{{header.entity.descriptions[0].value}}\"\n" +
-    "          colspan=\"{{header.termsCount}}\">\n" +
+    "        <th ng-repeat=\"header in table.vocabularyHeaders\" colspan=\"{{header.termsCount}}\">\n" +
+    "          <span\n" +
+    "            uib-popover=\"{{header.entity.descriptions[0].value}}\"\n" +
+    "            popover-title=\"{{header.entity.titles[0].value}}\"\n" +
+    "            popover-placement=\"bottom\"\n" +
+    "            popover-trigger=\"mouseenter\">\n" +
     "          {{header.entity.titles[0].value}}\n" +
+    "            </span>\n" +
     "        </th>\n" +
     "      </tr>\n" +
     "      <tr>\n" +
-    "        <th ng-repeat=\"header in table.termHeaders\" title=\"{{header.entity.descriptions[0].value}}\">\n" +
+    "        <th ng-repeat=\"header in table.termHeaders\">\n" +
+    "          <span\n" +
+    "            uib-popover=\"{{header.entity.descriptions[0].value}}\"\n" +
+    "            popover-title=\"{{header.entity.titles[0].value}}\"\n" +
+    "            popover-placement=\"bottom\"\n" +
+    "            popover-trigger=\"mouseenter\">\n" +
     "          {{header.entity.titles[0].value}}\n" +
+    "            </span>\n" +
     "        </th>\n" +
     "      </tr>\n" +
     "      </thead>\n" +
@@ -5703,7 +5713,11 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "\n" +
     "      <tr ng-repeat=\"row in table.rows\" ng-if=\"showMissing || table.termHeaders.length == keys(row.hits).length\">\n" +
     "        <td ng-repeat=\"col in table.cols.ids[row.value]\" rowspan=\"{{col.rowSpan}}\" ng-if=\"col.rowSpan > 0\">\n" +
-    "          <a href=\"{{col.url ? col.url : ''}}\" title=\"{{col.description}}\">{{col.title}}</a>\n" +
+    "          <a href=\"{{col.url ? col.url : ''}}\"\n" +
+    "            uib-popover-html=\"col.description === col.title ? null : col.description\"\n" +
+    "            popover-title=\"{{col.title}}\"\n" +
+    "            popover-placement=\"bottom\"\n" +
+    "            popover-trigger=\"mouseenter\">{{col.title}}</a>\n" +
     "        </td>\n" +
     "        <td ng-repeat=\"h in table.termHeaders\">\n" +
     "          <span class=\"label label-info\" ng-if=\"row.hits[$index]\">{{row.hits[$index]}}</span>\n" +
