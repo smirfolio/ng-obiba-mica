@@ -102,6 +102,10 @@ angular.module('obiba.mica.search', [
 
       this.setOptions = function (value) {
         options = angular.merge(options, value);
+        //NOTICE: angular.merge merges arrays by position. Overwriting manually.
+        options.taxonomyTabsOrder = value.taxonomyTabsOrder || options.taxonomyTabsOrder;
+        options.searchTabsOrder = value.searchTabsOrder || options.searchTabsOrder;
+        options.resultTabsOrder = value.resultTabsOrder || options.resultTabsOrder;
       };
 
       this.$get = ['$q', '$injector', function ngObibaMicaSearchFactory($q, $injector) {
