@@ -6,14 +6,20 @@
         {{'search.coverage-buckets.' + bucket | translate}} <span class="caret"></span>
       </button>
       <ul uib-dropdown-menu role="menu">
-        <li role="menuitem" ng-if="bucket !== BUCKET_TYPES.STUDYIDS">
-          <a href ng-click="selectBucket(BUCKET_TYPES.STUDYIDS)" translate>search.coverage-buckets.studyIds</a>
+        <li role="menuitem" ng-if="bucket !== BUCKET_TYPES.STUDY">
+          <a href ng-click="selectBucket(BUCKET_TYPES.STUDY)" translate>search.coverage-buckets.study</a>
         </li>
-        <li role="menuitem" ng-if="bucket !== BUCKET_TYPES.DCEIDS">
-          <a href ng-click="selectBucket(BUCKET_TYPES.DCEIDS)" translate>search.coverage-buckets.dceIds</a>
+        <li role="menuitem" ng-if="bucket !== BUCKET_TYPES.DCE">
+          <a href ng-click="selectBucket(BUCKET_TYPES.DCE)" translate>search.coverage-buckets.dce</a>
         </li>
-        <li role="menuitem" ng-if="bucket !== BUCKET_TYPES.NETWORKID">
-          <a href ng-click="selectBucket(BUCKET_TYPES.NETWORKID)" translate>search.coverage-buckets.networkId</a>
+        <li role="menuitem" ng-if="bucket !== BUCKET_TYPES.DATASET">
+          <a href ng-click="selectBucket(BUCKET_TYPES.DATASET)" translate>search.coverage-buckets.dataset</a>
+        </li>
+        <li role="menuitem" ng-if="bucket !== BUCKET_TYPES.NETWORK">
+          <a href ng-click="selectBucket(BUCKET_TYPES.NETWORK)" translate>search.coverage-buckets.network</a>
+        </li>
+        <li role="menuitem" ng-if="bucket !== BUCKET_TYPES.DATASCHEMA">
+          <a href ng-click="selectBucket(BUCKET_TYPES.DATASCHEMA)" translate>search.coverage-buckets.dataschema</a>
         </li>
       </ul>
     </div>
