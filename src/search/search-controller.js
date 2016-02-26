@@ -402,6 +402,8 @@ angular.module('obiba.mica.search')
           angular.element('#taxonomies').collapse('show');
         }
         $scope.taxonomies.target = target;
+        $scope.taxonomies.search.active = false;
+        $scope.taxonomies.all = null;
         $scope.taxonomies.taxonomy = null;
         $scope.taxonomies.vocabulary = null;
         $scope.taxonomies.term = null;
