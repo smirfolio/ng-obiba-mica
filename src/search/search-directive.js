@@ -104,8 +104,6 @@ angular.module('obiba.mica.search')
                 });
                 return prev;
               }, {});
-
-            console.log('>>>', scope.classNames);
           });
 
         scope.options = ngObibaMicaSearch.getOptions().datasets.datasetsColumn;

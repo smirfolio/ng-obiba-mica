@@ -4113,8 +4113,6 @@ angular.module('obiba.mica.search')
                 });
                 return prev;
               }, {});
-
-            console.log('>>>', scope.classNames);
           });
 
         scope.options = ngObibaMicaSearch.getOptions().datasets.datasetsColumn;
@@ -5771,7 +5769,7 @@ angular.module("search/views/criteria/criteria-node-template.html", []).run(["$t
 
 angular.module("search/views/criteria/criteria-target-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criteria-target-template.html",
-    "<table style=\"border:none;\" class=\"voffset2\">\n" +
+    "<table style=\"border:none;\" class=\"voffset2\" ng-if=\"item.children\">\n" +
     "  <tbody>\n" +
     "  <tr>\n" +
     "    <td>\n" +
