@@ -826,6 +826,7 @@ angular.module('obiba.mica.search')
       $scope.remove = remove;
       $scope.openDropdown = openDropdown;
       $scope.closeDropdown = closeDropdown;
+      $scope.RqlQueryUtils = RqlQueryUtils;
     }])
 
   .controller('NumericCriterionController', [
