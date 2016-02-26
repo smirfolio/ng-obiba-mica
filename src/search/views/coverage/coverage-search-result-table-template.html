@@ -36,19 +36,29 @@
   <div class="table-responsive" ng-if="table.taxonomyHeaders.length > 0">
 
 
-
     <table class="table table-bordered table-striped">
       <thead>
       <tr>
         <th rowspan="2" colspan="{{table.cols.colSpan}}" translate>{{'search.coverage-buckets.' + bucket}}</th>
-        <th ng-repeat="header in table.vocabularyHeaders" title="{{header.entity.descriptions[0].value}}"
-          colspan="{{header.termsCount}}">
+        <th ng-repeat="header in table.vocabularyHeaders" colspan="{{header.termsCount}}">
+          <span
+            uib-popover="{{header.entity.descriptions[0].value}}"
+            popover-title="{{header.entity.titles[0].value}}"
+            popover-placement="bottom"
+            popover-trigger="mouseenter">
           {{header.entity.titles[0].value}}
+            </span>
         </th>
       </tr>
       <tr>
-        <th ng-repeat="header in table.termHeaders" title="{{header.entity.descriptions[0].value}}">
+        <th ng-repeat="header in table.termHeaders">
+          <span
+            uib-popover="{{header.entity.descriptions[0].value}}"
+            popover-title="{{header.entity.titles[0].value}}"
+            popover-placement="bottom"
+            popover-trigger="mouseenter">
           {{header.entity.titles[0].value}}
+            </span>
         </th>
       </tr>
       </thead>
@@ -56,7 +66,11 @@
 
       <tr ng-repeat="row in table.rows" ng-if="showMissing || table.termHeaders.length == keys(row.hits).length">
         <td ng-repeat="col in table.cols.ids[row.value]" rowspan="{{col.rowSpan}}" ng-if="col.rowSpan > 0">
-          <a href="{{col.url ? col.url : ''}}" title="{{col.description}}">{{col.title}}</a>
+          <a href="{{col.url ? col.url : ''}}"
+            uib-popover-html="col.description === col.title ? null : col.description"
+            popover-title="{{col.title}}"
+            popover-placement="bottom"
+            popover-trigger="mouseenter">{{col.title}}</a>
         </td>
         <td ng-repeat="h in table.termHeaders">
           <span class="label label-info" ng-if="row.hits[$index]">{{row.hits[$index]}}</span>
