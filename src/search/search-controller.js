@@ -1128,9 +1128,13 @@ angular.module('obiba.mica.search')
         return false;
       };
       var charOptions = GraphicChartsConfig.getOptions().ChartsOptions;
+
       $scope.$watch('result', function (result) {
         $scope.chartObjects = {};
-        if (result) {
+        $scope.noResults = true;
+
+        if (result && result.studyResultDto.totalHits) {
+          $scope.noResults = false;
           var geoStudies = setChartObject('populations-selectionCriteria-countriesIso',
             result.studyResultDto,
             [$filter('translate')(charOptions.geoChartOptions.header[0]), $filter('translate')(charOptions.geoChartOptions.header[1])],
