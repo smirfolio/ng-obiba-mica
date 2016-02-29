@@ -2912,7 +2912,6 @@ angular.module('obiba.mica.search')
         network: 'networks',
         dataset: 'datasets'
       };
-
       var taxonomyTypeInverseMap = Object.keys($scope.taxonomyTypeMap).reduce(function (prev, k) {
         prev[$scope.taxonomyTypeMap[k]] = k;
         return prev;
@@ -4680,9 +4679,9 @@ angular.module('obiba.mica.graphics')
             options: {
               backgroundColor: {fill: 'transparent'},
               colors: [
-                '#b8cbed',
                 '#e5edfb',
                 '#cfddf5',
+                '#b8cbed',
                 '#a0b8e2',
                 '#88a4d4'
               ]
