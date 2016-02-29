@@ -723,6 +723,8 @@ angular.module('obiba.mica.search')
     'ngObibaMicaSearch',
     function ($scope,
               ngObibaMicaSearch) {
+
+      $scope.targetTypeMap = $scope.$parent.taxonomyTypeMap;
       $scope.QUERY_TARGETS = QUERY_TARGETS;
       $scope.QUERY_TYPES = QUERY_TYPES;
       $scope.options = ngObibaMicaSearch.getOptions();
@@ -732,14 +734,28 @@ angular.module('obiba.mica.search')
       $scope.activeTarget[$scope.type] = true;
 
       $scope.selectDisplay = function (display) {
+        $scope.activeDisplay = {};
+        $scope.activeDisplay[display] = true;
         $scope.display = display;
         $scope.$parent.onDisplayChanged(display);
       };
 
       $scope.selectTarget = function (type) {
+        $scope.activeTarget = {};
+        $scope.activeTarget[type] = true;
         $scope.type = type;
         $scope.$parent.onTypeChanged(type);
       };
+
+      $scope.$watch('type', function (target) {
+        $scope.activeTarget = {};
+        $scope.activeTarget[target] = true;
+      });
+
+      $scope.$watch('display', function (display) {
+        $scope.activeDisplay = {};
+        $scope.activeDisplay[display] = true;
+      });
 
       $scope.DISPLAY_TYPES = DISPLAY_TYPES;
     }])
