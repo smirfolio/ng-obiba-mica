@@ -216,6 +216,8 @@ angular.module('obiba.mica.search')
         result: '=',
         lang: '=',
         loading: '=',
+        searchTabsOrder: '=',
+        resultTabsOrder: '=',
         onTypeChanged: '=',
         onBucketChanged: '=',
         onPaginate: '='
