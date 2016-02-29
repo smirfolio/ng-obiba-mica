@@ -1284,6 +1284,9 @@ angular.module('obiba.mica.search', [
         taxonomyTabsOrder: [QUERY_TARGETS.VARIABLE, QUERY_TARGETS.DATASET, QUERY_TARGETS.STUDY, QUERY_TARGETS.NETWORK],
         searchTabsOrder: [DISPLAY_TYPES.LIST, DISPLAY_TYPES.COVERAGE, DISPLAY_TYPES.GRAPHICS],
         resultTabsOrder: [QUERY_TARGETS.VARIABLE, QUERY_TARGETS.DATASET, QUERY_TARGETS.STUDY, QUERY_TARGETS.NETWORK],
+        listLabel: 'search.list',
+        coverageLabel: 'search.coverage',
+        graphicsLabel: 'search.graphics',
         variables: {
           showSearchTab: true,
           searchLabel: 'search.variable.searchLabel',
@@ -6461,7 +6464,7 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
     "<div>\n" +
     "  <ul class=\"nav nav-tabs voffset2\" ng-if=\"searchTabsOrder.length > 1\">\n" +
     "    <li role=\"presentation\" ng-repeat=\"tab in searchTabsOrder\" ng-class=\"{active: activeDisplay[tab]}\"><a href\n" +
-    "        ng-click=\"selectDisplay(tab)\">{{'search.' + tab | translate}}</a></li>\n" +
+    "        ng-click=\"selectDisplay(tab)\">{{ options[ tab + 'Label'] | translate}}</a></li>\n" +
     "  </ul>\n" +
     "  <div class=\"tab-content\">\n" +
     "    <ng-include include-replace ng-repeat=\"tab in searchTabsOrder\"\n" +

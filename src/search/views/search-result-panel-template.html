@@ -1,7 +1,7 @@
 <div>
   <ul class="nav nav-tabs voffset2" ng-if="searchTabsOrder.length > 1">
     <li role="presentation" ng-repeat="tab in searchTabsOrder" ng-class="{active: activeDisplay[tab]}"><a href
-        ng-click="selectDisplay(tab)">{{'search.' + tab | translate}}</a></li>
+        ng-click="selectDisplay(tab)">{{ options[ tab + 'Label'] | translate}}</a></li>
   </ul>
   <div class="tab-content">
     <ng-include include-replace ng-repeat="tab in searchTabsOrder"
