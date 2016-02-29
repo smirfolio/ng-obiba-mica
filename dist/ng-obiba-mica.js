@@ -3733,13 +3733,15 @@ angular.module('obiba.mica.search')
     'JoinQuerySearchResource',
     'RqlQueryUtils',
     'SearchContext',
+    '$filter',
     function ($scope,
               RqlQueryService,
               LocalizedValues,
               StringUtils,
               JoinQuerySearchResource,
               RqlQueryUtils,
-              SearchContext) {
+              SearchContext,
+              $filter) {
       $scope.lang = SearchContext.currentLocale();
 
       var isSelected = function (name) {
@@ -3779,6 +3781,8 @@ angular.module('obiba.mica.search')
               $scope.checkboxTerms[term.key] =
                 $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.indexOf(term.key) !== -1;
             });
+
+            $scope.terms = $filter('orderBySelection')($scope.terms, $scope.checkboxTerms);
           }
         });
       };
@@ -5992,7 +5996,7 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
     "      <li ng-show=\"terms && terms.length>10\"></li>\n" +
     "      <li class=\"criteria-list-item\"\n" +
     "          ng-show=\"isInFilter()\"\n" +
-    "          ng-repeat=\"term in terms | orderBySelection:checkboxTerms | regex:searchText:['key','title','description']\"\n" +
+    "          ng-repeat=\"term in terms | regex:searchText:['key','title','description']\"\n" +
     "          uib-popover=\"{{term.description ? term.description : term.title}}\"\n" +
     "          popover-title=\"{{term.description ? term.title : null}}\"\n" +
     "          popover-placement=\"bottom\"\n" +
