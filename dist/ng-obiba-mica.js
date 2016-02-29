@@ -3536,6 +3536,8 @@ angular.module('obiba.mica.search')
     'ngObibaMicaSearch',
     function ($scope,
               ngObibaMicaSearch) {
+
+      $scope.targetTypeMap = $scope.$parent.taxonomyTypeMap;
       $scope.QUERY_TARGETS = QUERY_TARGETS;
       $scope.QUERY_TYPES = QUERY_TYPES;
       $scope.options = ngObibaMicaSearch.getOptions();
@@ -3545,14 +3547,28 @@ angular.module('obiba.mica.search')
       $scope.activeTarget[$scope.type] = true;
 
       $scope.selectDisplay = function (display) {
+        $scope.activeDisplay = {};
+        $scope.activeDisplay[display] = true;
         $scope.display = display;
         $scope.$parent.onDisplayChanged(display);
       };
 
       $scope.selectTarget = function (type) {
+        $scope.activeTarget = {};
+        $scope.activeTarget[type] = true;
         $scope.type = type;
         $scope.$parent.onTypeChanged(type);
       };
+
+      $scope.$watch('type', function (target) {
+        $scope.activeTarget = {};
+        $scope.activeTarget[target] = true;
+      });
+
+      $scope.$watch('display', function (display) {
+        $scope.activeDisplay = {};
+        $scope.activeDisplay[display] = true;
+      });
 
       $scope.DISPLAY_TYPES = DISPLAY_TYPES;
     }])
@@ -6345,107 +6361,114 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
 
 angular.module("search/views/search-result-coverage-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-coverage-template.html",
-    "<uib-tab heading=\"{{'search.' + DISPLAY_TYPES.COVERAGE | translate}}\" select=\"selectDisplay(DISPLAY_TYPES.COVERAGE)\" active=\"activeDisplay.coverage\">\n" +
+    "<div class=\"tab-pane\" ng-class=\"{active: activeDisplay.coverage}\">\n" +
     "  <coverage-result-table result=\"result.coverage\" loading=\"loading\" bucket=\"bucket\" query=\"query\"\n" +
     "      class=\"voffset2\"></coverage-result-table>\n" +
-    "</uib-tab>");
+    "</div>\n" +
+    "");
 }]);
 
 angular.module("search/views/search-result-graphics-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-graphics-template.html",
-    "<uib-tab heading=\"{{'search.' + DISPLAY_TYPES.GRAPHICS | translate}}\" select=\"selectDisplay(DISPLAY_TYPES.GRAPHICS)\" active=\"activeDisplay.graphics\">\n" +
+    "<div class=\"tab-pane\" ng-class=\"{active: activeDisplay.graphics}\">\n" +
     "  <graphics-result result=\"result.graphics\" loading=\"loading\" class=\"voffset2\"></graphics-result>\n" +
-    "</uib-tab>");
+    "</div>");
 }]);
 
 angular.module("search/views/search-result-list-dataset-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-dataset-template.html",
-    "<uib-tab ng-show=\"options.datasets.showSearchTab\" active=\"activeTarget.datasets\"\n" +
-    "    ng-click=\"selectTarget(QUERY_TYPES.DATASETS)\"\n" +
-    "    heading=\"{{'datasets' | translate}} ({{result.list.datasetResultDto.totalHits}})\">\n" +
-    "          <span search-result-pagination\n" +
-    "              class=\"pull-right\"\n" +
-    "              target=\"QUERY_TARGETS.DATASET\"\n" +
-    "              total-hits=\"result.list.datasetResultDto.totalHits\"\n" +
-    "              on-change=\"onPaginate\"></span>\n" +
-    "\n" +
+    "<div class=\"tab-pane\" ng-show=\"options.datasets.showSearchTab\" ng-class=\"{active: activeTarget.datasets}\">\n" +
+    "  <span ng-if=\"resultTabsOrder.length === 1\">{{'datasets' | translate}} ({{result.list.datasetResultDto.totalHits}})</span>\n" +
+    "  <span search-result-pagination\n" +
+    "      class=\"pull-right\"\n" +
+    "      target=\"QUERY_TARGETS.DATASET\"\n" +
+    "      total-hits=\"result.list.datasetResultDto.totalHits\"\n" +
+    "      on-change=\"onPaginate\"></span>\n" +
     "  <span class=\"clearfix\"></span>\n" +
     "  <datasets-result-table loading=\"loading\"\n" +
     "      summaries=\"result.list.datasetResultDto['obiba.mica.DatasetResultDto.result'].datasets\"></datasets-result-table>\n" +
-    "</uib-tab>\n" +
+    "</div>\n" +
     "");
 }]);
 
 angular.module("search/views/search-result-list-network-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-network-template.html",
-    "<uib-tab ng-show=\"options.networks.showSearchTab\" active=\"activeTarget.networks\"\n" +
-    "    ng-click=\"selectTarget(QUERY_TYPES.NETWORKS)\"\n" +
-    "    heading=\"{{'networks' | translate}} ({{result.list.networkResultDto.totalHits}})\">\n" +
-    "          <span search-result-pagination\n" +
-    "              class=\"pull-right\"\n" +
-    "              target=\"QUERY_TARGETS.NETWORK\"\n" +
-    "              total-hits=\"result.list.networkResultDto.totalHits\"\n" +
-    "              on-change=\"onPaginate\"></span>\n" +
-    "\n" +
+    "<div class=\"tab-pane\" ng-show=\"options.networks.showSearchTab\" ng-class=\"{active: activeTarget.networks}\">\n" +
+    "  <span ng-if=\"resultTabsOrder.length === 1\">{{'networks' | translate}} ({{result.list.networkResultDto.totalHits}})</span>\n" +
+    "  <span search-result-pagination\n" +
+    "      class=\"pull-right\"\n" +
+    "      target=\"QUERY_TARGETS.NETWORK\"\n" +
+    "      total-hits=\"result.list.networkResultDto.totalHits\"\n" +
+    "      on-change=\"onPaginate\"></span>\n" +
     "  <span class=\"clearfix\"></span>\n" +
     "  <networks-result-table loading=\"loading\"\n" +
     "      summaries=\"result.list.networkResultDto['obiba.mica.NetworkResultDto.result'].networks\"></networks-result-table>\n" +
-    "</uib-tab>\n" +
+    "</div>\n" +
     "");
 }]);
 
 angular.module("search/views/search-result-list-study-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-study-template.html",
-    "<uib-tab ng-show=\"options.studies.showSearchTab\" active=\"activeTarget.studies\"\n" +
-    "    ng-click=\"selectTarget(QUERY_TYPES.STUDIES)\"\n" +
-    "    heading=\"{{'studies' | translate}} ({{result.list.studyResultDto.totalHits}})\">\n" +
-    "          <span search-result-pagination\n" +
-    "              class=\"pull-right\"\n" +
-    "              target=\"QUERY_TARGETS.STUDY\"\n" +
-    "              total-hits=\"result.list.studyResultDto.totalHits\"\n" +
-    "              on-change=\"onPaginate\"></span>\n" +
+    "<div class=\"tab-pane\" ng-show=\"options.studies.showSearchTab\" ng-class=\"{'active': activeTarget.studies}\">\n" +
+    "  <span ng-if=\"resultTabsOrder.length === 1\">{{'studies' | translate}} ({{result.list.studyResultDto.totalHits}})</span>\n" +
+    "  <span search-result-pagination\n" +
+    "      class=\"pull-right\"\n" +
+    "      target=\"QUERY_TARGETS.STUDY\"\n" +
+    "      total-hits=\"result.list.studyResultDto.totalHits\"\n" +
+    "      on-change=\"onPaginate\"></span>\n" +
     "  <span class=\"clearfix\"></span>\n" +
     "  <studies-result-table loading=\"loading\"\n" +
     "      summaries=\"result.list.studyResultDto['obiba.mica.StudyResultDto.result'].summaries\"></studies-result-table>\n" +
-    "</uib-tab>");
+    "</div>");
 }]);
 
 angular.module("search/views/search-result-list-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-template.html",
-    "<uib-tab heading=\"{{'search.' + DISPLAY_TYPES.LIST | translate}}\" select=\"selectDisplay(DISPLAY_TYPES.LIST)\" active=\"activeDisplay.list\">\n" +
-    "  <uib-tabset class=\"voffset2\" type=\"pills\">\n" +
+    "<div class=\"tab-pane\" ng-class=\"{active: activeDisplay.list}\">\n" +
+    "  <ul class=\"nav nav-pills voffset2\" ng-if=\"resultTabsOrder.length > 1\">\n" +
+    "    <li role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
+    "        ng-class=\"{active: activeTarget[targetTypeMap[res]]}\"\n" +
+    "        ng-if=\"options[targetTypeMap[res]].showSearchTab\"><a href\n" +
+    "        ng-click=\"selectTarget(targetTypeMap[res])\">{{targetTypeMap[res] | translate}} ({{result.list[res +\n" +
+    "      'ResultDto'].totalHits}})</a></li>\n" +
+    "  </ul>\n" +
+    "  <div class=\"tab-content\">\n" +
     "    <ng-include include-replace ng-repeat=\"res in resultTabsOrder\"\n" +
     "        src=\"'search/views/search-result-list-' + res + '-template.html'\"></ng-include>\n" +
-    "  </uib-tabset>\n" +
-    "</uib-tab>\n" +
+    "  </div>\n" +
+    "</div>\n" +
     "");
 }]);
 
 angular.module("search/views/search-result-list-variable-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-variable-template.html",
-    "<uib-tab ng-show=\"options.variables.showSearchTab\" active=\"activeTarget.variables\"\n" +
-    "    ng-click=\"selectTarget(QUERY_TYPES.VARIABLES)\"\n" +
-    "    heading=\"{{'variables' | translate}} ({{result.list.variableResultDto.totalHits}})\">\n" +
-    "          <span search-result-pagination\n" +
-    "              class=\"pull-right\"\n" +
-    "              target=\"QUERY_TARGETS.VARIABLE\"\n" +
-    "              total-hits=\"result.list.variableResultDto.totalHits\"\n" +
-    "              on-change=\"onPaginate\"></span>\n" +
-    "\n" +
+    "<div class=\"tab-pane\" ng-show=\"options.variables.showSearchTab\" ng-class=\"{active: activeTarget.variables}\">\n" +
+    "  <span ng-if=\"resultTabsOrder.length === 1\">{{'variables' | translate}} ({{result.list.variableResultDto.totalHits}})</span>\n" +
+    "  <span search-result-pagination\n" +
+    "      class=\"pull-right\"\n" +
+    "      target=\"QUERY_TARGETS.VARIABLE\"\n" +
+    "      total-hits=\"result.list.variableResultDto.totalHits\"\n" +
+    "      on-change=\"onPaginate\"></span>\n" +
     "  <span class=\"clearfix\"></span>\n" +
     "  <variables-result-table loading=\"loading\"\n" +
     "      summaries=\"result.list.variableResultDto['obiba.mica.DatasetVariableResultDto.result'].summaries\"></variables-result-table>\n" +
-    "</uib-tab>\n" +
+    "</div>\n" +
     "");
 }]);
 
 angular.module("search/views/search-result-panel-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-panel-template.html",
     "<div>\n" +
-    "  <uib-tabset class=\"voffset2\" type=\"tabs\">\n" +
-    "    <ng-include include-replace ng-repeat=\"tab in searchTabsOrder\" src=\"'search/views/search-result-' + tab + '-template.html'\"></ng-include>\n" +
-    "  </uib-tabset>\n" +
-    "</div>");
+    "  <ul class=\"nav nav-tabs voffset2\" ng-if=\"searchTabsOrder.length > 1\">\n" +
+    "    <li role=\"presentation\" ng-repeat=\"tab in searchTabsOrder\" ng-class=\"{active: activeDisplay[tab]}\"><a href\n" +
+    "        ng-click=\"selectDisplay(tab)\">{{'search.' + tab | translate}}</a></li>\n" +
+    "  </ul>\n" +
+    "  <div class=\"tab-content\">\n" +
+    "    <ng-include include-replace ng-repeat=\"tab in searchTabsOrder\"\n" +
+    "        src=\"'search/views/search-result-' + tab + '-template.html'\"></ng-include>\n" +
+    "  </div>\n" +
+    "</div>\n" +
+    "");
 }]);
 
 angular.module("search/views/search.html", []).run(["$templateCache", function($templateCache) {
