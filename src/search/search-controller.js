@@ -917,13 +917,15 @@ angular.module('obiba.mica.search')
     'JoinQuerySearchResource',
     'RqlQueryUtils',
     'SearchContext',
+    '$filter',
     function ($scope,
               RqlQueryService,
               LocalizedValues,
               StringUtils,
               JoinQuerySearchResource,
               RqlQueryUtils,
-              SearchContext) {
+              SearchContext,
+              $filter) {
       $scope.lang = SearchContext.currentLocale();
 
       var isSelected = function (name) {
@@ -963,6 +965,8 @@ angular.module('obiba.mica.search')
               $scope.checkboxTerms[term.key] =
                 $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.indexOf(term.key) !== -1;
             });
+
+            $scope.terms = $filter('orderBySelection')($scope.terms, $scope.checkboxTerms);
           }
         });
       };
