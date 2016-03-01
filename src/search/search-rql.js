@@ -1210,6 +1210,20 @@ angular.module('obiba.mica.search')
           return aggs;
         }
 
+        function getChildAggragations(parentAgg, aggKey) {
+          if (parentAgg.children) {
+            var child = parentAgg.children.filter(function(child){
+              return child.hasOwnProperty(aggKey);
+            }).pop();
+
+            if (child) {
+              return child[aggKey];
+            }
+          }
+
+          return null;
+        }
+
         var alias = RqlQueryUtils.vocabularyAlias(criterion.vocabulary);
         var targetResponse = joinQueryResponse[criterion.target + 'ResultDto'];
 
@@ -1236,8 +1250,8 @@ angular.module('obiba.mica.search')
 
               if (vocabularyAgg) {
                 return RqlQueryUtils.isRangeVocabulary(criterion.vocabulary) ?
-                  addMissingTerms(filteredAgg['obiba.mica.RangeAggregationResultDto.ranges'],criterion.vocabulary) :
-                  addMissingTerms(filteredAgg['obiba.mica.TermsAggregationResultDto.terms'],criterion.vocabulary);
+                  addMissingTerms(getChildAggragations(filteredAgg, 'obiba.mica.RangeAggregationResultDto.ranges'),criterion.vocabulary):
+                  addMissingTerms(getChildAggragations(filteredAgg, 'obiba.mica.TermsAggregationResultDto.terms'),criterion.vocabulary);
               }
             }
           }
