@@ -638,6 +638,8 @@ angular.module('obiba.mica.search')
           onTypeChanged(type);
         }
 
+        onDisplayChanged(DISPLAY_TYPES.LIST);
+
         selectCriteria(item, RQL_NODE.AND);
       };
 
@@ -1021,8 +1023,10 @@ angular.module('obiba.mica.search')
 
   .controller('CoverageResultTableController', [
     '$scope',
+    '$location',
     'PageUrlService',
-    function ($scope, PageUrlService) {
+    'RqlQueryService',
+    function ($scope, $location, PageUrlService, RqlQueryService) {
       $scope.showMissing = true;
       $scope.toggleMissing = function (value) {
         $scope.showMissing = value;
@@ -1176,6 +1180,24 @@ angular.module('obiba.mica.search')
           $scope.table.cols = splitIds();
         }
       });
+
+      $scope.updateDisplay = function() {
+        $location.search('display', DISPLAY_TYPES.LIST);
+      };
+
+      $scope.updateCriteria = function (id, type) {
+        var targetMap = {};
+        targetMap[BUCKET_TYPES.NETWORK] = QUERY_TARGETS.NETWORK;
+        targetMap[BUCKET_TYPES.STUDY] = QUERY_TARGETS.STUDY;
+        targetMap[BUCKET_TYPES.DCE] = QUERY_TARGETS.VARIABLE;
+        targetMap[BUCKET_TYPES.DATASCHEMA] = QUERY_TARGETS.DATASET;
+        targetMap[BUCKET_TYPES.DATASET] = QUERY_TARGETS.DATASET;
+        var vocabulary = $scope.bucket === BUCKET_TYPES.DCE ? 'dceIds' : 'id';
+
+        RqlQueryService.createCriteriaItem(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary, id).then(function (item) {
+          $scope.onUpdateCriteria(item, type);
+        });
+      };
     }])
 
   .controller('GraphicsResultController', [

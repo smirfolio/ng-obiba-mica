@@ -40,8 +40,6 @@
   <div ng-if="loading" class="loading"></div>
 
   <div class="table-responsive" ng-if="table.taxonomyHeaders.length > 0">
-
-
     <table class="table table-bordered table-striped">
       <thead>
       <tr>
@@ -69,7 +67,6 @@
       </tr>
       </thead>
       <tbody>
-
       <tr ng-repeat="row in table.rows" ng-if="showMissing || table.termHeaders.length == keys(row.hits).length">
         <td ng-repeat="col in table.cols.ids[row.value]" rowspan="{{col.rowSpan}}" ng-if="col.rowSpan > 0">
           <a href="{{col.url ? col.url : ''}}"
@@ -79,17 +76,16 @@
             popover-trigger="mouseenter">{{col.title}}</a>
         </td>
         <td ng-repeat="h in table.termHeaders">
-          <span class="label label-info" ng-if="row.hits[$index]">{{row.hits[$index]}}</span>
+          <a href ng-click="updateCriteria(row.value, 'variables')"><span class="label label-info" ng-if="row.hits[$index]">{{row.hits[$index]}}</span></a>
           <span ng-if="!row.hits[$index]">0</span>
         </td>
       </tr>
-
       </tbody>
       <tfoot>
       <tr>
         <th colspan="{{table.cols.colSpan}}" translate>all</th>
         <th ng-repeat="header in table.termHeaders" title="{{header.entity.descriptions[0].value}}">
-          {{header.hits}}
+          <a href ng-click="updateDisplay()">{{header.hits}}</a>
         </th>
       </tr>
       </tfoot>

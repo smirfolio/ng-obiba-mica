@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-03-01
+ * Date: 2016-03-02
  */
 'use strict';
 
@@ -3507,6 +3507,8 @@ angular.module('obiba.mica.search')
           onTypeChanged(type);
         }
 
+        onDisplayChanged(DISPLAY_TYPES.LIST);
+
         selectCriteria(item, RQL_NODE.AND);
       };
 
@@ -3890,8 +3892,10 @@ angular.module('obiba.mica.search')
 
   .controller('CoverageResultTableController', [
     '$scope',
+    '$location',
     'PageUrlService',
-    function ($scope, PageUrlService) {
+    'RqlQueryService',
+    function ($scope, $location, PageUrlService, RqlQueryService) {
       $scope.showMissing = true;
       $scope.toggleMissing = function (value) {
         $scope.showMissing = value;
@@ -4045,6 +4049,24 @@ angular.module('obiba.mica.search')
           $scope.table.cols = splitIds();
         }
       });
+
+      $scope.updateDisplay = function() {
+        $location.search('display', DISPLAY_TYPES.LIST);
+      };
+
+      $scope.updateCriteria = function (id, type) {
+        var targetMap = {};
+        targetMap[BUCKET_TYPES.NETWORK] = QUERY_TARGETS.NETWORK;
+        targetMap[BUCKET_TYPES.STUDY] = QUERY_TARGETS.STUDY;
+        targetMap[BUCKET_TYPES.DCE] = QUERY_TARGETS.VARIABLE;
+        targetMap[BUCKET_TYPES.DATASCHEMA] = QUERY_TARGETS.DATASET;
+        targetMap[BUCKET_TYPES.DATASET] = QUERY_TARGETS.DATASET;
+        var vocabulary = $scope.bucket === BUCKET_TYPES.DCE ? 'dceIds' : 'id';
+
+        RqlQueryService.createCriteriaItem(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary, id).then(function (item) {
+          $scope.onUpdateCriteria(item, type);
+        });
+      };
     }])
 
   .controller('GraphicsResultController', [
@@ -4387,7 +4409,8 @@ angular.module('obiba.mica.search')
         result: '=',
         loading: '=',
         bucket: '=',
-        query: '='
+        query: '=',
+        onUpdateCriteria: '='
       },
       controller: 'CoverageResultTableController',
       templateUrl: 'search/views/coverage/coverage-search-result-table-template.html'
@@ -5912,8 +5935,6 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
     "  <div class=\"table-responsive\" ng-if=\"table.taxonomyHeaders.length > 0\">\n" +
-    "\n" +
-    "\n" +
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
     "      <tr>\n" +
@@ -5941,7 +5962,6 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "      </tr>\n" +
     "      </thead>\n" +
     "      <tbody>\n" +
-    "\n" +
     "      <tr ng-repeat=\"row in table.rows\" ng-if=\"showMissing || table.termHeaders.length == keys(row.hits).length\">\n" +
     "        <td ng-repeat=\"col in table.cols.ids[row.value]\" rowspan=\"{{col.rowSpan}}\" ng-if=\"col.rowSpan > 0\">\n" +
     "          <a href=\"{{col.url ? col.url : ''}}\"\n" +
@@ -5951,17 +5971,16 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "            popover-trigger=\"mouseenter\">{{col.title}}</a>\n" +
     "        </td>\n" +
     "        <td ng-repeat=\"h in table.termHeaders\">\n" +
-    "          <span class=\"label label-info\" ng-if=\"row.hits[$index]\">{{row.hits[$index]}}</span>\n" +
+    "          <a href ng-click=\"updateCriteria(row.value, 'variables')\"><span class=\"label label-info\" ng-if=\"row.hits[$index]\">{{row.hits[$index]}}</span></a>\n" +
     "          <span ng-if=\"!row.hits[$index]\">0</span>\n" +
     "        </td>\n" +
     "      </tr>\n" +
-    "\n" +
     "      </tbody>\n" +
     "      <tfoot>\n" +
     "      <tr>\n" +
     "        <th colspan=\"{{table.cols.colSpan}}\" translate>all</th>\n" +
     "        <th ng-repeat=\"header in table.termHeaders\" title=\"{{header.entity.descriptions[0].value}}\">\n" +
-    "          {{header.hits}}\n" +
+    "          <a href ng-click=\"updateDisplay()\">{{header.hits}}</a>\n" +
     "        </th>\n" +
     "      </tr>\n" +
     "      </tfoot>\n" +
@@ -6520,7 +6539,7 @@ angular.module("search/views/search-result-coverage-template.html", []).run(["$t
   $templateCache.put("search/views/search-result-coverage-template.html",
     "<div class=\"tab-pane\" ng-class=\"{active: activeDisplay.coverage}\">\n" +
     "  <coverage-result-table result=\"result.coverage\" loading=\"loading\" bucket=\"bucket\" query=\"query\"\n" +
-    "      class=\"voffset2\"></coverage-result-table>\n" +
+    "      class=\"voffset2\" on-update-criteria=\"onUpdateCriteria\"></coverage-result-table>\n" +
     "</div>\n" +
     "");
 }]);
