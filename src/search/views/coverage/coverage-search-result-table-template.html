@@ -43,7 +43,7 @@
     <table class="table table-bordered table-striped">
       <thead>
       <tr>
-        <th rowspan="2" colspan="{{table.cols.colSpan}}" translate>{{'search.coverage-buckets.' + bucket}}</th>
+        <th rowspan="{{bucket === BUCKET_TYPES.DCE ? 1 : 2}}" colspan="{{table.cols.colSpan}}" translate>{{'search.coverage-buckets.' + bucket}}</th>
         <th ng-repeat="header in table.vocabularyHeaders" colspan="{{header.termsCount}}">
           <span
             uib-popover="{{header.entity.descriptions[0].value}}"
@@ -55,6 +55,9 @@
         </th>
       </tr>
       <tr>
+        <th ng-if="bucket === BUCKET_TYPES.DCE" translate>search.coverage-dce-cols.study</th>
+        <th ng-if="bucket === BUCKET_TYPES.DCE" translate>search.coverage-dce-cols.population</th>
+        <th ng-if="bucket === BUCKET_TYPES.DCE" translate>search.coverage-dce-cols.dce</th>
         <th ng-repeat="header in table.termHeaders">
           <span
             uib-popover="{{header.entity.descriptions[0].value}}"
