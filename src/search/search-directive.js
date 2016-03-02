@@ -199,7 +199,8 @@ angular.module('obiba.mica.search')
         result: '=',
         loading: '=',
         bucket: '=',
-        query: '='
+        query: '=',
+        onUpdateCriteria: '='
       },
       controller: 'CoverageResultTableController',
       templateUrl: 'search/views/coverage/coverage-search-result-table-template.html'
