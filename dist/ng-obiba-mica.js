@@ -5894,7 +5894,7 @@ angular.module("search/views/classifications/vocabulary-panel-template.html", []
 angular.module("search/views/coverage/coverage-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/coverage/coverage-search-result-table-template.html",
     "<div>\n" +
-    "  <div class=\"pull-left\">\n" +
+    "  <div class=\"pull-left\" ng-if=\"!loading && table.taxonomyHeaders.length\">\n" +
     "    <span translate>search.coverage-group-by</span>\n" +
     "    <div class=\"btn-group\" uib-dropdown is-open=\"status.isopen\">\n" +
     "      <button type=\"button\" class=\"btn btn-primary btn-sm\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
@@ -5938,7 +5938,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
     "      <tr>\n" +
-    "        <th rowspan=\"2\" colspan=\"{{table.cols.colSpan}}\" translate>{{'search.coverage-buckets.' + bucket}}</th>\n" +
+    "        <th rowspan=\"{{bucket === BUCKET_TYPES.DCE ? 1 : 2}}\" colspan=\"{{table.cols.colSpan}}\" translate>{{'search.coverage-buckets.' + bucket}}</th>\n" +
     "        <th ng-repeat=\"header in table.vocabularyHeaders\" colspan=\"{{header.termsCount}}\">\n" +
     "          <span\n" +
     "            uib-popover=\"{{header.entity.descriptions[0].value}}\"\n" +
@@ -5950,6 +5950,9 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "        </th>\n" +
     "      </tr>\n" +
     "      <tr>\n" +
+    "        <th ng-if=\"bucket === BUCKET_TYPES.DCE\" translate>search.coverage-dce-cols.study</th>\n" +
+    "        <th ng-if=\"bucket === BUCKET_TYPES.DCE\" translate>search.coverage-dce-cols.population</th>\n" +
+    "        <th ng-if=\"bucket === BUCKET_TYPES.DCE\" translate>search.coverage-dce-cols.dce</th>\n" +
     "        <th ng-repeat=\"header in table.termHeaders\">\n" +
     "          <span\n" +
     "            uib-popover=\"{{header.entity.descriptions[0].value}}\"\n" +

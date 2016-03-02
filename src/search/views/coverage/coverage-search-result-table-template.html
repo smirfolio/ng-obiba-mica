@@ -1,5 +1,5 @@
 <div>
-  <div class="pull-left">
+  <div class="pull-left" ng-if="!loading && table.taxonomyHeaders.length">
     <span translate>search.coverage-group-by</span>
     <div class="btn-group" uib-dropdown is-open="status.isopen">
       <button type="button" class="btn btn-primary btn-sm" uib-dropdown-toggle ng-disabled="disabled">
@@ -43,7 +43,7 @@
     <table class="table table-bordered table-striped">
       <thead>
       <tr>
-        <th rowspan="2" colspan="{{table.cols.colSpan}}" translate>{{'search.coverage-buckets.' + bucket}}</th>
+        <th rowspan="{{bucket === BUCKET_TYPES.DCE ? 1 : 2}}" colspan="{{table.cols.colSpan}}" translate>{{'search.coverage-buckets.' + bucket}}</th>
         <th ng-repeat="header in table.vocabularyHeaders" colspan="{{header.termsCount}}">
           <span
             uib-popover="{{header.entity.descriptions[0].value}}"
@@ -55,6 +55,9 @@
         </th>
       </tr>
       <tr>
+        <th ng-if="bucket === BUCKET_TYPES.DCE" translate>search.coverage-dce-cols.study</th>
+        <th ng-if="bucket === BUCKET_TYPES.DCE" translate>search.coverage-dce-cols.population</th>
+        <th ng-if="bucket === BUCKET_TYPES.DCE" translate>search.coverage-dce-cols.dce</th>
         <th ng-repeat="header in table.termHeaders">
           <span
             uib-popover="{{header.entity.descriptions[0].value}}"
