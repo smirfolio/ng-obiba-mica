@@ -230,6 +230,20 @@ angular.module('obiba.mica.search')
     };
   })
 
+  .directive('scrollToTop', function(){
+    return {
+      restrict: 'A',
+      scope: {
+        trigger: '=scrollToTop'
+      },
+      link: function postLink(scope, elem) {
+        scope.$watch('trigger', function() {
+          elem[0].scrollTop = 0;
+        });
+      }
+    };
+  })
+
   .directive('resultPanel', [function () {
     return {
       restrict: 'EA',
