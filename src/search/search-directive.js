@@ -213,7 +213,8 @@ angular.module('obiba.mica.search')
       replace: true,
       scope: {
         result: '=',
-        loading: '='
+        loading: '=',
+        onUpdateCriteria: '='
       },
       controller: 'GraphicsResultController',
       templateUrl: 'search/views/graphics/graphics-search-result-template.html'

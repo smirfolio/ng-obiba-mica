@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-03-02
+ * Date: 2016-03-03
  */
 'use strict';
 
@@ -4072,26 +4072,41 @@ angular.module('obiba.mica.search')
   .controller('GraphicsResultController', [
     'GraphicChartsConfig',
     'GraphicChartsUtils',
+    'RqlQueryService',
     '$filter',
     '$scope',
     function (GraphicChartsConfig,
               GraphicChartsUtils,
+              RqlQueryService,
               $filter,
               $scope) {
 
-      var setChartObject = function (tem, dtoObject, header, title, options) {
-        var ChartObject = GraphicChartsUtils.getArrayByAggregation(tem, dtoObject);
-        if (ChartObject.length > 0) {
-          ChartObject.unshift(header);
+      var setChartObject = function (vocabulary, dtoObject, header, title, options) {
+        var entries = GraphicChartsUtils.getArrayByAggregation(vocabulary, dtoObject),
+          data = entries.map(function(e) {return [e.title, e.value]; });
+
+        if (data.length > 0) {
+          data.unshift(header);
           angular.extend(options, {title: title});
+
           return {
-            data: ChartObject,
-            options: options
+            data: data,
+            entries: entries,
+            options: options,
+            vocabulary: vocabulary
           };
         }
+
         return false;
       };
+
       var charOptions = GraphicChartsConfig.getOptions().ChartsOptions;
+
+      $scope.updateCriteria = function(key, vocabulary) {
+        RqlQueryService.createCriteriaItem('study', 'Mica_study', vocabulary, key).then(function (item) {
+          $scope.onUpdateCriteria(item, 'studies');
+        });
+      };
 
       $scope.$watch('result', function (result) {
         $scope.chartObjects = {};
@@ -4125,7 +4140,9 @@ angular.module('obiba.mica.search')
                     geoTitle: geoStudies.options.title,
                     options: geoStudies.options,
                     type: 'GeoChart',
-                    data: geoStudies.data
+                    vocabulary: geoStudies.vocabulary,
+                    data: geoStudies.data,
+                    entries: geoStudies.entries
                   }
                 }
               });
@@ -4136,7 +4153,9 @@ angular.module('obiba.mica.search')
                 chartObject: {
                   options: methodDesignStudies.options,
                   type: 'BarChart',
-                  data: methodDesignStudies.data
+                  data: methodDesignStudies.data,
+                  vocabulary: methodDesignStudies.vocabulary,
+                  entries: methodDesignStudies.entries
                 }
               }
             });
@@ -4147,7 +4166,9 @@ angular.module('obiba.mica.search')
                 chartObject: {
                   options: bioSamplesStudies.options,
                   type: 'PieChart',
-                  data: bioSamplesStudies.data
+                  data: bioSamplesStudies.data,
+                  vocabulary: bioSamplesStudies.vocabulary,
+                  entries: bioSamplesStudies.entries
                 }
               }
             });
@@ -4423,7 +4444,8 @@ angular.module('obiba.mica.search')
       replace: true,
       scope: {
         result: '=',
-        loading: '='
+        loading: '=',
+        onUpdateCriteria: '='
       },
       controller: 'GraphicsResultController',
       templateUrl: 'search/views/graphics/graphics-search-result-template.html'
@@ -4795,7 +4817,10 @@ angular.module('obiba.mica.graphics')
         if (newValue) {
           GraphicChartsData.getData(function (StudiesData) {
             if (StudiesData) {
-              $scope.ItemDataJSon = GraphicChartsUtils.getArrayByAggregation($scope.chartAggregationName, StudiesData[$scope.chartEntityDto]);
+              $scope.ItemDataJSon = GraphicChartsUtils.getArrayByAggregation($scope.chartAggregationName, StudiesData[$scope.chartEntityDto])
+                .map(function(t) {
+                  return [t.title, t.value];
+                });
               if ($scope.ItemDataJSon) {
                 if ($scope.chartType === 'Table') {
                   $scope.chartObject = {};
@@ -4913,6 +4938,7 @@ angular.module('obiba.mica.graphics')
     function () {
       this.getArrayByAggregation = function (aggregationName, entityDto) {
         var arrayData = [];
+
         if (!entityDto) {
           return arrayData;
         }
@@ -4922,7 +4948,7 @@ angular.module('obiba.mica.graphics')
             var i = 0;
             angular.forEach(aggregation['obiba.mica.TermsAggregationResultDto.terms'], function (term) {
               if (term.count) {
-                arrayData[i] = [term.title, term.count];
+                arrayData[i] = {title: term.title, value: term.count, key: term.key};
                 i++;
               }
             });
@@ -5626,17 +5652,16 @@ angular.module("graphics/views/charts-directive.html", []).run(["$templateCache"
 angular.module("graphics/views/tables-directive.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("graphics/views/tables-directive.html",
     "<div>\n" +
-    "  <div  style=\"margin:25px;\">\n" +
+    "  <div style=\"margin:25px;\">\n" +
     "    <table class=\"table table-striped table-bordered\">\n" +
-    " <thead>\n" +
+    "      <thead>\n" +
     "      <th ng-repeat=\"header in chartObject.header\">{{header}}</th>\n" +
-    " </thead>\n" +
+    "      </thead>\n" +
     "      <tbody>\n" +
     "      <tr ng-repeat=\"data in chartObject.data | orderBy:'-this[1]'\">\n" +
     "        <td ng-repeat=\"row in data\">{{row}}</td>\n" +
     "      </tr>\n" +
     "      </tbody>\n" +
-    "\n" +
     "    </table>\n" +
     "  </div>\n" +
     "</div>\n" +
@@ -6224,9 +6249,9 @@ angular.module("search/views/graphics/graphics-search-result-template.html", [])
     "              </tr>\n" +
     "              </thead>\n" +
     "              <tbody>\n" +
-    "              <tr ng-repeat=\"row in chart.chartObject.data.slice(1)\">\n" +
-    "                <td>{{row[0]}}</td>\n" +
-    "                <td>{{row[1]}}</td>\n" +
+    "              <tr ng-repeat=\"row in chart.chartObject.entries\">\n" +
+    "                <td>{{row.title}}</td>\n" +
+    "                <td><a href ng-click=\"updateCriteria(row.key, chart.chartObject.vocabulary)\">{{row.value}}</a></td>\n" +
     "              </tr>\n" +
     "              </tbody>\n" +
     "            </table>\n" +
@@ -6550,7 +6575,7 @@ angular.module("search/views/search-result-coverage-template.html", []).run(["$t
 angular.module("search/views/search-result-graphics-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-graphics-template.html",
     "<div class=\"tab-pane\" ng-class=\"{active: activeDisplay.graphics}\">\n" +
-    "  <graphics-result result=\"result.graphics\" loading=\"loading\" class=\"voffset2\"></graphics-result>\n" +
+    "  <graphics-result on-update-criteria=\"onUpdateCriteria\" result=\"result.graphics\" loading=\"loading\" class=\"voffset2\"></graphics-result>\n" +
     "</div>");
 }]);
 
