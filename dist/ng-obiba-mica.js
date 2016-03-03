@@ -4461,6 +4461,20 @@ angular.module('obiba.mica.search')
     };
   })
 
+  .directive('scrollToTop', function(){
+    return {
+      restrict: 'A',
+      scope: {
+        trigger: '=scrollToTop'
+      },
+      link: function postLink(scope, elem) {
+        scope.$watch('trigger', function() {
+          elem[0].scrollTop = 0;
+        });
+      }
+    };
+  })
+
   .directive('resultPanel', [function () {
     return {
       restrict: 'EA',
@@ -5779,7 +5793,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "\n" +
     "    <div ng-if=\"taxonomies.taxonomy\">\n" +
     "      <div class=\"row\">\n" +
-    "        <div class=\"col-md-4 height3\">\n" +
+    "        <div class=\"col-md-4 height3\" scroll-to-top=\"taxonomies.taxonomy\">\n" +
     "          <h5 ng-repeat=\"label in taxonomies.taxonomy.title\" ng-if=\"label.locale === lang\">\n" +
     "            {{label.text}}\n" +
     "          </h5>\n" +
@@ -5800,7 +5814,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "            </li>\n" +
     "          </ul>\n" +
     "        </div>\n" +
-    "        <div class=\"col-md-4 height3\">\n" +
+    "        <div class=\"col-md-4 height3\" scroll-to-top=\"taxonomies.vocabulary\">\n" +
     "          <div ng-if=\"taxonomies.vocabulary\">\n" +
     "            <h5 ng-repeat=\"label in taxonomies.vocabulary.title\" ng-if=\"label.locale === lang\">\n" +
     "              {{label.text}}\n" +
@@ -5830,7 +5844,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "            </ul>\n" +
     "          </div>\n" +
     "        </div>\n" +
-    "        <div class=\"col-md-4 height3\">\n" +
+    "        <div class=\"col-md-4 height3\" scroll-to-top=\"taxonomies.term\">\n" +
     "          <div ng-if=\"taxonomies.term\">\n" +
     "            <h5 ng-repeat=\"label in taxonomies.term.title\" ng-if=\"label.locale === lang\">\n" +
     "              {{label.text}}\n" +
@@ -5849,8 +5863,6 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "        </div>\n" +
     "      </div>\n" +
     "    </div>\n" +
-    "\n" +
-    "\n" +
     "  </div>\n" +
     "</div>");
 }]);
