@@ -734,6 +734,12 @@ angular.module('obiba.mica.search')
     function ($scope,
               ngObibaMicaSearch) {
 
+      function updateTarget(type) {
+        Object.keys($scope.activeTarget).forEach(function(key){
+          $scope.activeTarget[key].active = type === key;
+        });
+      }
+
       $scope.targetTypeMap = $scope.$parent.taxonomyTypeMap;
       $scope.QUERY_TARGETS = QUERY_TARGETS;
       $scope.QUERY_TYPES = QUERY_TYPES;
@@ -741,7 +747,10 @@ angular.module('obiba.mica.search')
       $scope.activeDisplay = {};
       $scope.activeDisplay[$scope.display] = true;
       $scope.activeTarget = {};
-      $scope.activeTarget[$scope.type] = true;
+      $scope.activeTarget[QUERY_TYPES.VARIABLES] = {active: false, name: QUERY_TARGETS.VARIABLE, totalHits: 0};
+      $scope.activeTarget[QUERY_TYPES.DATASETS] = {active: false, name: QUERY_TARGETS.DATASET, totalHits: 0};
+      $scope.activeTarget[QUERY_TYPES.STUDIES] = {active: false, name: QUERY_TARGETS.STUDY, totalHits: 0};
+      $scope.activeTarget[QUERY_TYPES.NETWORKS] = {active: false, name: QUERY_TARGETS.NETWORK, totalHits: 0};
 
       $scope.selectDisplay = function (display) {
         $scope.activeDisplay = {};
@@ -751,15 +760,23 @@ angular.module('obiba.mica.search')
       };
 
       $scope.selectTarget = function (type) {
-        $scope.activeTarget = {};
-        $scope.activeTarget[type] = true;
+        updateTarget(type);
         $scope.type = type;
         $scope.$parent.onTypeChanged(type);
       };
 
-      $scope.$watch('type', function (target) {
-        $scope.activeTarget = {};
-        $scope.activeTarget[target] = true;
+      $scope.$watchCollection('result', function () {
+        if ($scope.result.list) {
+          $scope.activeTarget[QUERY_TYPES.VARIABLES].totalHits = $scope.result.list.variableResultDto.totalHits;
+          $scope.activeTarget[QUERY_TYPES.DATASETS].totalHits = $scope.result.list.datasetResultDto.totalHits;
+          $scope.activeTarget[QUERY_TYPES.STUDIES].totalHits = $scope.result.list.studyResultDto.totalHits;
+          $scope.activeTarget[QUERY_TYPES.NETWORKS].totalHits = $scope.result.list.networkResultDto.totalHits;
+        }
+      });
+
+
+      $scope.$watch('type', function (type) {
+        updateTarget(type);
       });
 
       $scope.$watch('display', function (display) {
