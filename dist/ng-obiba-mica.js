@@ -3610,6 +3610,12 @@ angular.module('obiba.mica.search')
     function ($scope,
               ngObibaMicaSearch) {
 
+      function updateTarget(type) {
+        Object.keys($scope.activeTarget).forEach(function(key){
+          $scope.activeTarget[key].active = type === key;
+        });
+      }
+
       $scope.targetTypeMap = $scope.$parent.taxonomyTypeMap;
       $scope.QUERY_TARGETS = QUERY_TARGETS;
       $scope.QUERY_TYPES = QUERY_TYPES;
@@ -3617,7 +3623,10 @@ angular.module('obiba.mica.search')
       $scope.activeDisplay = {};
       $scope.activeDisplay[$scope.display] = true;
       $scope.activeTarget = {};
-      $scope.activeTarget[$scope.type] = true;
+      $scope.activeTarget[QUERY_TYPES.VARIABLES] = {active: false, name: QUERY_TARGETS.VARIABLE, totalHits: 0};
+      $scope.activeTarget[QUERY_TYPES.DATASETS] = {active: false, name: QUERY_TARGETS.DATASET, totalHits: 0};
+      $scope.activeTarget[QUERY_TYPES.STUDIES] = {active: false, name: QUERY_TARGETS.STUDY, totalHits: 0};
+      $scope.activeTarget[QUERY_TYPES.NETWORKS] = {active: false, name: QUERY_TARGETS.NETWORK, totalHits: 0};
 
       $scope.selectDisplay = function (display) {
         $scope.activeDisplay = {};
@@ -3627,15 +3636,24 @@ angular.module('obiba.mica.search')
       };
 
       $scope.selectTarget = function (type) {
-        $scope.activeTarget = {};
-        $scope.activeTarget[type] = true;
+        updateTarget(type);
         $scope.type = type;
         $scope.$parent.onTypeChanged(type);
       };
 
-      $scope.$watch('type', function (target) {
-        $scope.activeTarget = {};
-        $scope.activeTarget[target] = true;
+      $scope.$watch('result', function () {
+        if ($scope.result.list) {
+          $scope.activeTarget[QUERY_TYPES.VARIABLES].totalHits = $scope.result.list.variableResultDto.totalHits;
+          $scope.activeTarget[QUERY_TYPES.DATASETS].totalHits = $scope.result.list.datasetResultDto.totalHits;
+          $scope.activeTarget[QUERY_TYPES.STUDIES].totalHits = $scope.result.list.studyResultDto.totalHits;
+          $scope.activeTarget[QUERY_TYPES.NETWORKS].totalHits = $scope.result.list.networkResultDto.totalHits;
+          //unregister();
+        }
+      });
+
+
+      $scope.$watch('type', function (type) {
+        updateTarget(type);
       });
 
       $scope.$watch('display', function (display) {
@@ -6637,14 +6655,8 @@ angular.module("search/views/search-result-graphics-template.html", []).run(["$t
 
 angular.module("search/views/search-result-list-dataset-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-dataset-template.html",
-    "<div class=\"tab-pane\" ng-show=\"options.datasets.showSearchTab\" ng-class=\"{active: activeTarget.datasets}\">\n" +
+    "<div class=\"tab-pane\" ng-show=\"options.datasets.showSearchTab\" ng-class=\"{active: activeTarget.datasets.active}\">\n" +
     "  <span ng-if=\"resultTabsOrder.length === 1\">{{'datasets' | translate}} ({{result.list.datasetResultDto.totalHits}})</span>\n" +
-    "  <span search-result-pagination\n" +
-    "      class=\"pull-right\"\n" +
-    "      target=\"QUERY_TARGETS.DATASET\"\n" +
-    "      total-hits=\"result.list.datasetResultDto.totalHits\"\n" +
-    "      on-change=\"onPaginate\"></span>\n" +
-    "  <span class=\"clearfix\"></span>\n" +
     "  <datasets-result-table loading=\"loading\" on-update-criteria=\"onUpdateCriteria\"\n" +
     "      summaries=\"result.list.datasetResultDto['obiba.mica.DatasetResultDto.result'].datasets\"></datasets-result-table>\n" +
     "</div>\n" +
@@ -6653,14 +6665,8 @@ angular.module("search/views/search-result-list-dataset-template.html", []).run(
 
 angular.module("search/views/search-result-list-network-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-network-template.html",
-    "<div class=\"tab-pane\" ng-show=\"options.networks.showSearchTab\" ng-class=\"{active: activeTarget.networks}\">\n" +
+    "<div class=\"tab-pane\" ng-show=\"options.networks.showSearchTab\" ng-class=\"{active: activeTarget.networks.active}\">\n" +
     "  <span ng-if=\"resultTabsOrder.length === 1\">{{'networks' | translate}} ({{result.list.networkResultDto.totalHits}})</span>\n" +
-    "  <span search-result-pagination\n" +
-    "      class=\"pull-right\"\n" +
-    "      target=\"QUERY_TARGETS.NETWORK\"\n" +
-    "      total-hits=\"result.list.networkResultDto.totalHits\"\n" +
-    "      on-change=\"onPaginate\"></span>\n" +
-    "  <span class=\"clearfix\"></span>\n" +
     "  <networks-result-table loading=\"loading\" on-update-criteria=\"onUpdateCriteria\"\n" +
     "      summaries=\"result.list.networkResultDto['obiba.mica.NetworkResultDto.result'].networks\"></networks-result-table>\n" +
     "</div>\n" +
@@ -6669,14 +6675,8 @@ angular.module("search/views/search-result-list-network-template.html", []).run(
 
 angular.module("search/views/search-result-list-study-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-study-template.html",
-    "<div class=\"tab-pane\" ng-show=\"options.studies.showSearchTab\" ng-class=\"{'active': activeTarget.studies}\">\n" +
+    "<div class=\"tab-pane\" ng-show=\"options.studies.showSearchTab\" ng-class=\"{'active': activeTarget.studies.active}\">\n" +
     "  <span ng-if=\"resultTabsOrder.length === 1\">{{'studies' | translate}} ({{result.list.studyResultDto.totalHits}})</span>\n" +
-    "  <span search-result-pagination\n" +
-    "      class=\"pull-right\"\n" +
-    "      target=\"QUERY_TARGETS.STUDY\"\n" +
-    "      total-hits=\"result.list.studyResultDto.totalHits\"\n" +
-    "      on-change=\"onPaginate\"></span>\n" +
-    "  <span class=\"clearfix\"></span>\n" +
     "  <studies-result-table loading=\"loading\" on-update-criteria=\"onUpdateCriteria\"\n" +
     "      summaries=\"result.list.studyResultDto['obiba.mica.StudyResultDto.result'].summaries\"></studies-result-table>\n" +
     "</div>");
@@ -6687,10 +6687,16 @@ angular.module("search/views/search-result-list-template.html", []).run(["$templ
     "<div class=\"tab-pane\" ng-class=\"{active: activeDisplay.list}\">\n" +
     "  <ul class=\"nav nav-pills voffset2\" ng-if=\"resultTabsOrder.length > 1\">\n" +
     "    <li role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
-    "        ng-class=\"{active: activeTarget[targetTypeMap[res]]}\"\n" +
+    "        ng-class=\"{active: activeTarget[targetTypeMap[res]].active}\"\n" +
     "        ng-if=\"options[targetTypeMap[res]].showSearchTab\"><a href\n" +
     "        ng-click=\"selectTarget(targetTypeMap[res])\">{{targetTypeMap[res] | translate}} ({{result.list[res +\n" +
     "      'ResultDto'].totalHits}})</a></li>\n" +
+    "    <li ng-repeat=\"res in resultTabsOrder\" ng-show=\"activeTarget[targetTypeMap[res]].active\" class=\"pull-right\">\n" +
+    "      <span search-result-pagination\n" +
+    "            target=\"activeTarget[targetTypeMap[res]].name\"\n" +
+    "            total-hits=\"activeTarget[targetTypeMap[res]].totalHits\"\n" +
+    "            on-change=\"onPaginate\"></span>\n" +
+    "    </li>\n" +
     "  </ul>\n" +
     "  <div class=\"tab-content\">\n" +
     "    <ng-include include-replace ng-repeat=\"res in resultTabsOrder\"\n" +
@@ -6702,14 +6708,8 @@ angular.module("search/views/search-result-list-template.html", []).run(["$templ
 
 angular.module("search/views/search-result-list-variable-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-variable-template.html",
-    "<div class=\"tab-pane\" ng-show=\"options.variables.showSearchTab\" ng-class=\"{active: activeTarget.variables}\">\n" +
+    "<div class=\"tab-pane\" ng-show=\"options.variables.showSearchTab\" ng-class=\"{active: activeTarget.variables.active}\">\n" +
     "  <span ng-if=\"resultTabsOrder.length === 1\">{{'variables' | translate}} ({{result.list.variableResultDto.totalHits}})</span>\n" +
-    "  <span search-result-pagination\n" +
-    "      class=\"pull-right\"\n" +
-    "      target=\"QUERY_TARGETS.VARIABLE\"\n" +
-    "      total-hits=\"result.list.variableResultDto.totalHits\"\n" +
-    "      on-change=\"onPaginate\"></span>\n" +
-    "  <span class=\"clearfix\"></span>\n" +
     "  <variables-result-table loading=\"loading\"\n" +
     "      summaries=\"result.list.variableResultDto['obiba.mica.DatasetVariableResultDto.result'].summaries\"></variables-result-table>\n" +
     "</div>\n" +
