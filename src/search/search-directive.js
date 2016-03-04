@@ -441,4 +441,36 @@ angular.module('obiba.mica.search')
       controller: 'SearchResultPaginationController',
       templateUrl: 'search/views/list/search-result-pagination-template.html'
     };
+  }])
+
+  .directive('taxonomiesPanel',[function() {
+    return {
+    restrict: 'EA',
+    replace: true,
+    scope: {
+      taxonomyName: '=',
+      target: '=',
+      onSelectTerm: '=',
+      lang: '='
+    },
+    controller: 'TaxonomiesPanelController',
+    templateUrl: 'search/views/classifications/taxonomies-view.html',
+    link: function(scope, element) {
+       scope.closeTaxonomies = function () {
+        element.collapse('hide');
+       };
+
+       scope.showTaxonomies = function() {
+        element.collapse('show');
+       };
+
+       element.on('show.bs.collapse', function () {
+         scope.taxonomiesShown = true;
+       });
+
+       element.on('hide.bs.collapse', function () {
+         scope.taxonomiesShown = false;
+       });
+      }
+    };
   }]);
