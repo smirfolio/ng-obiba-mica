@@ -1065,6 +1065,11 @@ angular.module('obiba.mica.search')
         }
       };
 
+      $scope.hasVariableTarget = function() {
+        var query = $location.search().query;
+        return query && RqlQueryUtils.hasTargetQuery(new RqlParser().parse(query), RQL_NODE.VARIABLE);
+      };
+
       $scope.hasSelected = function () {
         return $scope.table && $scope.table.rows.filter(function(r) { return r.selected; }).length;
       };

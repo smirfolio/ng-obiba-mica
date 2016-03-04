@@ -492,14 +492,14 @@ angular.module('obiba.mica.search')
       }) : [];
     };
 
-    this.hasTargetQuery = function(rootRql) {
+    this.hasTargetQuery = function(rootRql, target) {
       return rootRql.args.filter(function(query) {
           switch (query.name) {
             case RQL_NODE.VARIABLE:
             case RQL_NODE.DATASET:
             case RQL_NODE.STUDY:
             case RQL_NODE.NETWORK:
-              return true;
+              return target ? target === query.name : true;
             default:
               return false;
           }

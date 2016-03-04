@@ -1914,14 +1914,14 @@ angular.module('obiba.mica.search')
       }) : [];
     };
 
-    this.hasTargetQuery = function(rootRql) {
+    this.hasTargetQuery = function(rootRql, target) {
       return rootRql.args.filter(function(query) {
           switch (query.name) {
             case RQL_NODE.VARIABLE:
             case RQL_NODE.DATASET:
             case RQL_NODE.STUDY:
             case RQL_NODE.NETWORK:
-              return true;
+              return target ? target === query.name : true;
             default:
               return false;
           }
@@ -3939,6 +3939,11 @@ angular.module('obiba.mica.search')
         } else {
           return $scope.rowspans[study] > 0;
         }
+      };
+
+      $scope.hasVariableTarget = function() {
+        var query = $location.search().query;
+        return query && RqlQueryUtils.hasTargetQuery(new RqlParser().parse(query), RQL_NODE.VARIABLE);
       };
 
       $scope.hasSelected = function () {
@@ -5967,7 +5972,7 @@ angular.module("search/views/classifications/vocabulary-panel-template.html", []
 angular.module("search/views/coverage/coverage-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/coverage/coverage-search-result-table-template.html",
     "<div>\n" +
-    "  <div class=\"pull-left\" ng-if=\"!loading && table.taxonomyHeaders.length\">\n" +
+    "  <div class=\"pull-left\" ng-if=\"hasVariableTarget()\">\n" +
     "    <span translate>search.coverage-group-by</span>\n" +
     "    <div class=\"btn-group\" uib-dropdown is-open=\"status.isopen\">\n" +
     "      <button type=\"button\" class=\"btn btn-primary btn-sm\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
