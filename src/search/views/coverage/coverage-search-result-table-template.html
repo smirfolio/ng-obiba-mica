@@ -1,5 +1,5 @@
 <div>
-  <div class="pull-left" ng-if="!loading && table.taxonomyHeaders.length">
+  <div class="pull-left" ng-if="hasVariableTarget()">
     <span translate>search.coverage-group-by</span>
     <div class="btn-group" uib-dropdown is-open="status.isopen">
       <button type="button" class="btn btn-primary btn-sm" uib-dropdown-toggle ng-disabled="disabled">
