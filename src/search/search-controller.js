@@ -334,6 +334,11 @@ angular.module('obiba.mica.search')
         $scope.taxonomyName = name;
       };
 
+      var clearTaxonomy = function() {
+        $scope.target = null;
+        $scope.taxonomyName = null;
+      };
+
       /**
        * Updates the URL location triggering a query execution
        */
@@ -537,6 +542,7 @@ angular.module('obiba.mica.search')
       $scope.searchKeyUp = searchKeyUp;
 
       $scope.showTaxonomy = showTaxonomy;
+      $scope.clearTaxonomy = clearTaxonomy;
 
       $scope.removeCriteriaItem = removeCriteriaItem;
       $scope.refreshQuery = refreshQuery;
