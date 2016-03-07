@@ -21,12 +21,14 @@
               <tr>
                 <th>{{chart.chartObject.data[0][0]}}</th>
                 <th>{{chart.chartObject.data[0][1]}}</th>
+                <th ng-if="chart.chartObject.data[0][2]">{{chart.chartObject.data[0][2]}}</th>
               </tr>
               </thead>
               <tbody>
               <tr ng-repeat="row in chart.chartObject.entries">
                 <td>{{row.title}}</td>
                 <td><a href ng-click="updateCriteria(row.key, chart.chartObject.vocabulary)">{{row.value}}</a></td>
+                <td ng-if="row.participantsNbr">{{row.participantsNbr}}</td>
               </tr>
               </tbody>
             </table>
