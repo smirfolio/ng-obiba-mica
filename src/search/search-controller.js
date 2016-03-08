@@ -368,7 +368,7 @@ angular.module('obiba.mica.search')
         // search for taxonomy terms
         // search for matching variables/studies/... count
         return TaxonomiesSearchResource.get({
-          query: query, locale: $scope.lang
+          query: query, locale: $scope.lang, target: $scope.documents.search.target
         }).$promise.then(function (response) {
           if (response) {
             var results = [];
@@ -500,6 +500,10 @@ angular.module('obiba.mica.search')
         selectCriteria(RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, term, $scope.lang));
       };
 
+      var selectSearchTarget = function(target) {
+        $scope.documents.search.target = target;
+      };
+
       /**
        * Removes the item from the criteria tree
        * @param item
@@ -532,11 +536,13 @@ angular.module('obiba.mica.search')
       $scope.documents = {
         search: {
           text: null,
-          active: false
+          active: false,
+          target: QUERY_TARGETS.VARIABLE
         }
       };
 
       $scope.headerTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('view');
+      $scope.selectSearchTarget = selectSearchTarget;
       $scope.searchCriteria = searchCriteria;
       $scope.selectCriteria = selectCriteria;
       $scope.searchKeyUp = searchKeyUp;
@@ -552,6 +558,7 @@ angular.module('obiba.mica.search')
       $scope.onDisplayChanged = onDisplayChanged;
       $scope.onUpdateCriteria = onUpdateCriteria;
       $scope.onSelectTerm = onSelectTerm;
+      $scope.QUERY_TARGETS = QUERY_TARGETS;
 
       $scope.onPaginate = onPaginate;
 

@@ -3255,7 +3255,7 @@ angular.module('obiba.mica.search')
         // search for taxonomy terms
         // search for matching variables/studies/... count
         return TaxonomiesSearchResource.get({
-          query: query, locale: $scope.lang
+          query: query, locale: $scope.lang, target: $scope.documents.search.target
         }).$promise.then(function (response) {
           if (response) {
             var results = [];
@@ -3387,6 +3387,10 @@ angular.module('obiba.mica.search')
         selectCriteria(RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, term, $scope.lang));
       };
 
+      var selectSearchTarget = function(target) {
+        $scope.documents.search.target = target;
+      };
+
       /**
        * Removes the item from the criteria tree
        * @param item
@@ -3419,11 +3423,13 @@ angular.module('obiba.mica.search')
       $scope.documents = {
         search: {
           text: null,
-          active: false
+          active: false,
+          target: QUERY_TARGETS.VARIABLE
         }
       };
 
       $scope.headerTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('view');
+      $scope.selectSearchTarget = selectSearchTarget;
       $scope.searchCriteria = searchCriteria;
       $scope.selectCriteria = selectCriteria;
       $scope.searchKeyUp = searchKeyUp;
@@ -3439,6 +3445,7 @@ angular.module('obiba.mica.search')
       $scope.onDisplayChanged = onDisplayChanged;
       $scope.onUpdateCriteria = onUpdateCriteria;
       $scope.onSelectTerm = onSelectTerm;
+      $scope.QUERY_TARGETS = QUERY_TARGETS;
 
       $scope.onPaginate = onPaginate;
 
@@ -6974,9 +6981,17 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "            </small>\n" +
     "          </a>\n" +
     "        </script>\n" +
-    "        <a href>\n" +
+    "\n" +
     "        <span class=\"input-group input-group-sm no-padding-top\">\n" +
-    "          <input type=\"text\" ng-model=\"selectedCriteria\" placeholder=\"{{'search.placeholder' | translate}}\"\n" +
+    "          <span class=\"input-group-btn\" uib-dropdown is-open=\"status.isopen\">\n" +
+    "          <button id=\"single-button\" type=\"button\" class=\"btn btn-primary\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
+    "            {{'taxonomy.target.' + documents.search.target | translate}} <span class=\"caret\"></span>\n" +
+    "          </button>\n" +
+    "          <ul uib-dropdown-menu role=\"menu\" aria-labelledby=\"single-button\">\n" +
+    "            <li ng-repeat=\"target in QUERY_TARGETS\" role=\"menuitem\"><a href ng-click=\"selectSearchTarget(target)\">{{'taxonomy.target.' + target | translate}}</a></li>\n" +
+    "          </ul>\n" +
+    "        </span>\n" +
+    "          <input type=\"text\" ng-model=\"selectedCriteria\" placeholder=\"{{'search.placeholder.' + documents.search.target | translate}}\"\n" +
     "            uib-typeahead=\"criteria for criteria in searchCriteria($viewValue)\"\n" +
     "            typeahead-min-length=\"2\"\n" +
     "            typeahead-loading=\"documents.search.active\"\n" +
@@ -6985,7 +7000,6 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "            class=\"form-control\">\n" +
     "          <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-search\"></i></span>\n" +
     "        </span>\n" +
-    "        </a>\n" +
     "      </div>\n" +
     "    </div>\n" +
     "    <div class=\"row\">\n" +
