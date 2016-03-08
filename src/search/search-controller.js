@@ -1096,7 +1096,7 @@ angular.module('obiba.mica.search')
       };
 
       $scope.hasSelected = function () {
-        return $scope.table && $scope.table.rows.filter(function(r) { return r.selected; }).length;
+        return $scope.table && $scope.table.rows && $scope.table.rows.filter(function(r) { return r.selected; }).length;
       };
 
       function getBucketUrl(bucket, id) {
