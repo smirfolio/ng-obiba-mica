@@ -2245,20 +2245,28 @@ angular.module('obiba.mica.search')
       function deleteNode(item) {
         var parent = item.parent;
         var query = item.rqlQuery;
-        var children = query.args;
+        var queryArgs = query.args;
         var parentQuery = item.parent.rqlQuery;
         var index = parentQuery.args.indexOf(query);
-        if (index === -1) {
+        var indexChild = parent.children.indexOf(item);
+
+        if (index === -1 || indexChild === -1) {
           throw new Error('Criteria node not found: ' + item);
         }
 
+        parent.children.splice(indexChild, 1);
+        item.children.forEach(function(c) {
+          c.parent = parent;
+        });
+        parent.children.splice.apply(parent.children, [indexChild, 0].concat(item.children));
+
         parentQuery.args.splice(index, 1);
 
-        if (children) {
-          if (children instanceof Array) {
-            parentQuery.args.splice.apply(parentQuery.args, [index, 0].concat(children));
+        if (queryArgs) {
+          if (queryArgs instanceof Array) {
+            parentQuery.args.splice.apply(parentQuery.args, [index, 0].concat(queryArgs));
           } else {
-            parentQuery.args.splice(index, 0, children);
+            parentQuery.args.splice(index, 0, queryArgs);
           }
         }
 
@@ -2269,22 +2277,29 @@ angular.module('obiba.mica.search')
 
       function deleteNodeCriteriaWithOrphans(item) {
         var parent = item.parent;
-
         var query = item.rqlQuery;
-        var children = query.args;
+        var queryArgs = query.args;
         var parentQuery = item.parent.rqlQuery;
         var index = parentQuery.args.indexOf(query);
-        if (index === -1) {
+        var indexChild = parent.children.indexOf(item);
+
+        if (index === -1 || indexChild === -1) {
           throw new Error('Criteria node not found: ' + item);
         }
 
+        parent.children.splice(indexChild, 1);
+        item.children.forEach(function(c) {
+          c.parent = parent;
+        });
+        parent.children.splice.apply(parent.children, [indexChild, 0].concat(item.children));
+
         parentQuery.args.splice(index, 1);
 
-        if (children) {
-          if (children instanceof Array) {
-            parentQuery.args.splice.apply(parentQuery.args, [index, 0].concat(children));
+        if (queryArgs) {
+          if (queryArgs instanceof Array) {
+            parentQuery.args.splice.apply(parentQuery.args, [index, 0].concat(queryArgs));
           } else {
-            parentQuery.args.splice(index, 0, children);
+            parentQuery.args.splice(index, 0, queryArgs);
           }
         }
 
@@ -2302,6 +2317,7 @@ angular.module('obiba.mica.search')
         var query = item.rqlQuery;
         var parentQuery = item.parent.rqlQuery;
         var index = parentQuery.args.indexOf(query);
+
         if (index === -1) {
           throw new Error('Criteria node not found: ' + item);
         }
@@ -2323,6 +2339,8 @@ angular.module('obiba.mica.search')
       this.removeCriteriaItem = function (item) {
         if (isLeafCriteria(item)) {
           deleteLeafCriteria(item);
+        } else {
+          deleteNode(item);
         }
       };
 
@@ -3375,9 +3393,18 @@ angular.module('obiba.mica.search')
         }
       };
 
-      var onUpdateCriteria = function (item, type, useCurrentDisplay) {
+      var onUpdateCriteria = function (item, type, useCurrentDisplay, replaceTarget) {
         if (type) {
           onTypeChanged(type);
+        }
+
+        if(replaceTarget) {
+          Object.keys($scope.search.criteriaItemMap).forEach(function(k) {
+            if($scope.search.criteriaItemMap[k].target === item.target) {
+              RqlQueryService.removeCriteriaItem($scope.search.criteriaItemMap[k]);
+              delete $scope.search.criteriaItemMap[k];
+            }
+          });
         }
 
         onDisplayChanged(useCurrentDisplay && $scope.search.display ? $scope.search.display : DISPLAY_TYPES.LIST);
@@ -4127,11 +4154,24 @@ angular.module('obiba.mica.search')
         $location.search('display', DISPLAY_TYPES.LIST);
       };
 
-      $scope.updateCriteria = function (id, type) {
-        var vocabulary = $scope.bucket === BUCKET_TYPES.DCE ? 'dceIds' : 'id';
+      $scope.updateCriteria = function (id, term, idx, type) {
+        var vocabulary = $scope.bucket === BUCKET_TYPES.DCE ? 'dceIds' : 'id',
+            taxonomyHeader = $scope.table.taxonomyHeaders[0].entity,
+            vocabularyHeader, countTerms = 0;
 
-        RqlQueryService.createCriteriaItem(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary, id).then(function (item) {
-          $scope.onUpdateCriteria(item, type);
+        for(var i = 0; i < $scope.table.vocabularyHeaders.length; i++) {
+          countTerms += $scope.table.vocabularyHeaders[i].termsCount;
+          if(idx < countTerms) {
+            vocabularyHeader = $scope.table.vocabularyHeaders[i].entity;
+            break;
+          }
+        }
+
+        RqlQueryService.createCriteriaItem(QUERY_TARGETS.VARIABLE, taxonomyHeader.name, vocabularyHeader.name, term.entity.name).then(function(varItem) {
+          RqlQueryService.createCriteriaItem(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary, id).then(function (item) {
+            $scope.onUpdateCriteria(varItem, type, false, true);
+            $scope.onUpdateCriteria(item, type);
+          });
         });
       };
 
@@ -6462,7 +6502,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "            popover-trigger=\"mouseenter\">{{col.title}}</a>\n" +
     "        </td>\n" +
     "        <td ng-repeat=\"h in table.termHeaders\">\n" +
-    "          <a href ng-click=\"updateCriteria(row.value, 'variables')\"><span class=\"label label-info\" ng-if=\"row.hits[$index]\">{{row.hits[$index]}}</span></a>\n" +
+    "          <a href ng-click=\"updateCriteria(row.value, h, $index, 'variables')\"><span class=\"label label-info\" ng-if=\"row.hits[$index]\">{{row.hits[$index]}}</span></a>\n" +
     "          <span ng-if=\"!row.hits[$index]\">0</span>\n" +
     "        </td>\n" +
     "      </tr>\n" +
