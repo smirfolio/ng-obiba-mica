@@ -1,6 +1,5 @@
 <div>
   <div class="pull-left" ng-if="hasVariableTarget()">
-    <span translate>search.coverage-group-by</span>
     <div class="btn-group" uib-dropdown is-open="status.isopen">
       <button type="button" class="btn btn-primary btn-sm" uib-dropdown-toggle ng-disabled="disabled">
         {{'search.coverage-buckets.' + bucket | translate}} <span class="caret"></span>
@@ -23,15 +22,15 @@
         </li>
       </ul>
     </div>
+    <a href class="btn btn-default" ng-if="hasSelected()" ng-click="updateFilterCriteria()">
+      <i class="fa fa-filter"></i> {{'search.filter' | translate}}
+    </a>
   </div>
 
   <div class="pull-right" ng-if="table.taxonomyHeaders.length > 0">
-    <a href class="btn btn-info" translate ng-if="hasSelected()" ng-click="updateFilterCriteria()">search.filter</a>
     <a target="_self" class="btn btn-info btn-responsive" ng-href="{{downloadUrl()}}">
       <i class="fa fa-download"></i> {{'download' | translate}}
     </a>
-    <!--<a href ng-click="toggleMissing(false)" ng-if="showMissing" translate>search.coverage-hide-missing</a>-->
-    <!--<a href ng-click="toggleMissing(true)" ng-if="!showMissing" translate>search.coverage-show-missing</a>-->
   </div>
 
   <div class="clearfix"></div>
@@ -44,6 +43,7 @@
     <table class="table table-bordered table-striped">
       <thead>
       <tr>
+        <th rowspan="2" width="20px"></th>
         <th rowspan="{{bucket === BUCKET_TYPES.DCE ? 1 : 2}}" colspan="{{table.cols.colSpan}}" translate>{{'search.coverage-buckets.' + bucket}}</th>
         <th ng-repeat="header in table.vocabularyHeaders" colspan="{{header.termsCount}}">
           <span
@@ -54,7 +54,6 @@
           {{header.entity.titles[0].value}}
             </span>
         </th>
-        <th rowspan="2"></th>
       </tr>
       <tr>
         <th ng-if="bucket === BUCKET_TYPES.DCE" translate>search.coverage-dce-cols.study</th>
@@ -73,6 +72,7 @@
       </thead>
       <tbody>
       <tr ng-repeat="row in table.rows" ng-if="showMissing || table.termHeaders.length == keys(row.hits).length">
+        <td><input type="checkbox" ng-model="row.selected"></td>
         <td ng-repeat="col in table.cols.ids[row.value]" rowspan="{{col.rowSpan}}" ng-if="col.rowSpan > 0">
           <a href="{{col.url ? col.url : ''}}"
             uib-popover-html="col.description === col.title ? null : col.description"
@@ -84,11 +84,11 @@
           <a href ng-click="updateCriteria(row.value, 'variables')"><span class="label label-info" ng-if="row.hits[$index]">{{row.hits[$index]}}</span></a>
           <span ng-if="!row.hits[$index]">0</span>
         </td>
-        <td><input type="checkbox" ng-model="row.selected"></td>
       </tr>
       </tbody>
       <tfoot>
       <tr>
+        <th></th>
         <th colspan="{{table.cols.colSpan}}" translate>all</th>
         <th ng-repeat="header in table.termHeaders" title="{{header.entity.descriptions[0].value}}">
           <a href ng-click="updateDisplay()">{{header.hits}}</a>
