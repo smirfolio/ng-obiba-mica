@@ -6213,7 +6213,10 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "\n" +
     "  <div class=\"clearfix\"></div>\n" +
     "\n" +
-    "  <p class=\"help-block\" ng-if=\"!loading && !table.taxonomyHeaders\" translate>search.no-coverage</p>\n" +
+    "  <p class=\"help-block\" ng-if=\"!loading && !table.taxonomyHeaders\">\n" +
+    "    <span ng-if=\"!hasVariableTarget()\" translate>search.no-coverage</span>\n" +
+    "    <span ng-if=\"hasVariableTarget()\" translate>search.no-results</span>\n" +
+    "  </p>\n" +
     "\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
@@ -6486,11 +6489,9 @@ angular.module("search/views/graphics/graphics-search-result-template.html", [])
   $templateCache.put("search/views/graphics/graphics-search-result-template.html",
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
-    "  <div class=\"row voffset2\" ng-if=\"!loading && noResults\">\n" +
-    "    <div class=\"col-md-12\">\n" +
-    "      <p translate>search.noResults</p>\n" +
-    "    </div>\n" +
-    "  </div>\n" +
+    "\n" +
+    "  <p class=\"help-block\" ng-if=\"!loading && noResults\" translate>search.no-results</p>\n" +
+    "\n" +
     "  <div ng-repeat=\"chart in chartObjects\" class=\"panel panel-default\">\n" +
     "    <div class=\"panel-heading\">\n" +
     "      {{chart.chartObject.options.title}}\n" +
