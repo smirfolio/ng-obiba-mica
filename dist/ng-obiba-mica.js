@@ -3221,6 +3221,11 @@ angular.module('obiba.mica.search')
         $scope.taxonomyName = name;
       };
 
+      var clearTaxonomy = function() {
+        $scope.target = null;
+        $scope.taxonomyName = null;
+      };
+
       /**
        * Updates the URL location triggering a query execution
        */
@@ -3424,6 +3429,7 @@ angular.module('obiba.mica.search')
       $scope.searchKeyUp = searchKeyUp;
 
       $scope.showTaxonomy = showTaxonomy;
+      $scope.clearTaxonomy = clearTaxonomy;
 
       $scope.removeCriteriaItem = removeCriteriaItem;
       $scope.refreshQuery = refreshQuery;
@@ -4784,27 +4790,29 @@ angular.module('obiba.mica.search')
     scope: {
       taxonomyName: '=',
       target: '=',
+      onClose: '=',
       onSelectTerm: '=',
       lang: '='
     },
     controller: 'TaxonomiesPanelController',
     templateUrl: 'search/views/classifications/taxonomies-view.html',
     link: function(scope, element) {
-       scope.closeTaxonomies = function () {
+      scope.closeTaxonomies = function () {
         element.collapse('hide');
-       };
+        scope.onClose();
+      };
 
-       scope.showTaxonomies = function() {
+      scope.showTaxonomies = function() {
         element.collapse('show');
-       };
+      };
 
-       element.on('show.bs.collapse', function () {
-         scope.taxonomiesShown = true;
-       });
+      element.on('show.bs.collapse', function () {
+        scope.taxonomiesShown = true;
+      });
 
-       element.on('hide.bs.collapse', function () {
-         scope.taxonomiesShown = false;
-       });
+      element.on('hide.bs.collapse', function () {
+        scope.taxonomiesShown = false;
+      });
       }
     };
   }]);
@@ -4990,10 +4998,6 @@ angular.module('obiba.mica.graphics')
                   var id = GraphicChartsConfig.getOptions().entityIds;
                   var parts = item.id.split('.');
                   var urlRedirect = 'mica/repository#/search' + '?type=studies&query=' + entity + '(in(Mica_'+ entity + '.id,' + id + ')),study(in(' +  parts[0] + '.' + parts[1] + ',' + parts[2].replace(':','%253A') + '))';
-                  //console.log(item.id.split('.'));
-                  //console.log(entries);
-                  //console.log(GraphicChartsConfig.getOptions().entityType);
-
                   $window.location.href = ngObibaMicaUrl.getUrl('BaseUrl') + urlRedirect;
 
                 });
@@ -5025,7 +5029,6 @@ angular.module('obiba.mica.graphics')
                   $scope.chartObject.type = $scope.chartType;
                   $scope.chartObject.data = data;
                   $scope.chartObject.options = {backgroundColor: {fill: 'transparent'}};
-
                   angular.extend($scope.chartObject.options, $scope.chartOptions);
                   $scope.chartObject.options.title = $filter('translate')($scope.chartTitle) + ' (N=' + StudiesData.studyResultDto.totalHits + ')';
                 }
@@ -7006,7 +7009,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "        </ul>\n" +
     "      </div>\n" +
     "    </div>\n" +
-    "    <taxonomies-panel taxonomy-name=\"taxonomyName\" target=\"target\" on-select-term=\"onSelectTerm\" lang=\"lang\"></taxonomies-panel>\n" +
+    "    <taxonomies-panel taxonomy-name=\"taxonomyName\" target=\"target\" on-select-term=\"onSelectTerm\" on-close=\"clearTaxonomy\" lang=\"lang\"></taxonomies-panel>\n" +
     "  </div>\n" +
     "\n" +
     "  <!-- Search criteria region -->\n" +
