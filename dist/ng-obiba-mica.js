@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-03-07
+ * Date: 2016-03-08
  */
 'use strict';
 
@@ -6178,7 +6178,6 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
   $templateCache.put("search/views/coverage/coverage-search-result-table-template.html",
     "<div>\n" +
     "  <div class=\"pull-left\" ng-if=\"hasVariableTarget()\">\n" +
-    "    <span translate>search.coverage-group-by</span>\n" +
     "    <div class=\"btn-group\" uib-dropdown is-open=\"status.isopen\">\n" +
     "      <button type=\"button\" class=\"btn btn-primary btn-sm\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
     "        {{'search.coverage-buckets.' + bucket | translate}} <span class=\"caret\"></span>\n" +
@@ -6201,15 +6200,15 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "        </li>\n" +
     "      </ul>\n" +
     "    </div>\n" +
+    "    <a href class=\"btn btn-default\" ng-if=\"hasSelected()\" ng-click=\"updateFilterCriteria()\">\n" +
+    "      <i class=\"fa fa-filter\"></i> {{'search.filter' | translate}}\n" +
+    "    </a>\n" +
     "  </div>\n" +
     "\n" +
     "  <div class=\"pull-right\" ng-if=\"table.taxonomyHeaders.length > 0\">\n" +
-    "    <a href class=\"btn btn-info\" translate ng-if=\"hasSelected()\" ng-click=\"updateFilterCriteria()\">search.filter</a>\n" +
     "    <a target=\"_self\" class=\"btn btn-info btn-responsive\" ng-href=\"{{downloadUrl()}}\">\n" +
     "      <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
     "    </a>\n" +
-    "    <!--<a href ng-click=\"toggleMissing(false)\" ng-if=\"showMissing\" translate>search.coverage-hide-missing</a>-->\n" +
-    "    <!--<a href ng-click=\"toggleMissing(true)\" ng-if=\"!showMissing\" translate>search.coverage-show-missing</a>-->\n" +
     "  </div>\n" +
     "\n" +
     "  <div class=\"clearfix\"></div>\n" +
@@ -6222,6 +6221,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
     "      <tr>\n" +
+    "        <th rowspan=\"2\" width=\"20px\"></th>\n" +
     "        <th rowspan=\"{{bucket === BUCKET_TYPES.DCE ? 1 : 2}}\" colspan=\"{{table.cols.colSpan}}\" translate>{{'search.coverage-buckets.' + bucket}}</th>\n" +
     "        <th ng-repeat=\"header in table.vocabularyHeaders\" colspan=\"{{header.termsCount}}\">\n" +
     "          <span\n" +
@@ -6232,7 +6232,6 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "          {{header.entity.titles[0].value}}\n" +
     "            </span>\n" +
     "        </th>\n" +
-    "        <th rowspan=\"2\"></th>\n" +
     "      </tr>\n" +
     "      <tr>\n" +
     "        <th ng-if=\"bucket === BUCKET_TYPES.DCE\" translate>search.coverage-dce-cols.study</th>\n" +
@@ -6251,6 +6250,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "      </thead>\n" +
     "      <tbody>\n" +
     "      <tr ng-repeat=\"row in table.rows\" ng-if=\"showMissing || table.termHeaders.length == keys(row.hits).length\">\n" +
+    "        <td><input type=\"checkbox\" ng-model=\"row.selected\"></td>\n" +
     "        <td ng-repeat=\"col in table.cols.ids[row.value]\" rowspan=\"{{col.rowSpan}}\" ng-if=\"col.rowSpan > 0\">\n" +
     "          <a href=\"{{col.url ? col.url : ''}}\"\n" +
     "            uib-popover-html=\"col.description === col.title ? null : col.description\"\n" +
@@ -6262,11 +6262,11 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "          <a href ng-click=\"updateCriteria(row.value, 'variables')\"><span class=\"label label-info\" ng-if=\"row.hits[$index]\">{{row.hits[$index]}}</span></a>\n" +
     "          <span ng-if=\"!row.hits[$index]\">0</span>\n" +
     "        </td>\n" +
-    "        <td><input type=\"checkbox\" ng-model=\"row.selected\"></td>\n" +
     "      </tr>\n" +
     "      </tbody>\n" +
     "      <tfoot>\n" +
     "      <tr>\n" +
+    "        <th></th>\n" +
     "        <th colspan=\"{{table.cols.colSpan}}\" translate>all</th>\n" +
     "        <th ng-repeat=\"header in table.termHeaders\" title=\"{{header.entity.descriptions[0].value}}\">\n" +
     "          <a href ng-click=\"updateDisplay()\">{{header.hits}}</a>\n" +
