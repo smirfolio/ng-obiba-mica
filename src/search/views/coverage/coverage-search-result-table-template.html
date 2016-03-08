@@ -35,7 +35,10 @@
 
   <div class="clearfix"></div>
 
-  <p class="help-block" ng-if="!loading && !table.taxonomyHeaders" translate>search.no-coverage</p>
+  <p class="help-block" ng-if="!loading && !table.taxonomyHeaders">
+    <span ng-if="!hasVariableTarget()" translate>search.no-coverage</span>
+    <span ng-if="hasVariableTarget()" translate>search.no-results</span>
+  </p>
 
   <div ng-if="loading" class="loading"></div>
 
