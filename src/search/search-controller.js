@@ -482,12 +482,12 @@ angular.module('obiba.mica.search')
         }
       };
 
-      var onUpdateCriteria = function (item, type) {
+      var onUpdateCriteria = function (item, type, useCurrentDisplay) {
         if (type) {
           onTypeChanged(type);
         }
 
-        onDisplayChanged(DISPLAY_TYPES.LIST);
+        onDisplayChanged(useCurrentDisplay && $scope.search.display ? $scope.search.display : DISPLAY_TYPES.LIST);
         selectCriteria(item, RQL_NODE.AND, true);
       };
 
@@ -1256,7 +1256,7 @@ angular.module('obiba.mica.search')
             return item;
           }, null);
 
-          $scope.onUpdateCriteria(selectionItem, 'variables');
+          $scope.onUpdateCriteria(selectionItem, 'variables', true);
         });
       };
     }])
