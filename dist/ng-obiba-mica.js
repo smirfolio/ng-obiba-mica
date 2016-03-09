@@ -3009,10 +3009,13 @@ angular.module('obiba.mica.search')
         return prev;
       }, {});
 
+      $scope.targets = [];
       $scope.lang = LocalizedValues.getLocal();
       $scope.metaTaxonomy = TaxonomyResource.get({
         target: 'taxonomy',
         taxonomy: 'Mica_taxonomy'
+      }, function(t) {
+        $scope.targets = t.vocabularies.map(function(v) { return v.name; });
       });
 
       var searchTaxonomyDisplay = {
@@ -7225,7 +7228,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "            {{'taxonomy.target.' + documents.search.target | translate}} <span class=\"caret\"></span>\n" +
     "          </button>\n" +
     "          <ul uib-dropdown-menu role=\"menu\">\n" +
-    "            <li ng-repeat=\"target in QUERY_TARGETS\" role=\"menuitem\"><a href ng-click=\"selectSearchTarget(target)\">{{'taxonomy.target.'\n" +
+    "            <li ng-repeat=\"target in targets\" role=\"menuitem\"><a href ng-click=\"selectSearchTarget(target)\">{{'taxonomy.target.'\n" +
     "              + target | translate}}</a></li>\n" +
     "          </ul>\n" +
     "        </span>\n" +
