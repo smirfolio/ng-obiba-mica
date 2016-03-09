@@ -243,6 +243,12 @@ angular.module('obiba.mica.search')
         return false;
       }
 
+      var clearSearchQuery = function() {
+        var search = $location.search();
+        delete search.query;
+        $location.search(search).replace();
+      };
+
       function executeSearchQuery() {
         if (validateQueryData()) {
           // build the criteria UI
@@ -552,6 +558,7 @@ angular.module('obiba.mica.search')
 
       $scope.removeCriteriaItem = removeCriteriaItem;
       $scope.refreshQuery = refreshQuery;
+      $scope.clearSearchQuery = clearSearchQuery;
 
       $scope.onTypeChanged = onTypeChanged;
       $scope.onBucketChanged = onBucketChanged;

@@ -3130,6 +3130,12 @@ angular.module('obiba.mica.search')
         return false;
       }
 
+      var clearSearchQuery = function() {
+        var search = $location.search();
+        delete search.query;
+        $location.search(search).replace();
+      };
+
       function executeSearchQuery() {
         if (validateQueryData()) {
           // build the criteria UI
@@ -3439,6 +3445,7 @@ angular.module('obiba.mica.search')
 
       $scope.removeCriteriaItem = removeCriteriaItem;
       $scope.refreshQuery = refreshQuery;
+      $scope.clearSearchQuery = clearSearchQuery;
 
       $scope.onTypeChanged = onTypeChanged;
       $scope.onBucketChanged = onBucketChanged;
@@ -4641,9 +4648,7 @@ angular.module('obiba.mica.search')
         onRemove: '=',
         onRefresh: '='
       },
-      template: '<div ng-repeat="child in item.children">' +
-      '<criteria-target item="child" query="$parent.query"></criteria-target>' +
-      '</div>',
+      templateUrl: 'search/views/criteria/criteria-root-template.html',
       link: function(scope) {
         scope.$on(CRITERIA_ITEM_EVENT.deleted, function(event, item){
           scope.onRemove(item);
@@ -5455,7 +5460,7 @@ angular.module('obiba.mica.localized')
         return 'en';
       };
     });
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html']);
 
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
@@ -6499,22 +6504,25 @@ angular.module("search/views/criteria/criteria-node-template.html", []).run(["$t
     "</span>");
 }]);
 
+angular.module("search/views/criteria/criteria-root-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/criteria/criteria-root-template.html",
+    "<div class=\"form-inline hoffset2\">\n" +
+    "  <div ng-repeat=\"child in item.children\" class=\"inline\">\n" +
+    "    <div class=\"inline hoffset2\" ng-if=\"$index>0\">+</div>\n" +
+    "    <criteria-target item=\"child\" query=\"$parent.query\" class=\"inline\"></criteria-target>\n" +
+    "  </div>\n" +
+    "</div>\n" +
+    "");
+}]);
+
 angular.module("search/views/criteria/criteria-target-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criteria-target-template.html",
-    "<table style=\"border:none;\" class=\"voffset2\">\n" +
-    "  <tbody>\n" +
-    "  <tr>\n" +
-    "    <td>\n" +
-    "      <div class=\"voffset1\" title=\"{{'search.' + item.target + '-where' | translate}}\">\n" +
-    "        <i class=\"{{'i-obiba-' + item.target}}\">&nbsp;</i>\n" +
-    "      </div>\n" +
-    "    </td>\n" +
-    "    <td>\n" +
-    "      <criteria-node item=\"child\" query=\"$parent.query\" ng-repeat=\"child in item.children\"></criteria-node>\n" +
-    "    </td>\n" +
-    "  </tr>\n" +
-    "  </tbody>\n" +
-    "</table>");
+    "<div>\n" +
+    "  <div  class=\"form-group voffset1\" title=\"{{'search.' + item.target + '-where' | translate}}\">\n" +
+    "    <i class=\"{{'i-obiba-' + item.target}}\">&nbsp;</i>\n" +
+    "  </div>\n" +
+    "  <criteria-node item=\"child\" query=\"$parent.query\" ng-repeat=\"child in item.children\"></criteria-node>\n" +
+    "</div>");
 }]);
 
 angular.module("search/views/criteria/criterion-dropdown-template.html", []).run(["$templateCache", function($templateCache) {
@@ -6593,11 +6601,11 @@ angular.module("search/views/criteria/criterion-numeric-template.html", []).run(
     "    <form novalidate>\n" +
     "      <div class=\"form-group\">\n" +
     "        <label for=\"{{criterion.vocabulary.name}}-from\" translate>from</label>\n" +
-    "        <input type=\"number\" class=\"form-control\" id=\"{{criterion.vocabulary.name}}-from\" placeholder=\"{{min}}\" ng-model=\"from\">\n" +
+    "        <input type=\"number\" class=\"form-control\" id=\"{{criterion.vocabulary.name}}-from\" placeholder=\"{{min}}\" ng-model=\"from\" style=\"width:150px\">\n" +
     "      </div>\n" +
     "      <div class=\"form-group\">\n" +
     "        <label for=\"{{criterion.vocabulary.name}}-to\" translate>to</label>\n" +
-    "        <input type=\"number\" class=\"form-control\" id=\"{{criterion.vocabulary.name}}-to\" placeholder=\"{{max}}\" ng-model=\"to\">\n" +
+    "        <input type=\"number\" class=\"form-control\" id=\"{{criterion.vocabulary.name}}-to\" placeholder=\"{{max}}\" ng-model=\"to\" style=\"width:150px\">\n" +
     "      </div>\n" +
     "    </form>\n" +
     "  </li>\n" +
@@ -7169,10 +7177,12 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "            {{'taxonomy.target.' + documents.search.target | translate}} <span class=\"caret\"></span>\n" +
     "          </button>\n" +
     "          <ul uib-dropdown-menu role=\"menu\">\n" +
-    "            <li ng-repeat=\"target in QUERY_TARGETS\" role=\"menuitem\"><a href ng-click=\"selectSearchTarget(target)\">{{'taxonomy.target.' + target | translate}}</a></li>\n" +
+    "            <li ng-repeat=\"target in QUERY_TARGETS\" role=\"menuitem\"><a href ng-click=\"selectSearchTarget(target)\">{{'taxonomy.target.'\n" +
+    "              + target | translate}}</a></li>\n" +
     "          </ul>\n" +
     "        </span>\n" +
-    "          <input type=\"text\" ng-model=\"selectedCriteria\" placeholder=\"{{'search.placeholder.' + documents.search.target | translate}}\"\n" +
+    "          <input type=\"text\" ng-model=\"selectedCriteria\"\n" +
+    "            placeholder=\"{{'search.placeholder.' + documents.search.target | translate}}\"\n" +
     "            uib-typeahead=\"criteria for criteria in searchCriteria($viewValue)\"\n" +
     "            typeahead-min-length=\"2\"\n" +
     "            typeahead-loading=\"documents.search.active\"\n" +
@@ -7205,14 +7215,26 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "        </ul>\n" +
     "      </div>\n" +
     "    </div>\n" +
-    "    <taxonomies-panel taxonomy-name=\"taxonomyName\" target=\"target\" on-select-term=\"onSelectTerm\" on-close=\"clearTaxonomy\" lang=\"lang\"></taxonomies-panel>\n" +
+    "    <taxonomies-panel taxonomy-name=\"taxonomyName\" target=\"target\" on-select-term=\"onSelectTerm\"\n" +
+    "      on-close=\"clearTaxonomy\" lang=\"lang\"></taxonomies-panel>\n" +
     "  </div>\n" +
     "\n" +
     "  <!-- Search criteria region -->\n" +
-    "  <div class=\"row\">\n" +
-    "    <div class=\"col-md-12\">\n" +
-    "      <div criteria-root item=\"search.criteria\" query=\"search.query\" on-remove=\"removeCriteriaItem\"\n" +
-    "        on-refresh=\"refreshQuery\"></div>\n" +
+    "  <div class=\"panel panel-default\" ng-if=\"search.criteria.children && search.criteria.children.length>0\">\n" +
+    "    <div class=\"panel-body\">\n" +
+    "      <table style=\"border:none;\">\n" +
+    "        <tbody>\n" +
+    "        <tr>\n" +
+    "          <td>\n" +
+    "            <a href class=\"btn btn-sm btn-default\" ng-click=\"clearSearchQuery()\" translate>clear</a>\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            <div criteria-root item=\"search.criteria\" query=\"search.query\" on-remove=\"removeCriteriaItem\"\n" +
+    "              on-refresh=\"refreshQuery\"></div>\n" +
+    "          </td>\n" +
+    "        </tr>\n" +
+    "        </tbody>\n" +
+    "      </table>\n" +
     "    </div>\n" +
     "  </div>\n" +
     "\n" +
