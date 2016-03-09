@@ -849,6 +849,12 @@ angular.module('obiba.mica.search')
         $scope.$emit(CRITERIA_ITEM_EVENT.deleted, $scope.criterion);
       };
 
+      var onKeyup = function(event) {
+        if (event.keyCode === 13) {
+          closeDropdown();
+        }
+      };
+
       $scope.state = new CriterionState();
       $scope.localize = function (values) {
         return LocalizedValues.forLocale(values, $scope.criterion.lang);
@@ -898,6 +904,7 @@ angular.module('obiba.mica.search')
       $scope.vocabularyType = function (vocabulary) {
         return RqlQueryUtils.vocabularyType(vocabulary);
       };
+      $scope.onKeyup = onKeyup;
       $scope.truncate = StringUtils.truncate;
       $scope.remove = remove;
       $scope.openDropdown = openDropdown;
