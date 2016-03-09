@@ -488,9 +488,18 @@ angular.module('obiba.mica.search')
         }
       };
 
-      var onUpdateCriteria = function (item, type, useCurrentDisplay) {
+      var onUpdateCriteria = function (item, type, useCurrentDisplay, replaceTarget) {
         if (type) {
           onTypeChanged(type);
+        }
+
+        if(replaceTarget) {
+          Object.keys($scope.search.criteriaItemMap).forEach(function(k) {
+            if($scope.search.criteriaItemMap[k].target === item.target) {
+              RqlQueryService.removeCriteriaItem($scope.search.criteriaItemMap[k]);
+              delete $scope.search.criteriaItemMap[k];
+            }
+          });
         }
 
         onDisplayChanged(useCurrentDisplay && $scope.search.display ? $scope.search.display : DISPLAY_TYPES.LIST);
@@ -1240,11 +1249,24 @@ angular.module('obiba.mica.search')
         $location.search('display', DISPLAY_TYPES.LIST);
       };
 
-      $scope.updateCriteria = function (id, type) {
-        var vocabulary = $scope.bucket === BUCKET_TYPES.DCE ? 'dceIds' : 'id';
+      $scope.updateCriteria = function (id, term, idx, type) {
+        var vocabulary = $scope.bucket === BUCKET_TYPES.DCE ? 'dceIds' : 'id',
+            taxonomyHeader = $scope.table.taxonomyHeaders[0].entity,
+            vocabularyHeader, countTerms = 0;
 
-        RqlQueryService.createCriteriaItem(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary, id).then(function (item) {
-          $scope.onUpdateCriteria(item, type);
+        for(var i = 0; i < $scope.table.vocabularyHeaders.length; i++) {
+          countTerms += $scope.table.vocabularyHeaders[i].termsCount;
+          if(idx < countTerms) {
+            vocabularyHeader = $scope.table.vocabularyHeaders[i].entity;
+            break;
+          }
+        }
+
+        RqlQueryService.createCriteriaItem(QUERY_TARGETS.VARIABLE, taxonomyHeader.name, vocabularyHeader.name, term.entity.name).then(function(varItem) {
+          RqlQueryService.createCriteriaItem(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary, id).then(function (item) {
+            $scope.onUpdateCriteria(varItem, type, false, true);
+            $scope.onUpdateCriteria(item, type);
+          });
         });
       };
 

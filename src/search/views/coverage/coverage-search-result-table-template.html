@@ -84,7 +84,7 @@
             popover-trigger="mouseenter">{{col.title}}</a>
         </td>
         <td ng-repeat="h in table.termHeaders">
-          <a href ng-click="updateCriteria(row.value, 'variables')"><span class="label label-info" ng-if="row.hits[$index]">{{row.hits[$index]}}</span></a>
+          <a href ng-click="updateCriteria(row.value, h, $index, 'variables')"><span class="label label-info" ng-if="row.hits[$index]">{{row.hits[$index]}}</span></a>
           <span ng-if="!row.hits[$index]">0</span>
         </td>
       </tr>
