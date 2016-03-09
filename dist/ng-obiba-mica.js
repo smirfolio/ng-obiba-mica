@@ -3736,6 +3736,12 @@ angular.module('obiba.mica.search')
         $scope.$emit(CRITERIA_ITEM_EVENT.deleted, $scope.criterion);
       };
 
+      var onKeyup = function(event) {
+        if (event.keyCode === 13) {
+          closeDropdown();
+        }
+      };
+
       $scope.state = new CriterionState();
       $scope.localize = function (values) {
         return LocalizedValues.forLocale(values, $scope.criterion.lang);
@@ -3785,6 +3791,7 @@ angular.module('obiba.mica.search')
       $scope.vocabularyType = function (vocabulary) {
         return RqlQueryUtils.vocabularyType(vocabulary);
       };
+      $scope.onKeyup = onKeyup;
       $scope.truncate = StringUtils.truncate;
       $scope.remove = remove;
       $scope.openDropdown = openDropdown;
@@ -6527,7 +6534,8 @@ angular.module("search/views/criteria/criteria-target-template.html", []).run(["
 
 angular.module("search/views/criteria/criterion-dropdown-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criterion-dropdown-template.html",
-    "<div id=\"{{criterion.id.replace('.','-')}}-dropdown\" class='btn-group btn-info voffset1' ng-class='{open: state.open}'>\n" +
+    "<div id=\"{{criterion.id.replace('.','-')}}-dropdown\" class='btn-group btn-info voffset1' ng-class='{open: state.open}'\n" +
+    "     ng-keyup=\"onKeyup($event)\">\n" +
     "\n" +
     "  <button class=\"btn btn-info btn-xs dropdown\"\n" +
     "    ng-click=\"openDropdown()\"\n" +
