@@ -1076,10 +1076,44 @@ angular.module('obiba.mica.search')
         $scope.showMissing = value;
       };
 
+      $scope.bucketSelection = {
+        dceBucketSelected: $scope.bucket === BUCKET_TYPES.DCE,
+        datasetBucketSelected: $scope.bucket !== BUCKET_TYPES.DATASCHEMA
+      };
+
+      $scope.$watch('bucketSelection.dceBucketSelected', function(val, old) {
+        if (val === old) { return; }
+
+        if (val) {
+          $scope.selectBucket(BUCKET_TYPES.DCE);
+        } else if ($scope.bucket === BUCKET_TYPES.DCE) {
+          $scope.selectBucket(BUCKET_TYPES.STUDY);
+        }
+      });
+
+      $scope.$watch('bucketSelection.datasetBucketSelected', function(val, old) {
+        if (val === old) { return; }
+
+        if (val) {
+          $scope.selectBucket(BUCKET_TYPES.DATASET);
+        } else if ($scope.bucket === BUCKET_TYPES.DATASET) {
+          $scope.selectBucket(BUCKET_TYPES.DATASCHEMA);
+        }
+      });
+
       $scope.selectBucket = function (bucket) {
+        if(bucket === BUCKET_TYPES.STUDY && $scope.bucketSelection.dceBucketSelected) {
+          bucket = BUCKET_TYPES.DCE;
+        }
+
+        if(bucket === BUCKET_TYPES.DATASET && !$scope.bucketSelection.datasetBucketSelected) {
+          bucket = BUCKET_TYPES.DATASCHEMA;
+        }
+
         $scope.bucket = bucket;
         $scope.$parent.onBucketChanged(bucket);
       };
+
       $scope.rowspans = {};
 
       $scope.getSpan = function (study, population) {
@@ -1117,7 +1151,7 @@ angular.module('obiba.mica.search')
         return $scope.table && $scope.table.rows && $scope.table.rows.filter(function(r) { return r.selected; }).length;
       };
 
-      function getBucketUrl(bucket, id) {
+     function getBucketUrl(bucket, id) {
         switch (bucket) {
           case BUCKET_TYPES.STUDY:
           case BUCKET_TYPES.DCE:
