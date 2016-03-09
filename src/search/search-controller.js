@@ -104,10 +104,13 @@ angular.module('obiba.mica.search')
         return prev;
       }, {});
 
+      $scope.targets = [];
       $scope.lang = LocalizedValues.getLocal();
       $scope.metaTaxonomy = TaxonomyResource.get({
         target: 'taxonomy',
         taxonomy: 'Mica_taxonomy'
+      }, function(t) {
+        $scope.targets = t.vocabularies.map(function(v) { return v.name; });
       });
 
       var searchTaxonomyDisplay = {
