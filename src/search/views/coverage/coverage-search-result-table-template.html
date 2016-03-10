@@ -15,7 +15,13 @@
           <i class="fa fa-download"></i> {{'download' | translate}}
         </a>
       </li>
+      <li class="pull-right" ng-if="hasSelected()">
+        <a href class="btn btn-default" ng-click="updateFilterCriteria()">
+          <i class="fa fa-filter"></i> {{'search.filter' | translate}}
+        </a>
+      </li>
     </ul>
+
     <div class="voffset2" ng-if="bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE">
       <label class="checkbox-inline">
         <input type="checkbox" ng-model="bucketSelection.dceBucketSelected">
@@ -34,11 +40,7 @@
     </div>
   </div>
 
-  <div class="voffset2">
-    <a href class="btn btn-default" ng-if="hasSelected()" ng-click="updateFilterCriteria()">
-      <i class="fa fa-filter"></i> {{'search.filter' | translate}}
-    </a>
-  </div>
+
 
   <div class="clearfix"></div>
 
