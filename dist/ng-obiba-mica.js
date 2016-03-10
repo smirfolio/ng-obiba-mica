@@ -6452,7 +6452,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "        <a href ng-click=\"selectBucket(BUCKET_TYPES.STUDY)\" translate>search.coverage-buckets.study</a>\n" +
     "      </li>\n" +
     "      <li ng-class=\"{active: bucket === BUCKET_TYPES.DATASET || bucket === BUCKET_TYPES.DATASCHEMA}\">\n" +
-    "        <a href ng-click=\"selectBucket(BUCKET_TYPES.DATASET)\" translate>search.coverage-buckets.dataset</a>\n" +
+    "        <a href ng-click=\"selectBucket(BUCKET_TYPES.DATASET)\" translate>search.coverage-buckets.datasetNav</a>\n" +
     "      </li>\n" +
     "      <li ng-class=\"{active: bucket === BUCKET_TYPES.NETWORK}\">\n" +
     "        <a href ng-click=\"selectBucket(BUCKET_TYPES.NETWORK)\" translate>search.coverage-buckets.network</a>\n" +
@@ -6472,7 +6472,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "    <div class=\"voffset2\" ng-if=\"bucket === BUCKET_TYPES.DATASET || bucket === BUCKET_TYPES.DATASCHEMA\">\n" +
     "      <label class=\"radio-inline\">\n" +
     "        <input type=\"radio\" ng-model=\"bucketSelection.datasetBucketSelected\" ng-value=\"true\">\n" +
-    "        <span translate>search.coverage-buckets.studyDataset</span>\n" +
+    "        <span translate>search.coverage-buckets.dataset</span>\n" +
     "      </label>\n" +
     "      <label class=\"radio-inline\">\n" +
     "        <input type=\"radio\" ng-model=\"bucketSelection.datasetBucketSelected\" ng-value=\"false\">\n" +

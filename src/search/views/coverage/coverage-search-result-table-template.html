@@ -5,7 +5,7 @@
         <a href ng-click="selectBucket(BUCKET_TYPES.STUDY)" translate>search.coverage-buckets.study</a>
       </li>
       <li ng-class="{active: bucket === BUCKET_TYPES.DATASET || bucket === BUCKET_TYPES.DATASCHEMA}">
-        <a href ng-click="selectBucket(BUCKET_TYPES.DATASET)" translate>search.coverage-buckets.dataset</a>
+        <a href ng-click="selectBucket(BUCKET_TYPES.DATASET)" translate>search.coverage-buckets.datasetNav</a>
       </li>
       <li ng-class="{active: bucket === BUCKET_TYPES.NETWORK}">
         <a href ng-click="selectBucket(BUCKET_TYPES.NETWORK)" translate>search.coverage-buckets.network</a>
@@ -25,7 +25,7 @@
     <div class="voffset2" ng-if="bucket === BUCKET_TYPES.DATASET || bucket === BUCKET_TYPES.DATASCHEMA">
       <label class="radio-inline">
         <input type="radio" ng-model="bucketSelection.datasetBucketSelected" ng-value="true">
-        <span translate>search.coverage-buckets.studyDataset</span>
+        <span translate>search.coverage-buckets.dataset</span>
       </label>
       <label class="radio-inline">
         <input type="radio" ng-model="bucketSelection.datasetBucketSelected" ng-value="false">
