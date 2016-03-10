@@ -39,7 +39,12 @@
           </a>
         </script>
 
-        <span class="input-group input-group-sm no-padding-top">
+        <ul class="nav nav-tabs voffset2" ng-if="searchTabsOrder.length > 1">
+          <li role="presentation" ng-repeat="tab in searchTabsOrder" ng-class="{active: search.display === tab}"><a href
+            ng-click="selectDisplay(tab)">{{ options[ tab + 'Label'] | translate}}</a></li>
+        </ul>
+        <div class="tab-content">
+          <span class="input-group input-group-sm no-padding-top">
           <span class="input-group-btn" uib-dropdown>
           <button type="button" class="btn btn-primary" uib-dropdown-toggle>
             {{'taxonomy.target.' + documents.search.target | translate}} <span class="caret"></span>
@@ -59,6 +64,8 @@
             class="form-control">
           <span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
         </span>
+        </div>
+
       </div>
     </div>
     <div class="row">
