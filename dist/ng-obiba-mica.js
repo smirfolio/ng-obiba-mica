@@ -7405,7 +7405,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "            </span>\n" +
     "          </li>\n" +
     "          <li>\n" +
-    "            <a href class=\"voffset3\" ng-click=\"goToClassifications()\">\n" +
+    "            <a href ng-click=\"goToClassifications()\">\n" +
     "              <i class=\"glyphicon glyphicon-option-horizontal\"></i>\n" +
     "            </a>\n" +
     "          </li>\n" +
