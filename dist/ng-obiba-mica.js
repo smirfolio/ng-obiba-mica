@@ -6467,7 +6467,13 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "          <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
     "        </a>\n" +
     "      </li>\n" +
+    "      <li class=\"pull-right\" ng-if=\"hasSelected()\">\n" +
+    "        <a href class=\"btn btn-default\" ng-click=\"updateFilterCriteria()\">\n" +
+    "          <i class=\"fa fa-filter\"></i> {{'search.filter' | translate}}\n" +
+    "        </a>\n" +
+    "      </li>\n" +
     "    </ul>\n" +
+    "\n" +
     "    <div class=\"voffset2\" ng-if=\"bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE\">\n" +
     "      <label class=\"checkbox-inline\">\n" +
     "        <input type=\"checkbox\" ng-model=\"bucketSelection.dceBucketSelected\">\n" +
@@ -6486,11 +6492,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "    </div>\n" +
     "  </div>\n" +
     "\n" +
-    "  <div class=\"voffset2\">\n" +
-    "    <a href class=\"btn btn-default\" ng-if=\"hasSelected()\" ng-click=\"updateFilterCriteria()\">\n" +
-    "      <i class=\"fa fa-filter\"></i> {{'search.filter' | translate}}\n" +
-    "    </a>\n" +
-    "  </div>\n" +
+    "\n" +
     "\n" +
     "  <div class=\"clearfix\"></div>\n" +
     "\n" +
