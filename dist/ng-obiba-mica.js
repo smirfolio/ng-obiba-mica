@@ -1271,9 +1271,8 @@ angular.module('obiba.mica.search', [
   .config(['$provide', function ($provide) {
     $provide.provider('ngObibaMicaSearchTemplateUrl', new NgObibaMicaTemplateUrlFactory().create(
       {
-        list: {header: null, footer: null},
-        view: {header: null, footer: null},
-        form: {header: null, footer: null}
+        search: {header: null, footer: null},
+        classifications: {header: null, footer: null}
       }
     ));
   }])
@@ -3475,6 +3474,14 @@ angular.module('obiba.mica.search')
         refreshQuery();
       };
 
+      $scope.goToSearch = function() {
+        $location.path('/search').replace();
+      };
+
+      $scope.goToClassifications = function() {
+        $location.path('/classifications').replace();
+      };
+
       $scope.QUERY_TYPES = QUERY_TYPES;
       $scope.BUCKET_TYPES = BUCKET_TYPES;
 
@@ -3503,7 +3510,8 @@ angular.module('obiba.mica.search')
         }
       };
 
-      $scope.headerTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('view');
+      $scope.searchHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('search');
+      $scope.classificationsHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('classifications');
       $scope.selectSearchTarget = selectSearchTarget;
       $scope.selectDisplay = onDisplayChanged;
       $scope.searchCriteria = searchCriteria;
@@ -6170,10 +6178,14 @@ angular.module("localized/localized-textarea-template.html", []).run(["$template
 angular.module("search/views/classifications.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/classifications.html",
     "<div>\n" +
-    "  <!--<h2 translate>search</h2>-->\n" +
-    "  <div ng-if=\"headerTemplateUrl\" ng-include=\"headerTemplateUrl\"></div>\n" +
+    "  <div ng-if=\"classificationsHeaderTemplateUrl\" ng-include=\"classificationsHeaderTemplateUrl\"></div>\n" +
     "\n" +
     "  <obiba-alert id=\"SearchController\"></obiba-alert>\n" +
+    "\n" +
+    "  <a href class=\"btn btn-sm btn-success\" ng-click=\"goToSearch()\">\n" +
+    "    <i class=\"fa fa-chevron-left\"></i>\n" +
+    "    <span translate>search.back</span>\n" +
+    "  </a>\n" +
     "\n" +
     "  <!-- Nav tabs -->\n" +
     "  <ul class=\"nav nav-tabs\" role=\"tablist\" ng-if=\"tabs && tabs.length>1\">\n" +
@@ -6183,11 +6195,12 @@ angular.module("search/views/classifications.html", []).run(["$templateCache", f
     "\n" +
     "  <!-- Classifications region -->\n" +
     "  <div class=\"{{tabs && tabs.length>1 ? 'tab-content voffset4' : ''}}\">\n" +
-    "    <uib-tabset type=\"pills\">\n" +
-    "      <uib-tab ng-repeat=\"target in metaTaxonomy.vocabularies\" heading=\"{{'taxonomy.target.' + target.name | translate}}\">\n" +
-    "        <classifications-panel target=\"target.name\" on-select-term=\"onSelectTerm\" lang=\"lang\"></classifications-panel>\n" +
+    "    <uib-tabset type=\"pills\" ng-if=\"taxonomyTabsOrder.length>1\" class=\"voffset2\">\n" +
+    "      <uib-tab ng-repeat=\"target in taxonomyTabsOrder\" heading=\"{{'taxonomy.target.' + target | translate}}\">\n" +
+    "        <classifications-panel target=\"target\" on-select-term=\"onSelectTerm\" lang=\"lang\"></classifications-panel>\n" +
     "      </uib-tab>\n" +
     "    </uib-tabset>\n" +
+    "    <classifications-panel  ng-if=\"taxonomyTabsOrder.length === 1\" target=\"taxonomyTabsOrder[0]\" on-select-term=\"onSelectTerm\" lang=\"lang\"></classifications-panel>\n" +
     "  </div>\n" +
     "\n" +
     "</div>");
@@ -7305,8 +7318,7 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
 angular.module("search/views/search.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search.html",
     "<div>\n" +
-    "  <!--<h2 translate>search</h2>-->\n" +
-    "  <div ng-if=\"headerTemplateUrl\" ng-include=\"headerTemplateUrl\"></div>\n" +
+    "  <div ng-if=\"searchHeaderTemplateUrl\" ng-include=\"searchHeaderTemplateUrl\"></div>\n" +
     "\n" +
     "  <obiba-alert id=\"SearchController\"></obiba-alert>\n" +
     "\n" +
@@ -7375,6 +7387,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "    <div class=\"row\">\n" +
     "      <div class=\"col-md-3\"></div>\n" +
     "      <div class=\"col-md-6\">\n" +
+    "        <small>\n" +
     "        <ul class=\"nav nav-pills\">\n" +
     "          <li ng-repeat=\"t in taxonomyNav\" title=\"{{t.locale.description.text}}\">\n" +
     "            <a href ng-click=\"showTaxonomy(t.target, t.name)\" ng-if=\"!t.terms\">{{t.locale.title.text}}</a>\n" +
@@ -7391,7 +7404,13 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "              </ul>\n" +
     "            </span>\n" +
     "          </li>\n" +
+    "          <li>\n" +
+    "            <a href class=\"voffset3\" ng-click=\"goToClassifications()\">\n" +
+    "              <i class=\"glyphicon glyphicon-option-horizontal\"></i>\n" +
+    "            </a>\n" +
+    "          </li>\n" +
     "        </ul>\n" +
+    "        </small>\n" +
     "      </div>\n" +
     "    </div>\n" +
     "    <taxonomies-panel taxonomy-name=\"taxonomyName\" target=\"target\" on-select-term=\"onSelectTerm\"\n" +
