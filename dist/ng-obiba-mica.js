@@ -3163,67 +3163,78 @@ angular.module('obiba.mica.search')
             // criteria UI is updated here
             $scope.search.criteria = result.root;
             if ($scope.search.criteria && $scope.search.criteria.children) {
-              $scope.search.criteria.children.sort(function (a, b) {
-                if (a.target === 'network' || b.target === 'variable') {
-                  return -1;
-                }
-                if (a.target === 'variable' || b.target === 'network') {
-                  return 1;
-                }
-                if (a.target < b.target) {
-                  return 1;
-                }
-                if (a.target > b.target) {
-                  return -1;
-                }
-                // a must be equal to b
-                return 0;
-              });
+              sortCriteriaItems($scope.search.criteria.children);
             }
             $scope.search.criteriaItemMap = result.map;
           });
 
-          var localizedQuery =
+          if($scope.search.query) {
+            loadResults();
+          }
+        }
+      }
+
+      function sortCriteriaItems(items) {
+        items.sort(function (a, b) {
+          if (a.target === 'network' || b.target === 'variable') {
+            return -1;
+          }
+          if (a.target === 'variable' || b.target === 'network') {
+            return 1;
+          }
+          if (a.target < b.target) {
+            return 1;
+          }
+          if (a.target > b.target) {
+            return -1;
+          }
+          // a must be equal to b
+          return 0;
+        });
+      }
+
+      function loadResults() {
+        var localizedQuery =
             RqlQueryService.prepareSearchQuery(
-              $scope.search.type,
-              $scope.search.rqlQuery,
-              $scope.search.pagination,
-              $scope.lang,
-              $scope.search.type === 'variables' ? 'name' : 'acronym.' + $scope.lang
+                $scope.search.type,
+                $scope.search.rqlQuery,
+                $scope.search.pagination,
+                $scope.lang,
+                $scope.search.type === 'variables' ? 'name' : 'acronym.' + $scope.lang
             );
 
-          $scope.search.loading = true;
-          switch ($scope.search.display) {
-            case DISPLAY_TYPES.LIST:
-              $scope.search.executedQuery = localizedQuery;
-              JoinQuerySearchResource[$scope.search.type]({query: localizedQuery},
+        $scope.search.loading = true;
+
+        switch ($scope.search.display) {
+          case DISPLAY_TYPES.LIST:
+            $scope.search.executedQuery = localizedQuery;
+            JoinQuerySearchResource[$scope.search.type]({query: localizedQuery},
                 function onSuccess(response) {
                   $scope.search.result.list = response;
                   $scope.search.loading = false;
                 },
                 onError);
-              break;
-            case DISPLAY_TYPES.COVERAGE:
-              $scope.search.executedQuery = RqlQueryService.prepareCoverageQuery(localizedQuery, $scope.search.bucket);
-              JoinQueryCoverageResource.get({query: $scope.search.executedQuery},
+            break;
+          case DISPLAY_TYPES.COVERAGE:
+            $scope.search.executedQuery = RqlQueryService.prepareCoverageQuery(localizedQuery, $scope.search.bucket);
+            JoinQueryCoverageResource.get({query: $scope.search.executedQuery},
                 function onSuccess(response) {
                   $scope.search.result.coverage = response;
                   $scope.search.loading = false;
                 },
                 onError);
-              break;
-            case DISPLAY_TYPES.GRAPHICS:
-              $scope.search.executedQuery = RqlQueryService.prepareGraphicsQuery(localizedQuery,
+            break;
+          case DISPLAY_TYPES.GRAPHICS:
+            $scope.search.executedQuery = RqlQueryService.prepareGraphicsQuery(localizedQuery,
                 ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'],
                 ['Mica_study.methods-designs']);
-              JoinQuerySearchResource.studies({query: $scope.search.executedQuery},
+            JoinQuerySearchResource.studies({query: $scope.search.executedQuery},
                 function onSuccess(response) {
                   $scope.search.result.graphics = response;
                   $scope.search.loading = false;
                 },
                 onError);
-              break;
-          }
+            break;
         }
       }
 
