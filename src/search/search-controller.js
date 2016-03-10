@@ -934,6 +934,9 @@ angular.module('obiba.mica.search')
       var queryString = $scope.criterion.rqlQuery.args[0];
       $scope.match = queryString === '*' ? '' : queryString;
       $scope.update = update;
+      $scope.localize = function (values) {
+        return LocalizedValues.forLocale(values, $scope.criterion.lang);
+      };
 
     }])
 
@@ -985,6 +988,9 @@ angular.module('obiba.mica.search')
       $scope.selectMissing = $scope.criterion.rqlQuery.name === RQL_NODE.MISSING;
       $scope.state.addOnClose(onClose);
       $scope.state.addOnOpen(onOpen);
+      $scope.localize = function (values) {
+        return LocalizedValues.forLocale(values, $scope.criterion.lang);
+      };
     }])
 
   .controller('StringCriterionTermsController', [
