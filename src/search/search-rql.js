@@ -1211,10 +1211,10 @@ angular.module('obiba.mica.search')
         });
         // Study match all if no study query.
         if (!hasQuery) {
-        study = new RqlQuery('study');
-        study.args.push(new RqlQuery(RQL_NODE.MATCH));
-        parsedQuery.args.push(study);
-       }
+          study = new RqlQuery('study');
+          study.args.push(new RqlQuery(RQL_NODE.MATCH));
+          parsedQuery.args.push(study);
+        }
         study.args.push(aggregate);
         study.args.push(limit);
         // facet

@@ -103,7 +103,6 @@ angular.module('obiba.mica.search')
         prev[$scope.taxonomyTypeMap[k]] = k;
         return prev;
       }, {});
-
       $scope.targets = [];
       $scope.lang = LocalizedValues.getLocal();
       $scope.metaTaxonomy = TaxonomyResource.get({
@@ -188,8 +187,6 @@ angular.module('obiba.mica.search')
           });
         });
       }
-
-      initSearchTabs();
 
       function onError(response) {
         AlertService.alert({
@@ -356,15 +353,6 @@ angular.module('obiba.mica.search')
           });
         }
       }
-
-      ngObibaMicaSearch.getLocale(function (locales) {
-        if (angular.isArray(locales)) {
-          $scope.tabs = locales;
-          $scope.setLocale(locales[0]);
-        } else {
-          $scope.setLocale(locales || $scope.lang);
-        }
-      });
 
       $scope.setLocale = function (locale) {
         $scope.lang = locale;
@@ -576,7 +564,7 @@ angular.module('obiba.mica.search')
       $scope.search = {
         pagination: {},
         query: null,
-        rqlQuery: null,
+        rqlQuery: new RqlQuery(),
         executedQuery: null,
         type: null,
         bucket: null,
@@ -621,16 +609,30 @@ angular.module('obiba.mica.search')
 
       $scope.onPaginate = onPaginate;
 
-      $scope.$watch('search', function () {
-        executeSearchQuery();
-      });
-
       $scope.$on('$locationChangeSuccess', function (newLocation, oldLocation) {
         initSearchTabs();
+
         if (newLocation !== oldLocation) {
           executeSearchQuery();
         }
       });
+
+      function init() {
+        ngObibaMicaSearch.getLocale(function (locales) {
+          if (angular.isArray(locales)) {
+            $scope.tabs = locales;
+            $scope.lang = locales[0];
+          } else {
+            $scope.lang = locales || $scope.lang;
+          }
+
+          SearchContext.setLocale($scope.lang);
+          initSearchTabs();
+          executeSearchQuery();
+        });
+      }
+
+      init();
     }])
 
   .controller('TaxonomiesPanelController', ['$scope', 'VocabularyResource', 'TaxonomyResource', 'TaxonomiesResource',
