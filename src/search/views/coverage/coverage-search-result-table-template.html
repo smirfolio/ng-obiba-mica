@@ -1,6 +1,6 @@
 <div>
   <div ng-if="hasVariableTarget()">
-    <ul class="nav nav-pills voffset2">
+    <ul class="nav nav-pills pull-left">
       <li ng-class="{active: bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE}">
         <a href ng-click="selectBucket(BUCKET_TYPES.STUDY)" translate>search.coverage-buckets.study</a>
       </li>
@@ -10,17 +10,19 @@
       <li ng-class="{active: bucket === BUCKET_TYPES.NETWORK}">
         <a href ng-click="selectBucket(BUCKET_TYPES.NETWORK)" translate>search.coverage-buckets.network</a>
       </li>
-      <li class="pull-right" ng-if="table.taxonomyHeaders.length > 0">
-        <a target="_self" class="btn btn-info btn-responsive" ng-href="{{downloadUrl()}}">
-          <i class="fa fa-download"></i> {{'download' | translate}}
-        </a>
-      </li>
-      <li class="pull-right" ng-if="hasSelected()">
-        <a href class="btn btn-default" ng-click="updateFilterCriteria()">
-          <i class="fa fa-filter"></i> {{'search.filter' | translate}}
-        </a>
-      </li>
     </ul>
+
+    <div class="pull-right">
+      <a ng-if="hasSelected()" href class="btn btn-default" ng-click="updateFilterCriteria()">
+        <i class="fa fa-filter"></i> {{'search.filter' | translate}}
+      </a>
+      <a ng-if="table.taxonomyHeaders.length > 0" target="_self" class="btn btn-info btn-responsive"
+        ng-href="{{downloadUrl()}}">
+        <i class="fa fa-download"></i> {{'download' | translate}}
+      </a>
+    </div>
+
+    <div class="clearfix"></div>
 
     <div class="voffset2" ng-if="bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE">
       <label class="checkbox-inline">
@@ -28,6 +30,7 @@
         <span translate>search.coverage-buckets.dce</span>
       </label>
     </div>
+
     <div class="voffset2" ng-if="bucket === BUCKET_TYPES.DATASET || bucket === BUCKET_TYPES.DATASCHEMA">
       <label class="radio-inline">
         <input type="radio" ng-model="bucketSelection.datasetBucketSelected" ng-value="true">
@@ -39,10 +42,6 @@
       </label>
     </div>
   </div>
-
-
-
-  <div class="clearfix"></div>
 
   <p class="help-block" ng-if="!loading && !table.taxonomyHeaders">
     <span ng-if="!hasVariableTarget()" translate>search.no-coverage</span>
@@ -56,7 +55,9 @@
       <thead>
       <tr>
         <th rowspan="2" width="20px"></th>
-        <th rowspan="{{bucket === BUCKET_TYPES.DCE ? 1 : 2}}" colspan="{{table.cols.colSpan}}" translate>{{'search.coverage-buckets.' + bucket}}</th>
+        <th rowspan="{{bucket === BUCKET_TYPES.DCE ? 1 : 2}}" colspan="{{table.cols.colSpan}}" translate>
+          {{'search.coverage-buckets.' + bucket}}
+        </th>
         <th ng-repeat="header in table.vocabularyHeaders" colspan="{{header.termsCount}}">
           <span
             uib-popover="{{header.entity.descriptions[0].value}}"
@@ -93,7 +94,8 @@
             popover-trigger="mouseenter">{{col.title}}</a>
         </td>
         <td ng-repeat="h in table.termHeaders">
-          <a href ng-click="updateCriteria(row.value, h, $index, 'variables')"><span class="label label-info" ng-if="row.hits[$index]">{{row.hits[$index]}}</span></a>
+          <a href ng-click="updateCriteria(row.value, h, $index, 'variables')"><span class="label label-info"
+            ng-if="row.hits[$index]">{{row.hits[$index]}}</span></a>
           <span ng-if="!row.hits[$index]">0</span>
         </td>
       </tr>
