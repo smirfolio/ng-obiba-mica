@@ -7207,34 +7207,32 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "            </small>\n" +
     "          </a>\n" +
     "        </script>\n" +
-    "\n" +
     "        <ul class=\"nav nav-tabs voffset2\" ng-if=\"searchTabsOrder.length > 1\">\n" +
     "          <li role=\"presentation\" ng-repeat=\"tab in searchTabsOrder\" ng-class=\"{active: search.display === tab}\"><a href\n" +
     "            ng-click=\"selectDisplay(tab)\">{{ options[ tab + 'Label'] | translate}}</a></li>\n" +
     "        </ul>\n" +
-    "        <div class=\"tab-content\">\n" +
-    "          <span class=\"input-group input-group-sm no-padding-top\">\n" +
-    "          <span class=\"input-group-btn\" uib-dropdown>\n" +
-    "          <button type=\"button\" class=\"btn btn-primary\" uib-dropdown-toggle>\n" +
-    "            {{'taxonomy.target.' + documents.search.target | translate}} <span class=\"caret\"></span>\n" +
-    "          </button>\n" +
-    "          <ul uib-dropdown-menu role=\"menu\">\n" +
-    "            <li ng-repeat=\"target in targets\" role=\"menuitem\"><a href ng-click=\"selectSearchTarget(target)\">{{'taxonomy.target.'\n" +
-    "              + target | translate}}</a></li>\n" +
-    "          </ul>\n" +
-    "        </span>\n" +
-    "          <input type=\"text\" ng-model=\"selectedCriteria\"\n" +
-    "            placeholder=\"{{'search.placeholder.' + documents.search.target | translate}}\"\n" +
-    "            uib-typeahead=\"criteria for criteria in searchCriteria($viewValue)\"\n" +
-    "            typeahead-min-length=\"2\"\n" +
-    "            typeahead-loading=\"documents.search.active\"\n" +
-    "            typeahead-template-url=\"customTemplate.html\"\n" +
-    "            typeahead-on-select=\"selectCriteria($item)\"\n" +
-    "            class=\"form-control\">\n" +
-    "          <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-search\"></i></span>\n" +
-    "        </span>\n" +
+    "        <div class=\"tab-panel\">\n" +
+    "          <span class=\"input-group input-group-sm\">\n" +
+    "            <span class=\"input-group-btn\" uib-dropdown>\n" +
+    "              <button type=\"button\" class=\"btn btn-primary\" uib-dropdown-toggle>\n" +
+    "                {{'taxonomy.target.' + documents.search.target | translate}} <span class=\"caret\"></span>\n" +
+    "              </button>\n" +
+    "              <ul uib-dropdown-menu role=\"menu\">\n" +
+    "                <li ng-repeat=\"target in targets\" role=\"menuitem\"><a href ng-click=\"selectSearchTarget(target)\">{{'taxonomy.target.'\n" +
+    "                  + target | translate}}</a></li>\n" +
+    "              </ul>\n" +
+    "            </span>\n" +
+    "            <input type=\"text\" ng-model=\"selectedCriteria\"\n" +
+    "              placeholder=\"{{'search.placeholder.' + documents.search.target | translate}}\"\n" +
+    "              uib-typeahead=\"criteria for criteria in searchCriteria($viewValue)\"\n" +
+    "              typeahead-min-length=\"2\"\n" +
+    "              typeahead-loading=\"documents.search.active\"\n" +
+    "              typeahead-template-url=\"customTemplate.html\"\n" +
+    "              typeahead-on-select=\"selectCriteria($item)\"\n" +
+    "              class=\"form-control\">\n" +
+    "            <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-search\"></i></span>\n" +
+    "          </span>\n" +
     "        </div>\n" +
-    "\n" +
     "      </div>\n" +
     "    </div>\n" +
     "    <div class=\"row\">\n" +
@@ -7264,7 +7262,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "  </div>\n" +
     "\n" +
     "  <!-- Search criteria region -->\n" +
-    "  <div class=\"panel panel-default\" ng-if=\"search.criteria.children && search.criteria.children.length>0\">\n" +
+    "  <div class=\"panel panel-default voffset2\" ng-if=\"search.criteria.children && search.criteria.children.length>0\">\n" +
     "    <div class=\"panel-body\">\n" +
     "      <table style=\"border:none;\">\n" +
     "        <tbody>\n" +
