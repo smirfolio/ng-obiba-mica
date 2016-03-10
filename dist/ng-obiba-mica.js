@@ -3221,7 +3221,7 @@ angular.module('obiba.mica.search')
                   $scope.search.result.graphics = response;
                   $scope.search.loading = false;
                 },
-                onError);console.log($scope.search.executedQuery);
+                onError);
               break;
           }
         }
