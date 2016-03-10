@@ -6452,7 +6452,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
   $templateCache.put("search/views/coverage/coverage-search-result-table-template.html",
     "<div>\n" +
     "  <div ng-if=\"hasVariableTarget()\">\n" +
-    "    <ul class=\"nav nav-pills voffset2\">\n" +
+    "    <ul class=\"nav nav-pills pull-left\">\n" +
     "      <li ng-class=\"{active: bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE}\">\n" +
     "        <a href ng-click=\"selectBucket(BUCKET_TYPES.STUDY)\" translate>search.coverage-buckets.study</a>\n" +
     "      </li>\n" +
@@ -6462,17 +6462,19 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "      <li ng-class=\"{active: bucket === BUCKET_TYPES.NETWORK}\">\n" +
     "        <a href ng-click=\"selectBucket(BUCKET_TYPES.NETWORK)\" translate>search.coverage-buckets.network</a>\n" +
     "      </li>\n" +
-    "      <li class=\"pull-right\" ng-if=\"table.taxonomyHeaders.length > 0\">\n" +
-    "        <a target=\"_self\" class=\"btn btn-info btn-responsive\" ng-href=\"{{downloadUrl()}}\">\n" +
-    "          <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
-    "        </a>\n" +
-    "      </li>\n" +
-    "      <li class=\"pull-right\" ng-if=\"hasSelected()\">\n" +
-    "        <a href class=\"btn btn-default\" ng-click=\"updateFilterCriteria()\">\n" +
-    "          <i class=\"fa fa-filter\"></i> {{'search.filter' | translate}}\n" +
-    "        </a>\n" +
-    "      </li>\n" +
     "    </ul>\n" +
+    "\n" +
+    "    <div class=\"pull-right\">\n" +
+    "      <a ng-if=\"hasSelected()\" href class=\"btn btn-default\" ng-click=\"updateFilterCriteria()\">\n" +
+    "        <i class=\"fa fa-filter\"></i> {{'search.filter' | translate}}\n" +
+    "      </a>\n" +
+    "      <a ng-if=\"table.taxonomyHeaders.length > 0\" target=\"_self\" class=\"btn btn-info btn-responsive\"\n" +
+    "        ng-href=\"{{downloadUrl()}}\">\n" +
+    "        <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
+    "      </a>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div class=\"clearfix\"></div>\n" +
     "\n" +
     "    <div class=\"voffset2\" ng-if=\"bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE\">\n" +
     "      <label class=\"checkbox-inline\">\n" +
@@ -6480,6 +6482,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "        <span translate>search.coverage-buckets.dce</span>\n" +
     "      </label>\n" +
     "    </div>\n" +
+    "\n" +
     "    <div class=\"voffset2\" ng-if=\"bucket === BUCKET_TYPES.DATASET || bucket === BUCKET_TYPES.DATASCHEMA\">\n" +
     "      <label class=\"radio-inline\">\n" +
     "        <input type=\"radio\" ng-model=\"bucketSelection.datasetBucketSelected\" ng-value=\"true\">\n" +
@@ -6491,10 +6494,6 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "      </label>\n" +
     "    </div>\n" +
     "  </div>\n" +
-    "\n" +
-    "\n" +
-    "\n" +
-    "  <div class=\"clearfix\"></div>\n" +
     "\n" +
     "  <p class=\"help-block\" ng-if=\"!loading && !table.taxonomyHeaders\">\n" +
     "    <span ng-if=\"!hasVariableTarget()\" translate>search.no-coverage</span>\n" +
@@ -6508,7 +6507,9 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "      <thead>\n" +
     "      <tr>\n" +
     "        <th rowspan=\"2\" width=\"20px\"></th>\n" +
-    "        <th rowspan=\"{{bucket === BUCKET_TYPES.DCE ? 1 : 2}}\" colspan=\"{{table.cols.colSpan}}\" translate>{{'search.coverage-buckets.' + bucket}}</th>\n" +
+    "        <th rowspan=\"{{bucket === BUCKET_TYPES.DCE ? 1 : 2}}\" colspan=\"{{table.cols.colSpan}}\" translate>\n" +
+    "          {{'search.coverage-buckets.' + bucket}}\n" +
+    "        </th>\n" +
     "        <th ng-repeat=\"header in table.vocabularyHeaders\" colspan=\"{{header.termsCount}}\">\n" +
     "          <span\n" +
     "            uib-popover=\"{{header.entity.descriptions[0].value}}\"\n" +
@@ -6545,7 +6546,8 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "            popover-trigger=\"mouseenter\">{{col.title}}</a>\n" +
     "        </td>\n" +
     "        <td ng-repeat=\"h in table.termHeaders\">\n" +
-    "          <a href ng-click=\"updateCriteria(row.value, h, $index, 'variables')\"><span class=\"label label-info\" ng-if=\"row.hits[$index]\">{{row.hits[$index]}}</span></a>\n" +
+    "          <a href ng-click=\"updateCriteria(row.value, h, $index, 'variables')\"><span class=\"label label-info\"\n" +
+    "            ng-if=\"row.hits[$index]\">{{row.hits[$index]}}</span></a>\n" +
     "          <span ng-if=\"!row.hits[$index]\">0</span>\n" +
     "        </td>\n" +
     "      </tr>\n" +
