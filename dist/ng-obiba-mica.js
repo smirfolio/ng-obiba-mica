@@ -6269,15 +6269,15 @@ angular.module("search/views/classifications/classifications-view.html", []).run
     "\n" +
     "    <div ng-repeat=\"vocabulary in taxonomies.taxonomy.vocabularies\" ng-if=\"$index % 3 == 0\" class=\"row\">\n" +
     "      <div class=\"col-xs-4\">\n" +
-    "        <div vocabulary-panel taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index]\"\n" +
+    "        <div vocabulary-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index]\"\n" +
     "          lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
     "      </div>\n" +
     "      <div class=\"col-xs-4\">\n" +
-    "        <div vocabulary-panel taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index + 1]\"\n" +
+    "        <div vocabulary-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index + 1]\"\n" +
     "          lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
     "      </div>\n" +
     "      <div class=\"col-xs-4\">\n" +
-    "        <div vocabulary-panel taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index + 2]\"\n" +
+    "        <div vocabulary-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index + 2]\"\n" +
     "          lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
     "      </div>\n" +
     "    </div>\n" +
@@ -6292,15 +6292,15 @@ angular.module("search/views/classifications/classifications-view.html", []).run
     "\n" +
     "    <div ng-repeat=\"term in taxonomies.vocabulary.terms\" ng-if=\"$index % 3 == 0\" class=\"row\">\n" +
     "      <div class=\"col-xs-4\">\n" +
-    "        <div term-panel taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.vocabulary\" term=\"taxonomies.vocabulary.terms[$index]\"\n" +
+    "        <div term-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.vocabulary\" term=\"taxonomies.vocabulary.terms[$index]\"\n" +
     "          lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
     "      </div>\n" +
     "      <div class=\"col-xs-4\">\n" +
-    "        <div term-panel taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.vocabulary\" term=\"taxonomies.vocabulary.terms[$index + 1]\"\n" +
+    "        <div term-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.vocabulary\" term=\"taxonomies.vocabulary.terms[$index + 1]\"\n" +
     "          lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
     "      </div>\n" +
     "      <div class=\"col-xs-4\">\n" +
-    "        <div term-panel taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.vocabulary\" term=\"taxonomies.vocabulary.terms[$index + 2]\"\n" +
+    "        <div term-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.vocabulary\" term=\"taxonomies.vocabulary.terms[$index + 2]\"\n" +
     "          lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
     "      </div>\n" +
     "    </div>\n" +
@@ -6492,11 +6492,11 @@ angular.module("search/views/classifications/term-panel-template.html", []).run(
     "<div>\n" +
     "  <h5 ng-repeat=\"label in term.title\" ng-if=\"label.locale === lang\">\n" +
     "    {{label.text}}\n" +
-    "    <!--<small>-->\n" +
-    "    <!--<a href ng-click=\"onSelect(target, taxonomy, vocabulary, term)\">-->\n" +
-    "      <!--<i class=\"fa fa-plus-circle\" title=\"{{'add-query' | translate}}\"></i>-->\n" +
-    "    <!--</a>-->\n" +
-    "    <!--</small>-->\n" +
+    "    <small>\n" +
+    "    <a href ng-click=\"onSelect(target, taxonomy, vocabulary, term)\">\n" +
+    "      <i class=\"fa fa-plus-circle\" title=\"{{'add-query' | translate}}\"></i>\n" +
+    "    </a>\n" +
+    "    </small>\n" +
     "  </h5>\n" +
     "  <p ng-repeat=\"label in term.description\" ng-if=\"label.locale === lang\">\n" +
     "    <span class=\"help-block\">{{label.text}}</span>\n" +
@@ -6510,10 +6510,10 @@ angular.module("search/views/classifications/vocabulary-panel-template.html", []
     "  <h5 ng-repeat=\"label in vocabulary.title\" ng-if=\"label.locale === lang\">\n" +
     "    <a href ng-click=\"onNavigate(taxonomy, vocabulary)\" ng-if=\"vocabulary.terms\">{{label.text}}</a>\n" +
     "    <span ng-if=\"!vocabulary.terms\">{{label.text}}</span>\n" +
-    "    <!--<a href ng-click=\"onSelect(target, taxonomy, vocabulary)\">-->\n" +
-    "      <!--<small ng-if=\"vocabulary.terms\"><i class=\"fa fa-plus-circle\" title=\"{{'add-query' | translate}}\"></i></small>-->\n" +
-    "      <!--<i ng-if=\"!vocabulary.terms\" class=\"fa fa-plus-circle\" title=\"{{'add-query' | translate}}\"></i>-->\n" +
-    "    <!--</a>-->\n" +
+    "    <a href ng-click=\"onSelect(target, taxonomy, vocabulary)\">\n" +
+    "      <small ng-if=\"vocabulary.terms\"><i class=\"fa fa-plus-circle\" title=\"{{'add-query' | translate}}\"></i></small>\n" +
+    "      <small ng-if=\"!vocabulary.terms\"><i class=\"fa fa-plus-circle\" title=\"{{'add-query' | translate}}\"></i></small>\n" +
+    "    </a>\n" +
     "  </h5>\n" +
     "  <p class=\"help-block\" ng-repeat=\"label in vocabulary.description\" ng-if=\"label.locale === lang\">\n" +
     "    {{label.text}}\n" +
