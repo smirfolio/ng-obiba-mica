@@ -3162,15 +3162,18 @@ angular.module('obiba.mica.search')
           RqlQueryService.createCriteria($scope.search.rqlQuery, $scope.lang).then(function (result) {
             // criteria UI is updated here
             $scope.search.criteria = result.root;
+
             if ($scope.search.criteria && $scope.search.criteria.children) {
               sortCriteriaItems($scope.search.criteria.children);
             }
-            $scope.search.criteriaItemMap = result.map;
-          });
 
-          if($scope.search.query) {
-            loadResults();
-          }
+            $scope.search.criteriaItemMap = result.map;
+            $scope.search.result = {};
+
+            if($scope.search.query) {
+              loadResults();
+            }
+          });
         }
       }
 
@@ -3203,10 +3206,9 @@ angular.module('obiba.mica.search')
                 $scope.search.type === 'variables' ? 'name' : 'acronym.' + $scope.lang
             );
 
-        $scope.search.loading = true;
-
         switch ($scope.search.display) {
           case DISPLAY_TYPES.LIST:
+            $scope.search.loading = true;
             $scope.search.executedQuery = localizedQuery;
             JoinQuerySearchResource[$scope.search.type]({query: localizedQuery},
                 function onSuccess(response) {
@@ -3216,15 +3218,24 @@ angular.module('obiba.mica.search')
                 onError);
             break;
           case DISPLAY_TYPES.COVERAGE:
-            $scope.search.executedQuery = RqlQueryService.prepareCoverageQuery(localizedQuery, $scope.search.bucket);
-            JoinQueryCoverageResource.get({query: $scope.search.executedQuery},
-                function onSuccess(response) {
-                  $scope.search.result.coverage = response;
-                  $scope.search.loading = false;
-                },
-                onError);
+            var hasVariableCriteria = Object.keys($scope.search.criteriaItemMap).map(function(k) {
+                  return $scope.search.criteriaItemMap[k];
+                }).filter(function(i) { return i.target === QUERY_TARGETS.VARIABLE; }).length > 0;
+
+            if(hasVariableCriteria) {
+              $scope.search.loading = true;
+              $scope.search.executedQuery = RqlQueryService.prepareCoverageQuery(localizedQuery, $scope.search.bucket);
+              JoinQueryCoverageResource.get({query: $scope.search.executedQuery},
+                  function onSuccess(response) {
+                    $scope.search.result.coverage = response;
+                    $scope.search.loading = false;
+                  },
+                  onError);
+            }
+
             break;
           case DISPLAY_TYPES.GRAPHICS:
+            $scope.search.loading = true;
             $scope.search.executedQuery = RqlQueryService.prepareGraphicsQuery(localizedQuery,
                 ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'],
                 ['Mica_study.methods-designs']);
