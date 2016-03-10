@@ -558,6 +558,14 @@ angular.module('obiba.mica.search')
         refreshQuery();
       };
 
+      $scope.goToSearch = function() {
+        $location.path('/search').replace();
+      };
+
+      $scope.goToClassifications = function() {
+        $location.path('/classifications').replace();
+      };
+
       $scope.QUERY_TYPES = QUERY_TYPES;
       $scope.BUCKET_TYPES = BUCKET_TYPES;
 
@@ -586,7 +594,8 @@ angular.module('obiba.mica.search')
         }
       };
 
-      $scope.headerTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('view');
+      $scope.searchHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('search');
+      $scope.classificationsHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('classifications');
       $scope.selectSearchTarget = selectSearchTarget;
       $scope.selectDisplay = onDisplayChanged;
       $scope.searchCriteria = searchCriteria;
