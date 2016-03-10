@@ -6771,8 +6771,8 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
     "      <li class=\"criteria-list-item\"\n" +
     "        ng-show=\"isInFilter()\"\n" +
     "        ng-repeat=\"term in terms | regex:searchText:['key','title','description']\"\n" +
-    "        uib-popover=\"{{term.description ? term.description : term.title}}\"\n" +
-    "        popover-title=\"{{term.description ? term.title : null}}\"\n" +
+    "        uib-popover=\"{{term.description}}\"\n" +
+    "        popover-title=\"{{term.title}}\"\n" +
     "        popover-placement=\"bottom\"\n" +
     "        popover-trigger=\"mouseenter\">\n" +
     "          <span>\n" +
