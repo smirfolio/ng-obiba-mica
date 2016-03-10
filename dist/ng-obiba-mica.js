@@ -2613,7 +2613,6 @@ angular.module('obiba.mica.search')
         // limit
         var limit = new RqlQuery('limit');
         limit.args.push(0);
-        limit.args.push(0);
         // study
         var study;
         parsedQuery.args.forEach(function (arg) {
@@ -2621,11 +2620,11 @@ angular.module('obiba.mica.search')
             study = arg;
           }
         });
-        if (!study) {
-          study = new RqlQuery('study');
-          study.args.push(new RqlQuery(RQL_NODE.MATCH));
-          parsedQuery.args.push(study);
-        }
+
+        study = new RqlQuery('study');
+        study.args.push(new RqlQuery(RQL_NODE.MATCH));
+        parsedQuery.args.push(study);
+
         study.args.push(aggregate);
         study.args.push(limit);
         // facet
@@ -3222,7 +3221,7 @@ angular.module('obiba.mica.search')
                   $scope.search.result.graphics = response;
                   $scope.search.loading = false;
                 },
-                onError);
+                onError);console.log($scope.search.executedQuery);
               break;
           }
         }
