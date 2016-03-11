@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-03-10
+ * Date: 2016-03-11
  */
 'use strict';
 
@@ -6186,11 +6186,30 @@ angular.module("search/views/classifications.html", []).run(["$templateCache", f
     "    <span translate>search.back</span>\n" +
     "  </a>\n" +
     "\n" +
-    "  <!-- Nav tabs -->\n" +
+    "  <!-- Lang tabs -->\n" +
     "  <ul class=\"nav nav-tabs\" role=\"tablist\" ng-if=\"tabs && tabs.length>1\">\n" +
     "    <li ng-repeat=\"tab in tabs\" role=\"presentation\" ng-class=\"{ active: tab === lang }\"><a href role=\"tab\"\n" +
     "      ng-click=\"setLocale(tab)\">{{'language.' + tab | translate}}</a></li>\n" +
     "  </ul>\n" +
+    "\n" +
+    "  <!-- Search criteria region -->\n" +
+    "  <div class=\"panel panel-default voffset2\" ng-if=\"search.criteria.children && search.criteria.children.length>0\">\n" +
+    "    <div class=\"panel-body\">\n" +
+    "      <table style=\"border:none;\">\n" +
+    "        <tbody>\n" +
+    "        <tr>\n" +
+    "          <td>\n" +
+    "            <a href class=\"btn btn-sm btn-default\" ng-click=\"clearSearchQuery()\" translate>clear</a>\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            <div criteria-root item=\"search.criteria\" query=\"search.query\" on-remove=\"removeCriteriaItem\"\n" +
+    "              on-refresh=\"refreshQuery\"></div>\n" +
+    "          </td>\n" +
+    "        </tr>\n" +
+    "        </tbody>\n" +
+    "      </table>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
     "\n" +
     "  <!-- Classifications region -->\n" +
     "  <div class=\"{{tabs && tabs.length>1 ? 'tab-content voffset4' : ''}}\">\n" +
@@ -7321,15 +7340,14 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "\n" +
     "  <obiba-alert id=\"SearchController\"></obiba-alert>\n" +
     "\n" +
-    "  <!-- Nav tabs -->\n" +
+    "  <!-- Lang tabs -->\n" +
     "  <ul class=\"nav nav-tabs\" role=\"tablist\" ng-if=\"tabs && tabs.length>1\">\n" +
     "    <li ng-repeat=\"tab in tabs\" role=\"presentation\" ng-class=\"{ active: tab === lang }\"><a href role=\"tab\"\n" +
     "      ng-click=\"setLocale(tab)\">{{'language.' + tab | translate}}</a></li>\n" +
     "  </ul>\n" +
     "\n" +
-    "  <!-- Classifications region -->\n" +
+    "  <!-- Search box region -->\n" +
     "  <div class=\"{{tabs && tabs.length>1 ? 'tab-content voffset4' : ''}}\">\n" +
-    "    <!--<div>-->\n" +
     "    <div class=\"row\">\n" +
     "      <div class=\"col-md-3\"></div>\n" +
     "      <div class=\"col-md-6\">\n" +
