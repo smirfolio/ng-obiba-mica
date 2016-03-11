@@ -1,13 +1,14 @@
 <div>
+
   <div ng-if="hasVariableTarget()">
     <ul class="nav nav-pills pull-left">
-      <li ng-class="{active: bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE}">
-        <a href ng-click="selectBucket(BUCKET_TYPES.STUDY)" translate>search.coverage-buckets.study</a>
+      <li ng-if="groupByOptions.canShowStudy()" ng-class="{'active': bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE}">
+        <a href ng-click="selectBucket(groupByOptions.studyBucket())" translate>{{groupByOptions.studyTitle()}}</a>
       </li>
-      <li ng-class="{active: bucket === BUCKET_TYPES.DATASET || bucket === BUCKET_TYPES.DATASCHEMA}">
-        <a href ng-click="selectBucket(BUCKET_TYPES.DATASET)" translate>search.coverage-buckets.datasetNav</a>
+      <li ng-if="groupByOptions.canShowDataset()" ng-class="{'active': bucket === BUCKET_TYPES.DATASET || bucket === BUCKET_TYPES.DATASCHEMA}">
+        <a href ng-click="selectBucket(groupByOptions.datasetBucket())" translate>{{groupByOptions.datasetTitle()}}</a>
       </li>
-      <li ng-class="{active: bucket === BUCKET_TYPES.NETWORK}">
+      <li ng-if="groupByOptions.canShowNetwork()" ng-class="{'active': bucket === BUCKET_TYPES.NETWORK}">
         <a href ng-click="selectBucket(BUCKET_TYPES.NETWORK)" translate>search.coverage-buckets.network</a>
       </li>
     </ul>
@@ -24,14 +25,14 @@
 
     <div class="clearfix"></div>
 
-    <div class="voffset2" ng-if="bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE">
+    <div class="voffset2" ng-if="groupByOptions.canShowDce(bucket)">
       <label class="checkbox-inline">
         <input type="checkbox" ng-model="bucketSelection.dceBucketSelected">
         <span translate>search.coverage-buckets.dce</span>
       </label>
     </div>
 
-    <div class="voffset2" ng-if="bucket === BUCKET_TYPES.DATASET || bucket === BUCKET_TYPES.DATASCHEMA">
+    <div class="voffset2" ng-if="groupByOptions.canShowDatasetStudyDataschema(bucket)">
       <label class="radio-inline">
         <input type="radio" ng-model="bucketSelection.datasetBucketSelected" ng-value="true">
         <span translate>search.coverage-buckets.dataset</span>
