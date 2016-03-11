@@ -98,11 +98,11 @@ angular.module('obiba.mica.search', [
         },
         coverage: {
           groupBy: {
-            study: false,
-            dce: false,
+            study: true,
+            dce: true,
             dataset: true,
             dataschema: true,
-            network: false
+            network: true
           }
         }
       };
