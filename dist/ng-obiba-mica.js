@@ -6286,15 +6286,15 @@ angular.module("search/views/classifications/classifications-view.html", []).run
     "    </p>\n" +
     "\n" +
     "    <div ng-repeat=\"vocabulary in taxonomies.taxonomy.vocabularies\" ng-if=\"$index % 3 == 0\" class=\"row\">\n" +
-    "      <div class=\"col-xs-4\">\n" +
+    "      <div class=\"col-md-4\">\n" +
     "        <div vocabulary-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index]\"\n" +
     "          lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
     "      </div>\n" +
-    "      <div class=\"col-xs-4\">\n" +
+    "      <div class=\"col-md-4\">\n" +
     "        <div vocabulary-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index + 1]\"\n" +
     "          lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
     "      </div>\n" +
-    "      <div class=\"col-xs-4\">\n" +
+    "      <div class=\"col-md-4\">\n" +
     "        <div vocabulary-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index + 2]\"\n" +
     "          lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
     "      </div>\n" +
@@ -6309,15 +6309,15 @@ angular.module("search/views/classifications/classifications-view.html", []).run
     "    </p>\n" +
     "\n" +
     "    <div ng-repeat=\"term in taxonomies.vocabulary.terms\" ng-if=\"$index % 3 == 0\" class=\"row\">\n" +
-    "      <div class=\"col-xs-4\">\n" +
+    "      <div class=\"col-md-4\">\n" +
     "        <div term-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.vocabulary\" term=\"taxonomies.vocabulary.terms[$index]\"\n" +
     "          lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
     "      </div>\n" +
-    "      <div class=\"col-xs-4\">\n" +
+    "      <div class=\"col-md-4\">\n" +
     "        <div term-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.vocabulary\" term=\"taxonomies.vocabulary.terms[$index + 1]\"\n" +
     "          lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
     "      </div>\n" +
-    "      <div class=\"col-xs-4\">\n" +
+    "      <div class=\"col-md-4\">\n" +
     "        <div term-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.vocabulary\" term=\"taxonomies.vocabulary.terms[$index + 2]\"\n" +
     "          lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
     "      </div>\n" +
