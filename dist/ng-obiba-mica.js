@@ -1420,6 +1420,14 @@ angular.module('obiba.mica.search')
 
       return selected.concat(unselected);
     };
+  })
+
+  .filter('dceDescription', function() {
+    return function(input) {
+      return input.split(':<p>').map(function(d){
+        return '<p>' + d;
+      })[2];
+    };
   });;/*
  * Copyright (c) 2016 OBiBa. All rights reserved.
  *
@@ -6332,7 +6340,8 @@ angular.module("search/views/classifications/classifications-view.html", []).run
     "      {{label.text}}\n" +
     "    </h5>\n" +
     "    <p ng-repeat=\"label in taxonomies.term.description\" ng-if=\"label.locale === lang\">\n" +
-    "      <span class=\"help-block\" ng-bind-html=\"label.text\"></span>\n" +
+    "      <span class=\"help-block\" ng-bind-html=\"label.text | dceDescription\" ng-if=\"taxonomies.vocabulary.name === 'dceIds'\"></span>\n" +
+    "      <span class=\"help-block\" ng-bind-html=\"label.text\" ng-if=\"taxonomies.vocabulary.name !== 'dceIds'\"></span>\n" +
     "    </p>\n" +
     "    <div>\n" +
     "      <a href class=\"btn btn-default btn-xs\"\n" +
@@ -6462,7 +6471,8 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "                  {{label.text}}\n" +
     "                </h5>\n" +
     "                <p ng-repeat=\"label in taxonomies.term.description\" ng-if=\"label.locale === lang\">\n" +
-    "                  <span class=\"help-block\" ng-bind-html=\"label.text\"></span>\n" +
+    "                  <span class=\"help-block\" ng-bind-html=\"label.text | dceDescription\" ng-if=\"taxonomies.vocabulary.name === 'dceIds'\"></span>\n" +
+    "                  <span class=\"help-block\" ng-bind-html=\"label.text\" ng-if=\"taxonomies.vocabulary.name !== 'dceIds'\"></span>\n" +
     "                </p>\n" +
     "                <div>\n" +
     "                  <a href class=\"btn btn-default btn-xs\"\n" +
@@ -6520,7 +6530,8 @@ angular.module("search/views/classifications/term-panel-template.html", []).run(
     "    </small>\n" +
     "  </h5>\n" +
     "  <p ng-repeat=\"label in term.description\" ng-if=\"label.locale === lang\">\n" +
-    "    <span class=\"help-block\" ng-bind-html=\"label.text\"></span>\n" +
+    "    <span class=\"help-block\" ng-bind-html=\"label.text | dceDescription\" ng-if=\"vocabulary.name === 'dceIds'\"></span>\n" +
+    "    <span class=\"help-block\" ng-bind-html=\"label.text\" ng-if=\"vocabulary.name !== 'dceIds'\"></span>\n" +
     "  </p>\n" +
     "</div>");
 }]);
