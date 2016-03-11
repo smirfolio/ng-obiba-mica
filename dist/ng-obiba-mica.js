@@ -6332,7 +6332,7 @@ angular.module("search/views/classifications/classifications-view.html", []).run
     "      {{label.text}}\n" +
     "    </h5>\n" +
     "    <p ng-repeat=\"label in taxonomies.term.description\" ng-if=\"label.locale === lang\">\n" +
-    "      <span class=\"help-block\">{{label.text}}</span>\n" +
+    "      <span class=\"help-block\" ng-bind-html=\"label.text\"></span>\n" +
     "    </p>\n" +
     "    <div>\n" +
     "      <a href class=\"btn btn-default btn-xs\"\n" +
@@ -6462,7 +6462,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "                  {{label.text}}\n" +
     "                </h5>\n" +
     "                <p ng-repeat=\"label in taxonomies.term.description\" ng-if=\"label.locale === lang\">\n" +
-    "                  <span class=\"help-block\">{{label.text}}</span>\n" +
+    "                  <span class=\"help-block\" ng-bind-html=\"label.text\"></span>\n" +
     "                </p>\n" +
     "                <div>\n" +
     "                  <a href class=\"btn btn-default btn-xs\"\n" +
@@ -6520,7 +6520,7 @@ angular.module("search/views/classifications/term-panel-template.html", []).run(
     "    </small>\n" +
     "  </h5>\n" +
     "  <p ng-repeat=\"label in term.description\" ng-if=\"label.locale === lang\">\n" +
-    "    <span class=\"help-block\">{{label.text}}</span>\n" +
+    "    <span class=\"help-block\" ng-bind-html=\"label.text\"></span>\n" +
     "  </p>\n" +
     "</div>");
 }]);
