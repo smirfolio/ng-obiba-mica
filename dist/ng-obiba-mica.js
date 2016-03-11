@@ -1337,6 +1337,15 @@ angular.module('obiba.mica.search', [
             showNetworksHarmonizedDatasetColumn: true,
             showNetworksVariablesColumn: true
           }
+        },
+        coverage: {
+          groupBy: {
+            study: false,
+            dce: false,
+            dataset: true,
+            dataschema: true,
+            network: false
+          }
         }
       };
 
@@ -1353,6 +1362,21 @@ angular.module('obiba.mica.search', [
       };
 
       this.$get = ['$q', '$injector', function ngObibaMicaSearchFactory($q, $injector) {
+        function normalizeOptions() {
+          var canShowCoverage = Object.keys(options.coverage.groupBy).filter(function(canShow) {
+              return options.coverage.groupBy[canShow];
+            }).length > 0;
+
+          if (!canShowCoverage) {
+            var index = options.searchTabsOrder.indexOf(DISPLAY_TYPES.COVERAGE);
+            if (index > -1) {
+              options.searchTabsOrder.splice(index, 1);
+            }
+          }
+        }
+
+        normalizeOptions();
+
         return {
           getLocale: function(success, error) {
             return $q.when($injector.invoke(localeResolver), success, error);
@@ -2764,6 +2788,8 @@ angular.module('obiba.mica.search')
 
 'use strict';
 
+/* global BUCKET_TYPES */
+
 /**
  * Module services and factories
  */
@@ -2919,7 +2945,67 @@ angular.module('obiba.mica.search')
     this.getOptions = function () {
       return angular.copy(options);
     };
-  });
+  })
+
+  .service('CoverageGroupByService', ['ngObibaMicaSearch', function(ngObibaMicaSearch) {
+    var groupByOptions = ngObibaMicaSearch.getOptions().coverage.groupBy;
+    return {
+      canShowStudy: function() {
+        return groupByOptions.study || groupByOptions.dce;
+      },
+
+      canShowDce: function(bucket) {
+        return (bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE) &&
+          groupByOptions.study && groupByOptions.dce;
+      },
+
+      canShowDataset: function() {
+        return groupByOptions.dataset || groupByOptions.dataschema;
+      },
+
+      canShowDatasetStudyDataschema: function(bucket) {
+        return (bucket=== BUCKET_TYPES.DATASET || bucket === BUCKET_TYPES.DATASCHEMA) &&
+          groupByOptions.dataset && groupByOptions.dataschema;
+      },
+
+      canShowNetwork: function() {
+        return groupByOptions.network;
+      },
+
+      studyTitle: function() {
+        return groupByOptions.study ? 'search.coverage-buckets.study' : (groupByOptions.dce ? 'search.coverage-buckets.dce' : '');
+      },
+
+      studyBucket: function() {
+        return groupByOptions.study ? BUCKET_TYPES.STUDY : BUCKET_TYPES.DCE;
+      },
+
+      datasetTitle: function() {
+        return groupByOptions.dataset && groupByOptions.dataschema ?
+          'search.coverage-buckets.datasetNav' :
+          (groupByOptions.dataset ?
+            'search.coverage-buckets.dataset' :
+            (groupByOptions.dataschema ? 'search.coverage-buckets.dataschema' : ''));
+      },
+
+      datasetBucket: function() {
+        return groupByOptions.dataset ? BUCKET_TYPES.DATASET : BUCKET_TYPES.DATASCHEMA;
+      },
+
+      canGroupBy: function(bucket) {
+        return groupByOptions.hasOwnProperty(bucket) && groupByOptions[bucket];
+      },
+
+      defaultBucket: function() {
+        return groupByOptions.study ? BUCKET_TYPES.STUDY :
+          (groupByOptions.dce ? BUCKET_TYPES.DCE : groupByOptions.dataset ? BUCKET_TYPES.DATASET :
+            (groupByOptions.dataschema ? BUCKET_TYPES.DATASCHEMA :
+              (groupByOptions.network ? BUCKET_TYPES.NETWORK : '')));
+      }
+
+    };
+
+  }]);
 
 ;/*
  * Copyright (c) 2016 OBiBa. All rights reserved.
@@ -2997,6 +3083,7 @@ angular.module('obiba.mica.search')
     'RqlQueryService',
     'RqlQueryUtils',
     'SearchContext',
+    'CoverageGroupByService',
     function ($scope,
               $timeout,
               $routeParams,
@@ -3014,7 +3101,8 @@ angular.module('obiba.mica.search')
               LocalizedValues,
               RqlQueryService,
               RqlQueryUtils,
-              SearchContext) {
+              SearchContext,
+              CoverageGroupByService) {
       $scope.options = ngObibaMicaSearch.getOptions();
       $scope.taxonomyTypeMap = { //backwards compatibility for pluralized naming in configs.
         variable: 'variables',
@@ -3127,7 +3215,7 @@ angular.module('obiba.mica.search')
       }
 
       function validateBucket(bucket) {
-        if (!bucket || !BUCKET_TYPES[bucket.toUpperCase()]) {
+        if (bucket && !BUCKET_TYPES[bucket.toUpperCase()]) {
           throw new Error('Invalid bucket: ' + bucket);
         }
       }
@@ -3142,11 +3230,6 @@ angular.module('obiba.mica.search')
         return $scope.taxonomyTypeMap[$scope.resultTabsOrder[0]];
       }
 
-      function getDefaultBucketType() {
-        // TODO settings
-        return BUCKET_TYPES.STUDY;
-      }
-
       function getDefaultDisplayType() {
         return $scope.searchTabsOrder[0] || DISPLAY_TYPES.LIST;
       }
@@ -3155,7 +3238,7 @@ angular.module('obiba.mica.search')
         try {
           var search = $location.search();
           var type = $scope.resultTabsOrder.indexOf(taxonomyTypeInverseMap[search.type]) > -1 ? search.type : getDefaultQueryType();
-          var bucket = search.bucket || getDefaultBucketType();
+          var bucket = search.bucket && CoverageGroupByService.canGroupBy(search.bucket) ? search.bucket : CoverageGroupByService.defaultBucket();
           var display = $scope.searchTabsOrder.indexOf(search.display) > -1 ? search.display : getDefaultDisplayType();
           var query = search.query || '';
           validateType(type);
@@ -4048,12 +4131,14 @@ angular.module('obiba.mica.search')
     'PageUrlService',
     'RqlQueryUtils',
     'RqlQueryService',
-    function ($scope, $location, $q, PageUrlService, RqlQueryUtils, RqlQueryService) {
+    'CoverageGroupByService',
+    function ($scope, $location, $q, PageUrlService, RqlQueryUtils, RqlQueryService, CoverageGroupByService) {
       $scope.showMissing = true;
       $scope.toggleMissing = function (value) {
         $scope.showMissing = value;
       };
 
+      $scope.groupByOptions = CoverageGroupByService;
       $scope.bucketSelection = {
         dceBucketSelected: $scope.bucket === BUCKET_TYPES.DCE,
         datasetBucketSelected: $scope.bucket !== BUCKET_TYPES.DATASCHEMA
@@ -6556,15 +6641,16 @@ angular.module("search/views/classifications/vocabulary-panel-template.html", []
 angular.module("search/views/coverage/coverage-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/coverage/coverage-search-result-table-template.html",
     "<div>\n" +
+    "\n" +
     "  <div ng-if=\"hasVariableTarget()\">\n" +
     "    <ul class=\"nav nav-pills pull-left\">\n" +
-    "      <li ng-class=\"{active: bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE}\">\n" +
-    "        <a href ng-click=\"selectBucket(BUCKET_TYPES.STUDY)\" translate>search.coverage-buckets.study</a>\n" +
+    "      <li ng-if=\"groupByOptions.canShowStudy()\" ng-class=\"{'active': bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE}\">\n" +
+    "        <a href ng-click=\"selectBucket(groupByOptions.studyBucket())\" translate>{{groupByOptions.studyTitle()}}</a>\n" +
     "      </li>\n" +
-    "      <li ng-class=\"{active: bucket === BUCKET_TYPES.DATASET || bucket === BUCKET_TYPES.DATASCHEMA}\">\n" +
-    "        <a href ng-click=\"selectBucket(BUCKET_TYPES.DATASET)\" translate>search.coverage-buckets.datasetNav</a>\n" +
+    "      <li ng-if=\"groupByOptions.canShowDataset()\" ng-class=\"{'active': bucket === BUCKET_TYPES.DATASET || bucket === BUCKET_TYPES.DATASCHEMA}\">\n" +
+    "        <a href ng-click=\"selectBucket(groupByOptions.datasetBucket())\" translate>{{groupByOptions.datasetTitle()}}</a>\n" +
     "      </li>\n" +
-    "      <li ng-class=\"{active: bucket === BUCKET_TYPES.NETWORK}\">\n" +
+    "      <li ng-if=\"groupByOptions.canShowNetwork()\" ng-class=\"{'active': bucket === BUCKET_TYPES.NETWORK}\">\n" +
     "        <a href ng-click=\"selectBucket(BUCKET_TYPES.NETWORK)\" translate>search.coverage-buckets.network</a>\n" +
     "      </li>\n" +
     "    </ul>\n" +
@@ -6581,14 +6667,14 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "\n" +
     "    <div class=\"clearfix\"></div>\n" +
     "\n" +
-    "    <div class=\"voffset2\" ng-if=\"bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE\">\n" +
+    "    <div class=\"voffset2\" ng-if=\"groupByOptions.canShowDce(bucket)\">\n" +
     "      <label class=\"checkbox-inline\">\n" +
     "        <input type=\"checkbox\" ng-model=\"bucketSelection.dceBucketSelected\">\n" +
     "        <span translate>search.coverage-buckets.dce</span>\n" +
     "      </label>\n" +
     "    </div>\n" +
     "\n" +
-    "    <div class=\"voffset2\" ng-if=\"bucket === BUCKET_TYPES.DATASET || bucket === BUCKET_TYPES.DATASCHEMA\">\n" +
+    "    <div class=\"voffset2\" ng-if=\"groupByOptions.canShowDatasetStudyDataschema(bucket)\">\n" +
     "      <label class=\"radio-inline\">\n" +
     "        <input type=\"radio\" ng-model=\"bucketSelection.datasetBucketSelected\" ng-value=\"true\">\n" +
     "        <span translate>search.coverage-buckets.dataset</span>\n" +
