@@ -7373,11 +7373,6 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "            </small>\n" +
     "          </a>\n" +
     "        </script>\n" +
-    "        <ul class=\"nav nav-tabs voffset2\" ng-if=\"searchTabsOrder.length > 1\">\n" +
-    "          <li role=\"presentation\" ng-repeat=\"tab in searchTabsOrder\" ng-class=\"{active: search.display === tab}\"><a href\n" +
-    "            ng-click=\"selectDisplay(tab)\">{{ options[ tab + 'Label'] | translate}}</a></li>\n" +
-    "        </ul>\n" +
-    "        <div class=\"tab-panel\">\n" +
     "          <span class=\"input-group input-group-sm\">\n" +
     "            <span class=\"input-group-btn\" uib-dropdown>\n" +
     "              <button type=\"button\" class=\"btn btn-primary\" uib-dropdown-toggle>\n" +
@@ -7398,7 +7393,6 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "              class=\"form-control\">\n" +
     "            <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-search\"></i></span>\n" +
     "          </span>\n" +
-    "        </div>\n" +
     "      </div>\n" +
     "    </div>\n" +
     "    <div class=\"row\">\n" +
@@ -7455,6 +7449,12 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "\n" +
     "  <!-- Results region -->\n" +
     "  <div class=\"voffset3\" ng-if=\"search.query\">\n" +
+    "\n" +
+    "    <ul class=\"nav nav-tabs voffset2\" ng-if=\"searchTabsOrder.length > 1\">\n" +
+    "      <li role=\"presentation\" ng-repeat=\"tab in searchTabsOrder\" ng-class=\"{active: search.display === tab}\"><a href\n" +
+    "        ng-click=\"selectDisplay(tab)\">{{ options[ tab + 'Label'] | translate}}</a></li>\n" +
+    "    </ul>\n" +
+    "    <div class=\"tab-panel\">\n" +
     "    <result-panel display=\"search.display\"\n" +
     "      type=\"search.type\"\n" +
     "      bucket=\"search.bucket\"\n" +
@@ -7468,6 +7468,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      search-tabs-order=\"searchTabsOrder\"\n" +
     "      result-tabs-order=\"resultTabsOrder\"\n" +
     "      lang=\"lang\"></result-panel>\n" +
+    "      </div>\n" +
     "  </div>\n" +
     "</div>");
 }]);
