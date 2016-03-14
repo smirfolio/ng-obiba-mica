@@ -7491,19 +7491,29 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      <div class=\"col-md-6\">\n" +
     "        <script type=\"text/ng-template\" id=\"customTemplate.html\">\n" +
     "          <a ng-if=\"match.model.id\">\n" +
-    "            <span title=\"{{match.model.target + '-classifications' | translate}}\">\n" +
-    "              <i class=\"{{'i-obiba-' + match.model.target}}\"></i>\n" +
-    "            </span>\n" +
-    "            <span\n" +
-    "              uib-popover-html=\"match.model.itemDescription | uibTypeaheadHighlight:query\"\n" +
-    "              popover-title=\"{{match.model.itemTitle}}\"\n" +
-    "              popover-placement=\"bottom\"\n" +
-    "              popover-trigger=\"mouseenter\"\n" +
-    "              ng-bind-html=\"match.model.itemTitle | uibTypeaheadHighlight:query\">\n" +
-    "            </span>\n" +
-    "            <small class=\"help-block no-margin hoffset3\" title=\"{{match.model.itemParentDescription}}\">\n" +
-    "              {{match.model.itemParentTitle}}\n" +
-    "            </small>\n" +
+    "            <table style=\"border:none;\">\n" +
+    "              <tbody>\n" +
+    "              <tr>\n" +
+    "                <td style=\"min-width: 30px;\">\n" +
+    "                  <span title=\"{{match.model.target + '-classifications' | translate}}\">\n" +
+    "                    <i class=\"{{'i-obiba-large i-obiba-' + match.model.target}}\"></i>\n" +
+    "                  </span>\n" +
+    "                </td>\n" +
+    "                <td>\n" +
+    "                  <span\n" +
+    "                    uib-popover-html=\"match.model.itemDescription | uibTypeaheadHighlight:query\"\n" +
+    "                    popover-title=\"{{match.model.itemTitle}}\"\n" +
+    "                    popover-placement=\"bottom\"\n" +
+    "                    popover-trigger=\"mouseenter\"\n" +
+    "                    ng-bind-html=\"match.model.itemTitle | uibTypeaheadHighlight:query\">\n" +
+    "                  </span>\n" +
+    "                  <small class=\"help-block no-margin\" title=\"{{match.model.itemParentDescription}}\">\n" +
+    "                    {{match.model.itemParentTitle}}\n" +
+    "                  </small>\n" +
+    "                </td>\n" +
+    "              </tr>\n" +
+    "              </tbody>\n" +
+    "            </table>\n" +
     "          </a>\n" +
     "          <a ng-if=\"!match.model.id\" class=\"{{match.model.status}}\">\n" +
     "            <small class=\"help-block no-margin\">\n" +
@@ -7514,7 +7524,8 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "          <span class=\"input-group input-group-sm\">\n" +
     "            <span class=\"input-group-btn\" uib-dropdown>\n" +
     "              <button type=\"button\" class=\"btn btn-primary\" uib-dropdown-toggle>\n" +
-    "                {{'taxonomy.target.' + (documents.search.target ? documents.search.target : 'all')| translate}} <span class=\"caret\"></span>\n" +
+    "                {{'taxonomy.target.' + (documents.search.target ? documents.search.target : 'all')| translate}} <span\n" +
+    "                class=\"caret\"></span>\n" +
     "              </button>\n" +
     "              <ul uib-dropdown-menu role=\"menu\">\n" +
     "                <li>\n" +
@@ -7540,9 +7551,9 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      <div class=\"col-md-3\"></div>\n" +
     "      <div class=\"col-md-6\">\n" +
     "        <small>\n" +
-    "        <ul class=\"nav nav-pills\">\n" +
-    "          <li ng-repeat=\"t in taxonomyNav\" title=\"{{t.locale.description.text}}\">\n" +
-    "            <a href ng-click=\"showTaxonomy(t.target, t.name)\" ng-if=\"!t.terms\">{{t.locale.title.text}}</a>\n" +
+    "          <ul class=\"nav nav-pills\">\n" +
+    "            <li ng-repeat=\"t in taxonomyNav\" title=\"{{t.locale.description.text}}\">\n" +
+    "              <a href ng-click=\"showTaxonomy(t.target, t.name)\" ng-if=\"!t.terms\">{{t.locale.title.text}}</a>\n" +
     "            <span uib-dropdown ng-if=\"t.terms\">\n" +
     "              <ul class=\"nav nav-pills\">\n" +
     "                <li>\n" +
@@ -7555,13 +7566,13 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "                </li>\n" +
     "              </ul>\n" +
     "            </span>\n" +
-    "          </li>\n" +
-    "          <li>\n" +
-    "            <a href ng-click=\"goToClassifications()\" title=\"{{'search.classifications-show' | translate}}\">\n" +
-    "              <i class=\"glyphicon glyphicon-option-horizontal\"></i>\n" +
-    "            </a>\n" +
-    "          </li>\n" +
-    "        </ul>\n" +
+    "            </li>\n" +
+    "            <li>\n" +
+    "              <a href ng-click=\"goToClassifications()\" title=\"{{'search.classifications-show' | translate}}\">\n" +
+    "                <i class=\"glyphicon glyphicon-option-horizontal\"></i>\n" +
+    "              </a>\n" +
+    "            </li>\n" +
+    "          </ul>\n" +
     "        </small>\n" +
     "      </div>\n" +
     "    </div>\n" +
@@ -7596,20 +7607,20 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "        ng-click=\"selectDisplay(tab)\">{{ options[ tab + 'Label'] | translate}}</a></li>\n" +
     "    </ul>\n" +
     "    <div class=\"tab-panel\">\n" +
-    "    <result-panel display=\"search.display\"\n" +
-    "      type=\"search.type\"\n" +
-    "      bucket=\"search.bucket\"\n" +
-    "      query=\"search.executedQuery\"\n" +
-    "      result=\"search.result\"\n" +
-    "      loading=\"search.loading\"\n" +
-    "      on-update-criteria=\"onUpdateCriteria\"\n" +
-    "      on-type-changed=\"onTypeChanged\"\n" +
-    "      on-bucket-changed=\"onBucketChanged\"\n" +
-    "      on-paginate=\"onPaginate\"\n" +
-    "      search-tabs-order=\"searchTabsOrder\"\n" +
-    "      result-tabs-order=\"resultTabsOrder\"\n" +
-    "      lang=\"lang\"></result-panel>\n" +
-    "      </div>\n" +
+    "      <result-panel display=\"search.display\"\n" +
+    "        type=\"search.type\"\n" +
+    "        bucket=\"search.bucket\"\n" +
+    "        query=\"search.executedQuery\"\n" +
+    "        result=\"search.result\"\n" +
+    "        loading=\"search.loading\"\n" +
+    "        on-update-criteria=\"onUpdateCriteria\"\n" +
+    "        on-type-changed=\"onTypeChanged\"\n" +
+    "        on-bucket-changed=\"onBucketChanged\"\n" +
+    "        on-paginate=\"onPaginate\"\n" +
+    "        search-tabs-order=\"searchTabsOrder\"\n" +
+    "        result-tabs-order=\"resultTabsOrder\"\n" +
+    "        lang=\"lang\"></result-panel>\n" +
+    "    </div>\n" +
     "  </div>\n" +
     "</div>");
 }]);
