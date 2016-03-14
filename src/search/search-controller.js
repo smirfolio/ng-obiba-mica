@@ -281,6 +281,10 @@ angular.module('obiba.mica.search')
       }
 
       function loadResults() {
+        // execute search only when results are to be shown
+        if($location.$$path !== '/search') {
+          return;
+        }
         var localizedQuery =
           RqlQueryService.prepareSearchQuery(
             $scope.search.type,
