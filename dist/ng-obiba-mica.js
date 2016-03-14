@@ -5742,7 +5742,7 @@ angular.module('obiba.mica.localized')
         return 'en';
       };
     });
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html']);
 
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
@@ -6883,18 +6883,25 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
     "");
 }]);
 
+angular.module("search/views/criteria/criterion-header-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/criteria/criterion-header-template.html",
+    "<li class=\"criteria-list-item\">\n" +
+    "  <label uib-popover=\"{{localize(criterion.vocabulary.description)}}\"\n" +
+    "         popover-title=\"{{localize(criterion.vocabulary.title)}}\"\n" +
+    "         popover-placement=\"bottom\"\n" +
+    "         popover-trigger=\"mouseenter\">\n" +
+    "    {{localize(criterion.vocabulary.title)}}\n" +
+    "  </label>\n" +
+    "  <span class=\"pull-right\" title=\"{{'search.close-and-search' | translate}}\"><a href ng-click=\"$parent.$parent.closeDropdown()\"><i class=\"fa fa-play-circle-o\"></i></a></span>\n" +
+    "</li>\n" +
+    "<li class='divider'></li>\n" +
+    "");
+}]);
+
 angular.module("search/views/criteria/criterion-match-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criterion-match-template.html",
     "<ul class=\"dropdown-menu query-dropdown-menu\" aria-labelledby=\"{{criterion.vocabulary.name}}-button\">\n" +
-    "  <li class=\"criteria-list-item\">\n" +
-    "    <label uib-popover=\"{{localize(criterion.vocabulary.description)}}\"\n" +
-    "      popover-title=\"{{localize(criterion.vocabulary.title)}}\"\n" +
-    "      popover-placement=\"bottom\"\n" +
-    "      popover-trigger=\"mouseenter\">\n" +
-    "      {{localize(criterion.vocabulary.title)}}\n" +
-    "    </label>\n" +
-    "  </li>\n" +
-    "  <li class='divider'></li>\n" +
+    "  <ng-include src=\"'search/views/criteria/criterion-header-template.html'\"></ng-include>\n" +
     "  <li class=\"criteria-list-item\">\n" +
     "    <form novalidate>\n" +
     "      <div  >\n" +
@@ -6911,15 +6918,7 @@ angular.module("search/views/criteria/criterion-match-template.html", []).run(["
 angular.module("search/views/criteria/criterion-numeric-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criterion-numeric-template.html",
     "<ul class=\"dropdown-menu query-dropdown-menu\" aria-labelledby=\"{{criterion.vocabulary.name}}-button\">\n" +
-    "  <li class=\"criteria-list-item\">\n" +
-    "    <label uib-popover=\"{{localize(criterion.vocabulary.description)}}\"\n" +
-    "      popover-title=\"{{localize(criterion.vocabulary.title)}}\"\n" +
-    "      popover-placement=\"bottom\"\n" +
-    "      popover-trigger=\"mouseenter\">\n" +
-    "      {{localize(criterion.vocabulary.title)}}\n" +
-    "    </label>\n" +
-    "  </li>\n" +
-    "  <li class='divider'></li>\n" +
+    "  <ng-include src=\"'search/views/criteria/criterion-header-template.html'\"></ng-include>\n" +
     "  <li class=\"btn-group\">\n" +
     "    <ul class=\"criteria-list-item\">\n" +
     "      <li>\n" +
@@ -6955,15 +6954,7 @@ angular.module("search/views/criteria/criterion-numeric-template.html", []).run(
 angular.module("search/views/criteria/criterion-string-terms-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criterion-string-terms-template.html",
     "<ul class=\"dropdown-menu query-dropdown-menu\" aria-labelledby=\"{{criterion.vocabulary.name}}-button\">\n" +
-    "  <li class=\"criteria-list-item\">\n" +
-    "    <label uib-popover=\"{{localize(criterion.vocabulary.description)}}\"\n" +
-    "      popover-title=\"{{localize(criterion.vocabulary.title)}}\"\n" +
-    "      popover-placement=\"bottom\"\n" +
-    "      popover-trigger=\"mouseenter\">\n" +
-    "      {{localize(criterion.vocabulary.title)}}\n" +
-    "    </label>\n" +
-    "  </li>\n" +
-    "  <li class='divider'></li>\n" +
+    "  <ng-include src=\"'search/views/criteria/criterion-header-template.html'\"></ng-include>\n" +
     "  <li class=\"btn-group\">\n" +
     "    <ul class=\"criteria-list-item\">\n" +
     "      <li>\n" +
