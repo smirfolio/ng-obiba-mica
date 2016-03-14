@@ -3372,6 +3372,12 @@ angular.module('obiba.mica.search')
       };
 
       var showTaxonomy = function (target, name) {
+        if($scope.target === target && $scope.taxonomyName === name && $scope.taxonomiesShown) {
+          $scope.taxonomiesShown = false;
+          return;
+        }
+
+        $scope.taxonomiesShown = true;
         $scope.target = target;
         $scope.taxonomyName = name;
       };
@@ -5102,6 +5108,7 @@ angular.module('obiba.mica.search')
       target: '=',
       onClose: '=',
       onSelectTerm: '=',
+      taxonomiesShown: '=',
       lang: '='
     },
     controller: 'TaxonomiesPanelController',
@@ -5123,6 +5130,15 @@ angular.module('obiba.mica.search')
       element.on('hide.bs.collapse', function () {
         scope.taxonomiesShown = false;
       });
+
+      scope.$watch('taxonomiesShown', function(value) {
+        if(value) {
+          element.collapse('show');
+        } else {
+          element.collapse('hide');
+        }
+      });
+
       }
     };
   }])
@@ -7568,7 +7584,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      </div>\n" +
     "    </div>\n" +
     "    <taxonomies-panel taxonomy-name=\"taxonomyName\" target=\"target\" on-select-term=\"onSelectTerm\"\n" +
-    "      on-close=\"clearTaxonomy\" lang=\"lang\"></taxonomies-panel>\n" +
+    "      on-close=\"clearTaxonomy\" lang=\"lang\" taxonomies-shown=\"taxonomiesShown\"></taxonomies-panel>\n" +
     "  </div>\n" +
     "\n" +
     "  <!-- Search criteria region -->\n" +
