@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-03-11
+ * Date: 2016-03-14
  */
 'use strict';
 
@@ -3313,7 +3313,7 @@ angular.module('obiba.mica.search')
             var hasVariableCriteria = Object.keys($scope.search.criteriaItemMap).map(function (k) {
                 return $scope.search.criteriaItemMap[k];
               }).filter(function (i) {
-                return i.target === QUERY_TARGETS.VARIABLE;
+                return i.target === QUERY_TARGETS.VARIABLE && i.taxonomy.name !== 'Mica_variable';
               }).length > 0;
 
             if (hasVariableCriteria) {
