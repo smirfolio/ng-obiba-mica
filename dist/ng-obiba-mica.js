@@ -5695,6 +5695,7 @@ angular.module('obiba.mica.localized')
           }
           return result[0][keyValue];
         }
+        return '';
       };
 
       this.forLocale = function (values, lang) {
