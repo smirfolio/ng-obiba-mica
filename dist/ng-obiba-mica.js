@@ -3290,6 +3290,10 @@ angular.module('obiba.mica.search')
       }
 
       function loadResults() {
+        // execute search only when results are to be shown
+        if($location.$$path !== '/search') {
+          return;
+        }
         var localizedQuery =
           RqlQueryService.prepareSearchQuery(
             $scope.search.type,
@@ -7517,7 +7521,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "            </span>\n" +
     "          </li>\n" +
     "          <li>\n" +
-    "            <a href ng-click=\"goToClassifications()\">\n" +
+    "            <a href ng-click=\"goToClassifications()\" title=\"{{'search.classifications-show' | translate}}\">\n" +
     "              <i class=\"glyphicon glyphicon-option-horizontal\"></i>\n" +
     "            </a>\n" +
     "          </li>\n" +
