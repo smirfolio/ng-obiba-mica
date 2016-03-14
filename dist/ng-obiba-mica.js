@@ -6767,8 +6767,8 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "      <tbody>\n" +
     "      <tr ng-repeat=\"row in table.rows\" ng-if=\"showMissing || table.termHeaders.length == keys(row.hits).length\">\n" +
     "        <td><input type=\"checkbox\" ng-model=\"row.selected\"></td>\n" +
-    "        <td ng-repeat=\"col in table.cols.ids[row.value]\" rowspan=\"{{col.rowSpan}}\" ng-if=\"col.rowSpan > 0\">\n" +
-    "          <a href=\"{{col.url ? col.url : ''}}\"\n" +
+    "        <td ng-repeat=\"col in table.cols.ids[row.value]\">\n" +
+    "          <a ng-if=\"col.rowSpan > 0\" href=\"{{col.url ? col.url : ''}}\"\n" +
     "            uib-popover-html=\"col.description === col.title ? null : col.description\"\n" +
     "            popover-title=\"{{col.title}}\"\n" +
     "            popover-placement=\"bottom\"\n" +
