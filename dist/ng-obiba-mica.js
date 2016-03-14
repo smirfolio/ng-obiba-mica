@@ -3633,7 +3633,7 @@ angular.module('obiba.mica.search')
         search: {
           text: null,
           active: false,
-          target: QUERY_TARGETS.VARIABLE
+          target: null
         }
       };
 
@@ -7514,15 +7514,18 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "          <span class=\"input-group input-group-sm\">\n" +
     "            <span class=\"input-group-btn\" uib-dropdown>\n" +
     "              <button type=\"button\" class=\"btn btn-primary\" uib-dropdown-toggle>\n" +
-    "                {{'taxonomy.target.' + documents.search.target | translate}} <span class=\"caret\"></span>\n" +
+    "                {{'taxonomy.target.' + (documents.search.target ? documents.search.target : 'all')| translate}} <span class=\"caret\"></span>\n" +
     "              </button>\n" +
     "              <ul uib-dropdown-menu role=\"menu\">\n" +
+    "                <li>\n" +
+    "                  <a href ng-click=\"selectSearchTarget()\" translate>taxonomy.target.all</a>\n" +
+    "                </li>\n" +
     "                <li ng-repeat=\"target in targets\" role=\"menuitem\"><a href ng-click=\"selectSearchTarget(target)\">{{'taxonomy.target.'\n" +
     "                  + target | translate}}</a></li>\n" +
     "              </ul>\n" +
     "            </span>\n" +
     "            <input type=\"text\" ng-model=\"selectedCriteria\"\n" +
-    "              placeholder=\"{{'search.placeholder.' + documents.search.target | translate}}\"\n" +
+    "              placeholder=\"{{'search.placeholder.' + (documents.search.target ? documents.search.target : 'all') | translate}}\"\n" +
     "              uib-typeahead=\"criteria for criteria in searchCriteria($viewValue)\"\n" +
     "              typeahead-min-length=\"2\"\n" +
     "              typeahead-loading=\"documents.search.active\"\n" +
