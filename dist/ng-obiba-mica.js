@@ -6839,8 +6839,8 @@ angular.module("search/views/criteria/criteria-root-template.html", []).run(["$t
 angular.module("search/views/criteria/criteria-target-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criteria-target-template.html",
     "<div>\n" +
-    "  <div  class=\"form-group voffset1\" title=\"{{'search.' + item.target + '-where' | translate}}\">\n" +
-    "    <i class=\"{{'i-obiba-' + item.target}}\">&nbsp;</i>\n" +
+    "  <div class=\"form-group\" title=\"{{'search.' + item.target + '-where' | translate}}\">\n" +
+    "    <i class=\"{{'i-obiba-x-large i-obiba-' + item.target + ' color-' + item.target}}\">&nbsp;</i>\n" +
     "  </div>\n" +
     "  <criteria-node item=\"child\" query=\"$parent.query\" ng-repeat=\"child in item.children\"></criteria-node>\n" +
     "</div>");
@@ -6848,10 +6848,10 @@ angular.module("search/views/criteria/criteria-target-template.html", []).run(["
 
 angular.module("search/views/criteria/criterion-dropdown-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criterion-dropdown-template.html",
-    "<div id=\"{{criterion.id.replace('.','-')}}-dropdown\" class='btn-group btn-info voffset1' ng-class='{open: state.open}'\n" +
+    "<div id=\"{{criterion.id.replace('.','-')}}-dropdown\" class=\"{{'btn-group voffset1 btn-' + criterion.target}}\" ng-class='{open: state.open}'\n" +
     "     ng-keyup=\"onKeyup($event)\">\n" +
     "\n" +
-    "  <button class=\"btn btn-info btn-xs dropdown\"\n" +
+    "  <button class=\"{{'btn btn-xs dropdown btn-' + criterion.target}}\"\n" +
     "    ng-click=\"openDropdown()\"\n" +
     "    title=\"{{localizeCriterion()}}\">\n" +
     "    <span uib-popover=\"{{localize(criterion.vocabulary.description ? criterion.vocabulary.description : criterion.vocabulary.title)}}\"\n" +
