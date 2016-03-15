@@ -363,6 +363,12 @@ angular.module('obiba.mica.search')
       };
 
       var showTaxonomy = function (target, name) {
+        if($scope.target === target && $scope.taxonomyName === name && $scope.taxonomiesShown) {
+          $scope.taxonomiesShown = false;
+          return;
+        }
+
+        $scope.taxonomiesShown = true;
         $scope.target = target;
         $scope.taxonomyName = name;
       };
