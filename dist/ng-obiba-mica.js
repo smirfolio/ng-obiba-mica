@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-03-14
+ * Date: 2016-03-15
  */
 'use strict';
 
@@ -7365,7 +7365,8 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
     "        </tr>\n" +
     "        <tr ng-repeat=\"summary in summaries\">\n" +
     "          <td>\n" +
-    "            <a href=\"{{PageUrlService.VariablePage(summary.id)}}\">\n" +
+    "            <a\n" +
+    "              href=\"{{PageUrlService.VariablePage(summary.id) ? PageUrlService.VariablePage(summary.id) : PageUrlService.datasetPage(summary.datasetId, summary.variableType)}}\">\n" +
     "              {{summary.name}}\n" +
     "            </a>\n" +
     "          </td>\n" +
