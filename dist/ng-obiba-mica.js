@@ -4144,13 +4144,16 @@ angular.module('obiba.mica.search')
           $scope.terms = RqlQueryService.getTargetAggregations(joinQueryResponse, $scope.criterion, $scope.lang);
           if ($scope.terms) {
             $scope.terms.forEach(function (term) {
-              $scope.checkboxTerms[term.key] =
-                $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.indexOf(term.key) !== -1;
+              $scope.checkboxTerms[term.key] = $scope.isSelectedTerm(term);
             });
 
             $scope.terms = $filter('orderBySelection')($scope.terms, $scope.checkboxTerms);
           }
         });
+      };
+
+      $scope.isSelectedTerm = function(term) {
+        return $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.indexOf(term.key) !== -1;
       };
 
       $scope.state.addOnOpen(onOpen);
@@ -7023,8 +7026,8 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
     "            </label>\n" +
     "          </span>\n" +
     "          <span class=\"pull-right\">\n" +
-    "            <span class=\"agg-term-count\" ng-show=\"term.count !== 0\">{{term.count}}</span>\n" +
-    "            <span class=\"agg-term-count-default\" ng-show=\"term.count === 0\">{{term.default}}</span>\n" +
+    "            <span class=\"agg-term-count\" ng-show=\"isSelectedTerm(term)\">{{term.count}}</span>\n" +
+    "            <span class=\"agg-term-count-default\" ng-show=\"!isSelectedTerm(term)\">{{term.count}}</span>\n" +
     "          </span>\n" +
     "      </li>\n" +
     "    </ul>\n" +
