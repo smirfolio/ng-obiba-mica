@@ -2812,6 +2812,7 @@ angular.module('obiba.mica.search')
 'use strict';
 
 /* global BUCKET_TYPES */
+/* global RQL_NODE */
 
 /**
  * Module services and factories
@@ -3026,6 +3027,26 @@ angular.module('obiba.mica.search')
               (groupByOptions.network ? BUCKET_TYPES.NETWORK : '')));
       }
 
+    };
+
+  }])
+
+  .factory('CriteriaNodeCompileService', ['$templateCache', '$compile', function($templateCache, $compile){
+
+    return {
+      compile: function(scope, element) {
+        var template = '';
+        if (scope.item.type === RQL_NODE.OR || scope.item.type === RQL_NODE.AND || scope.item.type === RQL_NODE.NAND || scope.item.type === RQL_NODE.NOR) {
+          template = $templateCache.get('search/views/criteria/criteria-node-template.html');
+        } else {
+          template = angular.element('<criterion-dropdown criterion="item" query="query"></criterion-dropdown>');
+        }
+
+        template = angular.element(template);
+        $compile(template)(scope, function(cloned){
+          element.append(cloned);
+        });
+      }
     };
 
   }]);
@@ -4620,8 +4641,6 @@ angular.module('obiba.mica.search')
 
 'use strict';
 
-/* global RQL_NODE */
-
 /* exported CRITERIA_ITEM_EVENT */
 var CRITERIA_ITEM_EVENT = {
   deleted: 'event:delete-criteria-item',
@@ -4942,7 +4961,7 @@ angular.module('obiba.mica.search')
     };
   }])
 
-  .directive('criteriaNode', [function(){
+  .directive('criteriaNode', ['CriteriaNodeCompileService', function(CriteriaNodeCompileService){
     return {
       restrict: 'EA',
       replace: true,
@@ -4951,37 +4970,25 @@ angular.module('obiba.mica.search')
         query: '='
       },
       controller: 'CriterionLogicalController',
-      templateUrl: 'search/views/criteria/criteria-node-template.html'
+      link: function(scope, element) {
+        CriteriaNodeCompileService.compile(scope, element);
+      }
     };
   }])
 
   /**
    * This directive creates a hierarchical structure matching that of a RqlQuery tree.
    */
-  .directive('criteriaLeaf', ['$compile',
-    function($compile){
+  .directive('criteriaLeaf', ['CriteriaNodeCompileService', function(CriteriaNodeCompileService){
       return {
         restrict: 'EA',
         replace: true,
         scope: {
           item: '=',
-          query: '=',
-          parentType: '='
+          query: '='
         },
-        template: '<span></span>',
         link: function(scope, element) {
-          var template = '';
-          if (scope.item.type === RQL_NODE.OR || scope.item.type === RQL_NODE.AND || scope.item.type === RQL_NODE.NAND || scope.item.type === RQL_NODE.NOR) {
-            template = '<criteria-node item="item" query="query"></criteria-node>';
-            $compile(template)(scope, function(cloned){
-              element.append(cloned);
-            });
-          } else {
-            template = '<criterion-dropdown criterion="item" query="query"></criterion-dropdown>';
-            $compile(template)(scope, function(cloned){
-              element.append(cloned);
-            });
-          }
+          CriteriaNodeCompileService.compile(scope, element);
         }
       };
     }])
@@ -7569,7 +7576,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      <div class=\"col-md-6\">\n" +
     "        <small>\n" +
     "          <ul class=\"nav nav-pills\">\n" +
-    "            <li ng-repeat=\"t in taxonomyNav\" title=\"{{t.locale.description.text}}\">\n" +
+    "            <li ng-repeat=\"t in taxonomyNav track by $index\" title=\"{{t.locale.description.text}}\">\n" +
     "              <a href ng-click=\"showTaxonomy(t.target, t.name)\" ng-if=\"!t.terms\">{{t.locale.title.text}}</a>\n" +
     "            <span uib-dropdown ng-if=\"t.terms\">\n" +
     "              <ul class=\"nav nav-pills\">\n" +
