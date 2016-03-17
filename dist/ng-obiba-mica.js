@@ -3213,6 +3213,10 @@ angular.module('obiba.mica.search')
           return searchTaxonomyDisplay[t];
         });
 
+        if($location.search().target) {
+          $scope.target = $location.search().target;
+        }
+
         $scope.metaTaxonomy.$promise.then(function (metaTaxonomy) {
           $scope.taxonomyTabsOrder.forEach(function (target) {
             var targetVocabulary = metaTaxonomy.vocabularies.filter(function (vocabulary) {
@@ -3250,6 +3254,7 @@ angular.module('obiba.mica.search')
             }
           });
         });
+
       }
 
       function onError(response) {
@@ -3671,11 +3676,22 @@ angular.module('obiba.mica.search')
       };
 
       $scope.goToSearch = function () {
+        $location.search('taxonomy', null);
+        $location.search('vocabulary', null);
+        $location.search('target', null);
         $location.path('/search');
       };
 
       $scope.goToClassifications = function () {
         $location.path('/classifications');
+        $location.search('target', $scope.taxonomyTabsOrder[0]);
+      };
+
+      $scope.navigateToTarget = function(target) {
+        $location.search('target', target);
+        $location.search('taxonomy', null);
+        $location.search('vocabulary', null);
+        $scope.target = target;
       };
 
       $scope.QUERY_TYPES = QUERY_TYPES;
@@ -3756,8 +3772,8 @@ angular.module('obiba.mica.search')
       init();
     }])
 
-  .controller('TaxonomiesPanelController', ['$scope', 'VocabularyResource', 'TaxonomyResource', 'TaxonomiesResource',
-    function ($scope, VocabularyResource, TaxonomyResource, TaxonomiesResource) {
+  .controller('TaxonomiesPanelController', ['$scope', '$location', 'VocabularyResource', 'TaxonomyResource', 'TaxonomiesResource',
+    function ($scope, $location, VocabularyResource, TaxonomyResource, TaxonomiesResource) {
       $scope.metaTaxonomy = TaxonomyResource.get({
         target: 'taxonomy',
         taxonomy: 'Mica_taxonomy'
@@ -3769,7 +3785,7 @@ angular.module('obiba.mica.search')
           text: null,
           active: false
         },
-        target: 'variable',
+        target: $scope.target || 'variable',
         taxonomy: null,
         vocabulary: null
       };
@@ -3830,10 +3846,47 @@ angular.module('obiba.mica.search')
       };
 
       var navigateTaxonomy = function (taxonomy, vocabulary, term) {
-        $scope.taxonomies.taxonomy = taxonomy;
-        $scope.taxonomies.vocabulary = vocabulary;
         $scope.taxonomies.term = term;
+
+        if ($scope.isHistoryEnabled) {
+          $location.search('taxonomy', taxonomy ? taxonomy.name : null);
+          $location.search('vocabulary', vocabulary ? vocabulary.name : null);
+        } else {
+          $scope.taxonomies.taxonomy = taxonomy;
+          $scope.taxonomies.vocabulary = vocabulary;
+        }
       };
+
+      var updateStateFromLocation = function() {
+        var taxonomyName = $location.search().taxonomy,
+            vocabularyName = $location.search().vocabulary, taxonomy = null, vocabulary = null;
+
+        if(!$scope.taxonomies.all) { //page loading
+          return;
+        }
+
+        $scope.taxonomies.all.forEach(function(t) {
+          if (t.name === taxonomyName) {
+            taxonomy = t;
+            t.vocabularies.forEach(function(v) {
+              if (v.name === vocabularyName) {
+                vocabulary = v;
+              }
+            });
+          }
+        });
+
+        if(!angular.equals($scope.taxonomies.taxonomy, taxonomy) || !angular.equals($scope.taxonomies.vocabulary, vocabulary)) {
+          $scope.taxonomies.taxonomy = taxonomy;
+          $scope.taxonomies.vocabulary = vocabulary;
+        }
+      };
+
+      $scope.$on('$locationChangeSuccess', function () {
+        if($scope.isHistoryEnabled) {
+          updateStateFromLocation();
+        }
+      });
 
       var selectTerm = function (target, taxonomy, vocabulary, term) {
         $scope.onSelectTerm(target, taxonomy, vocabulary, term);
@@ -5288,6 +5341,7 @@ angular.module('obiba.mica.search')
       scope: {
         target: '=',
         onSelectTerm: '=',
+        isHistoryEnabled: '=',
         lang: '='
       },
       controller: 'TaxonomiesPanelController',
@@ -6501,12 +6555,12 @@ angular.module("search/views/classifications.html", []).run(["$templateCache", f
     "\n" +
     "  <!-- Classifications region -->\n" +
     "  <div class=\"{{tabs && tabs.length>1 ? 'tab-content voffset4' : ''}}\">\n" +
-    "    <uib-tabset type=\"pills\" ng-if=\"taxonomyTabsOrder.length>1\" class=\"voffset2\">\n" +
-    "      <uib-tab ng-repeat=\"target in taxonomyTabsOrder\" heading=\"{{'taxonomy.target.' + target | translate}}\">\n" +
-    "        <classifications-panel target=\"target\" on-select-term=\"onSelectTerm\" lang=\"lang\"></classifications-panel>\n" +
-    "      </uib-tab>\n" +
-    "    </uib-tabset>\n" +
-    "    <classifications-panel  ng-if=\"taxonomyTabsOrder.length === 1\" target=\"taxonomyTabsOrder[0]\" on-select-term=\"onSelectTerm\" lang=\"lang\"></classifications-panel>\n" +
+    "    <ul class=\"nav nav-pills voffset2\" role=\"tablist\" ng-if=\"taxonomyTabsOrder.length > 1\">\n" +
+    "      <li ng-repeat=\"target in taxonomyTabsOrder\" role=\"presentation\" ng-class=\"{ active: target === $parent.target }\"><a href role=\"tab\"\n" +
+    "          ng-click=\"navigateToTarget(target)\">{{'taxonomy.target.' + target | translate}}</a></li>\n" +
+    "    </ul>\n" +
+    "\n" +
+    "    <classifications-panel target=\"target\" is-history-enabled=\"true\" on-select-term=\"onSelectTerm\" lang=\"lang\"></classifications-panel>\n" +
     "  </div>\n" +
     "\n" +
     "</div>");
@@ -6636,7 +6690,6 @@ angular.module("search/views/classifications/classifications-view.html", []).run
     "      </a>\n" +
     "    </div>\n" +
     "  </div>\n" +
-    "\n" +
     "</div>\n" +
     "");
 }]);
