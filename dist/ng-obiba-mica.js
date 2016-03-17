@@ -6867,7 +6867,9 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
     "      <tr>\n" +
-    "        <th rowspan=\"2\" width=\"20\"></th>\n" +
+    "        <th rowspan=\"2\" width=\"20\">\n" +
+    "\n" +
+    "        </th>\n" +
     "        <th rowspan=\"{{bucket === BUCKET_TYPES.DCE ? 1 : 2}}\" colspan=\"{{table.cols.colSpan}}\" translate>\n" +
     "          {{'search.coverage-buckets.' + bucket}}\n" +
     "        </th>\n" +
@@ -6962,10 +6964,8 @@ angular.module("search/views/criteria/criteria-node-template.html", []).run(["$t
     "        {{item.type | translate}} <span class=\"caret\"></span>\n" +
     "      </button>\n" +
     "      <ul uib-dropdown-menu role=\"menu\" aria-labelledby=\"single-button\">\n" +
-    "        <li role=\"menuitem\" ng-if=\"item.type !== 'or'\"><a href ng-click=\"updateLogical('or')\" translate>or</a></li>\n" +
-    "        <li role=\"menuitem\" ng-if=\"item.type !== 'and'\"><a href ng-click=\"updateLogical('and')\" translate>and</a></li>\n" +
-    "        <li role=\"menuitem\" ng-if=\"item.type !== 'nor'\"><a href ng-click=\"updateLogical('nor')\" translate>nor</a></li>\n" +
-    "        <li role=\"menuitem\" ng-if=\"item.type !== 'nand'\"><a href ng-click=\"updateLogical('nand')\" translate>nand</a></li>\n" +
+    "        <li role=\"menuitem\"><a href ng-click=\"updateLogical('or')\" translate>or</a></li>\n" +
+    "        <li role=\"menuitem\"><a href ng-click=\"updateLogical('and')\" translate>and</a></li>\n" +
     "      </ul>\n" +
     "    </div>\n" +
     "    <criteria-leaf item=\"item.children[1]\" parent-type=\"$parent.item.type\" query=\"query\"></criteria-leaf>\n" +
