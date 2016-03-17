@@ -1285,8 +1285,12 @@ angular.module('obiba.mica.search', [
         searchTabsOrder: [DISPLAY_TYPES.LIST, DISPLAY_TYPES.COVERAGE, DISPLAY_TYPES.GRAPHICS],
         resultTabsOrder: [QUERY_TARGETS.VARIABLE, QUERY_TARGETS.DATASET, QUERY_TARGETS.STUDY, QUERY_TARGETS.NETWORK],
         listLabel: 'search.list',
+        listHelp: null,
         coverageLabel: 'search.coverage',
+        coverageHelp: null,
         graphicsLabel: 'search.graphics',
+        graphicsHelp: null,
+        classificationsLinkLabel: null,
         variables: {
           showSearchTab: true,
           searchLabel: 'search.variable.searchLabel',
@@ -1355,7 +1359,7 @@ angular.module('obiba.mica.search', [
 
       this.setOptions = function (value) {
         options = angular.merge(options, value);
-        //NOTICE: angular.merge merges arrays by position. Overwriting manually.
+        //NOTICE: angular.merge merges arrays by position. Overriding manually.
         options.taxonomyTabsOrder = value.taxonomyTabsOrder || options.taxonomyTabsOrder;
         options.searchTabsOrder = value.searchTabsOrder || options.searchTabsOrder;
         options.resultTabsOrder = value.resultTabsOrder || options.resultTabsOrder;
@@ -7822,7 +7826,8 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "            </li>\n" +
     "            <li>\n" +
     "              <a href ng-click=\"goToClassifications()\" title=\"{{'search.classifications-show' | translate}}\">\n" +
-    "                <i class=\"glyphicon glyphicon-option-horizontal\"></i>\n" +
+    "                <span ng-if=\"options.classificationsLinkLabel\">{{options.classificationsLinkLabel}}</span>\n" +
+    "                <i class=\"glyphicon glyphicon-option-horizontal\" ng-if=\"!options.classificationsLinkLabel\"></i>\n" +
     "              </a>\n" +
     "            </li>\n" +
     "          </ul>\n" +
@@ -7860,6 +7865,8 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "        ng-click=\"selectDisplay(tab)\">{{ options[ tab + 'Label'] | translate}}</a></li>\n" +
     "    </ul>\n" +
     "    <div class=\"tab-panel\">\n" +
+    "      <div ng-bind-html=\"options[search.display + 'Help']\" ng-if=\"options[search.display + 'Help']\">\n" +
+    "      </div>\n" +
     "      <result-panel display=\"search.display\"\n" +
     "        type=\"search.type\"\n" +
     "        bucket=\"search.bucket\"\n" +
