@@ -57,8 +57,17 @@
     <table class="table table-bordered table-striped">
       <thead>
       <tr>
-        <th rowspan="2" width="20">
-
+        <th rowspan="2" width="50" style="text-align: center">
+          <div class="btn-group voffset1" uib-dropdown>
+            <div uib-dropdown-toggle>
+              <small><i class="glyphicon glyphicon-unchecked"></i></small>
+            </div>
+            <ul uib-dropdown-menu role="menu">
+              <li role="menuitem"><a href ng-click="selectAll()" translate>search.coverage-select.all</a></li>
+              <li role="menuitem"><a href ng-click="selectNone()" translate>search.coverage-select.none</a></li>
+              <li role="menuitem"><a href ng-click="selectFull()" translate>search.coverage-select.full</a></li>
+            </ul>
+          </div>
         </th>
         <th rowspan="{{bucket === BUCKET_TYPES.DCE ? 1 : 2}}" colspan="{{table.cols.colSpan}}" translate>
           {{'search.coverage-buckets.' + bucket}}
@@ -90,7 +99,9 @@
       </thead>
       <tbody>
       <tr ng-repeat="row in table.rows" ng-if="showMissing || table.termHeaders.length == keys(row.hits).length">
-        <td><input type="checkbox" ng-model="row.selected"></td>
+        <td style="text-align: center">
+          <input type="checkbox" ng-model="row.selected">
+        </td>
         <td ng-repeat="col in table.cols.ids[row.value]">
           <a ng-if="col.rowSpan > 0" href="{{col.url ? col.url : ''}}"
             uib-popover-html="col.description === col.title ? null : col.description"
