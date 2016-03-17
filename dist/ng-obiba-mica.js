@@ -6867,7 +6867,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
     "      <tr>\n" +
-    "        <th rowspan=\"2\" width=\"20px\"></th>\n" +
+    "        <th rowspan=\"2\" width=\"20\"></th>\n" +
     "        <th rowspan=\"{{bucket === BUCKET_TYPES.DCE ? 1 : 2}}\" colspan=\"{{table.cols.colSpan}}\" translate>\n" +
     "          {{'search.coverage-buckets.' + bucket}}\n" +
     "        </th>\n" +
