@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-03-16
+ * Date: 2016-03-17
  */
 'use strict';
 
@@ -6905,25 +6905,14 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "            popover-title=\"{{col.title}}\"\n" +
     "            popover-placement=\"bottom\"\n" +
     "            popover-trigger=\"mouseenter\">{{col.title}}</a>\n" +
-    "          <table style=\"border:none; width: 100%\" ng-if=\"col.start\">\n" +
-    "            <tbody>\n" +
-    "            <tr>\n" +
-    "              <td ng-if=\"col.min !== col.start\" width=\"30\"></td>\n" +
-    "              <td>\n" +
+    "          <div style=\"text-align: center\" ng-if=\"col.start && bucket === BUCKET_TYPES.DCE\">\n" +
+    "\n" +
+    "              <div>\n" +
     "                <small class=\"help-block no-margin\">\n" +
-    "                  {{col.start}}\n" +
+    "                  {{col.start}} {{'to' | translate}} {{col.end ? col.end : '...'}}\n" +
     "                </small>\n" +
-    "              </td>\n" +
-    "              <td>&nbsp;</td>\n" +
-    "              <td align=\"right\">\n" +
-    "                <small class=\"help-block no-margin\">\n" +
-    "                  {{col.end ? col.end : '...'}}\n" +
-    "                </small>\n" +
-    "              </td>\n" +
-    "              <td ng-if=\"col.max !== col.end\" width=\"30\"></td>\n" +
-    "            </tr>\n" +
-    "            <tr>\n" +
-    "              <td colspan=\"5\">\n" +
+    "              </div>\n" +
+    "\n" +
     "                <div class=\"progress no-margin\">\n" +
     "                  <div class=\"progress-bar progress-bar-transparent\" role=\"progressbar\"\n" +
     "                    aria-valuenow=\"{{col.start}}\" aria-valuemin=\"{{col.min}}\"\n" +
@@ -6934,10 +6923,8 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "                    aria-valuemax=\"{{col.end ? col.end : col.current}}\" style=\"{{'width: ' + col.progress + '%'}}\">\n" +
     "                  </div>\n" +
     "                </div>\n" +
-    "              </td>\n" +
-    "            </tr>\n" +
-    "            </tbody>\n" +
-    "          </table>\n" +
+    "\n" +
+    "          </div>\n" +
     "        </td>\n" +
     "        <td ng-repeat=\"h in table.termHeaders\">\n" +
     "          <a href ng-click=\"updateCriteria(row.value, h, $index, 'variables')\"><span class=\"label label-info\"\n" +

@@ -95,25 +95,14 @@
             popover-title="{{col.title}}"
             popover-placement="bottom"
             popover-trigger="mouseenter">{{col.title}}</a>
-          <table style="border:none; width: 100%" ng-if="col.start">
-            <tbody>
-            <tr>
-              <td ng-if="col.min !== col.start" width="30"></td>
-              <td>
+          <div style="text-align: center" ng-if="col.start && bucket === BUCKET_TYPES.DCE">
+
+              <div>
                 <small class="help-block no-margin">
-                  {{col.start}}
+                  {{col.start}} {{'to' | translate}} {{col.end ? col.end : '...'}}
                 </small>
-              </td>
-              <td>&nbsp;</td>
-              <td align="right">
-                <small class="help-block no-margin">
-                  {{col.end ? col.end : '...'}}
-                </small>
-              </td>
-              <td ng-if="col.max !== col.end" width="30"></td>
-            </tr>
-            <tr>
-              <td colspan="5">
+              </div>
+
                 <div class="progress no-margin">
                   <div class="progress-bar progress-bar-transparent" role="progressbar"
                     aria-valuenow="{{col.start}}" aria-valuemin="{{col.min}}"
@@ -124,10 +113,8 @@
                     aria-valuemax="{{col.end ? col.end : col.current}}" style="{{'width: ' + col.progress + '%'}}">
                   </div>
                 </div>
-              </td>
-            </tr>
-            </tbody>
-          </table>
+
+          </div>
         </td>
         <td ng-repeat="h in table.termHeaders">
           <a href ng-click="updateCriteria(row.value, h, $index, 'variables')"><span class="label label-info"
