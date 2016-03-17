@@ -4286,6 +4286,37 @@ angular.module('obiba.mica.search')
           }).length;
       };
 
+      $scope.selectAll = function() {
+        if ($scope.table && $scope.table.rows) {
+          $scope.table.rows.forEach(function(r){
+            r.selected = true;
+          });
+        }
+      };
+
+      $scope.selectNone = function() {
+        if ($scope.table && $scope.table.rows) {
+          $scope.table.rows.forEach(function(r){
+            r.selected = false;
+          });
+        }
+      };
+
+      $scope.selectFull = function() {
+        if ($scope.table && $scope.table.rows) {
+          $scope.table.rows.forEach(function(r){
+            if (r.hits) {
+              r.selected = r.hits.filter(function(h){
+                return h === 0;
+              }).length === 0;
+            } else {
+              r.selected = false;
+            }
+
+          });
+        }
+      };
+
       function getBucketUrl(bucket, id) {
         switch (bucket) {
           case BUCKET_TYPES.STUDY:
@@ -6867,8 +6898,17 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
     "      <tr>\n" +
-    "        <th rowspan=\"2\" width=\"20\">\n" +
-    "\n" +
+    "        <th rowspan=\"2\" width=\"50\" style=\"text-align: center\">\n" +
+    "          <div class=\"btn-group voffset1\" uib-dropdown>\n" +
+    "            <div uib-dropdown-toggle>\n" +
+    "              <small><i class=\"glyphicon glyphicon-unchecked\"></i></small>\n" +
+    "            </div>\n" +
+    "            <ul uib-dropdown-menu role=\"menu\">\n" +
+    "              <li role=\"menuitem\"><a href ng-click=\"selectAll()\" translate>search.coverage-select.all</a></li>\n" +
+    "              <li role=\"menuitem\"><a href ng-click=\"selectNone()\" translate>search.coverage-select.none</a></li>\n" +
+    "              <li role=\"menuitem\"><a href ng-click=\"selectFull()\" translate>search.coverage-select.full</a></li>\n" +
+    "            </ul>\n" +
+    "          </div>\n" +
     "        </th>\n" +
     "        <th rowspan=\"{{bucket === BUCKET_TYPES.DCE ? 1 : 2}}\" colspan=\"{{table.cols.colSpan}}\" translate>\n" +
     "          {{'search.coverage-buckets.' + bucket}}\n" +
@@ -6900,7 +6940,9 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "      </thead>\n" +
     "      <tbody>\n" +
     "      <tr ng-repeat=\"row in table.rows\" ng-if=\"showMissing || table.termHeaders.length == keys(row.hits).length\">\n" +
-    "        <td><input type=\"checkbox\" ng-model=\"row.selected\"></td>\n" +
+    "        <td style=\"text-align: center\">\n" +
+    "          <input type=\"checkbox\" ng-model=\"row.selected\">\n" +
+    "        </td>\n" +
     "        <td ng-repeat=\"col in table.cols.ids[row.value]\">\n" +
     "          <a ng-if=\"col.rowSpan > 0\" href=\"{{col.url ? col.url : ''}}\"\n" +
     "            uib-popover-html=\"col.description === col.title ? null : col.description\"\n" +
@@ -6959,11 +7001,11 @@ angular.module("search/views/criteria/criteria-node-template.html", []).run(["$t
     "  <span ng-if=\"item.children.length > 0\">\n" +
     "    <criteria-leaf item=\"item.children[0]\" parent-type=\"$parent.item.type\" query=\"query\"></criteria-leaf>\n" +
     "\n" +
-    "    <div class=\"btn-group voffset1\" uib-dropdown is-open=\"status.isopen\">\n" +
-    "      <button type=\"button\" class=\"btn btn-default btn-xs\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
+    "    <div class=\"btn-group voffset1\" uib-dropdown>\n" +
+    "      <button type=\"button\" class=\"btn btn-default btn-xs\" uib-dropdown-toggle>\n" +
     "        {{item.type | translate}} <span class=\"caret\"></span>\n" +
     "      </button>\n" +
-    "      <ul uib-dropdown-menu role=\"menu\" aria-labelledby=\"single-button\">\n" +
+    "      <ul uib-dropdown-menu role=\"menu\">\n" +
     "        <li role=\"menuitem\"><a href ng-click=\"updateLogical('or')\" translate>or</a></li>\n" +
     "        <li role=\"menuitem\"><a href ng-click=\"updateLogical('and')\" translate>and</a></li>\n" +
     "      </ul>\n" +
