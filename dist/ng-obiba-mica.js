@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-03-17
+ * Date: 2016-03-18
  */
 'use strict';
 
@@ -6970,6 +6970,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "          <div class=\"btn-group voffset1\" uib-dropdown>\n" +
     "            <div uib-dropdown-toggle>\n" +
     "              <small><i class=\"glyphicon glyphicon-unchecked\"></i></small>\n" +
+    "              <span class='fa fa-caret-down'></span>\n" +
     "            </div>\n" +
     "            <ul uib-dropdown-menu role=\"menu\">\n" +
     "              <li role=\"menuitem\"><a href ng-click=\"selectAll()\" translate>search.coverage-select.all</a></li>\n" +
