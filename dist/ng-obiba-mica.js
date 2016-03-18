@@ -1361,6 +1361,8 @@ angular.module('obiba.mica.search', [
         graphicsLabel: 'search.graphics',
         graphicsHelp: null,
         classificationsLinkLabel: null,
+        taxonomyNavHelp: null,
+        vocabularyNavHelp: null,
         variables: {
           showSearchTab: true,
           searchLabel: 'search.variable.searchLabel',
@@ -3846,8 +3848,10 @@ angular.module('obiba.mica.search')
       init();
     }])
 
-  .controller('TaxonomiesPanelController', ['$scope', '$location', 'VocabularyResource', 'TaxonomyResource', 'TaxonomiesResource',
-    function ($scope, $location, VocabularyResource, TaxonomyResource, TaxonomiesResource) {
+  .controller('TaxonomiesPanelController', ['$scope', '$location', 'VocabularyResource', 'TaxonomyResource',
+    'TaxonomiesResource', 'ngObibaMicaSearch',
+    function ($scope, $location, VocabularyResource, TaxonomyResource, TaxonomiesResource, ngObibaMicaSearch) {
+      $scope.options = ngObibaMicaSearch.getOptions();
       $scope.metaTaxonomy = TaxonomyResource.get({
         target: 'taxonomy',
         taxonomy: 'Mica_taxonomy'
@@ -6866,6 +6870,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "                  </li>\n" +
     "                </ul>\n" +
     "              </div>\n" +
+    "              <div ng-if=\"!taxonomies.vocabulary && options.taxonomyNavHelp\" ng-bind-html=\"options.taxonomyNavHelp\"></div>\n" +
     "            </div>\n" +
     "            <div class=\"col-md-4 height3\" scroll-to-top=\"taxonomies.term\">\n" +
     "              <div ng-if=\"taxonomies.term\">\n" +
@@ -6884,6 +6889,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "                  </a>\n" +
     "                </div>\n" +
     "              </div>\n" +
+    "              <div ng-if=\"!taxonomies.term && taxonomies.vocabulary && options.vocabularyNavHelp\" ng-bind-html=\"options.vocabularyNavHelp\"></div>\n" +
     "            </div>\n" +
     "          </div>\n" +
     "        </div>\n" +
