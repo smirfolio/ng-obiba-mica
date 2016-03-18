@@ -7106,7 +7106,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "            </div>\n" +
     "          </div>\n" +
     "        </td>\n" +
-    "        <td ng-repeat=\"h in table.termHeaders\">\n" +
+    "        <td ng-repeat=\"h in table.termHeaders\" title=\"{{h.entity.titles[0].value}}\">\n" +
     "          <a href ng-click=\"updateCriteria(row.value, h, $index, 'variables')\"><span class=\"label label-info\"\n" +
     "            ng-if=\"row.hits[$index]\">{{row.hits[$index]}}</span></a>\n" +
     "          <span ng-if=\"!row.hits[$index]\">0</span>\n" +
