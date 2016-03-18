@@ -3595,28 +3595,31 @@ angular.module('obiba.mica.search')
                 }).forEach(function (vocabulary) {
                   if (vocabulary.terms) {
                     vocabulary.terms.forEach(function (term) {
-                      if (results.length < size) {
-                        var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, term, $scope.lang);
-                        results.push({
-                          score: score(item),
-                          item: item
-                        });
-                      }
-                      total++;
-                    });
-                  } else {
-                    if (results.length < size) {
-                      var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, $scope.lang);
+                      var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, term, $scope.lang);
                       results.push({
                         score: score(item),
                         item: item
                       });
-                    }
+                      total++;
+                    });
+                  } else {
+                    var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, $scope.lang);
+                    results.push({
+                      score: score(item),
+                      item: item
+                    });
                     total++;
                   }
                 });
               }
             });
+
+            results.sort(function (a, b) {
+              return b.score - a.score;
+            });
+
+            results = results.splice(0, size);
+
             if (total > results.length) {
               var note = {
                 query: query,
@@ -3628,9 +3631,6 @@ angular.module('obiba.mica.search')
               results.push({score: -1, item: note});
             }
 
-            results.sort(function (a, b) {
-              return b.score - a.score;
-            });
 
             return results.map(function (result) {
               return result.item;
