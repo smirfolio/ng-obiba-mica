@@ -711,8 +711,10 @@ angular.module('obiba.mica.search')
       init();
     }])
 
-  .controller('TaxonomiesPanelController', ['$scope', '$location', 'VocabularyResource', 'TaxonomyResource', 'TaxonomiesResource',
-    function ($scope, $location, VocabularyResource, TaxonomyResource, TaxonomiesResource) {
+  .controller('TaxonomiesPanelController', ['$scope', '$location', 'VocabularyResource', 'TaxonomyResource',
+    'TaxonomiesResource', 'ngObibaMicaSearch',
+    function ($scope, $location, VocabularyResource, TaxonomyResource, TaxonomiesResource, ngObibaMicaSearch) {
+      $scope.options = ngObibaMicaSearch.getOptions();
       $scope.metaTaxonomy = TaxonomyResource.get({
         target: 'taxonomy',
         taxonomy: 'Mica_taxonomy'
