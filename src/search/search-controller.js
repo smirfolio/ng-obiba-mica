@@ -57,6 +57,7 @@ angular.module('obiba.mica.search')
 
   .controller('SearchController', [
     '$scope',
+    '$rootScope',
     '$timeout',
     '$routeParams',
     '$location',
@@ -76,6 +77,7 @@ angular.module('obiba.mica.search')
     'SearchContext',
     'CoverageGroupByService',
     function ($scope,
+              $rootScope,
               $timeout,
               $routeParams,
               $location,
@@ -682,8 +684,10 @@ angular.module('obiba.mica.search')
       $scope.onUpdateCriteria = onUpdateCriteria;
       $scope.onSelectTerm = onSelectTerm;
       $scope.QUERY_TARGETS = QUERY_TARGETS;
-
       $scope.onPaginate = onPaginate;
+      $scope.toggleFullscreen = function() {
+        $scope.isFullscreen = !$scope.isFullscreen;
+      };
 
       $scope.$on('$locationChangeSuccess', function (newLocation, oldLocation) {
         initSearchTabs();
@@ -691,6 +695,10 @@ angular.module('obiba.mica.search')
         if (newLocation !== oldLocation) {
           executeSearchQuery();
         }
+      });
+
+      $rootScope.$on('ngObibaMicaSearch.fullscreenChange', function(obj, isEnabled) {
+        $scope.isFullscreen = isEnabled;
       });
 
       function init() {
