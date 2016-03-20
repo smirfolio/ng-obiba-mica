@@ -1,7 +1,11 @@
 <div>
-  <div ng-if="searchHeaderTemplateUrl" ng-include="searchHeaderTemplateUrl"></div>
-
   <obiba-alert id="SearchController"></obiba-alert>
+
+  <div class="alert-growl-container">
+    <obiba-alert id="SearchControllerGrowl"></obiba-alert>
+  </div>
+
+  <div ng-if="searchHeaderTemplateUrl" ng-include="searchHeaderTemplateUrl"></div>
 
   <!-- Lang tabs -->
   <ul class="nav nav-tabs" role="tablist" ng-if="tabs && tabs.length>1">
