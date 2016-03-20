@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-03-18
+ * Date: 2016-03-19
  */
 'use strict';
 
@@ -3653,6 +3653,15 @@ angular.module('obiba.mica.search')
           var existingItem = $scope.search.criteriaItemMap[id];
 
           if (existingItem) {
+            AlertService.growl({
+              id: 'SearchControllerGrowl',
+              type: 'info',
+              msgKey: 'search.criterion.updated',
+              msgArgs: [LocalizedValues.forLocale(item.term.title, $scope.lang),
+                LocalizedValues.forLocale(item.vocabulary.title, $scope.lang)],
+              delay: 5000
+            });
+
             RqlQueryService.updateCriteriaItem(existingItem, item, replace);
           } else {
             RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item, logicalOp);
@@ -7883,9 +7892,13 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
 angular.module("search/views/search.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search.html",
     "<div>\n" +
-    "  <div ng-if=\"searchHeaderTemplateUrl\" ng-include=\"searchHeaderTemplateUrl\"></div>\n" +
-    "\n" +
     "  <obiba-alert id=\"SearchController\"></obiba-alert>\n" +
+    "\n" +
+    "  <div class=\"alert-growl-container\">\n" +
+    "    <obiba-alert id=\"SearchControllerGrowl\"></obiba-alert>\n" +
+    "  </div>\n" +
+    "\n" +
+    "  <div ng-if=\"searchHeaderTemplateUrl\" ng-include=\"searchHeaderTemplateUrl\"></div>\n" +
     "\n" +
     "  <!-- Lang tabs -->\n" +
     "  <ul class=\"nav nav-tabs\" role=\"tablist\" ng-if=\"tabs && tabs.length>1\">\n" +
