@@ -6687,7 +6687,7 @@ angular.module("search/views/classifications.html", []).run(["$templateCache", f
     "<div>\n" +
     "  <div ng-if=\"classificationsHeaderTemplateUrl\" ng-include=\"classificationsHeaderTemplateUrl\"></div>\n" +
     "\n" +
-    "  <div class=\"alert-container\">\n" +
+    "  <div class=\"container alert-fixed-position\">\n" +
     "    <obiba-alert id=\"SearchController\"></obiba-alert>\n" +
     "  </div>\n" +
     "\n" +
@@ -7902,7 +7902,7 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
 angular.module("search/views/search.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search.html",
     "<div>\n" +
-    "  <div class=\"alert-container\">\n" +
+    "  <div class=\"container alert-fixed-position\">\n" +
     "    <obiba-alert id=\"SearchController\"></obiba-alert>\n" +
     "  </div>\n" +
     "\n" +
