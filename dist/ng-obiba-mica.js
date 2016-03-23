@@ -3295,6 +3295,8 @@ angular.module('obiba.mica.search')
 
         if($location.search().target) {
           $scope.target = $location.search().target;
+        } else {
+          $scope.target = $scope.taxonomyTabsOrder[0];
         }
 
         $scope.metaTaxonomy.$promise.then(function (metaTaxonomy) {
