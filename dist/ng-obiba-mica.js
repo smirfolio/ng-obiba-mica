@@ -7293,15 +7293,14 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
     "     ng-keyup=\"onKeyup($event)\">\n" +
     "\n" +
     "  <button class=\"{{'btn btn-xs dropdown btn-' + criterion.target}}\"\n" +
-    "    ng-click=\"openDropdown()\"\n" +
-    "    title=\"{{localizeCriterion()}}\">\n" +
+    "    ng-click=\"openDropdown()\">\n" +
     "    <span uib-popover=\"{{localize(criterion.vocabulary.description ? criterion.vocabulary.description : criterion.vocabulary.title)}}\"\n" +
     "          popover-title=\"{{criterion.vocabulary.description ? localize(criterion.vocabulary.title) : null}}\"\n" +
     "          popover-placement=\"bottom\"\n" +
     "          popover-trigger=\"mouseenter\">\n" +
     "    <i class=\"fa fa-info-circle\"> </i>\n" +
     "  </span>\n" +
-    "    <span>\n" +
+    "    <span title=\"{{localizeCriterion()}}\">\n" +
     "    {{truncate(localizeCriterion())}}\n" +
     "    </span>\n" +
     "    <span class='fa fa-caret-down'></span>\n" +
@@ -7333,7 +7332,7 @@ angular.module("search/views/criteria/criterion-header-template.html", []).run([
     "         popover-trigger=\"mouseenter\">\n" +
     "    {{localize(criterion.vocabulary.title)}}\n" +
     "  </label>\n" +
-    "  <span class=\"pull-right\" title=\"{{'search.close-and-search' | translate}}\"><a href ng-click=\"$parent.$parent.closeDropdown()\"><i class=\"fa fa-play-circle-o\"></i></a></span>\n" +
+    "  <span class=\"pull-right\" title=\"{{'search.close-and-search' | translate}}\" ng-click=\"$parent.$parent.closeDropdown()\"><i class=\"fa fa-close\"></i></span>\n" +
     "</li>\n" +
     "<li class='divider'></li>\n" +
     "");
