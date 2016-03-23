@@ -157,7 +157,7 @@ angular.module('obiba.mica.search')
 
         if($location.search().target) {
           $scope.target = $location.search().target;
-        } else {
+        } else if (!$scope.target) {
           $scope.target = $scope.taxonomyTabsOrder[0];
         }
 
