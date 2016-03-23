@@ -202,6 +202,7 @@ angular.module('obiba.mica.search')
       }
 
       function onError(response) {
+        $scope.search.result = {};
         AlertService.alert({
           id: 'SearchController',
           type: 'danger',
@@ -306,7 +307,7 @@ angular.module('obiba.mica.search')
 
       function loadResults() {
         // execute search only when results are to be shown
-        if ($location.$$path !== '/search') {
+        if ($location.path() !== '/search') {
           return;
         }
         var localizedQuery =
@@ -372,7 +373,6 @@ angular.module('obiba.mica.search')
               sortCriteriaItems($scope.search.criteria.children);
             }
             $scope.search.criteriaItemMap = result.map;
-            $scope.search.result = {};
             if ($scope.search.query) {
               loadResults();
             }
