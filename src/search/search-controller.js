@@ -281,6 +281,10 @@ angular.module('obiba.mica.search')
         $location.search(search);
       };
 
+      var toggleSearchQuery = function () {
+        $scope.search.advanced = !$scope.search.advanced;
+      };
+
       function sortCriteriaItems(items) {
         items.sort(function (a, b) {
           if (a.target === 'network' || b.target === 'variable') {
@@ -655,6 +659,7 @@ angular.module('obiba.mica.search')
       $scope.search = {
         pagination: {},
         query: null,
+        advanced: false,
         rqlQuery: new RqlQuery(),
         executedQuery: null,
         type: null,
@@ -691,6 +696,7 @@ angular.module('obiba.mica.search')
       $scope.removeCriteriaItem = removeCriteriaItem;
       $scope.refreshQuery = refreshQuery;
       $scope.clearSearchQuery = clearSearchQuery;
+      $scope.toggleSearchQuery = toggleSearchQuery;
 
       $scope.onTypeChanged = onTypeChanged;
       $scope.onBucketChanged = onBucketChanged;
