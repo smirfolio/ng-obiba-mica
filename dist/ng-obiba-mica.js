@@ -7293,15 +7293,14 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
     "     ng-keyup=\"onKeyup($event)\">\n" +
     "\n" +
     "  <button class=\"{{'btn btn-xs dropdown btn-' + criterion.target}}\"\n" +
-    "    ng-click=\"openDropdown()\"\n" +
-    "    title=\"{{localizeCriterion()}}\">\n" +
+    "    ng-click=\"openDropdown()\">\n" +
     "    <span uib-popover=\"{{localize(criterion.vocabulary.description ? criterion.vocabulary.description : criterion.vocabulary.title)}}\"\n" +
     "          popover-title=\"{{criterion.vocabulary.description ? localize(criterion.vocabulary.title) : null}}\"\n" +
     "          popover-placement=\"bottom\"\n" +
     "          popover-trigger=\"mouseenter\">\n" +
     "    <i class=\"fa fa-info-circle\"> </i>\n" +
     "  </span>\n" +
-    "    <span>\n" +
+    "    <span title=\"{{localizeCriterion()}}\">\n" +
     "    {{truncate(localizeCriterion())}}\n" +
     "    </span>\n" +
     "    <span class='fa fa-caret-down'></span>\n" +
@@ -7333,7 +7332,7 @@ angular.module("search/views/criteria/criterion-header-template.html", []).run([
     "         popover-trigger=\"mouseenter\">\n" +
     "    {{localize(criterion.vocabulary.title)}}\n" +
     "  </label>\n" +
-    "  <span class=\"pull-right\" title=\"{{'search.close-and-search' | translate}}\"><a href ng-click=\"$parent.$parent.closeDropdown()\"><i class=\"fa fa-play-circle-o\"></i></a></span>\n" +
+    "  <span class=\"pull-right\" title=\"{{'search.close-and-search' | translate}}\" ng-click=\"$parent.$parent.closeDropdown()\"><i class=\"fa fa-close\"></i></span>\n" +
     "</li>\n" +
     "<li class='divider'></li>\n" +
     "");
@@ -7345,7 +7344,7 @@ angular.module("search/views/criteria/criterion-match-template.html", []).run(["
     "  <ng-include src=\"'search/views/criteria/criterion-header-template.html'\"></ng-include>\n" +
     "  <li class=\"criteria-list-item\">\n" +
     "    <form novalidate>\n" +
-    "      <div  >\n" +
+    "      <div>\n" +
     "        <input class=\"form-control\" id=\"{{criterion.vocabulary.name}}-match\"\n" +
     "               ng-model=\"match\"\n" +
     "               ng-change=\"update()\"\n" +
@@ -7363,15 +7362,15 @@ angular.module("search/views/criteria/criterion-numeric-template.html", []).run(
     "  <li class=\"btn-group\">\n" +
     "    <ul class=\"criteria-list-item\">\n" +
     "      <li>\n" +
-    "        <label>\n" +
+    "        <label title=\"{{'search.any-help' | translate}}\">\n" +
     "          <input ng-click=\"updateSelection()\" type=\"radio\" ng-model=\"selectMissing\" ng-value=\"false\">\n" +
-    "          {{'any' | translate}}\n" +
+    "          {{'search.any' | translate}}\n" +
     "        </label>\n" +
     "      </li>\n" +
     "      <li>\n" +
-    "        <label>\n" +
+    "        <label title=\"{{'search.none-help' | translate}}\">\n" +
     "          <input ng-click=\"updateSelection()\" type=\"radio\" ng-model=\"selectMissing\" ng-value=\"true\">\n" +
-    "          {{'none' | translate}}\n" +
+    "          {{'search.none' | translate}}\n" +
     "        </label>\n" +
     "      </li>\n" +
     "    </ul>\n" +
@@ -7399,27 +7398,27 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
     "  <li class=\"btn-group\">\n" +
     "    <ul class=\"criteria-list-item\">\n" +
     "      <li>\n" +
-    "        <label>\n" +
+    "        <label title=\"{{'search.any-help' | translate}}\">\n" +
     "          <input ng-click=\"updateFilter()\" type=\"radio\" ng-model=\"selectedFilter\" value=\"{{RQL_NODE.EXISTS}}\">\n" +
-    "          {{'any' | translate}}\n" +
+    "          {{'search.any' | translate}}\n" +
     "        </label>\n" +
     "      </li>\n" +
     "      <li>\n" +
-    "        <label>\n" +
+    "        <label title=\"{{'search.none-help' | translate}}\">\n" +
     "          <input ng-click=\"updateFilter()\" type=\"radio\" ng-model=\"selectedFilter\" value=\"{{RQL_NODE.MISSING}}\">\n" +
-    "          {{'none' | translate}}\n" +
+    "          {{'search.none' | translate}}\n" +
     "        </label>\n" +
     "      </li>\n" +
     "      <li>\n" +
-    "        <label>\n" +
+    "        <label title=\"{{'search.in-help' | translate}}\">\n" +
     "          <input ng-click=\"updateFilter()\" type=\"radio\" ng-model=\"selectedFilter\" value=\"{{RQL_NODE.IN}}\">\n" +
-    "          {{'in' | translate}}\n" +
+    "          {{'search.in' | translate}}\n" +
     "        </label>\n" +
     "      </li>\n" +
     "      <li ng-show=\"criterion.vocabulary.repeatable\">\n" +
-    "        <label>\n" +
+    "        <label title=\"{{'search.contains-help' | translate}}\">\n" +
     "          <input ng-click=\"updateFilter()\" type=\"radio\" ng-model=\"selectedFilter\" value=\"{{RQL_NODE.CONTAINS}}\">\n" +
-    "          {{'contains' | translate}}\n" +
+    "          {{'search.contains' | translate}}\n" +
     "        </label>\n" +
     "      </li>\n" +
     "    </ul>\n" +
