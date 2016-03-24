@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-03-23
+ * Date: 2016-03-24
  */
 'use strict';
 
@@ -7457,8 +7457,8 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
     "      <li class=\"criteria-list-item\"\n" +
     "        ng-show=\"isInFilter() || isContainsFilter()\"\n" +
     "        ng-repeat=\"term in terms | regex:searchText:['key','title','description']\"\n" +
-    "        uib-popover=\"{{term.description}}\"\n" +
-    "        popover-title=\"{{term.title}}\"\n" +
+    "        uib-popover=\"{{term.description ? term.description : (truncate(term.title) === term.title ? null : term.title)}}\"\n" +
+    "        popover-title=\"{{term.description ? term.title : null}}\"\n" +
     "        popover-placement=\"bottom\"\n" +
     "        popover-trigger=\"mouseenter\">\n" +
     "          <span>\n" +
