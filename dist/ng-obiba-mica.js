@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-03-24
+ * Date: 2016-03-29
  */
 'use strict';
 
@@ -3780,6 +3780,7 @@ angular.module('obiba.mica.search')
       };
 
       $scope.goToSearch = function () {
+        $scope.viewMode = VIEW_MODES.SEARCH;
         $location.search('taxonomy', null);
         $location.search('vocabulary', null);
         $location.search('target', null);
@@ -3787,6 +3788,7 @@ angular.module('obiba.mica.search')
       };
 
       $scope.goToClassifications = function () {
+        $scope.viewMode = VIEW_MODES.CLASSIFICATION;
         $location.path('/classifications');
         $location.search('target', $scope.taxonomyTabsOrder[0]);
       };
@@ -3819,6 +3821,12 @@ angular.module('obiba.mica.search')
         loading: false
       };
 
+      var VIEW_MODES = {
+        SEARCH: 'search',
+        CLASSIFICATION: 'classification'
+      };
+
+      $scope.viewMode = VIEW_MODES.SEARCH;
       $scope.documents = {
         search: {
           text: null,
@@ -3850,6 +3858,9 @@ angular.module('obiba.mica.search')
       $scope.onSelectTerm = onSelectTerm;
       $scope.QUERY_TARGETS = QUERY_TARGETS;
       $scope.onPaginate = onPaginate;
+      $scope.inSearchMode = function() {
+        return $scope.viewMode === VIEW_MODES.SEARCH;
+      };
       $scope.toggleFullscreen = function() {
         $scope.isFullscreen = !$scope.isFullscreen;
       };
@@ -6775,7 +6786,7 @@ angular.module("search/views/classifications.html", []).run(["$templateCache", f
 
 angular.module("search/views/classifications/classifications-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/classifications/classifications-view.html",
-    "<div class=\"voffset2\">\n" +
+    "<div ng-show=\"!inSearchMode()\" class=\"voffset2\">\n" +
     "  <div>\n" +
     "    <ol class=\"breadcrumb\">\n" +
     "      <li ng-if=\"!taxonomies.taxonomy\">\n" +
@@ -7935,7 +7946,7 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
 
 angular.module("search/views/search.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search.html",
-    "<div>\n" +
+    "<div ng-show=\"inSearchMode()\">\n" +
     "  <div class=\"container alert-fixed-position\">\n" +
     "    <obiba-alert id=\"SearchController\"></obiba-alert>\n" +
     "  </div>\n" +
