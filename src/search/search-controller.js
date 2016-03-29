@@ -634,6 +634,11 @@ angular.module('obiba.mica.search')
         refreshQuery();
       };
 
+      var VIEW_MODES = {
+        SEARCH: 'search',
+        CLASSIFICATION: 'classification'
+      };
+
       $scope.goToSearch = function () {
         $scope.viewMode = VIEW_MODES.SEARCH;
         $location.search('taxonomy', null);
@@ -674,11 +679,6 @@ angular.module('obiba.mica.search')
         criteria: [],
         criteriaItemMap: {},
         loading: false
-      };
-
-      var VIEW_MODES = {
-        SEARCH: 'search',
-        CLASSIFICATION: 'classification'
       };
 
       $scope.viewMode = VIEW_MODES.SEARCH;
