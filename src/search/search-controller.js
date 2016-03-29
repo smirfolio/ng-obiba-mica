@@ -635,6 +635,7 @@ angular.module('obiba.mica.search')
       };
 
       $scope.goToSearch = function () {
+        $scope.viewMode = VIEW_MODES.SEARCH;
         $location.search('taxonomy', null);
         $location.search('vocabulary', null);
         $location.search('target', null);
@@ -642,6 +643,7 @@ angular.module('obiba.mica.search')
       };
 
       $scope.goToClassifications = function () {
+        $scope.viewMode = VIEW_MODES.CLASSIFICATION;
         $location.path('/classifications');
         $location.search('target', $scope.taxonomyTabsOrder[0]);
       };
@@ -674,6 +676,12 @@ angular.module('obiba.mica.search')
         loading: false
       };
 
+      var VIEW_MODES = {
+        SEARCH: 'search',
+        CLASSIFICATION: 'classification'
+      };
+
+      $scope.viewMode = VIEW_MODES.SEARCH;
       $scope.documents = {
         search: {
           text: null,
@@ -705,6 +713,9 @@ angular.module('obiba.mica.search')
       $scope.onSelectTerm = onSelectTerm;
       $scope.QUERY_TARGETS = QUERY_TARGETS;
       $scope.onPaginate = onPaginate;
+      $scope.inSearchMode = function() {
+        return $scope.viewMode === VIEW_MODES.SEARCH;
+      };
       $scope.toggleFullscreen = function() {
         $scope.isFullscreen = !$scope.isFullscreen;
       };
