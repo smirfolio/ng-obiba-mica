@@ -7790,7 +7790,7 @@ angular.module("search/views/list/datasets-search-result-table-template.html", [
     "            <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showDatasetsTypeColumn\">\n" +
-    "            <localized value=\"classNames[summary.variableType + 'Dataset']\" lang=\"lang\"></localized>\n" +
+    "            <localized value=\"classNames[(summary.variableType === 'Study' ? 'Study' : 'Harmonization') + 'Dataset']\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showDatasetsNetworkColumn\">\n" +
     "            <a href ng-click=\"updateCriteria(summary.id, 'networks')\" ng-if=\"summary['obiba.mica.CountStatsDto.datasetCountStats'].networks\">{{summary['obiba.mica.CountStatsDto.datasetCountStats'].networks}}</a>\n" +
