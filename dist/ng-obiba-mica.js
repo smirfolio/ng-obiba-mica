@@ -3841,6 +3841,8 @@ angular.module('obiba.mica.search')
                   $scope.search.loading = false;
                 },
                 onError);
+            } else {
+              $scope.search.result = {};
             }
 
             break;
