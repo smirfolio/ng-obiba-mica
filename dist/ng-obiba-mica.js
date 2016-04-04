@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-04-01
+ * Date: 2016-04-04
  */
 'use strict';
 
@@ -1928,7 +1928,7 @@ CriteriaBuilder.prototype.visitLeaf = function (node, parentItem) {
     if (current instanceof RepeatableCriteriaItem) {
       current.addItem(item);
     } else {
-      console.error('Non-repeatable criteria items must be unique', current.id, 'will be overwritten.');
+      console.error('Non-repeatable criteria items must be unique,', current.id, 'will be overwritten.');
       current = item;
     }
   } else {
