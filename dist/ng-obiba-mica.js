@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-04-05
+ * Date: 2016-04-06
  */
 'use strict';
 
@@ -1369,6 +1369,7 @@ angular.module('obiba.mica.search', [
           searchLabel: 'search.variable.searchLabel',
           noResultsLabel: 'search.variable.noResults',
           variablesColumn: {
+            showVariablesTypeColumn: true,
             showVariablesStudiesColumn: true,
             showVariablesDatasetsColumn: true,
             showDatasetsStudiesColumn: true,
@@ -1399,9 +1400,11 @@ angular.module('obiba.mica.search', [
             showStudiesOtherColumn: true,
             showStudiesParticipantsColumn: true,
             showStudiesNetworksColumn: true,
-            showStudiesDatasetsColumn: true,
-            showStudiesHarmonizedDatasetsColumn: true,
-            showStudiesVariablesColumn: true
+            showStudiesStudyDatasetsColumn: true,
+            showStudiesHarmonizationDatasetsColumn: true,
+            showStudiesVariablesColumn: false,
+            showStudiesStudyVariablesColumn: true,
+            showStudiesDataschemaVariablesColumn: true
           }
         },
         networks: {
@@ -1411,8 +1414,10 @@ angular.module('obiba.mica.search', [
           networksColumn: {
             showNetworksStudiesColumn: true,
             showNetworksStudyDatasetColumn: true,
-            showNetworksHarmonizedDatasetColumn: true,
-            showNetworksVariablesColumn: true
+            showNetworksHarmonizationDatasetColumn: true,
+            showNetworksVariablesColumn: false,
+            showNetworksStudyVariablesColumn: true,
+            showNetworksDataschemaVariablesColumn: true
           }
         },
         coverage: {
@@ -5249,10 +5254,15 @@ angular.module('obiba.mica.search')
 
           scope.updateCriteria = function (id, type) {
             var datasetClassName;
-
             if (type === 'HarmonizationDataset' || type === 'StudyDataset') {
               datasetClassName = type;
               type = 'datasets';
+            }
+
+            var variableType;
+            if (type === 'DataschemaVariable' || type === 'StudyVariable') {
+              variableType = type.replace('Variable', '');
+              type = 'variables';
             }
 
             RqlQueryService.createCriteriaItem('network', 'Mica_network', 'id', id).then(function (item) {
@@ -5260,6 +5270,11 @@ angular.module('obiba.mica.search')
                 RqlQueryService.createCriteriaItem('dataset', 'Mica_dataset', 'className', datasetClassName).then(function(datasetItem) {
                   scope.onUpdateCriteria(item, type);
                   scope.onUpdateCriteria(datasetItem, type);
+                });
+              } else if (variableType) {
+                RqlQueryService.createCriteriaItem('variable', 'Mica_variable', 'variableType', variableType).then(function (variableItem) {
+                  scope.onUpdateCriteria(item, type);
+                  scope.onUpdateCriteria(variableItem, type);
                 });
               } else {
                 scope.onUpdateCriteria(item, type);
@@ -5348,17 +5363,27 @@ angular.module('obiba.mica.search')
 
         scope.updateCriteria = function (id, type) {
           var datasetClassName;
-
           if (type === 'HarmonizationDataset' || type === 'StudyDataset') {
             datasetClassName = type;
             type = 'datasets';
           }
 
+          var variableType;
+          if (type === 'DataschemaVariable' || type === 'StudyVariable') {
+            variableType = type.replace('Variable', '');
+            type = 'variables';
+          }
+
           RqlQueryService.createCriteriaItem('study', 'Mica_study', 'id', id).then(function(item) {
             if(datasetClassName) {
-              RqlQueryService.createCriteriaItem('dataset', 'Mica_dataset', 'className', datasetClassName).then(function(datasetItem) {
+              RqlQueryService.createCriteriaItem('dataset', 'Mica_dataset', 'className', datasetClassName).then(function (datasetItem) {
                 scope.onUpdateCriteria(item, type);
                 scope.onUpdateCriteria(datasetItem, type);
+              });
+            } else if (variableType) {
+              RqlQueryService.createCriteriaItem('variable', 'Mica_variable', 'variableType', variableType).then(function (variableItem) {
+                scope.onUpdateCriteria(item, type);
+                scope.onUpdateCriteria(variableItem, type);
               });
             } else {
               scope.onUpdateCriteria(item, type);
@@ -6182,14 +6207,17 @@ angular.module('obiba.mica.localized', [
 
 angular.module('obiba.mica.localized')
 
-  .directive('localized', [function () {
+  .directive('localized', ['LocalizedValues', function (LocalizedValues) {
     return {
       restrict: 'AE',
       scope: {
         value: '=',
         lang: '='
       },
-      template: '<span ng-repeat="localizedValue in value | filter:{lang:lang}">{{localizedValue.value}}</span>'
+      templateUrl: 'localized/localized-template.html',
+      link: function(scope) {
+        scope.LocalizedValues = LocalizedValues;
+      }
     };
   }])
 
@@ -6348,17 +6376,24 @@ angular.module('obiba.mica.localized')
           if (result && result.length > 0) {
             return result[0][keyValue];
           }
-          return result[0][keyValue];
         }
         return '';
       };
 
       this.forLocale = function (values, lang) {
-        return this.for(values, lang, 'locale', 'text');
+        var rval = this.for(values, lang, 'locale', 'text');
+        if (rval === '') {
+          rval = this.for(values, 'und', 'locale', 'text');
+        }
+        return rval;
       };
 
       this.forLang = function (values, lang) {
-        return this.for(values, lang, 'lang', 'value');
+        var rval = this.for(values, lang, 'lang', 'value');
+        if (rval === '') {
+          rval = this.for(values, 'und', 'lang', 'value');
+        }
+        return rval;
       };
 
       this.getLocal = function () {
@@ -6748,7 +6783,7 @@ angular.module('obiba.mica.fileBrowser')
       }
     };
   }]);
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/shortcuts-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/shortcuts-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html']);
 
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
@@ -7571,6 +7606,11 @@ angular.module("localized/localized-input-template.html", []).run(["$templateCac
     "  </ul>\n" +
     "  <p ng-show=\"help\" class=\"help-block\">{{help | translate}}</p>\n" +
     "</div>");
+}]);
+
+angular.module("localized/localized-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("localized/localized-template.html",
+    "<span>{{LocalizedValues.forLang(value,lang)}}</span>");
 }]);
 
 angular.module("localized/localized-textarea-template.html", []).run(["$templateCache", function($templateCache) {
@@ -8488,15 +8528,21 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
     "          <th rowspan=\"2\" translate>name</th>\n" +
     "          <th rowspan=\"2\" translate ng-if=\"optionsCols.showNetworksStudiesColumn\">studies</th>\n" +
     "          <th translate\n" +
-    "              ng-attr-colspan=\"{{optionsCols.showNetworksStudyDatasetColumn + optionsCols.showNetworksHarmonizedDatasetColumn}}\"\n" +
-    "              ng-if=\"optionsCols.showNetworksStudyDatasetColumn || optionsCols.showNetworksHarmonizedDatasetColumn\">\n" +
+    "              ng-attr-colspan=\"{{optionsCols.showNetworksStudyDatasetColumn + optionsCols.showNetworksHarmonizationDatasetColumn}}\"\n" +
+    "              ng-if=\"optionsCols.showNetworksStudyDatasetColumn || optionsCols.showNetworksHarmonizationDatasetColumn\">\n" +
     "            datasets\n" +
     "          </th>\n" +
     "          <th rowspan=\"2\" translate ng-if=\"optionsCols.showNetworksVariablesColumn\">variables</th>\n" +
+    "          <th translate\n" +
+    "              ng-attr-colspan=\"{{optionsCols.showNetworksStudyVariablesColumn + optionsCols.showNetworksDataschemaVariablesColumn}}\"\n" +
+    "              ng-if=\"optionsCols.showNetworksStudyVariablesColumn || optionsCols.showNetworksDataschemaVariablesColumn\">variables</th>\n" +
+    "        </tr>\n" +
     "        </tr>\n" +
     "        <tr>\n" +
     "          <th translate ng-if=\"optionsCols.showNetworksStudyDatasetColumn\">search.study.label</th>\n" +
-    "          <th translate ng-if=\"optionsCols.showNetworksHarmonizedDatasetColumn\">search.harmonization</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showNetworksHarmonizationDatasetColumn\">search.harmonization</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showNetworksStudyVariablesColumn\">search.variable.study</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showNetworksDataschemaVariablesColumn\">search.variable.dataschema</th>\n" +
     "        </tr>\n" +
     "        </thead>\n" +
     "        <tbody>\n" +
@@ -8520,12 +8566,20 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
     "            <a href ng-click=\"updateCriteria(summary.id, 'StudyDataset')\" ng-if=\"summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets\">{{summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets}}</a>\n" +
     "            <span ng-if=\"!summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets\">-</span>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"optionsCols.showNetworksHarmonizedDatasetColumn\">\n" +
+    "          <td ng-if=\"optionsCols.showNetworksHarmonizationDatasetColumn\">\n" +
     "            <a href ng-click=\"updateCriteria(summary.id, 'HarmonizationDataset')\" ng-if=\"summary['obiba.mica.CountStatsDto.networkCountStats'].harmonizationDatasets\">{{summary['obiba.mica.CountStatsDto.networkCountStats'].harmonizationDatasets}}</a>\n" +
     "            <span ng-if=\"!summary['obiba.mica.CountStatsDto.networkCountStats'].harmonizationDatasets\">-</span>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showNetworksVariablesColumn\">\n" +
     "            <a href ng-click=\"updateCriteria(summary.id, 'variables')\">{{summary['obiba.mica.CountStatsDto.networkCountStats'].variables}}</a>\n" +
+    "          </td>\n" +
+    "          <td ng-if=\"optionsCols.showNetworksStudyVariablesColumn\">\n" +
+    "            <a href ng-click=\"updateCriteria(summary.id, 'StudyVariable')\" ng-if=\"summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets\">{{summary['obiba.mica.CountStatsDto.networkCountStats'].studyVariables}}</a>\n" +
+    "            <span ng-if=\"!summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets\">-</span>\n" +
+    "          </td>\n" +
+    "          <td ng-if=\"optionsCols.showNetworksDataschemaVariablesColumn\">\n" +
+    "            <a href ng-click=\"updateCriteria(summary.id, 'DataschemaVariable')\" ng-if=\"summary['obiba.mica.CountStatsDto.networkCountStats'].harmonizationDatasets\">{{summary['obiba.mica.CountStatsDto.networkCountStats'].dataschemaVariables}}</a>\n" +
+    "            <span ng-if=\"!summary['obiba.mica.CountStatsDto.networkCountStats'].harmonizationDatasets\">-</span>\n" +
     "          </td>\n" +
     "        </tr>\n" +
     "        </tbody>\n" +
@@ -8612,18 +8666,23 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "          <th rowspan=\"2\" translate>search.study.participants</th>\n" +
     "          <th rowspan=\"2\" translate ng-if=\"optionsCols.showStudiesNetworksColumn\">networks</th>\n" +
     "          <th translate\n" +
-    "              ng-attr-colspan=\"{{optionsCols.showStudiesDatasetsColumn + optionsCols.showStudiesHarmonizedDatasetsColumn}}\"\n" +
-    "              ng-if=\"optionsCols.showStudiesDatasetsColumn || optionsCols.showStudiesHarmonizedDatasetsColumn\">datasets\n" +
+    "              ng-attr-colspan=\"{{optionsCols.showStudiesStudyDatasetsColumn + optionsCols.showStudiesHarmonizationDatasetsColumn}}\"\n" +
+    "              ng-if=\"optionsCols.showStudiesStudyDatasetsColumn || optionsCols.showStudiesHarmonizationDatasetsColumn\">datasets\n" +
     "          </th>\n" +
     "          <th rowspan=\"2\" translate ng-if=\"optionsCols.showStudiesVariablesColumn\">variables</th>\n" +
+    "          <th translate\n" +
+    "              ng-attr-colspan=\"{{optionsCols.showStudiesStudyVariablesColumn + optionsCols.showStudiesDataschemaVariablesColumn}}\"\n" +
+    "              ng-if=\"optionsCols.showStudiesStudyVariablesColumn || optionsCols.showStudiesDataschemaVariablesColumn\">variables</th>\n" +
     "        </tr>\n" +
     "        <tr>\n" +
     "          <th translate ng-if=\"optionsCols.showStudiesQuestionnaireColumn\">search.study.quest</th>\n" +
     "          <th translate ng-if=\"optionsCols.showStudiesPmColumn\">search.study.pm</th>\n" +
     "          <th translate ng-if=\"optionsCols.showStudiesBioColumn\">search.study.bio</th>\n" +
     "          <th translate ng-if=\"optionsCols.showStudiesOtherColumn\">search.study.others</th>\n" +
-    "          <th translate ng-if=\"optionsCols.showStudiesDatasetsColumn\">search.study.label</th>\n" +
-    "          <th translate ng-if=\"optionsCols.showStudiesHarmonizedDatasetsColumn\">search.harmonization</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showStudiesStudyDatasetsColumn\">search.study.label</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showStudiesHarmonizationDatasetsColumn\">search.harmonization</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showStudiesStudyVariablesColumn\">search.variable.study</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showStudiesDataschemaVariablesColumn\">search.variable.dataschema</th>\n" +
     "        </tr>\n" +
     "        </thead>\n" +
     "        <tbody>\n" +
@@ -8666,18 +8725,26 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "                ng-if=\"summary['obiba.mica.CountStatsDto.studyCountStats'].networks\">{{summary['obiba.mica.CountStatsDto.studyCountStats'].networks}}</a>\n" +
     "            <span ng-if=\"!summary['obiba.mica.CountStatsDto.studyCountStats'].networks\">-</span>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"optionsCols.showStudiesDatasetsColumn\">\n" +
+    "          <td ng-if=\"optionsCols.showStudiesStudyDatasetsColumn\">\n" +
     "            <a href ng-click=\"updateCriteria(summary.id, 'StudyDataset')\"\n" +
     "                ng-if=\"summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets\">{{summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets}}</a>\n" +
     "            <span ng-if=\"!summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets\">-</span>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"optionsCols.showStudiesHarmonizedDatasetsColumn\">\n" +
+    "          <td ng-if=\"optionsCols.showStudiesHarmonizationDatasetsColumn\">\n" +
     "            <a href ng-click=\"updateCriteria(summary.id, 'HarmonizationDataset')\"\n" +
     "                ng-if=\"summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets\">{{summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets}}</a>\n" +
     "            <span ng-if=\"!summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets\">-</span>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showStudiesVariablesColumn\">\n" +
     "            <a href ng-click=\"updateCriteria(summary.id, 'variables')\">{{summary['obiba.mica.CountStatsDto.studyCountStats'].variables}}</a>\n" +
+    "          </td>\n" +
+    "          <td ng-if=\"optionsCols.showStudiesStudyVariablesColumn\">\n" +
+    "            <a href ng-click=\"updateCriteria(summary.id, 'StudyVariable')\" ng-if=\"summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets\">{{summary['obiba.mica.CountStatsDto.studyCountStats'].studyVariables}}</a>\n" +
+    "            <span ng-if=\"!summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets\">-</span>\n" +
+    "          </td>\n" +
+    "          <td ng-if=\"optionsCols.showStudiesDataschemaVariablesColumn\">\n" +
+    "            <a href ng-click=\"updateCriteria(summary.id, 'DataschemaVariable')\" ng-if=\"summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets\">{{summary['obiba.mica.CountStatsDto.studyCountStats'].dataschemaVariables}}</a>\n" +
+    "            <span ng-if=\"!summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets\">-</span>\n" +
     "          </td>\n" +
     "        </tr>\n" +
     "        </tbody>\n" +
@@ -8699,6 +8766,7 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
     "        <tr>\n" +
     "          <th translate>name</th>\n" +
     "          <th translate>search.variable.label</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showVariablesTypeColumn\">type</th>\n" +
     "          <th translate ng-if=\"optionsCols.showVariablesStudiesColumn\">search.study.label</th>\n" +
     "          <th translate ng-if=\"optionsCols.showVariablesDatasetsColumn\">search.dataset.label</th>\n" +
     "        </tr>\n" +
@@ -8716,6 +8784,9 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
     "          </td>\n" +
     "          <td>\n" +
     "            <localized value=\"summary.variableLabel\" lang=\"lang\"></localized>\n" +
+    "          </td>\n" +
+    "          <td ng-if=\"optionsCols.showVariablesTypeColumn\">\n" +
+    "            {{'search.variable.' + summary.variableType.toLowerCase() | translate}}\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showVariablesStudiesColumn\">\n" +
     "            <a ng-href=\"{{PageUrlService.studyPage(summary.studyId)}}\">\n" +
