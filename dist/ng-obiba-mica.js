@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-04-06
+ * Date: 2016-04-07
  */
 'use strict';
 
@@ -6408,9 +6408,14 @@ angular.module('obiba.mica.localized')
 
 function NgObibaMicaFileBrowserOptionsProvider() {
   var options = {
+    locale: 'en',
     folders: {
       excludes: ['population']
     }
+  };
+
+  this.setLocale = function(locale) {
+    options.locale = locale;
   };
 
   this.$get = function () {
@@ -6634,6 +6639,16 @@ angular.module('obiba.mica.fileBrowser')
         searchDocumentsInternal($scope.data.document.path, searchParams);
       };
 
+      var getTypeParts = function(document) {
+        return FileBrowserService.isFile(document) && document.attachment.type ?
+          document.attachment.type.split(/,|\s+/) :
+          [];
+      };
+
+      var getLocalizedValue = function(values) {
+        return FileBrowserService.getLocalizedValue(values, ngObibaMicaFileBrowserOptions.locale);
+      };
+
       $scope.getDownloadUrl = FileBrowserDownloadService.getUrl;
       $scope.screen = $rootScope.screen;
       $scope.truncate = StringUtils.truncate;
@@ -6648,7 +6663,13 @@ angular.module('obiba.mica.fileBrowser')
       $scope.searchKeyUp = searchKeyUp;
       $scope.isFile = FileBrowserService.isFile;
       $scope.isRoot = FileBrowserService.isRoot;
-      $scope.getLocalizedValue = FileBrowserService.getLocalizedValue;
+      $scope.getLocalizedValue = getLocalizedValue;
+      $scope.hideDetails = function() { $scope.data.details.show = false; };
+      $scope.getTypeParts = getTypeParts;
+      $scope.showDetails = function(document) {
+        $scope.data.details.document = document;
+        $scope.data.details.show = true;
+      };
 
       $scope.pagination = {
         currentPage: 1,
@@ -6656,6 +6677,10 @@ angular.module('obiba.mica.fileBrowser')
       };
 
       $scope.data = {
+        details: {
+          document: null,
+          show: false
+        },
         docRootIcon: null,
         rootPath: null,
         document: null,
@@ -6787,7 +6812,7 @@ angular.module('obiba.mica.fileBrowser')
       if (path) {
         path = path.replace(exclude, '');
         var a = path.replace(/\/$/, '').split('/').slice(1);
-        var parts = [{name: '/', path: '/'}];
+        var parts = [];
         var prev = null;
         a.forEach(function (part) {
           prev = (prev === null ? exclude : prev) + '/' + part;
@@ -7304,14 +7329,12 @@ angular.module("file-browser/views/document-detail-template.html", []).run(["$te
     "\n" +
     "<div class=\"panel panel-default\">\n" +
     "  <div class=\"panel-heading\">\n" +
-    "    <div class=\"row\">\n" +
-    "      <div class=\"col-md-1 no-padding-right\">\n" +
-    "        <i class=\"fa {{getDocumentIcon(data.document)}}\"></i>\n" +
-    "      </div>\n" +
-    "      <div class=\"col-md-10\">\n" +
-    "        {{data.document.name}}\n" +
-    "      </div>\n" +
-    "    </div>\n" +
+    "    <span>\n" +
+    "      <span title=\"{{data.details.document.name}}\">\n" +
+    "        <i class=\"fa {{getDocumentIcon(data.details.document)}}\"></i> {{truncate(data.details.document.name, 30)}}\n" +
+    "      </span>\n" +
+    "      <a href class=\"pull-right\" ng-click=\"hideDetails()\"><i class=\"fa fa-times\"></i></a>\n" +
+    "    </span>\n" +
     "  </div>\n" +
     "  <div class=\"panel-body\">\n" +
     "    <div>\n" +
@@ -7319,87 +7342,48 @@ angular.module("file-browser/views/document-detail-template.html", []).run(["$te
     "        <small>{{'size' | translate}}</small>\n" +
     "      </label>\n" +
     "      <div>\n" +
-    "        <span ng-if=\"!data.isFile\">{{data.document.size}} {{'files' | translate}}</span>\n" +
-    "        <span ng-if=\"data.isFile\">{{data.document.size | bytes}}</span>\n" +
+    "        <span ng-if=\"!data.isFile\">{{data.details.document.size}} {{'files' | translate}}</span>\n" +
+    "        <span ng-if=\"data.isFile\">{{data.details.document.size | bytes}}</span>\n" +
     "      </div>\n" +
     "    </div>\n" +
     "\n" +
-    "    <div class=\"voffset\">\n" +
+    "    <div class=\"voffset2\">\n" +
     "      <label class=\"text-muted no-margin\">\n" +
     "        <small>{{'created-on' | translate}}</small>\n" +
     "      </label>\n" +
     "      <div>\n" +
-    "        <span>{{data.document.timestamps.created | amDateFormat : 'lll'}}</span>\n" +
+    "        <span>{{data.details.document.timestamps.created | amDateFormat : 'lll'}}</span>\n" +
     "      </div>\n" +
     "    </div>\n" +
-    "    <div class=\"voffset\">\n" +
+    "    <div class=\"voffset2\">\n" +
     "      <label class=\"text-muted no-margin\">\n" +
     "        <small>{{'last-modified' | translate}}</small>\n" +
     "      </label>\n" +
     "      <div>\n" +
-    "        <span>{{data.document.timestamps.lastUpdate | amDateFormat : 'lll'}}</span>\n" +
-    "      </div>\n" +
-    "    </div>\n" +
-    "    <div class=\"voffset\">\n" +
-    "      <label class=\"text-muted no-margin\">\n" +
-    "        <small>{{'publish.publication' | translate}}</small>\n" +
-    "      </label>\n" +
-    "      <div>\n" +
-    "        <span translate translate-values=\"{ publicationDate: data.document.state.publicationDate, publishedBy: data.document.state.publishedBy }\" ng-if=\"data.document.state.publicationDate !== undefined\">\n" +
-    "          publish.published-ago-by\n" +
-    "        </span>\n" +
-    "        <span translate ng-if=\"data.document.state.publicationDate === undefined\">\n" +
-    "          publish.not-published\n" +
-    "        </span>\n" +
+    "        <span>{{data.details.document.timestamps.lastUpdate | amDateFormat : 'lll'}}</span>\n" +
     "      </div>\n" +
     "    </div>\n" +
     "\n" +
-    "    <div ng-if=\"data.isFile\" class=\"voffset\">\n" +
-    "      <label class=\"text-muted no-margin\">\n" +
-    "        <small>{{'type' | translate}}</small>\n" +
-    "      </label>\n" +
-    "      <div editable-text=\"data.document.state.attachment.type\" e-form=\"buttonChangeType\" onbeforesave=\"updateDocumentType(data.document, $data)\">\n" +
-    "        {{data.document.state.attachment.type || 'empty'}}\n" +
-    "        <span class=\"hoffset1\" ng-if=\"data.document.permissions.edit && data.document.revisionStatus === 'DRAFT'\"><a href ng-click=\"buttonChangeType.$show()\" ng-hide=\"buttonChangeType.$visible\">\n" +
-    "          <i class=\"fa fa-pencil\"></i></a>\n" +
-    "        </span>\n" +
+    "    <div ng-if=\"isFile(data.details.document)\" class=\"voffset2\">\n" +
+    "      <div ng-if=\"data.details.document.attachment.type\">\n" +
+    "        <label class=\"text-muted no-margin\">\n" +
+    "          <small>{{'type' | translate}}</small>\n" +
+    "        </label>\n" +
+    "        <div>\n" +
+    "          <span>{{data.details.document.attachment.type}}</span>\n" +
+    "        </div>\n" +
     "      </div>\n" +
     "\n" +
-    "      <!-- TODO create a directive (see MK-568) -->\n" +
-    "      <uib-tabset class=\"voffset2\">\n" +
-    "        <uib-tab ng-repeat=\"tab in tabs\" heading=\"{{'language.' + tab.lang | translate}}\" active=\"tab.active\" disable=\"tab.disable\">\n" +
-    "\n" +
-    "          <div class=\"voffset\">\n" +
-    "            <label class=\"text-muted no-margin\">\n" +
-    "              <small>{{'description' | translate}}</small>\n" +
-    "            </label>\n" +
-    "\n" +
-    "            <div ng-if=\"!data.editDescField\">\n" +
-    "              <label ng-if=\"!getLocalizedValue(data.document.state.attachment.description, tab.lang)\">\n" +
-    "                <span class=\"text-danger\"><em>empty</em></span>\n" +
-    "              </label>\n" +
-    "              <localized ng-if=\"getLocalizedValue(data.document.state.attachment.description, tab.lang)\" value=\"data.document.state.attachment.description\" lang=\"tab.lang\"></localized>\n" +
-    "              <a ng-if=\"data.document.permissions.edit && data.document.revisionStatus === 'DRAFT'\" ng-click=\"data.editDescField = true\" ng-hide=\"buttonChangeType.$visible && data.document.revisionStatus !== DRAFT\">\n" +
-    "                <i class=\"fa fa-pencil\"></i>\n" +
-    "              </a>\n" +
-    "            </div>\n" +
-    "\n" +
-    "            <div ng-if=\"data.editDescField\">\n" +
-    "              <form name=\"form\" role=\"form\" novalidate>\n" +
-    "                <div localized-textarea name=\"description\" model=\"data.document.state.attachment.description\" lang=\"tab.lang\"></div>\n" +
-    "                <span class=\"editable-buttons\">\n" +
-    "                  <button ng-click=\"updateDocumentDescription(data.document)\" class=\"btn btn-primary\">\n" +
-    "                    <span class=\"glyphicon glyphicon-ok\"></span>\n" +
-    "                  </button>\n" +
-    "                  <button type=\"button\" class=\"btn btn-default\" ng-click=\"data.editDescField = false\">\n" +
-    "                    <span class=\"glyphicon glyphicon-remove\"></span>\n" +
-    "                  </button>\n" +
-    "                </span>\n" +
-    "              </form>\n" +
-    "            </div>\n" +
-    "          </div>\n" +
-    "        </uib-tab>\n" +
-    "      </uib-tabset>\n" +
+    "      <div ng-init=\"desc = getLocalizedValue(data.details.document.attachment.description)\"\n" +
+    "           ng-show=\"desc\"\n" +
+    "           class=\"voffset2\">\n" +
+    "        <label class=\"text-muted no-margin\">\n" +
+    "          <small>{{'description' | translate}}</small>\n" +
+    "        </label>\n" +
+    "        <div>\n" +
+    "          <span>{{desc}}</span>\n" +
+    "        </div>\n" +
+    "      </div>\n" +
     "    </div>\n" +
     "  </div>\n" +
     "</div>\n" +
@@ -7408,7 +7392,7 @@ angular.module("file-browser/views/document-detail-template.html", []).run(["$te
 
 angular.module("file-browser/views/documents-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("file-browser/views/documents-table-template.html",
-    "<div class=\"panel panel-default table-responsive\" ng-if=\"!data.search.active || data.document.children.length>0\">\n" +
+    "<div class=\"panel panel-default table-responsive table-responsive-dropdown\" ng-if=\"!data.search.active || data.document.children.length>0\">\n" +
     "  <div class=\"panel-heading\" ng-if=\"selected.length > 0\">\n" +
     "    <small>\n" +
     "      {{selected.length}} <span>{{selected.length > 1 ? 'files-selected' : 'file-selected'| translate}}</span>.\n" +
@@ -7419,44 +7403,67 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "  <table class=\"table table-bordered table-striped no-padding no-margin\">\n" +
     "    <thead>\n" +
     "    <tr>\n" +
-    "      <th><input type=\"checkbox\" ng-checked=\"!hasUnselected && data.document.children.length\" ng-click=\"selectPage()\"></th>\n" +
     "      <th translate>name</th>\n" +
     "      <th translate>last-modified</th>\n" +
+    "      <th translate>type</th>\n" +
     "      <th translate>size</th>\n" +
     "      <th ng-if=\"data.search.active\" translate>path</th>\n" +
-    "      <th translate>actions</th>\n" +
     "    </tr>\n" +
     "    </thead>\n" +
     "    <tbody>\n" +
     "    <tr ng-show=\"!data.isRoot && data.document.path !== data.rootPath && !data.search.active\">\n" +
-    "      <td></td>\n" +
     "      <td colspan=\"5\">\n" +
     "        <i class=\"fa fa-folder\"></i>\n" +
     "        <span><a href class=\"no-text-decoration\" ng-click=\"navigateBack()\"> ..</a></span>\n" +
     "      </td>\n" +
     "    </tr>\n" +
-    "    <tr dir-paginate=\"document in data.document.children | itemsPerPage: pagination.itemsPerPage\" ng-init=\"fileDocument = isFile(document)\" current-page=\"pagination.currentPage\">\n" +
+    "    <tr dir-paginate=\"document in data.document.children | itemsPerPage: pagination.itemsPerPage\"\n" +
+    "        ng-init=\"fileDocument = isFile(document)\"\n" +
+    "        current-page=\"pagination.currentPage\">\n" +
     "\n" +
-    "      <td><input type=\"checkbox\" ng-model=\"document.selected\"></td>\n" +
-    "      <td>\n" +
-    "        <span ng-if=\"fileDocument\">\n" +
-    "          <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
+    "      <td ng-click=\"data.details.document = document\">\n" +
+    "        <span>\n" +
+    "          <span ng-if=\"fileDocument\">\n" +
+    "            <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
     "\n" +
-    "          <a ng-if=\"fileDocument\" target=\"_self\"\n" +
-    "             style=\"text-decoration: none\" ng-href=\"{{getDownloadUrl(document.path)}}\"\n" +
-    "              title=\"{{document.name}}\">\n" +
-    "            {{truncate(document.name, 50)}}\n" +
-    "          </a>\n" +
-    "        </span>\n" +
-    "        <span ng-if=\"!fileDocument\">\n" +
-    "          <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
-    "          <a href style=\"text-decoration: none\" ng-click=\"navigateTo(document)\">\n" +
-    "            {{document.name}}\n" +
-    "          </a>\n" +
+    "            <a ng-if=\"fileDocument\" target=\"_self\"\n" +
+    "               style=\"text-decoration: none\" ng-href=\"{{getDownloadUrl(document.path)}}\"\n" +
+    "                title=\"{{document.name}}\">\n" +
+    "              {{document.name}}\n" +
+    "            </a>\n" +
+    "          </span>\n" +
+    "          <span ng-if=\"!fileDocument\">\n" +
+    "            <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
+    "            <a href style=\"text-decoration: none\" ng-click=\"navigateTo(document)\">\n" +
+    "              {{document.name}}\n" +
+    "            </a>\n" +
+    "          </span>\n" +
+    "          <span class=\"btn-group pull-right\" uib-dropdown is-open=\"status.isopen\">\n" +
+    "            <a title=\"{{'show-details' | translate}}\" id=\"single-button\" class=\"dropdown-anchor\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
+    "              <i class=\"glyphicon glyphicon-option-horizontal btn-large\"></i>\n" +
+    "            </a>\n" +
+    "            <ul class=\"dropdown-menu\" uib-dropdown-menu role=\"menu\" aria-labelledby=\"single-button\">\n" +
+    "              <li role=\"menuitem\">\n" +
+    "                <a href ng-click=\"showDetails(document)\">\n" +
+    "                  <span><i class=\"fa fa-info\"></i><span class=\"hoffset2\">{{'details' | translate}}</span></span>\n" +
+    "                </a>\n" +
+    "              </li>\n" +
+    "              <li role=\"menuitem\">\n" +
+    "                <a href=\"#\">\n" +
+    "                  <span><i class=\"fa fa-download\"></i><span class=\"hoffset2\">{{'download' | translate}}</span></span>\n" +
+    "                </a>\n" +
+    "              </li>\n" +
+    "            </ul>\n" +
+    "          </span>\n" +
     "        </span>\n" +
     "      </td>\n" +
     "      <td>\n" +
     "        {{document.timestamps.lastUpdate | amTimeAgo}}\n" +
+    "      </td>\n" +
+    "      <td>\n" +
+    "        <span ng-repeat=\"t in getTypeParts(document) track by $index\"\n" +
+    "              class=\"label label-default\"\n" +
+    "              ng-class=\"{'hoffset1' : !$first}\">{{t}}</span>\n" +
     "      </td>\n" +
     "      <td class=\"no-wrap\" ng-if=\"fileDocument\">\n" +
     "        {{document.size | bytes}}\n" +
@@ -7470,16 +7477,6 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "        </a>\n" +
     "      </td>\n" +
     "\n" +
-    "      <td>\n" +
-    "        <ul class=\"list-inline\">\n" +
-    "          <li ng-if=\"document.permissions.view && fileDocument\">\n" +
-    "            <a target=\"_self\" ng-href=\"ws/draft/file-dl/{{document.path}}\"><i class=\"fa fa-download\"></i></a>\n" +
-    "          </li>\n" +
-    "          <li ng-if=\"document.permissions.delete && document.revisionStatus === 'DELETED'\">\n" +
-    "            <a href ng-click=\"deleteDocument(document)\"><i class=\"fa fa-trash\"></i></a>\n" +
-    "          </li>\n" +
-    "        </ul>\n" +
-    "      </td>\n" +
     "    </tr>\n" +
     "    </tbody>\n" +
     "  </table>\n" +
@@ -7499,16 +7496,10 @@ angular.module("file-browser/views/file-browser-template.html", []).run(["$templ
     "      <!-- second level breadcrumb -->\n" +
     "      <ol ng-show=\"data.document.path !== data.rootPath\" class=\"breadcrumb mica-breadcrumb no-margin no-padding\">\n" +
     "        <li ng-repeat=\"part in data.breadcrumbs\" ng-class=\"{'active': $first === $last && $last}\">\n" +
-    "          <span ng-show=\"!$last && part.name === '/'\">\n" +
-    "            <span><i class=\"{{data.docRootIcon}}\"></i></span>\n" +
-    "          </span>\n" +
     "          <a ng-show=\"!$last && part.name !== '/'\" href ng-click=\"navigateToPath(part.path)\">\n" +
     "            <span ng-show=\"part.name !== '/'\">{{part.name}}</span>\n" +
     "          </a>\n" +
     "          <!-- Top level root -->\n" +
-    "          <span ng-if=\"$last && part.name === '/'\">\n" +
-    "            <i class=\"{{data.docRootIcon}}\"></i>\n" +
-    "          </span>\n" +
     "          <span ng-if=\"part.name !== '/' && $last\">\n" +
     "            <i class=\"fa {{getDocumentIcon(data.document)}}\"></i> {{data.document.name || 'empty'}}\n" +
     "          </span>\n" +
@@ -7520,12 +7511,12 @@ angular.module("file-browser/views/file-browser-template.html", []).run(["$templ
     "        <div class=\"col-md-2\">\n" +
     "          <div ng-include=\"'file-browser/views/shortcuts-template.html'\"></div>\n" +
     "        </div>\n" +
-    "        <div class=\"col-md-7\">\n" +
+    "        <div ng-class=\"{'col-md-8': data.details.show, 'col-md-10': !data.details.show}\">\n" +
     "          <div>\n" +
     "            <div ng-if=\"!data.isFile\" ng-include=\"'file-browser/views/documents-table-template.html'\"></div>\n" +
     "          </div>\n" +
     "        </div>\n" +
-    "        <div class=\"col-md-3\">\n" +
+    "        <div ng-if=\"data.details.show\" class=\"col-md-2\">\n" +
     "          <div ng-include=\"'file-browser/views/document-detail-template.html'\"></div>\n" +
     "        </div>\n" +
     "      </div>\n" +
