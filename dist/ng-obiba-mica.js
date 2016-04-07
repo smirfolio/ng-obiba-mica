@@ -6842,7 +6842,7 @@ angular.module('obiba.mica.fileBrowser')
       }
     };
   }]);
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/shortcuts-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-form.html', 'access/views/data-access-request-histroy-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/shortcuts-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html']);
 
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
@@ -7342,8 +7342,8 @@ angular.module("file-browser/views/document-detail-template.html", []).run(["$te
     "        <small>{{'size' | translate}}</small>\n" +
     "      </label>\n" +
     "      <div>\n" +
-    "        <span ng-if=\"!data.isFile\">{{data.details.document.size}} {{'files' | translate}}</span>\n" +
-    "        <span ng-if=\"data.isFile\">{{data.details.document.size | bytes}}</span>\n" +
+    "        <span ng-if=\"!isFile(data.details.document)\">{{data.details.document.size}} {{'files' | translate}}</span>\n" +
+    "        <span ng-if=\"isFile(data.details.document)\">{{data.details.document.size | bytes}}</span>\n" +
     "      </div>\n" +
     "    </div>\n" +
     "\n" +
@@ -7396,7 +7396,9 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "  <div class=\"panel-heading\" ng-if=\"selected.length > 0\">\n" +
     "    <small>\n" +
     "      {{selected.length}} <span>{{selected.length > 1 ? 'files-selected' : 'file-selected'| translate}}</span>.\n" +
-    "      <a href=\"\" ng-click=\"selectAll()\" ng-if=\"selected.length < data.document.children.length\"><i class=\"fa fa-check\"></i> <span translate>select-all</span></a>\n" +
+    "      <a href=\"\" ng-click=\"selectAll()\" ng-if=\"selected.length < data.document.children.length\">\n" +
+    "        <i class=\"fa fa-check\"></i> <span translate>select-all</span>\n" +
+    "      </a>\n" +
     "      <a href=\"\" ng-click=\"clearSelection()\"><i class=\"fa fa-times\"></i> <span translate>clear-selection</span></a>\n" +
     "    </small>\n" +
     "  </div>\n" +
@@ -7421,7 +7423,7 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "        ng-init=\"fileDocument = isFile(document)\"\n" +
     "        current-page=\"pagination.currentPage\">\n" +
     "\n" +
-    "      <td ng-click=\"data.details.document = document\">\n" +
+    "      <td ng-click=\"showDetails(document)\">\n" +
     "        <span>\n" +
     "          <span ng-if=\"fileDocument\">\n" +
     "            <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
@@ -7473,7 +7475,7 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "      </td>\n" +
     "      <td ng-if=\"data.search.active\">\n" +
     "        <a href class=\"no-text-decoration\" ng-click=\"navigateToParent(document)\">\n" +
-    "          {{document.state.attachment.path}}\n" +
+    "          {{document.attachment.path.replace(data.rootPath, '')}}\n" +
     "        </a>\n" +
     "      </td>\n" +
     "\n" +
@@ -7495,28 +7497,26 @@ angular.module("file-browser/views/file-browser-template.html", []).run(["$templ
     "      <!--## {{data.breadcrumbs}}-->\n" +
     "      <!-- second level breadcrumb -->\n" +
     "      <ol ng-show=\"data.document.path !== data.rootPath\" class=\"breadcrumb mica-breadcrumb no-margin no-padding\">\n" +
+    "        <li>\n" +
+    "          <span><i class=\"fa {{getDocumentIcon(data.document)}}\"></i></span>\n" +
+    "        </li>\n" +
     "        <li ng-repeat=\"part in data.breadcrumbs\" ng-class=\"{'active': $first === $last && $last}\">\n" +
     "          <a ng-show=\"!$last && part.name !== '/'\" href ng-click=\"navigateToPath(part.path)\">\n" +
     "            <span ng-show=\"part.name !== '/'\">{{part.name}}</span>\n" +
     "          </a>\n" +
-    "          <!-- Top level root -->\n" +
-    "          <span ng-if=\"part.name !== '/' && $last\">\n" +
-    "            <i class=\"fa {{getDocumentIcon(data.document)}}\"></i> {{data.document.name || 'empty'}}\n" +
-    "          </span>\n" +
+    "          <span class=\"no-padding\" ng-if=\"part.name !== '/' && $last\">{{data.document.name || 'empty'}}</span>\n" +
     "        </li>\n" +
     "      </ol>\n" +
     "\n" +
+    "      <div ng-include=\"'file-browser/views/shortcuts-template.html'\"></div>\n" +
+    "\n" +
     "      <!-- Document details -->\n" +
     "      <div class=\"row voffset2\">\n" +
-    "        <div class=\"col-md-2\">\n" +
-    "          <div ng-include=\"'file-browser/views/shortcuts-template.html'\"></div>\n" +
+    "        <div ng-class=\"{'col-md-8': data.details.show, 'col-md-12': !data.details.show}\">\n" +
+    "          <div ng-include=\"'file-browser/views/toolbar-template.html'\"></div>\n" +
+    "          <div ng-if=\"!data.isFile\" ng-include=\"'file-browser/views/documents-table-template.html'\"></div>\n" +
     "        </div>\n" +
-    "        <div ng-class=\"{'col-md-8': data.details.show, 'col-md-10': !data.details.show}\">\n" +
-    "          <div>\n" +
-    "            <div ng-if=\"!data.isFile\" ng-include=\"'file-browser/views/documents-table-template.html'\"></div>\n" +
-    "          </div>\n" +
-    "        </div>\n" +
-    "        <div ng-if=\"data.details.show\" class=\"col-md-2\">\n" +
+    "        <div ng-if=\"data.details.show\" class=\"col-md-4\">\n" +
     "          <div ng-include=\"'file-browser/views/document-detail-template.html'\"></div>\n" +
     "        </div>\n" +
     "      </div>\n" +
@@ -7528,42 +7528,69 @@ angular.module("file-browser/views/file-browser-template.html", []).run(["$templ
 
 angular.module("file-browser/views/shortcuts-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("file-browser/views/shortcuts-template.html",
-    "<div class=\"panel panel-default\">\n" +
-    "  <div class=\"panel-body\">\n" +
-    "    <ul class=\"nav nav-list\">\n" +
-    "      <li ng-if=\"!data.isFile\" class=\"nav-header\">\n" +
-    "        <span>\n" +
-    "          <span translate>search</span>\n" +
-    "          <span ng-if=\"data.document\" class=\"pull-right\">\n" +
-    "            <span>\n" +
-    "              <a href ng-click=\"clearSearch()\" class=\"btn btn-info btn-xs\" title=\"{{'search-tooltip.clear' | translate}}\">\n" +
-    "                <i class=\"fa fa-eraser\"></i>\n" +
-    "              </a>\n" +
-    "            </span>\n" +
-    "            <span>\n" +
-    "              <a href ng-model=\"data.search.recursively\" class=\"btn btn-xs\" ng-class=\"{'btn-info': data.search.recursively, 'btn-default': !data.search.recursively}\" data-toggle=\"button\" ng-click=\"toggleRecursively()\" title=\"{{'search-tooltip.recursively' | translate}}\">\n" +
-    "                <i class=\"fa i-obiba-hierarchy\"></i>\n" +
-    "              </a>\n" +
-    "            </span>\n" +
-    "          </span>\n" +
+    "<div class=\"row\">\n" +
+    "  <div class=\"col-md-3\">\n" +
+    "    <a href>\n" +
+    "      <span class=\"input-group input-group-sm no-padding-top no-padding-right\">\n" +
+    "        <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-search\"></i></span>\n" +
+    "        <input ng-keyup=\"searchKeyUp($event)\"\n" +
+    "               ng-model=\"data.search.text\"\n" +
+    "               type=\"text\"\n" +
+    "               class=\"form-control ng-pristine ng-untouched ng-valid\"\n" +
+    "               aria-describedby=\"study-search\">\n" +
+    "        <span ng-show=\"data.search.text\" title=\"{{'search-tooltip.clear' | translate}}\" ng-click=\"clearSearch()\" class=\"input-group-addon\">\n" +
+    "          <i class=\"fa fa-times\"></i>\n" +
     "        </span>\n" +
-    "      </li>\n" +
-    "      <li ng-if=\"!data.isFile && data.document\" class=\"voffset\">\n" +
-    "        <a href>\n" +
-    "          <span class=\"input-group input-group-sm no-padding-top\">\n" +
-    "            <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-search\"></i></span>\n" +
-    "            <input ng-keyup=\"searchKeyUp($event)\" ng-model=\"data.search.text\" type=\"text\" class=\"form-control ng-pristine ng-untouched ng-valid\" aria-describedby=\"study-search\">\n" +
-    "          </span>\n" +
-    "        </a>\n" +
-    "      </li>\n" +
-    "      <li ng-if=\"!data.isFile\">\n" +
-    "        <a href ng-click=\"searchDocuments('RECENT')\" title=\"{{'search-tooltip.most-recent' | translate}}\">\n" +
-    "          <span><i class=\"fa fa-clock-o\"></i> {{'most-recent' | translate}}</span>\n" +
-    "        </a>\n" +
-    "      </li>\n" +
-    "    </ul>\n" +
+    "      </span>\n" +
+    "    </a>\n" +
+    "  </div>\n" +
+    "  <div class=\"col-md-1 no-padding-left\">\n" +
+    "    <a href ng-model=\"data.search.recursively\"\n" +
+    "       class=\"btn btn-sm\"\n" +
+    "       ng-class=\"{'btn-info': data.search.recursively, 'btn-default': !data.search.recursively}\"\n" +
+    "       data-toggle=\"button\" ng-click=\"toggleRecursively()\"\n" +
+    "       title=\"{{'search-tooltip.recursively' | translate}}\">\n" +
+    "      <i class=\"fa i-obiba-hierarchy\"></i>\n" +
+    "    </a>\n" +
+    "    <a href ng-click=\"searchDocuments('RECENT')\"\n" +
+    "       class=\"btn btn-info btn-sm\"\n" +
+    "       title=\"{{'search-tooltip.most-recent' | translate}}\">\n" +
+    "      <span><i class=\"fa fa-clock-o fa-lg\"></i></span>\n" +
+    "    </a>\n" +
     "  </div>\n" +
     "</div>");
+}]);
+
+angular.module("file-browser/views/toolbar-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("file-browser/views/toolbar-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2016 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
+    "<h5 ng-if=\"data.document.state.revisions\" translate>\n" +
+    "  revisions\n" +
+    "</h5>\n" +
+    "<h5 ng-if=\"data.search.active\">\n" +
+    "  <a class=\"no-text-decoration\" ng-click=\"clearSearch()\">\n" +
+    "    <i class=\"fa fa-chevron-left\"> </i>\n" +
+    "  </a>\n" +
+    "  <span ng-if=\"data.search.recursively\">{{'file.search-results.current-sub' | translate}}</span>\n" +
+    "  <span ng-if=\"!data.search.recursively\">{{'file.search-results.current' | translate}}</span>\n" +
+    "  ({{data.document.children.length}})\n" +
+    "</h5>\n" +
+    "<div class=\"clearfix\">\n" +
+    "  <div class=\"pull-right\">\n" +
+    "    <dir-pagination-controls></dir-pagination-controls>\n" +
+    "  </div>\n" +
+    "</div>\n" +
+    "<div class=\"clearfix\" ng-if=\"data.search.active\"></div>\n" +
+    "");
 }]);
 
 angular.module("graphics/views/charts-directive.html", []).run(["$templateCache", function($templateCache) {

@@ -2,7 +2,9 @@
   <div class="panel-heading" ng-if="selected.length > 0">
     <small>
       {{selected.length}} <span>{{selected.length > 1 ? 'files-selected' : 'file-selected'| translate}}</span>.
-      <a href="" ng-click="selectAll()" ng-if="selected.length < data.document.children.length"><i class="fa fa-check"></i> <span translate>select-all</span></a>
+      <a href="" ng-click="selectAll()" ng-if="selected.length < data.document.children.length">
+        <i class="fa fa-check"></i> <span translate>select-all</span>
+      </a>
       <a href="" ng-click="clearSelection()"><i class="fa fa-times"></i> <span translate>clear-selection</span></a>
     </small>
   </div>
@@ -27,7 +29,7 @@
         ng-init="fileDocument = isFile(document)"
         current-page="pagination.currentPage">
 
-      <td ng-click="data.details.document = document">
+      <td ng-click="showDetails(document)">
         <span>
           <span ng-if="fileDocument">
             <i class="fa {{getDocumentIcon(document)}}"></i>
@@ -79,7 +81,7 @@
       </td>
       <td ng-if="data.search.active">
         <a href class="no-text-decoration" ng-click="navigateToParent(document)">
-          {{document.state.attachment.path}}
+          {{document.attachment.path.replace(data.rootPath, '')}}
         </a>
       </td>
 
