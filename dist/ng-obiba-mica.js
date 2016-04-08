@@ -7434,7 +7434,7 @@ angular.module("file-browser/views/document-detail-template.html", []).run(["$te
 
 angular.module("file-browser/views/documents-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("file-browser/views/documents-table-template.html",
-    "<div class=\"panel panel-default table-responsive table-responsive-dropdown\" ng-if=\"!data.search.active || data.document.children.length>0\">\n" +
+    "<div class=\"panel panel-default table-responsive table-responsive-dropdown\">\n" +
     "  <div class=\"panel-heading\" ng-if=\"data.search.active\">\n" +
     "      <a class=\"no-text-decoration\" ng-click=\"clearSearch()\">\n" +
     "        <i class=\"fa fa-chevron-left\"> </i>\n" +
@@ -7443,86 +7443,88 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "      <span ng-if=\"!data.search.recursively\">{{'file.search-results.current' | translate}}</span>\n" +
     "      ({{data.document.children.length}})\n" +
     "  </div>\n" +
-    "  <table class=\"table table-bordered table-striped no-padding no-margin\">\n" +
-    "    <thead>\n" +
-    "    <tr>\n" +
-    "      <th translate>name</th>\n" +
-    "      <th style=\"width: 100px\" translate>type</th>\n" +
-    "      <th style=\"width: 100px\" translate>size</th>\n" +
-    "      <th style=\"width: 150px\" translate>modified</th>\n" +
-    "      <th ng-if=\"data.search.active\" translate>folder</th>\n" +
-    "    </tr>\n" +
-    "    </thead>\n" +
-    "    <tbody>\n" +
-    "    <tr ng-show=\"!data.isRoot && data.document.path !== data.rootPath && !data.search.active\">\n" +
-    "      <td colspan=\"5\">\n" +
-    "        <i class=\"fa fa-folder\"></i>\n" +
-    "        <span><a href class=\"no-text-decoration\" ng-click=\"navigateBack()\"> ..</a></span>\n" +
-    "      </td>\n" +
-    "    </tr>\n" +
-    "    <tr ng-class=\"{'selected-row': $index === pagination.selected}\"\n" +
-    "        dir-paginate=\"document in data.document.children | itemsPerPage: pagination.itemsPerPage\"\n" +
-    "        ng-init=\"fileDocument = isFile(document)\"\n" +
-    "        current-page=\"pagination.currentPage\">\n" +
+    "  <div ng-if=\"data.document.children.length>0\">\n" +
+    "    <table class=\"table table-bordered table-striped no-padding no-margin\">\n" +
+    "      <thead>\n" +
+    "      <tr>\n" +
+    "        <th translate>name</th>\n" +
+    "        <th style=\"width: 100px\" translate>type</th>\n" +
+    "        <th style=\"width: 100px\" translate>size</th>\n" +
+    "        <th style=\"width: 150px\" translate>modified</th>\n" +
+    "        <th ng-if=\"data.search.active\" translate>folder</th>\n" +
+    "      </tr>\n" +
+    "      </thead>\n" +
+    "      <tbody>\n" +
+    "      <tr ng-show=\"!data.isRoot && data.document.path !== data.rootPath && !data.search.active\">\n" +
+    "        <td colspan=\"5\">\n" +
+    "          <i class=\"fa fa-folder\"></i>\n" +
+    "          <span><a href class=\"no-text-decoration\" ng-click=\"navigateBack()\"> ..</a></span>\n" +
+    "        </td>\n" +
+    "      </tr>\n" +
+    "      <tr ng-class=\"{'selected-row': $index === pagination.selected}\"\n" +
+    "          dir-paginate=\"document in data.document.children | itemsPerPage: pagination.itemsPerPage\"\n" +
+    "          ng-init=\"fileDocument = isFile(document)\"\n" +
+    "          current-page=\"pagination.currentPage\">\n" +
     "\n" +
-    "      <td>\n" +
-    "        <span>\n" +
-    "          <span ng-if=\"fileDocument\">\n" +
-    "            <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
-    "            <a ng-if=\"fileDocument\" target=\"_self\"\n" +
-    "               style=\"text-decoration: none\" ng-href=\"{{getDownloadUrl(document.path)}}\"\n" +
-    "                title=\"{{document.name}}\">\n" +
-    "              {{document.name}}\n" +
-    "            </a>\n" +
+    "        <td>\n" +
+    "          <span>\n" +
+    "            <span ng-if=\"fileDocument\">\n" +
+    "              <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
+    "              <a ng-if=\"fileDocument\" target=\"_self\"\n" +
+    "                 style=\"text-decoration: none\" ng-href=\"{{getDownloadUrl(document.path)}}\"\n" +
+    "                  title=\"{{document.name}}\">\n" +
+    "                {{document.name}}\n" +
+    "              </a>\n" +
+    "            </span>\n" +
+    "            <span ng-if=\"!fileDocument\">\n" +
+    "              <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
+    "              <a href style=\"text-decoration: none\" ng-click=\"navigateTo(document)\">\n" +
+    "                {{document.name}}\n" +
+    "              </a>\n" +
+    "            </span>\n" +
+    "            <span class=\"spring-click-area\" ng-click=\"showDetails(document, $index)\">&nbsp;</span>\n" +
+    "            <span class=\"btn-group pull-right\" uib-dropdown is-open=\"status.isopen\">\n" +
+    "              <a title=\"{{'show-details' | translate}}\" id=\"single-button\" class=\"dropdown-anchor\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
+    "                <i class=\"glyphicon glyphicon-option-horizontal btn-large\"></i>\n" +
+    "              </a>\n" +
+    "              <ul class=\"dropdown-menu\" uib-dropdown-menu role=\"menu\" aria-labelledby=\"single-button\">\n" +
+    "                <li role=\"menuitem\">\n" +
+    "                  <a href ng-click=\"showDetails(document, $index)\">\n" +
+    "                    <span><i class=\"fa fa-info\"></i><span class=\"hoffset2\">{{'details' | translate}}</span></span>\n" +
+    "                  </a>\n" +
+    "                </li>\n" +
+    "                <li role=\"menuitem\" ng-if=\"fileDocument\">\n" +
+    "                  <a ng-href=\"{{getDownloadUrl(document.path)}}\">\n" +
+    "                    <span><i class=\"fa fa-download\"></i><span class=\"hoffset2\">{{'download' | translate}}</span></span>\n" +
+    "                  </a>\n" +
+    "                </li>\n" +
+    "              </ul>\n" +
+    "            </span>\n" +
     "          </span>\n" +
-    "          <span ng-if=\"!fileDocument\">\n" +
-    "            <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
-    "            <a href style=\"text-decoration: none\" ng-click=\"navigateTo(document)\">\n" +
-    "              {{document.name}}\n" +
-    "            </a>\n" +
-    "          </span>\n" +
-    "          <span class=\"spring-click-area\" ng-click=\"showDetails(document, $index)\">&nbsp;</span>\n" +
-    "          <span class=\"btn-group pull-right\" uib-dropdown is-open=\"status.isopen\">\n" +
-    "            <a title=\"{{'show-details' | translate}}\" id=\"single-button\" class=\"dropdown-anchor\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
-    "              <i class=\"glyphicon glyphicon-option-horizontal btn-large\"></i>\n" +
-    "            </a>\n" +
-    "            <ul class=\"dropdown-menu\" uib-dropdown-menu role=\"menu\" aria-labelledby=\"single-button\">\n" +
-    "              <li role=\"menuitem\">\n" +
-    "                <a href ng-click=\"showDetails(document, $index)\">\n" +
-    "                  <span><i class=\"fa fa-info\"></i><span class=\"hoffset2\">{{'details' | translate}}</span></span>\n" +
-    "                </a>\n" +
-    "              </li>\n" +
-    "              <li role=\"menuitem\" ng-if=\"fileDocument\">\n" +
-    "                <a ng-href=\"{{getDownloadUrl(document.path)}}\">\n" +
-    "                  <span><i class=\"fa fa-download\"></i><span class=\"hoffset2\">{{'download' | translate}}</span></span>\n" +
-    "                </a>\n" +
-    "              </li>\n" +
-    "            </ul>\n" +
-    "          </span>\n" +
-    "        </span>\n" +
-    "      </td>\n" +
-    "      <td>\n" +
-    "        <span ng-repeat=\"t in getTypeParts(document) track by $index\"\n" +
-    "          class=\"label label-info\"\n" +
-    "          ng-class=\"{'hoffset1' : !$first}\">{{t}}</span>\n" +
-    "      </td>\n" +
-    "      <td class=\"no-wrap\" ng-if=\"fileDocument\">\n" +
-    "        {{document.size | bytes}}\n" +
-    "      </td>\n" +
-    "      <td class=\"no-wrap\" ng-if=\"!fileDocument\">\n" +
-    "        {{document.size}}\n" +
-    "      </td>\n" +
-    "      <td>\n" +
-    "        {{document.timestamps.lastUpdate | amTimeAgo}}\n" +
-    "      </td>\n" +
-    "      <td ng-if=\"data.search.active\">\n" +
-    "        <a href class=\"no-text-decoration\" ng-click=\"navigateToParent($event, document)\">\n" +
-    "          {{document.attachment.path.replace(data.rootPath, '')}}\n" +
-    "        </a>\n" +
-    "      </td>\n" +
-    "    </tr>\n" +
-    "    </tbody>\n" +
-    "  </table>\n" +
+    "        </td>\n" +
+    "        <td>\n" +
+    "          <span ng-repeat=\"t in getTypeParts(document) track by $index\"\n" +
+    "            class=\"label label-info\"\n" +
+    "            ng-class=\"{'hoffset1' : !$first}\">{{t}}</span>\n" +
+    "        </td>\n" +
+    "        <td class=\"no-wrap\" ng-if=\"fileDocument\">\n" +
+    "          {{document.size | bytes}}\n" +
+    "        </td>\n" +
+    "        <td class=\"no-wrap\" ng-if=\"!fileDocument\">\n" +
+    "          {{document.size}}\n" +
+    "        </td>\n" +
+    "        <td>\n" +
+    "          {{document.timestamps.lastUpdate | amTimeAgo}}\n" +
+    "        </td>\n" +
+    "        <td ng-if=\"data.search.active\">\n" +
+    "          <a href class=\"no-text-decoration\" ng-click=\"navigateToParent($event, document)\">\n" +
+    "            {{document.attachment.path.replace(data.rootPath, '')}}\n" +
+    "          </a>\n" +
+    "        </td>\n" +
+    "      </tr>\n" +
+    "      </tbody>\n" +
+    "    </table>\n" +
+    "  </div>\n" +
     "</div>");
 }]);
 
