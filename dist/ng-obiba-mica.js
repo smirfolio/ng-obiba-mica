@@ -2350,7 +2350,9 @@ angular.module('obiba.mica.search')
           this.mergeInQueryArgValues(query, terms, replace);
           break;
         case RQL_NODE.BETWEEN:
-          this.mergeInQueryArgValues(query, terms, true);
+        case RQL_NODE.GE:
+        case RQL_NODE.LE:
+          query.args[1] = terms;
           break;
       }
     };
@@ -2663,6 +2665,10 @@ angular.module('obiba.mica.search')
       this.updateCriteriaItem = function (existingItem, newItem, replace) {
         var newTerms;
 
+        if(replace) {
+          existingItem.rqlQuery.name = newItem.rqlQuery.name; 
+        }
+        
         if (newItem.rqlQuery) {
           newTerms = newItem.rqlQuery.args[1];
         } else if (newItem.term) {
@@ -2677,12 +2683,6 @@ angular.module('obiba.mica.search')
           if (existingItem instanceof RepeatableCriteriaItem) {
             RqlQueryUtils.updateRepeatableQueryArgValues(existingItem, newTerms);
           } else {
-            if(replace) {
-              if(existingItem.rqlQuery.name === RQL_NODE.MISSING) {
-                existingItem.rqlQuery.name = newItem.rqlQuery.name;
-              }
-            }
-            
             RqlQueryUtils.updateQueryArgValues(existingItem.rqlQuery, newTerms, replace);
           }
         }
@@ -8011,22 +8011,22 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "                  </p>\n" +
     "                  <div ng-if=\"taxonomies.isNumericVocabulary\" ng-controller=\"NumericVocabularyPanelController\">\n" +
     "                    <div class=\"form-group\">\n" +
-    "                      <form novalidate class=\"form-inline\">\n" +
-    "                        <div class=\"form-group\">\n" +
-    "                          <label for=\"nav-{{taxonomies.vocabulary.name}}-from\" translate>from</label>\n" +
-    "                          <input type=\"number\" class=\"form-control\" id=\"nav-{{taxonomies.vocabulary.name}}-from\" ng-model=\"from\" style=\"width:150px\">\n" +
-    "                        </div>\n" +
-    "                        <div class=\"form-group\">\n" +
-    "                          <label for=\"nav-{{taxonomies.vocabulary.name}}-to\" translate>to</label>\n" +
-    "                          <input type=\"number\" class=\"form-control\" id=\"nav-{{taxonomies.vocabulary.name}}-to\" ng-model=\"to\" style=\"width:150px\">\n" +
-    "                        </div>\n" +
-    "                      </form>\n" +
+    "                      <a href class=\"btn btn-default btn-xs\"\n" +
+    "                         ng-click=\"selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary, null, from, to)\">\n" +
+    "                        <i class=\"fa fa-plus-circle\"></i>\n" +
+    "                        <span translate>add-query</span>\n" +
+    "                      </a>\n" +
     "                    </div>\n" +
-    "                    <a href class=\"btn btn-default btn-xs\"\n" +
-    "                       ng-click=\"selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary, null, from, to)\">\n" +
-    "                      <i class=\"fa fa-plus-circle\"></i>\n" +
-    "                      <span translate>add-query</span>\n" +
-    "                    </a>\n" +
+    "                    <form novalidate class=\"form-inline\" ui-keypress=\"{13:'selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary, null, from, to)'}\">\n" +
+    "                      <div class=\"form-group\">\n" +
+    "                        <label for=\"nav-{{taxonomies.vocabulary.name}}-from\" translate>from</label>\n" +
+    "                        <input type=\"number\" class=\"form-control\" id=\"nav-{{taxonomies.vocabulary.name}}-from\" ng-model=\"from\" style=\"width:150px\">\n" +
+    "                      </div>\n" +
+    "                      <div class=\"form-group\">\n" +
+    "                        <label for=\"nav-{{taxonomies.vocabulary.name}}-to\" translate>to</label>\n" +
+    "                        <input type=\"number\" class=\"form-control\" id=\"nav-{{taxonomies.vocabulary.name}}-to\" ng-model=\"to\" style=\"width:150px\">\n" +
+    "                      </div>\n" +
+    "                    </form>\n" +
     "                  </div>\n" +
     "                  <div ng-if=\"!taxonomies.isNumericVocabulary\">\n" +
     "                    <a href class=\"btn btn-default btn-xs\"\n" +
