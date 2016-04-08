@@ -1,12 +1,11 @@
 <div class="panel panel-default table-responsive table-responsive-dropdown" ng-if="!data.search.active || data.document.children.length>0">
-  <div class="panel-heading" ng-if="selected.length > 0">
-    <small>
-      {{selected.length}} <span>{{selected.length > 1 ? 'files-selected' : 'file-selected'| translate}}</span>.
-      <a href="" ng-click="selectAll()" ng-if="selected.length < data.document.children.length">
-        <i class="fa fa-check"></i> <span translate>select-all</span>
+  <div class="panel-heading" ng-if="data.search.active">
+      <a class="no-text-decoration" ng-click="clearSearch()">
+        <i class="fa fa-chevron-left"> </i>
       </a>
-      <a href="" ng-click="clearSelection()"><i class="fa fa-times"></i> <span translate>clear-selection</span></a>
-    </small>
+      <span ng-if="data.search.recursively">{{'file.search-results.current-sub' | translate}}</span>
+      <span ng-if="!data.search.recursively">{{'file.search-results.current' | translate}}</span>
+      ({{data.document.children.length}})
   </div>
   <table class="table table-bordered table-striped no-padding no-margin">
     <thead>
@@ -85,7 +84,6 @@
           {{document.attachment.path.replace(data.rootPath, '')}}
         </a>
       </td>
-
     </tr>
     </tbody>
   </table>
