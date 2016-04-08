@@ -13,8 +13,8 @@
       <th translate>name</th>
       <th style="width: 100px" translate>type</th>
       <th style="width: 100px" translate>size</th>
-      <th style="width: 150px" translate>last-modified</th>
-      <th ng-if="data.search.active" translate>path</th>
+      <th style="width: 150px" translate>modified</th>
+      <th ng-if="data.search.active" translate>folder</th>
     </tr>
     </thead>
     <tbody>
@@ -33,7 +33,6 @@
         <span>
           <span ng-if="fileDocument">
             <i class="fa {{getDocumentIcon(document)}}"></i>
-
             <a ng-if="fileDocument" target="_self"
                style="text-decoration: none" ng-href="{{getDownloadUrl(document.path)}}"
                 title="{{document.name}}">
@@ -57,8 +56,8 @@
                   <span><i class="fa fa-info"></i><span class="hoffset2">{{'details' | translate}}</span></span>
                 </a>
               </li>
-              <li role="menuitem">
-                <a href="#">
+              <li role="menuitem" ng-if="fileDocument">
+                <a ng-href="{{getDownloadUrl(document.path)}}">
                   <span><i class="fa fa-download"></i><span class="hoffset2">{{'download' | translate}}</span></span>
                 </a>
               </li>
