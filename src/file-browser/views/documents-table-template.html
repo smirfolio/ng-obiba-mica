@@ -24,7 +24,8 @@
         <span><a href class="no-text-decoration" ng-click="navigateBack()"> ..</a></span>
       </td>
     </tr>
-    <tr dir-paginate="document in data.document.children | itemsPerPage: pagination.itemsPerPage"
+    <tr ng-class="{'selected-row': $index === pagination.selected}"
+        dir-paginate="document in data.document.children | itemsPerPage: pagination.itemsPerPage"
         ng-init="fileDocument = isFile(document)"
         current-page="pagination.currentPage">
 
@@ -45,14 +46,14 @@
               {{document.name}}
             </a>
           </span>
-          <span class="spring-click-area" ng-click="showDetails(document)">&nbsp;</span>
+          <span class="spring-click-area" ng-click="showDetails(document, $index)">&nbsp;</span>
           <span class="btn-group pull-right" uib-dropdown is-open="status.isopen">
             <a title="{{'show-details' | translate}}" id="single-button" class="dropdown-anchor" uib-dropdown-toggle ng-disabled="disabled">
               <i class="glyphicon glyphicon-option-horizontal btn-large"></i>
             </a>
             <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="single-button">
               <li role="menuitem">
-                <a href ng-click="showDetails(document)">
+                <a href ng-click="showDetails(document, $index)">
                   <span><i class="fa fa-info"></i><span class="hoffset2">{{'details' | translate}}</span></span>
                 </a>
               </li>
@@ -67,7 +68,7 @@
       </td>
       <td>
         <span ng-repeat="t in getTypeParts(document) track by $index"
-          class="label label-default"
+          class="label label-info"
           ng-class="{'hoffset1' : !$first}">{{t}}</span>
       </td>
       <td class="no-wrap" ng-if="fileDocument">
@@ -80,7 +81,7 @@
         {{document.timestamps.lastUpdate | amTimeAgo}}
       </td>
       <td ng-if="data.search.active">
-        <a href class="no-text-decoration" ng-click="navigateToParent(document)">
+        <a href class="no-text-decoration" ng-click="navigateToParent($event, document)">
           {{document.attachment.path.replace(data.rootPath, '')}}
         </a>
       </td>
