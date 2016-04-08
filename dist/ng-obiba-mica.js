@@ -6576,7 +6576,8 @@ angular.module('obiba.mica.fileBrowser')
         getDocument(path);
       };
 
-      var navigateTo = function (document) {
+      var navigateTo = function (event, document) {
+        event.stopPropagation();
         if (document) {
           navigateToPath(document.path);
         }
@@ -7447,7 +7448,7 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "    <table class=\"table table-bordered table-striped no-padding no-margin\">\n" +
     "      <thead>\n" +
     "      <tr>\n" +
-    "        <th translate>name</th>\n" +
+    "        <th colspan=\"2\" translate>name</th>\n" +
     "        <th style=\"width: 100px\" translate>type</th>\n" +
     "        <th style=\"width: 100px\" translate>size</th>\n" +
     "        <th style=\"width: 150px\" translate>modified</th>\n" +
@@ -7466,42 +7467,46 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "          ng-init=\"fileDocument = isFile(document)\"\n" +
     "          current-page=\"pagination.currentPage\">\n" +
     "\n" +
-    "        <td>\n" +
+    "        <td ng-click=\"showDetails(document, $index);\">\n" +
     "          <span>\n" +
     "            <span ng-if=\"fileDocument\">\n" +
     "              <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
     "              <a ng-if=\"fileDocument\" target=\"_self\"\n" +
-    "                 style=\"text-decoration: none\" ng-href=\"{{getDownloadUrl(document.path)}}\"\n" +
+    "                 style=\"text-decoration: none\" ng-click=\"$event.stopPropagation();\" ng-href=\"{{getDownloadUrl(document.path)}}\"\n" +
     "                  title=\"{{document.name}}\">\n" +
     "                {{document.name}}\n" +
     "              </a>\n" +
     "            </span>\n" +
     "            <span ng-if=\"!fileDocument\">\n" +
     "              <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
-    "              <a href style=\"text-decoration: none\" ng-click=\"navigateTo(document)\">\n" +
+    "              <a href style=\"text-decoration: none\" ng-click=\"navigateTo($event, document)\">\n" +
     "                {{document.name}}\n" +
     "              </a>\n" +
     "            </span>\n" +
-    "            <span class=\"spring-click-area\" ng-click=\"showDetails(document, $index)\">&nbsp;</span>\n" +
-    "            <span class=\"btn-group pull-right\" uib-dropdown is-open=\"status.isopen\">\n" +
-    "              <a title=\"{{'show-details' | translate}}\" id=\"single-button\" class=\"dropdown-anchor\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
-    "                <i class=\"glyphicon glyphicon-option-horizontal btn-large\"></i>\n" +
-    "              </a>\n" +
-    "              <ul class=\"dropdown-menu\" uib-dropdown-menu role=\"menu\" aria-labelledby=\"single-button\">\n" +
-    "                <li role=\"menuitem\">\n" +
-    "                  <a href ng-click=\"showDetails(document, $index)\">\n" +
-    "                    <span><i class=\"fa fa-info\"></i><span class=\"hoffset2\">{{'details' | translate}}</span></span>\n" +
-    "                  </a>\n" +
-    "                </li>\n" +
-    "                <li role=\"menuitem\" ng-if=\"fileDocument\">\n" +
-    "                  <a ng-href=\"{{getDownloadUrl(document.path)}}\">\n" +
-    "                    <span><i class=\"fa fa-download\"></i><span class=\"hoffset2\">{{'download' | translate}}</span></span>\n" +
-    "                  </a>\n" +
-    "                </li>\n" +
-    "              </ul>\n" +
-    "            </span>\n" +
     "          </span>\n" +
     "        </td>\n" +
+    "\n" +
+    "        <td class=\"fit-content\">\n" +
+    "          <span class=\"btn-group pull-right\" uib-dropdown is-open=\"status.isopen\">\n" +
+    "            <a title=\"{{'show-details' | translate}}\" id=\"single-button\" class=\"dropdown-anchor\" uib-dropdown-toggle\n" +
+    "               ng-disabled=\"disabled\">\n" +
+    "              <i class=\"glyphicon glyphicon-option-horizontal btn-large\"></i>\n" +
+    "            </a>\n" +
+    "            <ul class=\"dropdown-menu\" uib-dropdown-menu role=\"menu\" aria-labelledby=\"single-button\">\n" +
+    "              <li role=\"menuitem\">\n" +
+    "                <a href ng-click=\"showDetails(document, $index)\">\n" +
+    "                  <span><i class=\"fa fa-info\"></i><span class=\"hoffset2\">{{'details' | translate}}</span></span>\n" +
+    "                </a>\n" +
+    "              </li>\n" +
+    "              <li role=\"menuitem\" ng-if=\"fileDocument\">\n" +
+    "                <a ng-href=\"{{getDownloadUrl(document.path)}}\">\n" +
+    "                  <span><i class=\"fa fa-download\"></i><span class=\"hoffset2\">{{'download' | translate}}</span></span>\n" +
+    "                </a>\n" +
+    "              </li>\n" +
+    "            </ul>\n" +
+    "          </span>\n" +
+    "        </td>\n" +
+    "\n" +
     "        <td>\n" +
     "          <span ng-repeat=\"t in getTypeParts(document) track by $index\"\n" +
     "            class=\"label label-info\"\n" +
