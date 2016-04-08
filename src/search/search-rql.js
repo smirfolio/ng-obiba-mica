@@ -1123,7 +1123,7 @@ angular.module('obiba.mica.search')
       this.updateCriteriaItem = function (existingItem, newItem, replace) {
         var newTerms;
 
-        if(replace) {
+        if(replace && newItem.rqlQuery) {
           existingItem.rqlQuery.name = newItem.rqlQuery.name; 
         }
         
