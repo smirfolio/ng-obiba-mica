@@ -6687,7 +6687,7 @@ angular.module('obiba.mica.fileBrowser')
       $scope.pagination = {
         selected: -1,
         currentPage: 1,
-        itemsPerPage: 1
+        itemsPerPage: 20
       };
 
       $scope.data = {
@@ -7358,6 +7358,9 @@ angular.module("file-browser/views/document-detail-template.html", []).run(["$te
     "      <div>\n" +
     "        <span ng-if=\"!isFile(data.details.document)\">{{data.details.document.size}} {{'files' | translate}}</span>\n" +
     "        <span ng-if=\"isFile(data.details.document)\">{{data.details.document.size | bytes}}</span>\n" +
+    "        <a ng-if=\"isFile(data.details.document)\" target=\"_self\" ng-href=\"{{getDownloadUrl(data.details.document.path)}}\" class=\"hoffset2\" title=\"{{'download' | translate}}\">\n" +
+    "          <span><i class=\"fa fa-download\"></i><span class=\"hoffset2\"></span></span>\n" +
+    "        </a>\n" +
     "      </div>\n" +
     "    </div>\n" +
     "\n" +
@@ -7421,8 +7424,8 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "      <th translate>name</th>\n" +
     "      <th style=\"width: 100px\" translate>type</th>\n" +
     "      <th style=\"width: 100px\" translate>size</th>\n" +
-    "      <th style=\"width: 150px\" translate>last-modified</th>\n" +
-    "      <th ng-if=\"data.search.active\" translate>path</th>\n" +
+    "      <th style=\"width: 150px\" translate>modified</th>\n" +
+    "      <th ng-if=\"data.search.active\" translate>folder</th>\n" +
     "    </tr>\n" +
     "    </thead>\n" +
     "    <tbody>\n" +
@@ -7441,7 +7444,6 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "        <span>\n" +
     "          <span ng-if=\"fileDocument\">\n" +
     "            <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
-    "\n" +
     "            <a ng-if=\"fileDocument\" target=\"_self\"\n" +
     "               style=\"text-decoration: none\" ng-href=\"{{getDownloadUrl(document.path)}}\"\n" +
     "                title=\"{{document.name}}\">\n" +
@@ -7465,8 +7467,8 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "                  <span><i class=\"fa fa-info\"></i><span class=\"hoffset2\">{{'details' | translate}}</span></span>\n" +
     "                </a>\n" +
     "              </li>\n" +
-    "              <li role=\"menuitem\">\n" +
-    "                <a href=\"#\">\n" +
+    "              <li role=\"menuitem\" ng-if=\"fileDocument\">\n" +
+    "                <a ng-href=\"{{getDownloadUrl(document.path)}}\">\n" +
     "                  <span><i class=\"fa fa-download\"></i><span class=\"hoffset2\">{{'download' | translate}}</span></span>\n" +
     "                </a>\n" +
     "              </li>\n" +
