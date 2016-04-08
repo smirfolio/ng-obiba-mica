@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-04-07
+ * Date: 2016-04-08
  */
 'use strict';
 
@@ -7499,7 +7499,9 @@ angular.module("file-browser/views/file-browser-template.html", []).run(["$templ
     "      <!-- second level breadcrumb -->\n" +
     "      <ol ng-show=\"data.document.path !== data.rootPath\" class=\"breadcrumb mica-breadcrumb no-margin no-padding\">\n" +
     "        <li>\n" +
+    "          <a href ng-click=\"navigateToPath(data.rootPath)\">\n" +
     "          <span><i class=\"fa {{getDocumentIcon(data.document)}}\"></i></span>\n" +
+    "          </a>\n" +
     "        </li>\n" +
     "        <li ng-repeat=\"part in data.breadcrumbs\" ng-class=\"{'active': $first === $last && $last}\">\n" +
     "          <a ng-show=\"!$last && part.name !== '/'\" href ng-click=\"navigateToPath(part.path)\">\n" +
