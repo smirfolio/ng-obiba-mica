@@ -11,7 +11,7 @@
     <table class="table table-bordered table-striped no-padding no-margin">
       <thead>
       <tr>
-        <th translate>name</th>
+        <th colspan="2" translate>name</th>
         <th style="width: 100px" translate>type</th>
         <th style="width: 100px" translate>size</th>
         <th style="width: 150px" translate>modified</th>
@@ -30,42 +30,46 @@
           ng-init="fileDocument = isFile(document)"
           current-page="pagination.currentPage">
 
-        <td>
+        <td ng-click="showDetails(document, $index);">
           <span>
             <span ng-if="fileDocument">
               <i class="fa {{getDocumentIcon(document)}}"></i>
               <a ng-if="fileDocument" target="_self"
-                 style="text-decoration: none" ng-href="{{getDownloadUrl(document.path)}}"
+                 style="text-decoration: none" ng-click="$event.stopPropagation();" ng-href="{{getDownloadUrl(document.path)}}"
                   title="{{document.name}}">
                 {{document.name}}
               </a>
             </span>
             <span ng-if="!fileDocument">
               <i class="fa {{getDocumentIcon(document)}}"></i>
-              <a href style="text-decoration: none" ng-click="navigateTo(document)">
+              <a href style="text-decoration: none" ng-click="navigateTo($event, document)">
                 {{document.name}}
               </a>
             </span>
-            <span class="spring-click-area" ng-click="showDetails(document, $index)">&nbsp;</span>
-            <span class="btn-group pull-right" uib-dropdown is-open="status.isopen">
-              <a title="{{'show-details' | translate}}" id="single-button" class="dropdown-anchor" uib-dropdown-toggle ng-disabled="disabled">
-                <i class="glyphicon glyphicon-option-horizontal btn-large"></i>
-              </a>
-              <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="single-button">
-                <li role="menuitem">
-                  <a href ng-click="showDetails(document, $index)">
-                    <span><i class="fa fa-info"></i><span class="hoffset2">{{'details' | translate}}</span></span>
-                  </a>
-                </li>
-                <li role="menuitem" ng-if="fileDocument">
-                  <a ng-href="{{getDownloadUrl(document.path)}}">
-                    <span><i class="fa fa-download"></i><span class="hoffset2">{{'download' | translate}}</span></span>
-                  </a>
-                </li>
-              </ul>
-            </span>
           </span>
         </td>
+
+        <td class="fit-content">
+          <span class="btn-group pull-right" uib-dropdown is-open="status.isopen">
+            <a title="{{'show-details' | translate}}" id="single-button" class="dropdown-anchor" uib-dropdown-toggle
+               ng-disabled="disabled">
+              <i class="glyphicon glyphicon-option-horizontal btn-large"></i>
+            </a>
+            <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="single-button">
+              <li role="menuitem">
+                <a href ng-click="showDetails(document, $index)">
+                  <span><i class="fa fa-info"></i><span class="hoffset2">{{'details' | translate}}</span></span>
+                </a>
+              </li>
+              <li role="menuitem" ng-if="fileDocument">
+                <a ng-href="{{getDownloadUrl(document.path)}}">
+                  <span><i class="fa fa-download"></i><span class="hoffset2">{{'download' | translate}}</span></span>
+                </a>
+              </li>
+            </ul>
+          </span>
+        </td>
+
         <td>
           <span ng-repeat="t in getTypeParts(document) track by $index"
             class="label label-info"
