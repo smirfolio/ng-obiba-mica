@@ -10,7 +10,7 @@
       <ol ng-show="data.document.path !== data.rootPath" class="breadcrumb mica-breadcrumb no-margin no-padding">
         <li>
           <a href ng-click="navigateToPath(data.rootPath)">
-          <span><i class="fa {{getDocumentIcon(data.document)}}"></i></span>
+            <span><i class="fa {{getDocumentIcon(data.document)}}"></i></span>
           </a>
         </li>
         <li ng-repeat="part in data.breadcrumbs" ng-class="{'active': $first === $last && $last}">

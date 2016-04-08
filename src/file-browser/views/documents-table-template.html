@@ -12,9 +12,9 @@
     <thead>
     <tr>
       <th translate>name</th>
-      <th translate>last-modified</th>
-      <th translate>type</th>
-      <th translate>size</th>
+      <th style="width: 100px" translate>type</th>
+      <th style="width: 100px" translate>size</th>
+      <th style="width: 150px" translate>last-modified</th>
       <th ng-if="data.search.active" translate>path</th>
     </tr>
     </thead>
@@ -67,18 +67,18 @@
         </span>
       </td>
       <td>
-        {{document.timestamps.lastUpdate | amTimeAgo}}
-      </td>
-      <td>
         <span ng-repeat="t in getTypeParts(document) track by $index"
-              class="label label-default"
-              ng-class="{'hoffset1' : !$first}">{{t}}</span>
+          class="label label-default"
+          ng-class="{'hoffset1' : !$first}">{{t}}</span>
       </td>
       <td class="no-wrap" ng-if="fileDocument">
         {{document.size | bytes}}
       </td>
       <td class="no-wrap" ng-if="!fileDocument">
         {{document.size}}
+      </td>
+      <td>
+        {{document.timestamps.lastUpdate | amTimeAgo}}
       </td>
       <td ng-if="data.search.active">
         <a href class="no-text-decoration" ng-click="navigateToParent(document)">
