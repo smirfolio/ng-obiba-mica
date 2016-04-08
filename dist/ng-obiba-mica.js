@@ -7406,9 +7406,9 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "    <thead>\n" +
     "    <tr>\n" +
     "      <th translate>name</th>\n" +
-    "      <th translate>last-modified</th>\n" +
-    "      <th translate>type</th>\n" +
-    "      <th translate>size</th>\n" +
+    "      <th style=\"width: 100px\" translate>type</th>\n" +
+    "      <th style=\"width: 100px\" translate>size</th>\n" +
+    "      <th style=\"width: 150px\" translate>last-modified</th>\n" +
     "      <th ng-if=\"data.search.active\" translate>path</th>\n" +
     "    </tr>\n" +
     "    </thead>\n" +
@@ -7461,18 +7461,18 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "        </span>\n" +
     "      </td>\n" +
     "      <td>\n" +
-    "        {{document.timestamps.lastUpdate | amTimeAgo}}\n" +
-    "      </td>\n" +
-    "      <td>\n" +
     "        <span ng-repeat=\"t in getTypeParts(document) track by $index\"\n" +
-    "              class=\"label label-default\"\n" +
-    "              ng-class=\"{'hoffset1' : !$first}\">{{t}}</span>\n" +
+    "          class=\"label label-default\"\n" +
+    "          ng-class=\"{'hoffset1' : !$first}\">{{t}}</span>\n" +
     "      </td>\n" +
     "      <td class=\"no-wrap\" ng-if=\"fileDocument\">\n" +
     "        {{document.size | bytes}}\n" +
     "      </td>\n" +
     "      <td class=\"no-wrap\" ng-if=\"!fileDocument\">\n" +
     "        {{document.size}}\n" +
+    "      </td>\n" +
+    "      <td>\n" +
+    "        {{document.timestamps.lastUpdate | amTimeAgo}}\n" +
     "      </td>\n" +
     "      <td ng-if=\"data.search.active\">\n" +
     "        <a href class=\"no-text-decoration\" ng-click=\"navigateToParent(document)\">\n" +
@@ -7500,7 +7500,7 @@ angular.module("file-browser/views/file-browser-template.html", []).run(["$templ
     "      <ol ng-show=\"data.document.path !== data.rootPath\" class=\"breadcrumb mica-breadcrumb no-margin no-padding\">\n" +
     "        <li>\n" +
     "          <a href ng-click=\"navigateToPath(data.rootPath)\">\n" +
-    "          <span><i class=\"fa {{getDocumentIcon(data.document)}}\"></i></span>\n" +
+    "            <span><i class=\"fa {{getDocumentIcon(data.document)}}\"></i></span>\n" +
     "          </a>\n" +
     "        </li>\n" +
     "        <li ng-repeat=\"part in data.breadcrumbs\" ng-class=\"{'active': $first === $last && $last}\">\n" +
@@ -7531,37 +7531,42 @@ angular.module("file-browser/views/file-browser-template.html", []).run(["$templ
 
 angular.module("file-browser/views/shortcuts-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("file-browser/views/shortcuts-template.html",
-    "<div class=\"row\">\n" +
-    "  <div class=\"col-md-3\">\n" +
-    "    <a href>\n" +
+    "<table style=\"border:none\">\n" +
+    "  <tbody>\n" +
+    "  <tr>\n" +
+    "    <td>\n" +
+    "      <a href>\n" +
     "      <span class=\"input-group input-group-sm no-padding-top no-padding-right\">\n" +
     "        <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-search\"></i></span>\n" +
     "        <input ng-keyup=\"searchKeyUp($event)\"\n" +
     "               ng-model=\"data.search.text\"\n" +
     "               type=\"text\"\n" +
     "               class=\"form-control ng-pristine ng-untouched ng-valid\"\n" +
-    "               aria-describedby=\"study-search\">\n" +
+    "               aria-describedby=\"study-search\"\n" +
+    "               style=\"max-width: 100px;\">\n" +
     "        <span ng-show=\"data.search.text\" title=\"{{'search-tooltip.clear' | translate}}\" ng-click=\"clearSearch()\" class=\"input-group-addon\">\n" +
     "          <i class=\"fa fa-times\"></i>\n" +
     "        </span>\n" +
     "      </span>\n" +
-    "    </a>\n" +
-    "  </div>\n" +
-    "  <div class=\"col-md-1 no-padding-left\">\n" +
-    "    <a href ng-model=\"data.search.recursively\"\n" +
-    "       class=\"btn btn-sm\"\n" +
-    "       ng-class=\"{'btn-info': data.search.recursively, 'btn-default': !data.search.recursively}\"\n" +
-    "       data-toggle=\"button\" ng-click=\"toggleRecursively()\"\n" +
-    "       title=\"{{'search-tooltip.recursively' | translate}}\">\n" +
-    "      <i class=\"fa i-obiba-hierarchy\"></i>\n" +
-    "    </a>\n" +
-    "    <a href ng-click=\"searchDocuments('RECENT')\"\n" +
-    "       class=\"btn btn-info btn-sm\"\n" +
-    "       title=\"{{'search-tooltip.most-recent' | translate}}\">\n" +
-    "      <span><i class=\"fa fa-clock-o fa-lg\"></i></span>\n" +
-    "    </a>\n" +
-    "  </div>\n" +
-    "</div>");
+    "      </a>\n" +
+    "    </td>\n" +
+    "    <td>\n" +
+    "      <a href ng-model=\"data.search.recursively\"\n" +
+    "         class=\"btn btn-sm hoffset1\"\n" +
+    "         ng-class=\"{'btn-info': data.search.recursively, 'btn-default': !data.search.recursively}\"\n" +
+    "         data-toggle=\"button\" ng-click=\"toggleRecursively()\"\n" +
+    "         title=\"{{'search-tooltip.recursively' | translate}}\">\n" +
+    "        <i class=\"fa i-obiba-hierarchy\"></i>\n" +
+    "      </a>\n" +
+    "      <a href ng-click=\"searchDocuments('RECENT')\"\n" +
+    "         class=\"btn btn-info btn-sm\"\n" +
+    "         title=\"{{'search-tooltip.most-recent' | translate}}\">\n" +
+    "        <span><i class=\"fa fa-clock-o fa-lg\"></i></span>\n" +
+    "      </a>\n" +
+    "    </td>\n" +
+    "  </tr>\n" +
+    "  </tbody>\n" +
+    "</table>");
 }]);
 
 angular.module("file-browser/views/toolbar-template.html", []).run(["$templateCache", function($templateCache) {
