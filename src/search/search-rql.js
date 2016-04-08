@@ -808,7 +808,9 @@ angular.module('obiba.mica.search')
           this.mergeInQueryArgValues(query, terms, replace);
           break;
         case RQL_NODE.BETWEEN:
-          this.mergeInQueryArgValues(query, terms, true);
+        case RQL_NODE.GE:
+        case RQL_NODE.LE:
+          query.args[1] = terms;
           break;
       }
     };
@@ -1121,6 +1123,10 @@ angular.module('obiba.mica.search')
       this.updateCriteriaItem = function (existingItem, newItem, replace) {
         var newTerms;
 
+        if(replace) {
+          existingItem.rqlQuery.name = newItem.rqlQuery.name; 
+        }
+        
         if (newItem.rqlQuery) {
           newTerms = newItem.rqlQuery.args[1];
         } else if (newItem.term) {
@@ -1135,12 +1141,6 @@ angular.module('obiba.mica.search')
           if (existingItem instanceof RepeatableCriteriaItem) {
             RqlQueryUtils.updateRepeatableQueryArgValues(existingItem, newTerms);
           } else {
-            if(replace) {
-              if(existingItem.rqlQuery.name === RQL_NODE.MISSING) {
-                existingItem.rqlQuery.name = newItem.rqlQuery.name;
-              }
-            }
-            
             RqlQueryUtils.updateQueryArgValues(existingItem.rqlQuery, newTerms, replace);
           }
         }
