@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-04-08
+ * Date: 2016-04-11
  */
 'use strict';
 
@@ -7559,7 +7559,7 @@ angular.module("file-browser/views/file-browser-template.html", []).run(["$templ
     "          <div ng-if=\"!data.isFile && data.document.children.length < 1 && !data.search.active\" class=\"text-muted\">\n" +
     "            <em>{{'empty-folder' | translate}}</em>\n" +
     "          </div>\n" +
-    "          <div class=\"pull-right no-margin\">\n" +
+    "          <div class=\"pull-right voffset2\">\n" +
     "            <dir-pagination-controls></dir-pagination-controls>\n" +
     "          </div>\n" +
     "        </div>\n" +
