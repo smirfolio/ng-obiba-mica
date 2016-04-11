@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-04-08
+ * Date: 2016-04-11
  */
 'use strict';
 
@@ -174,26 +174,30 @@ angular.module('obiba.mica.utils', [])
       return true;
     };
   })
-  
+
   .directive('fixedHeader', ['$timeout','$window', function ($timeout, $window) {
     return {
       restrict: 'A',
       scope: {
-        tableMaxHeight: '@'
+        tableMaxHeight: '@',
+        trigger: '=fixedHeader'
       },
       link: function ($scope, $elem) {
         var elem = $elem[0];
+
         function isVisible(el) {
           var style = $window.getComputedStyle(el);
           return (style.display !== 'none' && el.offsetWidth !==0 );
         }
+
         function isTableReady() {
           return isVisible(elem.querySelector('tbody')) && elem.querySelector('tbody tr:first-child') !== null;
         }
+
         // wait for content to load into table and to have at least one row, tdElems could be empty at the time of execution if td are created asynchronously (eg ng-repeat with promise)
-        var unbindWatch = $scope.$watch(isTableReady,
+        $scope.$watchGroup(['trigger', isTableReady],
           function (newValue) {
-            if (newValue === true) {
+            if (newValue[1] === true) {
               // reset display styles so column widths are correct when measured below
               angular.element(elem.querySelectorAll('thead, tbody, tfoot')).css('display', '');
 
@@ -204,9 +208,8 @@ angular.module('obiba.mica.utils', [])
 
                   var tdElems = elem.querySelector('tbody tr:first-child td:nth-child(' + (i + 1) + ')');
                   var tfElems = elem.querySelector('tfoot tr:first-child td:nth-child(' + (i + 1) + ')');
-
-
                   var columnWidth = tdElems ? tdElems.offsetWidth : thElem.offsetWidth;
+
                   if(tdElems) {
                     tdElems.style.width = columnWidth + 'px';
                   }
@@ -217,6 +220,7 @@ angular.module('obiba.mica.utils', [])
                     tfElems.style.width = columnWidth + 'px';
                   }
                 });
+
                 // set css styles on thead and tbody
                 angular.element(elem.querySelectorAll('thead, tfoot')).css('display', 'block');
 
@@ -237,9 +241,6 @@ angular.module('obiba.mica.utils', [])
                   lastColumn.style.width = (lastColumn.offsetWidth - scrollBarWidth) + 'px';
                 }
               });
-
-              //we only need to watch once
-              unbindWatch();
             }
           });
       }
@@ -8563,7 +8564,7 @@ angular.module("search/views/graphics/graphics-search-result-template.html", [])
     "        </div>\n" +
     "        <div class=\"col-md-6\">\n" +
     "          <div class=\"table-responsive\" ng-if=\"chart.chartObject.data && chart.chartObject.data.length>1\">\n" +
-    "            <table style=\"max-height: 400px;\" class=\"table table-bordered table-striped\" fixed-header>\n" +
+    "            <table style=\"max-height: 400px;\" class=\"table table-bordered table-striped\" fixed-header=\"chart.chartObject.data\">\n" +
     "              <thead>\n" +
     "              <tr>\n" +
     "                <th>{{chart.chartObject.data[0][0]}}</th>\n" +
