@@ -5357,11 +5357,13 @@ angular.module('obiba.mica.search')
     };
   }])
 
-  .directive('studiesResultTable', ['PageUrlService', 'ngObibaMicaSearch', 'TaxonomyResource', 'RqlQueryService', function (PageUrlService, ngObibaMicaSearch, TaxonomyResource, RqlQueryService) {
+  .directive('studiesResultTable', ['PageUrlService', 'ngObibaMicaSearch', 'TaxonomyResource', 'RqlQueryService', 'LocalizedValues',
+    function (PageUrlService, ngObibaMicaSearch, TaxonomyResource, RqlQueryService, LocalizedValues) {
     return {
       restrict: 'EA',
       replace: true,
       scope: {
+        lang: '=',
         summaries: '=',
         loading: '=',
         onUpdateCriteria: '='
@@ -5370,21 +5372,41 @@ angular.module('obiba.mica.search')
       link: function(scope) {
         scope.taxonomy = {};
         scope.designs = {};
+        scope.datasourceTitles = {};
+
+        function getDatasourceTitles() {
+          if (Object.keys(scope.taxonomy) < 1 || Object.keys(scope.datasourceTitles) > 0) {
+            return;
+          }
+
+          scope.taxonomy.vocabularies.some(function(vocabulary) {
+            if (vocabulary.name === 'populations-dataCollectionEvents-dataSources') {
+              vocabulary.terms.forEach(function(term) {
+                scope.datasourceTitles[term.name] = {title: LocalizedValues.forLocale(term.title, scope.lang)};
+              });
+              return true;
+            }
+            return false;
+          });
+        }
+
+        scope.$watch('lang', getDatasourceTitles);
 
         TaxonomyResource.get({
           target: 'study',
           taxonomy: 'Mica_study'
         }).$promise.then(function (taxonomy) {
-            scope.taxonomy = taxonomy;
-            scope.designs = taxonomy.vocabularies.filter(function (v) {
-              return v.name === 'methods-designs';
-            })[0].terms.reduce(function (prev, t) {
-                prev[t.name] = t.title.map(function (t) {
-                  return {lang: t.locale, value: t.text};
-                });
-                return prev;
-              }, {});
-          });
+          scope.taxonomy = taxonomy;
+          getDatasourceTitles();
+          scope.designs = taxonomy.vocabularies.filter(function (v) {
+            return v.name === 'methods-designs';
+          })[0].terms.reduce(function (prev, t) {
+              prev[t.name] = t.title.map(function (t) {
+                return {lang: t.locale, value: t.text};
+              });
+              return prev;
+            }, {});
+        });
 
         scope.hasDatasource = function (datasources, id) {
           return datasources && datasources.indexOf(id) > -1;
@@ -8801,10 +8823,10 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "              ng-if=\"optionsCols.showStudiesStudyVariablesColumn || optionsCols.showStudiesDataschemaVariablesColumn\">variables</th>\n" +
     "        </tr>\n" +
     "        <tr>\n" +
-    "          <th translate ng-if=\"optionsCols.showStudiesQuestionnaireColumn\">search.study.quest</th>\n" +
-    "          <th translate ng-if=\"optionsCols.showStudiesPmColumn\">search.study.pm</th>\n" +
-    "          <th translate ng-if=\"optionsCols.showStudiesBioColumn\">search.study.bio</th>\n" +
-    "          <th translate ng-if=\"optionsCols.showStudiesOtherColumn\">search.study.others</th>\n" +
+    "          <th title=\"{{datasourceTitles.questionnaires.title}}\" translate ng-if=\"optionsCols.showStudiesQuestionnaireColumn\">search.study.quest</th>\n" +
+    "          <th title=\"{{datasourceTitles.physical_measures.title}}\" translate ng-if=\"optionsCols.showStudiesPmColumn\">search.study.pm</th>\n" +
+    "          <th title=\"{{datasourceTitles.biological_samples.title}}\" translate ng-if=\"optionsCols.showStudiesBioColumn\">search.study.bio</th>\n" +
+    "          <th title=\"{{datasourceTitles.others.title}}\" translate ng-if=\"optionsCols.showStudiesOtherColumn\">search.study.others</th>\n" +
     "          <th translate ng-if=\"optionsCols.showStudiesStudyDatasetsColumn\">search.study.label</th>\n" +
     "          <th translate ng-if=\"optionsCols.showStudiesHarmonizationDatasetsColumn\">search.harmonization</th>\n" +
     "          <th translate ng-if=\"optionsCols.showStudiesStudyVariablesColumn\">search.variable.study</th>\n" +
@@ -8972,7 +8994,7 @@ angular.module("search/views/search-result-list-study-template.html", []).run(["
   $templateCache.put("search/views/search-result-list-study-template.html",
     "<div class=\"tab-pane\" ng-show=\"options.studies.showSearchTab\" ng-class=\"{'active': activeTarget.studies.active}\">\n" +
     "  <span ng-if=\"resultTabsOrder.length === 1\">{{'studies' | translate}} ({{result.list.studyResultDto.totalHits}})</span>\n" +
-    "  <studies-result-table loading=\"loading\" on-update-criteria=\"onUpdateCriteria\"\n" +
+    "  <studies-result-table lang=\"lang\" loading=\"loading\" on-update-criteria=\"onUpdateCriteria\"\n" +
     "      summaries=\"result.list.studyResultDto['obiba.mica.StudyResultDto.result'].summaries\"></studies-result-table>\n" +
     "</div>");
 }]);
