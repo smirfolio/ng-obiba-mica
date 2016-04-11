@@ -1368,6 +1368,7 @@ angular.module('obiba.mica.search', [
         coverageHelp: null,
         graphicsLabel: 'search.graphics',
         graphicsHelp: null,
+        classificationsTitle: null,
         classificationsLinkLabel: null,
         taxonomyNavHelp: null,
         vocabularyNavHelp: null,
@@ -9106,6 +9107,9 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      <div class=\"col-md-6\">\n" +
     "        <small>\n" +
     "          <ul class=\"nav nav-pills\">\n" +
+    "            <li ng-if=\"options.classificationsTitle\">\n" +
+    "              <label class=\"nav-label\">{{options.classificationsTitle}}</label>\n" +
+    "            </li>\n" +
     "            <li ng-repeat=\"t in taxonomyNav track by $index\" title=\"{{t.locale.description.text}}\">\n" +
     "              <a href ng-click=\"showTaxonomy(t.target, t.name)\" ng-if=\"!t.terms\">{{t.locale.title.text}}</a>\n" +
     "            <span uib-dropdown ng-if=\"t.terms\">\n" +
