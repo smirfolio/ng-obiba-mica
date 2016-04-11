@@ -7614,7 +7614,7 @@ angular.module("file-browser/views/toolbar-template.html", []).run(["$templateCa
     "                   type=\"text\"\n" +
     "                   class=\"form-control ng-pristine ng-untouched ng-valid\"\n" +
     "                   aria-describedby=\"study-search\"\n" +
-    "                   style=\"max-width: 100px;\">\n" +
+    "                   style=\"max-width: 200px;\">\n" +
     "               <span ng-show=\"data.search.text\" title=\"{{'search-tooltip.clear' | translate}}\" ng-click=\"clearSearch()\"\n" +
     "                  class=\"input-group-addon\">\n" +
     "                <i class=\"fa fa-times\"></i>\n" +
