@@ -7406,7 +7406,7 @@ angular.module("file-browser/views/document-detail-template.html", []).run(["$te
     "        <small>{{'size' | translate}}</small>\n" +
     "      </label>\n" +
     "      <div>\n" +
-    "        <span ng-if=\"!isFile(data.details.document)\">{{data.details.document.size}} {{'files' | translate}}</span>\n" +
+    "        <span ng-if=\"!isFile(data.details.document)\">{{data.details.document.size}} {{data.details.document.size > 1 ? 'items' : 'item' | translate}}</span>\n" +
     "        <span ng-if=\"isFile(data.details.document)\">{{data.details.document.size | bytes}}</span>\n" +
     "        <a ng-if=\"isFile(data.details.document)\" target=\"_self\" ng-href=\"{{getDownloadUrl(data.details.document.path)}}\" class=\"hoffset2\" title=\"{{'download' | translate}}\">\n" +
     "          <span><i class=\"fa fa-download\"></i><span class=\"hoffset2\"></span></span>\n" +
@@ -7540,7 +7540,7 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "          {{document.size | bytes}}\n" +
     "        </td>\n" +
     "        <td class=\"no-wrap\" ng-if=\"!fileDocument\">\n" +
-    "          {{document.size}}\n" +
+    "          {{document.size}} {{document.size > 1 ? 'items' : 'item' | translate}}\n" +
     "        </td>\n" +
     "        <td>\n" +
     "          {{document.timestamps.lastUpdate | amTimeAgo}}\n" +
