@@ -4747,7 +4747,6 @@ angular.module('obiba.mica.search')
             } else {
               r.selected = false;
             }
-
           });
         }
       };
@@ -4766,6 +4765,29 @@ angular.module('obiba.mica.search')
         }
 
         return '';
+      }
+
+      function updateFilterCriteriaInternal(selected) {
+        var vocabulary = $scope.bucket === BUCKET_TYPES.DCE ? 'dceIds' : 'id';
+        $q.all(selected.map(function (r) {
+          return RqlQueryService.createCriteriaItem(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary, r.value);
+        })).then(function (items) {
+          if (!items.length) {
+            return;
+          }
+
+          var selectionItem = items.reduce(function (prev, item) {
+            if (prev) {
+              RqlQueryService.updateCriteriaItem(prev, item);
+              return prev;
+            }
+
+            item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
+            return item;
+          }, null);
+
+          $scope.onUpdateCriteria(selectionItem, 'variables', true);
+        });
       }
 
       function splitIds() {
@@ -4949,8 +4971,7 @@ angular.module('obiba.mica.search')
       };
 
       $scope.$watch('result', function () {
-        $scope.table = {};
-        $scope.table.cols = [];
+        $scope.table = {cols: []};
         if ($scope.result && $scope.result.rows) {
           $scope.table = $scope.result;
           $scope.table.cols = splitIds();
@@ -4992,31 +5013,27 @@ angular.module('obiba.mica.search')
         });
       };
 
-      $scope.updateFilterCriteria = function () {
-        var vocabulary = $scope.bucket === BUCKET_TYPES.DCE ? 'dceIds' : 'id',
-          selected = $scope.table.rows.filter(function (r) {
-            return r.selected;
-          });
 
-        $q.all(selected.map(function (r) {
-          return RqlQueryService.createCriteriaItem(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary, r.value);
-        })).then(function (items) {
-          if (!items.length) {
-            return;
-          }
-
-          var selectionItem = items.reduce(function (prev, item) {
-            if (prev) {
-              RqlQueryService.updateCriteriaItem(prev, item);
-              return prev;
+      $scope.selectFullAndFilter = function() {
+        var selected = [];
+        if ($scope.table && $scope.table.rows) {
+          $scope.table.rows.forEach(function(r){
+            if (r.hits) {
+              if (r.hits.filter(function(h){
+                  return h === 0;
+                }).length === 0) {
+                selected.push(r);
+              }
             }
+          });
+        }
+        updateFilterCriteriaInternal(selected);
+      };
 
-            item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
-            return item;
-          }, null);
-
-          $scope.onUpdateCriteria(selectionItem, 'variables', true);
-        });
+      $scope.updateFilterCriteria = function () {
+        updateFilterCriteriaInternal($scope.table.rows.filter(function (r) {
+          return r.selected;
+        }));
       };
     }])
 
@@ -8213,6 +8230,9 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "    <div class=\"pull-right\">\n" +
     "      <a ng-if=\"hasSelected()\" href class=\"btn btn-default\" ng-click=\"updateFilterCriteria()\">\n" +
     "        <i class=\"fa fa-filter\"></i> {{'search.filter' | translate}}\n" +
+    "      </a>\n" +
+    "      <a href class=\"btn btn-info btn-responsive\" ng-click=\"selectFullAndFilter()\">\n" +
+    "        {{'search.coverage-select.full' | translate}}\n" +
     "      </a>\n" +
     "      <a ng-if=\"table.taxonomyHeaders.length > 0\" target=\"_self\" class=\"btn btn-info btn-responsive\"\n" +
     "        ng-href=\"{{downloadUrl()}}\">\n" +
