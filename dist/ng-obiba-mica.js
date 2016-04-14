@@ -7373,7 +7373,9 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
 
 angular.module("attachment/attachment-input-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("attachment/attachment-input-template.html",
-    "<button type=\"button\" class=\"btn btn-primary btn-xs\" aria-hidden=\"true\" ngf-select ngf-change=\"onFileSelect($files)\" translate>file.upload.button</button>\n" +
+    "<button type=\"button\" class=\"btn btn-primary btn-xs\" aria-hidden=\"true\" ngf-multiple=\"{{multiple}}\" ngf-select\n" +
+    "        ngf-change=\"onFileSelect($files)\" translate>file.upload.button\n" +
+    "</button>\n" +
     "\n" +
     "<table ng-show=\"files.length\" class=\"table table-striped\">\n" +
     "  <tbody>\n" +
@@ -7607,10 +7609,6 @@ angular.module("file-browser/views/file-browser-template.html", []).run(["$templ
     "    <obiba-alert id=\"FileSystemController\"></obiba-alert>\n" +
     "\n" +
     "    <div>\n" +
-    "      <!--## {{data.breadcrumbs}}-->\n" +
-    "      <!-- second level breadcrumb -->\n" +
-    "\n" +
-    "\n" +
     "      <!-- Document details -->\n" +
     "      <div class=\"row\">\n" +
     "        <div class=\"col-md-12\">\n" +
