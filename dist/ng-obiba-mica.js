@@ -8658,7 +8658,8 @@ angular.module("search/views/list/datasets-search-result-table-template.html", [
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "  <div ng-show=\"!loading\">\n" +
-    "    <div class=\"table-responsive\">\n" +
+    "    <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\">{{options.noResultsLabel | translate}}</p>\n" +
+    "    <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
     "      <table class=\"table table-bordered table-striped\">\n" +
     "        <thead>\n" +
     "        <tr>\n" +
@@ -8710,7 +8711,8 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "  <div ng-show=\"!loading\">\n" +
-    "    <div class=\"table-responsive\">\n" +
+    "    <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\">{{options.noResultsLabel | translate}}</p>\n" +
+    "    <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
     "      <table class=\"table table-bordered table-striped\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "        <thead>\n" +
     "        <tr>\n" +
@@ -8841,7 +8843,8 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "  <div ng-show=\"!loading\">\n" +
-    "    <div class=\"table-responsive\">\n" +
+    "    <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\">{{options.noResultsLabel | translate}}</p>\n" +
+    "    <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
     "      <table class=\"table table-bordered table-striped\">\n" +
     "        <thead>\n" +
     "        <tr>\n" +
@@ -8884,9 +8887,6 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "        </tr>\n" +
     "        </thead>\n" +
     "        <tbody>\n" +
-    "        <tr ng-if=\"!summaries || !summaries.length\">\n" +
-    "          <td colspan=\"12\">{{options.noResultsLabel | translate}}</td>\n" +
-    "        </tr>\n" +
     "        <tr ng-repeat=\"summary in summaries\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "          <td>\n" +
     "            <a ng-href=\"{{PageUrlService.studyPage(summary.id)}}\">\n" +
@@ -8958,7 +8958,8 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "  <div ng-show=\"!loading\">\n" +
-    "    <div class=\"table-responsive\">\n" +
+    "    <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\">{{options.noResultsLabel | translate}}</p>\n" +
+    "    <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
     "      <table class=\"table table-bordered table-striped\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "        <thead>\n" +
     "        <tr>\n" +
@@ -8969,10 +8970,6 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
     "          <th translate ng-if=\"optionsCols.showVariablesDatasetsColumn\">search.dataset.label</th>\n" +
     "        </tr>\n" +
     "        </thead>\n" +
-    "        <tbody>\n" +
-    "        <tr ng-if=\"!summaries || !summaries.length\">\n" +
-    "          <td colspan=\"4\">{{options.noResultsLabel | translate}}</td>\n" +
-    "        </tr>\n" +
     "        <tr ng-repeat=\"summary in summaries\">\n" +
     "          <td>\n" +
     "            <a\n" +
