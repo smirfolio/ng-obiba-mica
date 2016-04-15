@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-04-14
+ * Date: 2016-04-15
  */
 'use strict';
 
@@ -8965,7 +8965,7 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
     "          <th translate>name</th>\n" +
     "          <th translate>search.variable.label</th>\n" +
     "          <th translate ng-if=\"optionsCols.showVariablesTypeColumn\">type</th>\n" +
-    "          <th translate ng-if=\"optionsCols.showVariablesStudiesColumn\">search.study.label</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showVariablesStudiesColumn\">search.variable.studyNetwork</th>\n" +
     "          <th translate ng-if=\"optionsCols.showVariablesDatasetsColumn\">search.dataset.label</th>\n" +
     "        </tr>\n" +
     "        </thead>\n" +
@@ -8987,8 +8987,11 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
     "            {{'search.variable.' + summary.variableType.toLowerCase() | translate}}\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showVariablesStudiesColumn\">\n" +
-    "            <a ng-href=\"{{PageUrlService.studyPage(summary.studyId)}}\">\n" +
+    "            <a ng-if=\"summary.studyId\" ng-href=\"{{PageUrlService.studyPage(summary.studyId)}}\">\n" +
     "              <localized value=\"summary.studyAcronym\" lang=\"lang\"></localized>\n" +
+    "            </a>\n" +
+    "            <a ng-if=\"summary.networkId\" ng-href=\"{{PageUrlService.networkPage(summary.networkId)}}\">\n" +
+    "              <localized value=\"summary.networkAcronym\" lang=\"lang\"></localized>\n" +
     "            </a>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showVariablesDatasetsColumn\">\n" +
