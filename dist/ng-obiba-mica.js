@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-04-15
+ * Date: 2016-04-18
  */
 'use strict';
 
@@ -2356,6 +2356,9 @@ angular.module('obiba.mica.search')
         case RQL_NODE.LE:
           query.args[1] = terms;
           break;
+        case RQL_NODE.MATCH:
+          query.args[0] = terms;
+          break;
       }
     };
 
@@ -2666,13 +2669,14 @@ angular.module('obiba.mica.search')
        */
       this.updateCriteriaItem = function (existingItem, newItem, replace) {
         var newTerms;
+        var isMatchNode = existingItem.rqlQuery.name === RQL_NODE.MATCH;
 
         if(replace && newItem.rqlQuery) {
-          existingItem.rqlQuery.name = newItem.rqlQuery.name; 
+          existingItem.rqlQuery.name = newItem.rqlQuery.name;
         }
         
         if (newItem.rqlQuery) {
-          newTerms = newItem.rqlQuery.args[1];
+          newTerms = newItem.rqlQuery.args[isMatchNode ? 0 : 1];
         } else if (newItem.term) {
           newTerms = [newItem.term.name];
         } else {
@@ -3420,8 +3424,8 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
     }
   };
 
-  this.selectTerm = function (target, taxonomy, vocabulary, term, from, to) {
-    $scope.onSelectTerm(target, taxonomy, vocabulary, term, from, to);
+  this.selectTerm = function (target, taxonomy, vocabulary, args) {
+    $scope.onSelectTerm(target, taxonomy, vocabulary, args);
   };
 
   var self = this;
@@ -3435,8 +3439,10 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
   $scope.$watch('taxonomies.vocabulary', function(value) {
     if(RqlQueryUtils && value) {
       $scope.taxonomies.isNumericVocabulary = RqlQueryUtils.isNumericVocabulary($scope.taxonomies.vocabulary);
+      $scope.taxonomies.isMatchVocabulary = RqlQueryUtils.isMatchVocabulary($scope.taxonomies.vocabulary);
     } else {
       $scope.taxonomies.isNumericVocabulary = null;
+      $scope.taxonomies.isMatchVocabulary = null;
     }
   });
 
@@ -4146,17 +4152,27 @@ angular.module('obiba.mica.search')
         selectCriteria(item, RQL_NODE.AND, true);
       };
 
-      var onSelectTerm = function (target, taxonomy, vocabulary, term, from, to) {
-        if (vocabulary && RqlQueryUtils.isNumericVocabulary(vocabulary)) {
-          var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, $scope.lang);
-          item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
-          RqlQueryUtils.updateRangeQuery(item.rqlQuery, from, to);
-          selectCriteria(item, null, true);
-          
-          return;
+      var onSelectTerm = function (target, taxonomy, vocabulary, args) {
+        if (vocabulary) {
+          var item;
+          if (RqlQueryUtils.isNumericVocabulary(vocabulary)) {
+            item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, $scope.lang);
+            item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
+            RqlQueryUtils.updateRangeQuery(item.rqlQuery, args.from, args.to);
+            selectCriteria(item, null, true);
+
+            return;
+          } else if(RqlQueryUtils.isMatchVocabulary(vocabulary)) {
+            item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, $scope.lang);
+            item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
+            RqlQueryUtils.updateMatchQuery(item.rqlQuery, args.text);
+            selectCriteria(item, null, true);
+
+            return;
+          }
         }
 
-        selectCriteria(RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, term, $scope.lang));
+        selectCriteria(RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, args && args.term, $scope.lang));
       };
 
       var selectSearchTarget = function (target) {
@@ -4293,6 +4309,12 @@ angular.module('obiba.mica.search')
     $scope.$watch('taxonomies', function() {
       $scope.from = null;
       $scope.to = null;
+    }, true);
+  }])
+  
+  .controller('MatchVocabularyPanelController', ['$scope', function($scope) {
+    $scope.$watch('taxonomies', function() {
+      $scope.text = null;
     }, true);
   }])
   
@@ -7985,7 +8007,7 @@ angular.module("search/views/classifications/classifications-view.html", []).run
     "      </p>\n" +
     "      <div>\n" +
     "        <a href class=\"btn btn-default btn-xs\"\n" +
-    "           ng-click=\"selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary, taxonomies.term)\">\n" +
+    "           ng-click=\"selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary, {term: taxonomies.term})\">\n" +
     "          <i class=\"fa fa-plus-circle\"></i>\n" +
     "          <span translate>add-query</span>\n" +
     "        </a>\n" +
@@ -8075,15 +8097,29 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "                     ng-if=\"label.locale === lang\">\n" +
     "                    {{label.text}}\n" +
     "                  </p>\n" +
-    "                  <div ng-if=\"taxonomies.isNumericVocabulary\" ng-controller=\"NumericVocabularyPanelController\">\n" +
+    "                  <div ng-if=\"taxonomies.isMatchVocabulary\" ng-controller=\"MatchVocabularyPanelController\">\n" +
     "                    <div class=\"form-group\">\n" +
     "                      <a href class=\"btn btn-default btn-xs\"\n" +
-    "                         ng-click=\"selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary, null, from, to)\">\n" +
+    "                         ng-click=\"selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary, {text: text})\">\n" +
     "                        <i class=\"fa fa-plus-circle\"></i>\n" +
     "                        <span translate>add-query</span>\n" +
     "                      </a>\n" +
     "                    </div>\n" +
-    "                    <form novalidate class=\"form-inline\" ui-keypress=\"{13:'selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary, null, from, to)'}\">\n" +
+    "                    <form novalidate class=\"form-inline\" ui-keypress=\"{13: 'selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary, {text: text})'}\">\n" +
+    "                      <div class=\"form-group\">\n" +
+    "                        <input type=\"text\" class=\"form-control\" ng-model=\"text\" placeholder=\"{{'search.match.placeholder' | translate}}\">\n" +
+    "                      </div>\n" +
+    "                    </form>\n" +
+    "                  </div>\n" +
+    "                  <div ng-if=\"taxonomies.isNumericVocabulary\" ng-controller=\"NumericVocabularyPanelController\">\n" +
+    "                    <div class=\"form-group\">\n" +
+    "                      <a href class=\"btn btn-default btn-xs\"\n" +
+    "                         ng-click=\"selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary, {from: from, to: to})\">\n" +
+    "                        <i class=\"fa fa-plus-circle\"></i>\n" +
+    "                        <span translate>add-query</span>\n" +
+    "                      </a>\n" +
+    "                    </div>\n" +
+    "                    <form novalidate class=\"form-inline\" ui-keypress=\"{13:'selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary, {from: from, to: to})'}\">\n" +
     "                      <div class=\"form-group\">\n" +
     "                        <label for=\"nav-{{taxonomies.vocabulary.name}}-from\" translate>from</label>\n" +
     "                        <input type=\"number\" class=\"form-control\" id=\"nav-{{taxonomies.vocabulary.name}}-from\" ng-model=\"from\" style=\"width:150px\">\n" +
@@ -8094,7 +8130,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "                      </div>\n" +
     "                    </form>\n" +
     "                  </div>\n" +
-    "                  <div ng-if=\"!taxonomies.isNumericVocabulary\">\n" +
+    "                  <div ng-if=\"!taxonomies.isNumericVocabulary && !taxonomies.isMatchVocabulary\">\n" +
     "                    <a href class=\"btn btn-default btn-xs\"\n" +
     "                       ng-click=\"selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary)\">\n" +
     "                      <i class=\"fa fa-plus-circle\"></i>\n" +
@@ -8128,7 +8164,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "                  </p>\n" +
     "                  <div>\n" +
     "                    <a href class=\"btn btn-default btn-xs\"\n" +
-    "                       ng-click=\"selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary, taxonomies.term)\">\n" +
+    "                       ng-click=\"selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary, {term: taxonomies.term})\">\n" +
     "                      <i class=\"fa fa-plus-circle\"></i>\n" +
     "                      <span translate>add-query</span>\n" +
     "                    </a>\n" +
