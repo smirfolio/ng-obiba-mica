@@ -1390,6 +1390,7 @@ angular.module('obiba.mica.search', [
           searchLabel: 'search.variable.searchLabel',
           noResultsLabel: 'search.dataset.noResults',
           datasetsColumn: {
+            showDatasetsAcronymColumn: true,
             showDatasetsTypeColumn: true,
             showDatasetsNetworkColumn: true,
             showDatasetsStudiesColumn: true,
@@ -8696,10 +8697,10 @@ angular.module("search/views/list/datasets-search-result-table-template.html", [
     "  <div ng-show=\"!loading\">\n" +
     "    <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\">{{options.noResultsLabel | translate}}</p>\n" +
     "    <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
-    "      <table class=\"table table-bordered table-striped\">\n" +
+    "      <table class=\"table table-bordered table-striped\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "        <thead>\n" +
     "        <tr>\n" +
-    "          <th translate>acronym</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showDatasetsAcronymColumn\">acronym</th>\n" +
     "          <th translate>name</th>\n" +
     "          <th translate ng-if=\"optionsCols.showDatasetsTypeColumn\">type</th>\n" +
     "          <th translate ng-if=\"optionsCols.showDatasetsNetworkColumn\">networks</th>\n" +
@@ -8711,14 +8712,17 @@ angular.module("search/views/list/datasets-search-result-table-template.html", [
     "        <tr ng-if=\"!summaries || !summaries.length\">\n" +
     "          <td colspan=\"6\">{{options.noResultsLabel | translate}}</td>\n" +
     "        </tr>\n" +
-    "        <tr ng-repeat=\"summary in summaries\" ng-init=\"lang = $parent.$parent.lang\">\n" +
-    "          <td>\n" +
+    "        <tr ng-repeat=\"summary in summaries\">\n" +
+    "          <td ng-if=\"optionsCols.showDatasetsAcronymColumn\">\n" +
     "            <a ng-href=\"{{PageUrlService.datasetPage(summary.id, summary.variableType)}}\">\n" +
     "              <localized value=\"summary.acronym\" lang=\"lang\"></localized>\n" +
     "            </a>\n" +
     "          </td>\n" +
     "          <td>\n" +
-    "            <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
+    "            <a ng-if=\"!optionsCols.showDatasetsAcronymColumn\" ng-href=\"{{PageUrlService.datasetPage(summary.id, summary.variableType)}}\">\n" +
+    "              <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
+    "            </a>\n" +
+    "            <localized ng-if=\"optionsCols.showDatasetsAcronymColumn\" value=\"summary.name\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showDatasetsTypeColumn\">\n" +
     "            <localized value=\"classNames[(summary.variableType === 'Study' ? 'Study' : 'Harmonization') + 'Dataset']\" lang=\"lang\"></localized>\n" +
