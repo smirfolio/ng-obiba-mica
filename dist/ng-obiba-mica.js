@@ -1498,17 +1498,26 @@ angular.module('obiba.mica.search', [
 angular.module('obiba.mica.search')
 
   .filter('regex', function() {
-    return function(elements, regex, fields) {
+    return function(elements, regex, fields, lang) {
       var out = [];
 
       try {
         var pattern = new RegExp(regex, 'i');
         out = elements.filter(function(element) {
-          return fields.some(function(field){
-            return pattern.test(element[field]);
+          return fields.some(function(field) {
+            var value = element[field];
+            
+            if(angular.isArray(value) && lang) {
+              return value.filter(function(item) {
+                return item.locale === lang;
+              }).some(function(item) {
+                return pattern.test(item.text);
+              });
+            }
+
+            return pattern.test(value);
           });
         });
-
       } catch(e) {
       }
 
@@ -8131,7 +8140,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "                      </div>\n" +
     "                    </form>\n" +
     "                  </div>\n" +
-    "                  <div ng-if=\"!taxonomies.isNumericVocabulary && !taxonomies.isMatchVocabulary\">\n" +
+    "                  <div class=\"form-group\" ng-if=\"!taxonomies.isNumericVocabulary && !taxonomies.isMatchVocabulary\">\n" +
     "                    <a href class=\"btn btn-default btn-xs\"\n" +
     "                       ng-click=\"selectTerm(taxonomies.target, taxonomies.taxonomy, taxonomies.vocabulary)\">\n" +
     "                      <i class=\"fa fa-plus-circle\"></i>\n" +
@@ -8139,7 +8148,15 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "                    </a>\n" +
     "                  </div>\n" +
     "                  <ul class=\"nav nav-pills nav-stacked\" ng-if=\"taxonomies.vocabulary.terms\">\n" +
-    "                    <li ng-repeat=\"term in taxonomies.vocabulary.terms\"\n" +
+    "                    <li class=\"criteria-list-item\" ng-show=\"taxonomies.vocabulary.terms.length>10\">\n" +
+    "                      <div class=\"form-group\">\n" +
+    "                        <div class=\"input-group input-group-sm no-padding-top\">\n" +
+    "                          <input ng-model=\"searchText\" type=\"text\" class=\"form-control\">\n" +
+    "                          <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-search\"></i></span>\n" +
+    "                        </div>\n" +
+    "                      </div>\n" +
+    "                    </li>\n" +
+    "                    <li ng-repeat=\"term in taxonomies.vocabulary.terms | regex:searchText:['name', 'title', 'description']:lang\"\n" +
     "                        class=\"{{taxonomies.term.name === term.name ? 'active' : ''}}\">\n" +
     "                      <a id=\"search-navigate-vocabulary\" href ng-click=\"navigateTaxonomy(taxonomies.taxonomy, taxonomies.vocabulary, term)\">\n" +
     "                <span ng-repeat=\"label in term.title\" ng-if=\"label.locale === lang\">\n" +
