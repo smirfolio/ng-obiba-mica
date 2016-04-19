@@ -1355,6 +1355,13 @@ angular.module('obiba.mica.search')
     'RqlQueryService',
     'CoverageGroupByService',
     function ($scope, $location, $q, PageUrlService, RqlQueryUtils, RqlQueryService, CoverageGroupByService) {
+      var targetMap = {};
+      targetMap[BUCKET_TYPES.NETWORK] = QUERY_TARGETS.NETWORK;
+      targetMap[BUCKET_TYPES.STUDY] = QUERY_TARGETS.STUDY;
+      targetMap[BUCKET_TYPES.DCE] = QUERY_TARGETS.VARIABLE;
+      targetMap[BUCKET_TYPES.DATASCHEMA] = QUERY_TARGETS.DATASET;
+      targetMap[BUCKET_TYPES.DATASET] = QUERY_TARGETS.DATASET;
+
       $scope.showMissing = true;
       $scope.toggleMissing = function (value) {
         $scope.showMissing = value;
@@ -1470,7 +1477,7 @@ angular.module('obiba.mica.search')
             }
           });
         }
-      };
+      };      
 
       function getBucketUrl(bucket, id) {
         switch (bucket) {
@@ -1698,13 +1705,6 @@ angular.module('obiba.mica.search')
           $scope.table.cols = splitIds();
         }
       });
-
-      var targetMap = {};
-      targetMap[BUCKET_TYPES.NETWORK] = QUERY_TARGETS.NETWORK;
-      targetMap[BUCKET_TYPES.STUDY] = QUERY_TARGETS.STUDY;
-      targetMap[BUCKET_TYPES.DCE] = QUERY_TARGETS.VARIABLE;
-      targetMap[BUCKET_TYPES.DATASCHEMA] = QUERY_TARGETS.DATASET;
-      targetMap[BUCKET_TYPES.DATASET] = QUERY_TARGETS.DATASET;
 
       $scope.updateCriteria = function (id, term, idx, type) {
         var vocabulary = $scope.bucket === BUCKET_TYPES.DCE ? 'dceIds' : 'id',
