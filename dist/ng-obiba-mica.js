@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-04-19
+ * Date: 2016-04-20
  */
 'use strict';
 
@@ -8094,6 +8094,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "                <span ng-if=\"!vocabulary.title\">\n" +
     "                  {{vocabulary.name}}\n" +
     "                </span>\n" +
+    "                      <i class=\"pull-right {{taxonomies.vocabulary.name !== vocabulary.name ? 'invisible' : ''}} hidden-sm hidden-xs fa fa-chevron-circle-right\"></i>\n" +
     "                    </a>\n" +
     "                  </li>\n" +
     "                </ul>\n" +
