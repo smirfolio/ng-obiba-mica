@@ -139,7 +139,7 @@ angular.module('obiba.mica.fileBrowser')
             // just return the input query
           }
 
-          return query ? ' AND ' : '' + excludeQuery;
+          return query ? query + ' AND ' + excludeQuery : excludeQuery;
         }
 
         searchParams.query = excludeFolders(searchParams.query);
