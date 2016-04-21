@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-04-20
+ * Date: 2016-04-21
  */
 'use strict';
 
@@ -6233,19 +6233,19 @@ angular.module('obiba.mica.graphics')
     return factory;
 
   })
-  .service('GraphicChartsUtils', [
-    function () {
+  .service('GraphicChartsUtils', ['LocalizedValues',
+    function (LocalizedValues) {
       this.getArrayByAggregation = function (aggregationName, entityDto) {
         var arrayData = [];
 
         if (!entityDto) {
           return arrayData;
         }
-
+        var i = 0;
         angular.forEach(entityDto.aggs, function (aggregation) {
           if (aggregation.aggregation === aggregationName) {
-            var i = 0;
             if (aggregation['obiba.mica.RangeAggregationResultDto.ranges']) {
+              i = 0;
               angular.forEach(aggregation['obiba.mica.RangeAggregationResultDto.ranges'], function (term) {
                 if (term.count) {
                   arrayData[i] = {title: term.title, value: term.count, key: term.key};
@@ -6256,10 +6256,11 @@ angular.module('obiba.mica.graphics')
             else {
               if (aggregation.aggregation === 'methods-designs') {
                 var numberOfParticipant = 0;
+                i = 0;
                 angular.forEach(aggregation['obiba.mica.TermsAggregationResultDto.terms'], function (term) {
                   angular.forEach(term.aggs, function (aggBucket) {
                     if (aggBucket.aggregation === 'numberOfParticipants-participant-number') {
-                      numberOfParticipant = aggBucket['obiba.mica.StatsAggregationResultDto.stats'].data.sum;
+                      numberOfParticipant = LocalizedValues.formatNumber(aggBucket['obiba.mica.StatsAggregationResultDto.stats'].data.sum);
                     }
                   });
                   if (term.count) {
@@ -6269,6 +6270,7 @@ angular.module('obiba.mica.graphics')
                 });
               }
               else {
+                i = 0;
                 angular.forEach(aggregation['obiba.mica.TermsAggregationResultDto.terms'], function (term) {
                   if (term.count) {
                     arrayData[i] = {title: term.title, value: term.count, key: term.key};
@@ -6503,6 +6505,11 @@ angular.module('obiba.mica.localized')
       this.getLocal = function () {
         return 'en';
       };
+
+      this.formatNumber = function (number){
+        return number.toLocaleString(this.getLocal());
+      };
+
     });
 ;'use strict';
 
