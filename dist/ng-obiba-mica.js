@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-04-20
+ * Date: 2016-04-21
  */
 'use strict';
 
@@ -5012,8 +5012,9 @@ angular.module('obiba.mica.search')
       $scope.$watch('result', function () {
         $scope.table = {cols: []};
         if ($scope.result && $scope.result.rows) {
-          $scope.table = $scope.result;
-          $scope.table.cols = splitIds();
+          var tableTmp = $scope.result;
+          tableTmp.cols = splitIds();
+          $scope.table = tableTmp;
         }
       });
 
@@ -8342,7 +8343,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
-    "  <div class=\"table-responsive\" ng-if=\"table.taxonomyHeaders.length > 0\">\n" +
+    "  <div class=\"table-responsive\" ng-if=\"!loading && table.taxonomyHeaders.length > 0\">\n" +
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
     "      <tr>\n" +
