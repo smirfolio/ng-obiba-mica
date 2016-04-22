@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-04-21
+ * Date: 2016-04-22
  */
 'use strict';
 
@@ -4056,6 +4056,15 @@ angular.module('obiba.mica.search')
       };
 
       /**
+       * Removes the item from the criteria tree
+       * @param item
+       */
+      var removeCriteriaItem = function (item) {
+        RqlQueryService.removeCriteriaItem(item);
+        refreshQuery();
+      };
+
+      /**
        * Propagates a Scope change that results in criteria panel update
        * @param item
        */
@@ -4065,7 +4074,11 @@ angular.module('obiba.mica.search')
           var existingItem = $scope.search.criteriaItemMap[id];
           var growlMsgKey;
 
-          if (existingItem) {
+          if (existingItem && id.indexOf('dceIds') !== -1) {
+            removeCriteriaItem(existingItem);
+            growlMsgKey = 'search.criterion.updated';
+            RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item, logicalOp);
+          } else if (existingItem) {
             growlMsgKey = 'search.criterion.updated';
             RqlQueryService.updateCriteriaItem(existingItem, item, replace);
           } else {
@@ -4187,15 +4200,6 @@ angular.module('obiba.mica.search')
 
       var selectSearchTarget = function (target) {
         $scope.documents.search.target = target;
-      };
-
-      /**
-       * Removes the item from the criteria tree
-       * @param item
-       */
-      var removeCriteriaItem = function (item) {
-        RqlQueryService.removeCriteriaItem(item);
-        refreshQuery();
       };
 
       var VIEW_MODES = {
