@@ -5993,7 +5993,6 @@ angular.module('obiba.mica.graphics')
         chartOptions: '=',
         chartHeader: '=',
         chartTitle: '=',
-        chartTableOptions: '=',
         chartSelectGraphic: '='
       },
       templateUrl: 'graphics/views/charts-directive.html',
@@ -6013,7 +6012,6 @@ angular.module('obiba.mica.graphics')
       chartOptions: '=',
       chartHeader: '=',
       chartTitle: '=',
-      chartTableOptions: '=',
       chartSelectGraphic: '=',
       chartOrdered: '=',
       chartNotOrdered: '='
@@ -7766,7 +7764,7 @@ angular.module("graphics/views/tables-directive.html", []).run(["$templateCache"
     "            <thead>\n" +
     "            <th ng-repeat=\"header in chartObject.header\">{{header}}</th>\n" +
     "            </thead>\n" +
-    "            <tr ng-show=\"chartObject.ordered\" ng-repeat=\"row in chartObject.entries | orderBy:'-this[1]'\">\n" +
+    "            <tr ng-show=\"chartObject.ordered\" ng-repeat=\"row in chartObject.entries\">\n" +
     "                <td>{{row.title}}</td>\n" +
     "                <td><a href ng-click=\"updateCriteria(row.key, chartObject.vocabulary)\">{{row.value}}</a></td>\n" +
     "                <td ng-if=\"row.participantsNbr\">{{row.participantsNbr}}</td>\n" +
