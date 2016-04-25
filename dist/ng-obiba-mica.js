@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-04-22
+ * Date: 2016-04-25
  */
 'use strict';
 
@@ -8097,14 +8097,14 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "                <ul class=\"nav nav-pills nav-stacked\" ng-if=\"taxonomies.taxonomy.vocabularies\">\n" +
     "                  <li ng-repeat=\"vocabulary in taxonomies.taxonomy.vocabularies\"\n" +
     "                      class=\"{{taxonomies.vocabulary.name === vocabulary.name ? 'active' : ''}}\">\n" +
-    "                    <a id=\"search-navigate-taxonomy\" href ng-click=\"navigateTaxonomy(taxonomies.taxonomy, vocabulary)\">\n" +
+    "                    <a class=\"clearfix\" id=\"search-navigate-taxonomy\" href ng-click=\"navigateTaxonomy(taxonomies.taxonomy, vocabulary)\">\n" +
     "                <span ng-repeat=\"label in vocabulary.title\" ng-if=\"label.locale === lang\">\n" +
     "                  {{label.text}}\n" +
     "                </span>\n" +
     "                <span ng-if=\"!vocabulary.title\">\n" +
     "                  {{vocabulary.name}}\n" +
     "                </span>\n" +
-    "                      <i class=\"pull-right {{taxonomies.vocabulary.name !== vocabulary.name ? 'invisible' : ''}} hidden-sm hidden-xs fa fa-chevron-circle-right\"></i>\n" +
+    "                      <i class=\"pull-right {{taxonomies.vocabulary.name !== vocabulary.name ? 'hidden' : ''}} hidden-sm hidden-xs fa fa-chevron-circle-right\"></i>\n" +
     "                    </a>\n" +
     "                  </li>\n" +
     "                </ul>\n" +
