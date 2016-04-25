@@ -8151,23 +8151,15 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "                    </a>\n" +
     "                  </div>\n" +
     "                  <ul class=\"nav nav-pills nav-stacked\" ng-if=\"taxonomies.vocabulary.terms\">\n" +
-    "                    <li class=\"criteria-list-item\" ng-show=\"taxonomies.vocabulary.terms.length>10\">\n" +
-    "                      <div class=\"form-group\">\n" +
-    "                        <div class=\"input-group input-group-sm no-padding-top\">\n" +
-    "                          <input ng-model=\"searchText\" type=\"text\" class=\"form-control\">\n" +
-    "                          <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-search\"></i></span>\n" +
-    "                        </div>\n" +
-    "                      </div>\n" +
-    "                    </li>\n" +
-    "                    <li ng-repeat=\"term in taxonomies.vocabulary.terms | regex:searchText:['name', 'title', 'description']:lang\"\n" +
+    "                    <li ng-repeat=\"term in taxonomies.vocabulary.terms\"\n" +
     "                        class=\"{{taxonomies.term.name === term.name ? 'active' : ''}}\">\n" +
     "                      <a id=\"search-navigate-vocabulary\" href ng-click=\"navigateTaxonomy(taxonomies.taxonomy, taxonomies.vocabulary, term)\">\n" +
-    "                <span ng-repeat=\"label in term.title\" ng-if=\"label.locale === lang\">\n" +
-    "                  {{label.text}}\n" +
-    "                </span>\n" +
-    "                <span ng-if=\"!term.title\">\n" +
-    "                  {{term.name}}\n" +
-    "                </span>\n" +
+    "                        <span ng-repeat=\"label in term.title\" ng-if=\"label.locale === lang\">\n" +
+    "                          {{label.text}}\n" +
+    "                        </span>\n" +
+    "                        <span ng-if=\"!term.title\">\n" +
+    "                          {{term.name}}\n" +
+    "                        </span>\n" +
     "                      </a>\n" +
     "                    </li>\n" +
     "                  </ul>\n" +
