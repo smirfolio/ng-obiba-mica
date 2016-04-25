@@ -137,7 +137,7 @@
                     </li>
                   </ul>
                 </div>
-                <div ng-if="!taxonomies.vocabulary && options.taxonomyNavHelp" ng-bind-html="options.taxonomyNavHelp"></div>
+                <div ng-if="!taxonomies.vocabulary" translate>search.taxonomy-nav-help</div>
               </div>
               <div class="col-md-4 height3" scroll-to-top="taxonomies.term">
                 <div ng-if="taxonomies.term">
@@ -156,7 +156,7 @@
                     </a>
                   </div>
                 </div>
-                <div ng-if="!taxonomies.term && taxonomies.vocabulary && options.vocabularyNavHelp" ng-bind-html="options.vocabularyNavHelp"></div>
+                <div ng-if="!taxonomies.term && taxonomies.vocabulary" translate>search.vocabulary-nav-help</div>
               </div>
             </div>
           </div>

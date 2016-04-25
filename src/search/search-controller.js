@@ -279,6 +279,7 @@ angular.module('obiba.mica.search')
     '$timeout',
     '$routeParams',
     '$location',
+    '$translate',
     'TaxonomiesSearchResource',
     'TaxonomiesResource',
     'TaxonomyResource',
@@ -299,6 +300,7 @@ angular.module('obiba.mica.search')
               $timeout,
               $routeParams,
               $location,
+              $translate,
               TaxonomiesSearchResource,
               TaxonomiesResource,
               TaxonomyResource,
@@ -322,6 +324,13 @@ angular.module('obiba.mica.search')
         network: 'networks',
         dataset: 'datasets'
       };
+
+      $translate(['search.classifications-title', 'search.classifications-link'])
+        .then(function (translation) {
+          $scope.hasClassificationsTitle = translation['search.classifications-title'];
+          $scope.hasClassificationsLinkLabel = translation['search.classifications-link'];
+        });
+      
       var taxonomyTypeInverseMap = Object.keys($scope.taxonomyTypeMap).reduce(function (prev, k) {
         prev[$scope.taxonomyTypeMap[k]] = k;
         return prev;
