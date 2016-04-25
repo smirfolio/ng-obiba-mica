@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-04-25
+ * Date: 2016-04-26
  */
 'use strict';
 
@@ -7842,6 +7842,10 @@ angular.module("search/views/classifications.html", []).run(["$templateCache", f
     "<div>\n" +
     "  <div ng-if=\"classificationsHeaderTemplateUrl\" ng-include=\"classificationsHeaderTemplateUrl\"></div>\n" +
     "\n" +
+    "  <div ng-if=\"options.ClassificationHelpText\">\n" +
+    "    <span ng-bind-html=\"options.ClassificationHelpText\"></span>\n" +
+    "  </div>\n" +
+    "\n" +
     "  <div class=\"container alert-fixed-position\">\n" +
     "    <obiba-alert id=\"SearchController\"></obiba-alert>\n" +
     "  </div>\n" +
@@ -9147,6 +9151,11 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
 angular.module("search/views/search.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search.html",
     "<div ng-show=\"inSearchMode()\">\n" +
+    "\n" +
+    "    <div ng-if=\"options.SearchHelpText\">\n" +
+    "      <span  ng-bind-html=\"options.SearchHelpText\"></span>\n" +
+    "    </div>\n" +
+    "\n" +
     "  <div class=\"container alert-fixed-position\">\n" +
     "    <obiba-alert id=\"SearchController\"></obiba-alert>\n" +
     "  </div>\n" +
