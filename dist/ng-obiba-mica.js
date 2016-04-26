@@ -8340,13 +8340,16 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "      <a ng-if=\"hasSelected()\" href class=\"btn btn-default\" ng-click=\"updateFilterCriteria()\">\n" +
     "        <i class=\"fa fa-filter\"></i> {{'search.filter' | translate}}\n" +
     "      </a>\n" +
-    "      <a href class=\"btn btn-info btn-responsive\" ng-click=\"selectFullAndFilter()\">\n" +
-    "        {{'search.coverage-select.full' | translate}}\n" +
-    "      </a>\n" +
-    "      <a ng-if=\"table.taxonomyHeaders.length > 0\" target=\"_self\" class=\"btn btn-info btn-responsive\"\n" +
-    "        ng-href=\"{{downloadUrl()}}\">\n" +
-    "        <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
-    "      </a>\n" +
+    "\n" +
+    "      <span ng-if=\"table.taxonomyHeaders.length > 0\" >\n" +
+    "        <a href class=\"btn btn-info btn-responsive\" ng-click=\"selectFullAndFilter()\">\n" +
+    "          {{'search.coverage-select.full' | translate}}\n" +
+    "        </a>\n" +
+    "        <a target=\"_self\" class=\"btn btn-info btn-responsive\"\n" +
+    "           ng-href=\"{{downloadUrl()}}\">\n" +
+    "          <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
+    "        </a>\n" +
+    "      </span>\n" +
     "    </div>\n" +
     "\n" +
     "    <div class=\"clearfix\"></div>\n" +
