@@ -83,6 +83,18 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
     vocabulary: null
   };
 
+  $scope.canNavigate = function(vocabulary) {
+    var hasShowNavigate = false;
+
+    if (vocabulary.attributes) {
+      hasShowNavigate = vocabulary.attributes.filter(function (attr) {
+        return attr.key === 'showNavigate';
+      }).length > 0;
+    }
+
+    return !hasShowNavigate;
+  };
+
   this.navigateTaxonomy = function (taxonomy, vocabulary, term) {
     $scope.taxonomies.term = term;
 

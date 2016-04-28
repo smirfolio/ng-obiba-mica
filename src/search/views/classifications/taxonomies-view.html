@@ -52,7 +52,7 @@
                   {{label.text}}
                 </p>
                 <ul class="nav nav-pills nav-stacked" ng-if="taxonomies.taxonomy.vocabularies">
-                  <li ng-repeat="vocabulary in taxonomies.taxonomy.vocabularies"
+                  <li ng-repeat="vocabulary in taxonomies.taxonomy.vocabularies | filter:canNavigate"
                       class="{{taxonomies.vocabulary.name === vocabulary.name ? 'active' : ''}}">
                     <a class="clearfix" id="search-navigate-taxonomy" href ng-click="navigateTaxonomy(taxonomies.taxonomy, vocabulary)">
                 <span ng-repeat="label in vocabulary.title" ng-if="label.locale === lang">

@@ -3377,6 +3377,18 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
     vocabulary: null
   };
 
+  $scope.canNavigate = function(vocabulary) {
+    var hasShowNavigate = false;
+
+    if (vocabulary.attributes) {
+      hasShowNavigate = vocabulary.attributes.filter(function (attr) {
+        return attr.key === 'showNavigate';
+      }).length > 0;
+    }
+
+    return !hasShowNavigate;
+  };
+
   this.navigateTaxonomy = function (taxonomy, vocabulary, term) {
     $scope.taxonomies.term = term;
 
@@ -8129,7 +8141,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "                  {{label.text}}\n" +
     "                </p>\n" +
     "                <ul class=\"nav nav-pills nav-stacked\" ng-if=\"taxonomies.taxonomy.vocabularies\">\n" +
-    "                  <li ng-repeat=\"vocabulary in taxonomies.taxonomy.vocabularies\"\n" +
+    "                  <li ng-repeat=\"vocabulary in taxonomies.taxonomy.vocabularies | filter:canNavigate\"\n" +
     "                      class=\"{{taxonomies.vocabulary.name === vocabulary.name ? 'active' : ''}}\">\n" +
     "                    <a class=\"clearfix\" id=\"search-navigate-taxonomy\" href ng-click=\"navigateTaxonomy(taxonomies.taxonomy, vocabulary)\">\n" +
     "                <span ng-repeat=\"label in vocabulary.title\" ng-if=\"label.locale === lang\">\n" +
