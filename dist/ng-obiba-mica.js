@@ -3993,40 +3993,15 @@ angular.module('obiba.mica.search')
               var target = bundle.target;
               var taxonomy = bundle.taxonomy;
               if (taxonomy.vocabularies) {
-                taxonomy.vocabularies.forEach(function (vocabulary) {
-                  if (!vocabulary.attributes || (vocabulary.attributes && !vocabulary.attributes.showSearch)) {
-                    if (vocabulary.terms) {
-                      vocabulary.terms.forEach(function (term) {
-                        if (!term.attributes || (term.attributes && !term.attributes.showSearch)) {
-                          var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, term, $scope.lang);
-                          results.push({
-                            score: score(item),
-                            item: item
-                          });
-                          total++;
-                        }
-                      });
-                    } else {
-                      var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, $scope.lang);
-                      results.push({
-                        score: score(item),
-                        item: item
-                      });
-                      total++;
-                    }
-                  }
-                });
-              }
-/*
-              if (taxonomy.vocabularies) {
                 taxonomy.vocabularies.filter(function (vocabulary) {
-                  // exclude results which are ids used for relations
-                  return !(['dceIds', 'studyId', 'studyIds', 'networkId', 'datasetId'].filter(function (val) {
-                    return vocabulary.name === val;
-                  }).pop());
+                  return angular.isUndefined(vocabulary.attributes) ||
+                      (!angular.isUndefined(vocabulary.attributes) && angular.isUndefined(vocabulary.attributes.showSearch));
                 }).forEach(function (vocabulary) {
                   if (vocabulary.terms) {
-                    vocabulary.terms.forEach(function (term) {
+                    vocabulary.terms.filter(function (term) {
+                      return angular.isUndefined(term.attributes) ||
+                          (!angular.isUndefined(term.attributes) && angular.isUndefined(term.attributes.showSearch));
+                    }).forEach(function (term) {
                       var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, term, $scope.lang);
                       results.push({
                         score: score(item),
@@ -4044,7 +4019,6 @@ angular.module('obiba.mica.search')
                   }
                 });
               }
-*/
             });
 
             results.sort(function (a, b) {
