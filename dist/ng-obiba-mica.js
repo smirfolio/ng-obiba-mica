@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-04-26
+ * Date: 2016-04-28
  */
 'use strict';
 
@@ -3993,6 +3993,32 @@ angular.module('obiba.mica.search')
               var target = bundle.target;
               var taxonomy = bundle.taxonomy;
               if (taxonomy.vocabularies) {
+                taxonomy.vocabularies.forEach(function (vocabulary) {
+                  if (!vocabulary.attributes || (vocabulary.attributes && !vocabulary.attributes.showSearch)) {
+                    if (vocabulary.terms) {
+                      vocabulary.terms.forEach(function (term) {
+                        if (!term.attributes || (term.attributes && !term.attributes.showSearch)) {
+                          var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, term, $scope.lang);
+                          results.push({
+                            score: score(item),
+                            item: item
+                          });
+                          total++;
+                        }
+                      });
+                    } else {
+                      var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, $scope.lang);
+                      results.push({
+                        score: score(item),
+                        item: item
+                      });
+                      total++;
+                    }
+                  }
+                });
+              }
+/*
+              if (taxonomy.vocabularies) {
                 taxonomy.vocabularies.filter(function (vocabulary) {
                   // exclude results which are ids used for relations
                   return !(['dceIds', 'studyId', 'studyIds', 'networkId', 'datasetId'].filter(function (val) {
@@ -4018,6 +4044,7 @@ angular.module('obiba.mica.search')
                   }
                 });
               }
+*/
             });
 
             results.sort(function (a, b) {
