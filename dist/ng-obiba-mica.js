@@ -1680,6 +1680,10 @@ function CriteriaItem(model) {
   });
 }
 
+CriteriaItem.prototype.isRepeatable = function() {
+  return false;
+};
+
 CriteriaItem.prototype.getTarget = function() {
   return this.target || null;
 };
@@ -1691,6 +1695,10 @@ function RepeatableCriteriaItem() {
 }
 
 RepeatableCriteriaItem.prototype = Object.create(CriteriaItem.prototype);
+
+RepeatableCriteriaItem.prototype.isRepeatable = function() {
+  return true;
+};
 
 RepeatableCriteriaItem.prototype.addItem = function(item) {
   this.list.push(item);
@@ -1942,7 +1950,7 @@ CriteriaBuilder.prototype.visitLeaf = function (node, parentItem) {
   var current = this.leafItemMap[item.id];
 
   if (current) {
-    if (current instanceof RepeatableCriteriaItem) {
+    if (current.isRepeatable()) {
       current.addItem(item);
     } else {
       console.error('Non-repeatable criteria items must be unique,', current.id, 'will be overwritten.');
@@ -2672,7 +2680,8 @@ angular.module('obiba.mica.search')
        */
       this.updateCriteriaItem = function (existingItem, newItem, replace) {
         var newTerms;
-        var isMatchNode = existingItem.rqlQuery.name === RQL_NODE.MATCH;
+        var isRepeatable = existingItem.isRepeatable();
+        var isMatchNode = !isRepeatable && existingItem.rqlQuery.name === RQL_NODE.MATCH;
 
         if(replace && newItem.rqlQuery) {
           existingItem.rqlQuery.name = newItem.rqlQuery.name;
@@ -2683,13 +2692,13 @@ angular.module('obiba.mica.search')
         } else if (newItem.term) {
           newTerms = [newItem.term.name];
         } else {
-          existingItem = existingItem instanceof RepeatableCriteriaItem ? existingItem.first() : existingItem;
+          existingItem = isRepeatable ? existingItem.first() : existingItem;
           existingItem.rqlQuery.name = RQL_NODE.EXISTS;
           existingItem.rqlQuery.args.splice(1, 1);
         }
 
         if (newTerms) {
-          if (existingItem instanceof RepeatableCriteriaItem) {
+          if (isRepeatable) {
             RqlQueryUtils.updateRepeatableQueryArgValues(existingItem, newTerms);
           } else {
             RqlQueryUtils.updateQueryArgValues(existingItem.rqlQuery, newTerms, replace);
@@ -3323,7 +3332,6 @@ angular.module('obiba.mica.search')
 /* global CriteriaIdGenerator */
 /* global targetToType */
 /* global SORT_FIELDS */
-/* global RepeatableCriteriaItem */
 
 /**
  * State shared between Criterion DropDown and its content directives
@@ -4196,7 +4204,7 @@ angular.module('obiba.mica.search')
           Object.keys($scope.search.criteriaItemMap).forEach(function (k) {
             var item = $scope.search.criteriaItemMap[k];
             if (item.getTarget() === item.target) {
-              if (item instanceof RepeatableCriteriaItem) {
+              if (item.isRepeatable()) {
                 item.items().forEach(function(item) {
                   RqlQueryService.removeCriteriaItem(item);
                 });
@@ -4920,10 +4928,10 @@ angular.module('obiba.mica.search')
                   ym[1] = 1;
                 }
               }
-              var ymStr = ym[0] + '-'  + ym[1] + '-01';
+              var ymStr = ym[0] + '/'  + ym[1] + '/01';
               res = Date.parse(ymStr);
             } else {
-              res = start ? Date.parse(yearMonth + '-01-01') : Date.parse(yearMonth + '-12-31');
+              res = start ? Date.parse(yearMonth + '/01/01') : Date.parse(yearMonth + '/12/31');
             }
           }
           return res;
@@ -8358,7 +8366,7 @@ angular.module("search/views/classifications/vocabulary-panel-template.html", []
     "        </a>\n" +
     "        <span class=\"pull-right\">\n" +
     "          <a href ng-click=\"onHideSearchNavigate(vocabulary)\">\n" +
-    "            <small><i class=\"fa fa-{{isInHideNavigate(vocabulary) ? 'check-' : ''}}square-o\"></i></small>\n" +
+    "            <small><i class=\"fa fa-{{isInHideNavigate(vocabulary) ? '' : 'check-'}}square-o\"></i></small>\n" +
     "          </a>\n" +
     "        </span>\n" +
     "      </div>\n" +
