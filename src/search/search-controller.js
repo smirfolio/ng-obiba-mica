@@ -1851,6 +1851,8 @@ angular.module('obiba.mica.search')
             angular.extend($scope.chartObjects,
               {
                 geoChartOptions: {
+                  directiveTitle: geoStudies.options.title,
+                  headerTitle: $filter('translate')('graphics.geo-charts'),
                   chartObject: {
                     geoTitle: geoStudies.options.title,
                     options: geoStudies.options,
@@ -1865,6 +1867,8 @@ angular.module('obiba.mica.search')
           if (methodDesignStudies) {
             angular.extend($scope.chartObjects, {
               studiesDesigns: {
+                directiveTitle: methodDesignStudies.options.title ,
+                headerTitle: $filter('translate')('graphics.study-design'),
                 chartObject: {
                   options: methodDesignStudies.options,
                   type: 'google.charts.Bar',
@@ -1878,6 +1882,7 @@ angular.module('obiba.mica.search')
           if (numberParticipant) {
             angular.extend($scope.chartObjects, {
               numberParticipants: {
+                headerTitle: $filter('translate')('graphics.number-participants'),
                 chartObject: {
                   options: numberParticipant.options,
                   type: 'PieChart',
@@ -1891,6 +1896,7 @@ angular.module('obiba.mica.search')
           if (bioSamplesStudies) {
             angular.extend($scope.chartObjects, {
               biologicalSamples: {
+                headerTitle: $filter('translate')('graphics.bio-samples'),
                 chartObject: {
                   options: bioSamplesStudies.options,
                   type: 'BarChart',
