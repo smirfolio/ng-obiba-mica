@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-04-28
+ * Date: 2016-04-29
  */
 'use strict';
 
@@ -3377,6 +3377,7 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
     vocabulary: null
   };
 
+  // vocabulary (or term) will appear in navigation iff it doesn't have the 'showNavigate' attribute
   $scope.canNavigate = function(vocabulary) {
     var hasShowNavigate = false;
 
@@ -3994,6 +3995,19 @@ angular.module('obiba.mica.search')
           return result;
         }
 
+        // vocabulary (or term) can be used in search iff it doesn't have the 'showSearch' attribute
+        function canSearch(vocabulary) {
+          var hasShowSearch = false;
+
+          if (vocabulary.attributes) {
+            hasShowSearch = vocabulary.attributes.filter(function (attr) {
+                  return attr.key === 'showSearch';
+                }).length > 0;
+          }
+
+          return !hasShowSearch;
+        }
+
         return TaxonomiesSearchResource.get({
           query: quoteQuery(query), locale: $scope.lang, target: $scope.documents.search.target
         }).$promise.then(function (response) {
@@ -4006,13 +4020,11 @@ angular.module('obiba.mica.search')
               var taxonomy = bundle.taxonomy;
               if (taxonomy.vocabularies) {
                 taxonomy.vocabularies.filter(function (vocabulary) {
-                  return angular.isUndefined(vocabulary.attributes) ||
-                      (!angular.isUndefined(vocabulary.attributes) && angular.isUndefined(vocabulary.attributes.showSearch));
+                  return canSearch(vocabulary);
                 }).forEach(function (vocabulary) {
                   if (vocabulary.terms) {
                     vocabulary.terms.filter(function (term) {
-                      return angular.isUndefined(term.attributes) ||
-                          (!angular.isUndefined(term.attributes) && angular.isUndefined(term.attributes.showSearch));
+                      return canSearch(term);
                     }).forEach(function (term) {
                       var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, term, $scope.lang);
                       results.push({
