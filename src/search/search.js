@@ -42,6 +42,8 @@ angular.module('obiba.mica.search', [
         taxonomyTabsOrder: [QUERY_TARGETS.VARIABLE, QUERY_TARGETS.DATASET, QUERY_TARGETS.STUDY, QUERY_TARGETS.NETWORK],
         searchTabsOrder: [DISPLAY_TYPES.LIST, DISPLAY_TYPES.COVERAGE, DISPLAY_TYPES.GRAPHICS],
         resultTabsOrder: [QUERY_TARGETS.VARIABLE, QUERY_TARGETS.DATASET, QUERY_TARGETS.STUDY, QUERY_TARGETS.NETWORK],
+        hideNavigate: [],
+        hideSearch: ['studyIds', 'dceIds', 'datasetId', 'networkId', 'studyId'],
         variables: {
           showSearchTab: true,
           variablesColumn: {

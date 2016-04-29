@@ -1362,6 +1362,8 @@ angular.module('obiba.mica.search', [
         taxonomyTabsOrder: [QUERY_TARGETS.VARIABLE, QUERY_TARGETS.DATASET, QUERY_TARGETS.STUDY, QUERY_TARGETS.NETWORK],
         searchTabsOrder: [DISPLAY_TYPES.LIST, DISPLAY_TYPES.COVERAGE, DISPLAY_TYPES.GRAPHICS],
         resultTabsOrder: [QUERY_TARGETS.VARIABLE, QUERY_TARGETS.DATASET, QUERY_TARGETS.STUDY, QUERY_TARGETS.NETWORK],
+        hideNavigate: [],
+        hideSearch: ['studyIds', 'dceIds', 'datasetId', 'networkId', 'studyId'],
         variables: {
           showSearchTab: true,
           variablesColumn: {
@@ -3387,7 +3389,7 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
       }).length > 0;
     }
 
-    return !hasShowNavigate;
+    return !(hasShowNavigate || $scope.options.hideNavigate.indexOf(vocabulary.name) > -1);
   };
 
   this.navigateTaxonomy = function (taxonomy, vocabulary, term) {
@@ -3996,7 +3998,7 @@ angular.module('obiba.mica.search')
         }
 
         // vocabulary (or term) can be used in search iff it doesn't have the 'showSearch' attribute
-        function canSearch(vocabulary) {
+        function canSearch(vocabulary, hideSearchList) {
           var hasShowSearch = false;
 
           if (vocabulary.attributes) {
@@ -4005,7 +4007,7 @@ angular.module('obiba.mica.search')
                 }).length > 0;
           }
 
-          return !hasShowSearch;
+          return !(hasShowSearch || hideSearchList.indexOf(vocabulary.name) > -1);
         }
 
         return TaxonomiesSearchResource.get({
@@ -4020,11 +4022,11 @@ angular.module('obiba.mica.search')
               var taxonomy = bundle.taxonomy;
               if (taxonomy.vocabularies) {
                 taxonomy.vocabularies.filter(function (vocabulary) {
-                  return canSearch(vocabulary);
+                  return canSearch(vocabulary, $scope.options.hideSearch);
                 }).forEach(function (vocabulary) {
                   if (vocabulary.terms) {
                     vocabulary.terms.filter(function (term) {
-                      return canSearch(term);
+                      return canSearch(term, $scope.options.hideSearch);
                     }).forEach(function (term) {
                       var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, term, $scope.lang);
                       results.push({
