@@ -4882,10 +4882,10 @@ angular.module('obiba.mica.search')
                   ym[1] = 1;
                 }
               }
-              var ymStr = ym[0] + '-'  + ym[1] + '-01';
+              var ymStr = ym[0] + '/'  + ym[1] + '/01';
               res = Date.parse(ymStr);
             } else {
-              res = start ? Date.parse(yearMonth + '-01-01') : Date.parse(yearMonth + '-12-31');
+              res = start ? Date.parse(yearMonth + '/01/01') : Date.parse(yearMonth + '/12/31');
             }
           }
           return res;
