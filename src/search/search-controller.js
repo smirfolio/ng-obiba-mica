@@ -140,6 +140,14 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
     $scope.onSelectTerm(target, taxonomy, vocabulary, args);
   };
 
+  this.onHideSearchNavigate = function (vocabulary) {
+    ngObibaMicaSearch.toggleHideSearchNavigate(vocabulary);
+  };
+  
+  this.isInHideNavigate = function (vocabulary) {
+    return $scope.options.hideNavigate.indexOf(vocabulary.name) > -1;
+  };
+
   var self = this;
 
   $scope.$on('$locationChangeSuccess', function () {
@@ -160,6 +168,9 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
 
   $scope.navigateTaxonomy = this.navigateTaxonomy;
   $scope.selectTerm = this.selectTerm;
+
+  $scope.onHideSearchNavigate = this.onHideSearchNavigate;
+  $scope.isInHideNavigate = this.isInHideNavigate;
 }
 /**
  * TaxonomiesPanelController

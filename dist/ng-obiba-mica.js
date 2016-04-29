@@ -1459,6 +1459,14 @@ angular.module('obiba.mica.search', [
           },
           getOptions: function() {
             return options;
+          },
+          toggleHideSearchNavigate: function (vocabulary) {
+            var index = options.hideNavigate.indexOf(vocabulary.name);
+            if (index > -1) {
+              options.hideNavigate.splice(index, 1);
+            } else {
+              options.hideNavigate.push(vocabulary.name);
+            }
           }
         };
       }];
@@ -3436,6 +3444,14 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
     $scope.onSelectTerm(target, taxonomy, vocabulary, args);
   };
 
+  this.onHideSearchNavigate = function (vocabulary) {
+    ngObibaMicaSearch.toggleHideSearchNavigate(vocabulary);
+  };
+  
+  this.isInHideNavigate = function (vocabulary) {
+    return $scope.options.hideNavigate.indexOf(vocabulary.name) > -1;
+  };
+
   var self = this;
 
   $scope.$on('$locationChangeSuccess', function () {
@@ -3456,6 +3472,9 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
 
   $scope.navigateTaxonomy = this.navigateTaxonomy;
   $scope.selectTerm = this.selectTerm;
+
+  $scope.onHideSearchNavigate = this.onHideSearchNavigate;
+  $scope.isInHideNavigate = this.isInHideNavigate;
 }
 /**
  * TaxonomiesPanelController
@@ -5320,7 +5339,9 @@ angular.module('obiba.mica.search')
         vocabulary: '=',
         lang: '=',
         onNavigate: '=',
-        onSelect: '='
+        onSelect: '=',
+        onHideSearchNavigate: '=',
+        isInHideNavigate: '='
       },
       templateUrl: 'search/views/classifications/vocabulary-panel-template.html'
     };
@@ -8040,15 +8061,15 @@ angular.module("search/views/classifications/classifications-view.html", []).run
     "      <div ng-repeat=\"vocabulary in taxonomies.taxonomy.vocabularies\" ng-if=\"$index % 3 == 0\" class=\"row\">\n" +
     "        <div class=\"col-md-4\">\n" +
     "          <div vocabulary-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index]\"\n" +
-    "               lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
+    "               lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\" on-hide-search-navigate=\"onHideSearchNavigate\" is-in-hide-navigate=\"isInHideNavigate\"></div>\n" +
     "        </div>\n" +
     "        <div class=\"col-md-4\">\n" +
     "          <div vocabulary-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index + 1]\"\n" +
-    "               lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
+    "               lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\" on-hide-search-navigate=\"onHideSearchNavigate\" is-in-hide-navigate=\"isInHideNavigate\"></div>\n" +
     "        </div>\n" +
     "        <div class=\"col-md-4\">\n" +
     "          <div vocabulary-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index + 2]\"\n" +
-    "               lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
+    "               lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\" on-hide-search-navigate=\"onHideSearchNavigate\" is-in-hide-navigate=\"isInHideNavigate\"></div>\n" +
     "        </div>\n" +
     "      </div>\n" +
     "    </div>\n" +
@@ -8328,13 +8349,18 @@ angular.module("search/views/classifications/vocabulary-panel-template.html", []
     "<div>\n" +
     "  <div class=\"panel panel-default\" ng-if=\"vocabulary\">\n" +
     "    <div class=\"panel-heading\">\n" +
-    "      <div ng-repeat=\"label in vocabulary.title\" ng-if=\"label.locale === lang\">\n" +
+    "      <div ng-repeat=\"label in vocabulary.title\" ng-if=\"label.locale === lang\" class=\"clearfix\">\n" +
     "        <a href ng-click=\"onNavigate(taxonomy, vocabulary)\" ng-if=\"vocabulary.terms\">{{label.text}}</a>\n" +
     "        <span ng-if=\"!vocabulary.terms\">{{label.text}}</span>\n" +
     "        <a href ng-click=\"onSelect(target, taxonomy, vocabulary)\">\n" +
     "          <small ng-if=\"vocabulary.terms\"><i class=\"fa fa-plus-circle\" title=\"{{'add-query' | translate}}\"></i></small>\n" +
     "          <small ng-if=\"!vocabulary.terms\"><i class=\"fa fa-plus-circle\" title=\"{{'add-query' | translate}}\"></i></small>\n" +
     "        </a>\n" +
+    "        <span class=\"pull-right\">\n" +
+    "          <a href ng-click=\"onHideSearchNavigate(vocabulary)\">\n" +
+    "            <small><i class=\"fa fa-{{isInHideNavigate(vocabulary) ? 'check-' : ''}}square-o\"></i></small>\n" +
+    "          </a>\n" +
+    "        </span>\n" +
     "      </div>\n" +
     "    </div>\n" +
     "    <div class=\"panel-body\">\n" +

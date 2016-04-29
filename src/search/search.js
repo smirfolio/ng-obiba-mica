@@ -139,6 +139,14 @@ angular.module('obiba.mica.search', [
           },
           getOptions: function() {
             return options;
+          },
+          toggleHideSearchNavigate: function (vocabulary) {
+            var index = options.hideNavigate.indexOf(vocabulary.name);
+            if (index > -1) {
+              options.hideNavigate.splice(index, 1);
+            } else {
+              options.hideNavigate.push(vocabulary.name);
+            }
           }
         };
       }];
