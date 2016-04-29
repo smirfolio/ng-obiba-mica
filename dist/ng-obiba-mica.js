@@ -5154,6 +5154,8 @@ angular.module('obiba.mica.search')
             angular.extend($scope.chartObjects,
               {
                 geoChartOptions: {
+                  directiveTitle: geoStudies.options.title,
+                  headerTitle: $filter('translate')('graphics.geo-charts'),
                   chartObject: {
                     geoTitle: geoStudies.options.title,
                     options: geoStudies.options,
@@ -5168,6 +5170,8 @@ angular.module('obiba.mica.search')
           if (methodDesignStudies) {
             angular.extend($scope.chartObjects, {
               studiesDesigns: {
+                directiveTitle: methodDesignStudies.options.title ,
+                headerTitle: $filter('translate')('graphics.study-design'),
                 chartObject: {
                   options: methodDesignStudies.options,
                   type: 'google.charts.Bar',
@@ -5181,6 +5185,7 @@ angular.module('obiba.mica.search')
           if (numberParticipant) {
             angular.extend($scope.chartObjects, {
               numberParticipants: {
+                headerTitle: $filter('translate')('graphics.number-participants'),
                 chartObject: {
                   options: numberParticipant.options,
                   type: 'PieChart',
@@ -5194,6 +5199,7 @@ angular.module('obiba.mica.search')
           if (bioSamplesStudies) {
             angular.extend($scope.chartObjects, {
               biologicalSamples: {
+                headerTitle: $filter('translate')('graphics.bio-samples'),
                 chartObject: {
                   options: bioSamplesStudies.options,
                   type: 'BarChart',
@@ -8724,11 +8730,14 @@ angular.module("search/views/graphics/graphics-search-result-template.html", [])
     "\n" +
     "  <div ng-repeat=\"chart in chartObjects\" class=\"panel panel-default\">\n" +
     "    <div class=\"panel-heading\">\n" +
-    "      {{chart.chartObject.options.title}}\n" +
+    "      {{chart.headerTitle}}\n" +
     "    </div>\n" +
     "    <div class=\"panel-body\">\n" +
     "      <div class=\"row\">\n" +
     "        <div class=\"col-md-6\">\n" +
+    "          <div ng-if=\"chart.directiveTitle\" class=\"chart-title\">\n" +
+    "            {{chart.directiveTitle}}\n" +
+    "          </div>\n" +
     "          <div google-chart chart=\"chart.chartObject\" style=\"min-height:350px; width:100%;\"></div>\n" +
     "        </div>\n" +
     "        <div class=\"col-md-6\">\n" +
