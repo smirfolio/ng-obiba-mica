@@ -505,6 +505,21 @@ angular.module('obiba.mica.search')
     };
   }])
 
+  .directive('taxonomiesFacetsPanel',[function() {
+    return {
+      restrict: 'EA',
+      scope: {
+        facetedTaxonomies: '=',
+        onRefresh: '=',
+        onSelectTerm: '=',
+        lang: '=',
+        criteria: '='
+      },
+      controller: 'TaxonomiesFacetsController',
+      templateUrl: 'search/views/classifications/taxonomies-facets-view.html'
+    };
+  }])
+  
   .directive('taxonomiesPanel',[function() {
     return {
     restrict: 'EA',

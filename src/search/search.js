@@ -115,6 +115,8 @@ angular.module('obiba.mica.search', [
         options.taxonomyTabsOrder = value.taxonomyTabsOrder || options.taxonomyTabsOrder;
         options.searchTabsOrder = value.searchTabsOrder || options.searchTabsOrder;
         options.resultTabsOrder = value.resultTabsOrder || options.resultTabsOrder;
+        options.hideNavigate = value.hideNavigate || options.hideNavigate;
+        options.hideSearch = value.hideSearch || options.hideSearch;
       };
 
       this.$get = ['$q', '$injector', function ngObibaMicaSearchFactory($q, $injector) {
