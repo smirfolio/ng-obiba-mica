@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-04-29
+ * Date: 2016-05-02
  */
 'use strict';
 
@@ -3397,15 +3397,11 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
 
   // vocabulary (or term) will appear in navigation iff it doesn't have the 'showNavigate' attribute
   $scope.canNavigate = function(vocabulary) {
-    var hasShowNavigate = false;
-
-    if (vocabulary.attributes) {
-      hasShowNavigate = vocabulary.attributes.filter(function (attr) {
-        return attr.key === 'showNavigate';
-      }).length > 0;
+    if ($scope.options.hideNavigate.indexOf(vocabulary.name) > -1) {
+      return false;
     }
 
-    return !(hasShowNavigate || $scope.options.hideNavigate.indexOf(vocabulary.name) > -1);
+    return (vocabulary.attributes || []).filter(function (attr) { return attr.key === 'showNavigate'; }).length === 0;
   };
 
   this.navigateTaxonomy = function (taxonomy, vocabulary, term) {
@@ -3452,14 +3448,6 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
     $scope.onSelectTerm(target, taxonomy, vocabulary, args);
   };
 
-  this.onHideSearchNavigate = function (vocabulary) {
-    ngObibaMicaSearch.toggleHideSearchNavigate(vocabulary);
-  };
-  
-  this.isInHideNavigate = function (vocabulary) {
-    return $scope.options.hideNavigate.indexOf(vocabulary.name) > -1;
-  };
-
   var self = this;
 
   $scope.$on('$locationChangeSuccess', function () {
@@ -3480,9 +3468,6 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
 
   $scope.navigateTaxonomy = this.navigateTaxonomy;
   $scope.selectTerm = this.selectTerm;
-
-  $scope.onHideSearchNavigate = this.onHideSearchNavigate;
-  $scope.isInHideNavigate = this.isInHideNavigate;
 }
 /**
  * TaxonomiesPanelController
@@ -4026,15 +4011,11 @@ angular.module('obiba.mica.search')
 
         // vocabulary (or term) can be used in search iff it doesn't have the 'showSearch' attribute
         function canSearch(vocabulary, hideSearchList) {
-          var hasShowSearch = false;
-
-          if (vocabulary.attributes) {
-            hasShowSearch = vocabulary.attributes.filter(function (attr) {
-                  return attr.key === 'showSearch';
-                }).length > 0;
+          if ((hideSearchList || []).indexOf(vocabulary.name) > -1) {
+            return false;
           }
 
-          return !(hasShowSearch || hideSearchList.indexOf(vocabulary.name) > -1);
+          return (vocabulary.attributes || []).filter(function (attr) { return attr.key === 'showNavigate'; }).length === 0;
         }
 
         return TaxonomiesSearchResource.get({
@@ -8069,15 +8050,15 @@ angular.module("search/views/classifications/classifications-view.html", []).run
     "      <div ng-repeat=\"vocabulary in taxonomies.taxonomy.vocabularies\" ng-if=\"$index % 3 == 0\" class=\"row\">\n" +
     "        <div class=\"col-md-4\">\n" +
     "          <div vocabulary-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index]\"\n" +
-    "               lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\" on-hide-search-navigate=\"onHideSearchNavigate\" is-in-hide-navigate=\"isInHideNavigate\"></div>\n" +
+    "               lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
     "        </div>\n" +
     "        <div class=\"col-md-4\">\n" +
     "          <div vocabulary-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index + 1]\"\n" +
-    "               lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\" on-hide-search-navigate=\"onHideSearchNavigate\" is-in-hide-navigate=\"isInHideNavigate\"></div>\n" +
+    "               lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
     "        </div>\n" +
     "        <div class=\"col-md-4\">\n" +
     "          <div vocabulary-panel target=\"taxonomies.target\" taxonomy=\"taxonomies.taxonomy\" vocabulary=\"taxonomies.taxonomy.vocabularies[$index + 2]\"\n" +
-    "               lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\" on-hide-search-navigate=\"onHideSearchNavigate\" is-in-hide-navigate=\"isInHideNavigate\"></div>\n" +
+    "               lang=\"lang\" on-navigate=\"navigateTaxonomy\" on-select=\"selectTerm\"></div>\n" +
     "        </div>\n" +
     "      </div>\n" +
     "    </div>\n" +
@@ -8364,11 +8345,6 @@ angular.module("search/views/classifications/vocabulary-panel-template.html", []
     "          <small ng-if=\"vocabulary.terms\"><i class=\"fa fa-plus-circle\" title=\"{{'add-query' | translate}}\"></i></small>\n" +
     "          <small ng-if=\"!vocabulary.terms\"><i class=\"fa fa-plus-circle\" title=\"{{'add-query' | translate}}\"></i></small>\n" +
     "        </a>\n" +
-    "        <span class=\"pull-right\">\n" +
-    "          <a href ng-click=\"onHideSearchNavigate(vocabulary)\">\n" +
-    "            <small><i class=\"fa fa-{{isInHideNavigate(vocabulary) ? '' : 'check-'}}square-o\"></i></small>\n" +
-    "          </a>\n" +
-    "        </span>\n" +
     "      </div>\n" +
     "    </div>\n" +
     "    <div class=\"panel-body\">\n" +

@@ -84,15 +84,11 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
 
   // vocabulary (or term) will appear in navigation iff it doesn't have the 'showNavigate' attribute
   $scope.canNavigate = function(vocabulary) {
-    var hasShowNavigate = false;
-
-    if (vocabulary.attributes) {
-      hasShowNavigate = vocabulary.attributes.filter(function (attr) {
-        return attr.key === 'showNavigate';
-      }).length > 0;
+    if ($scope.options.hideNavigate.indexOf(vocabulary.name) > -1) {
+      return false;
     }
 
-    return !(hasShowNavigate || $scope.options.hideNavigate.indexOf(vocabulary.name) > -1);
+    return (vocabulary.attributes || []).filter(function (attr) { return attr.key === 'showNavigate'; }).length === 0;
   };
 
   this.navigateTaxonomy = function (taxonomy, vocabulary, term) {
@@ -139,14 +135,6 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
     $scope.onSelectTerm(target, taxonomy, vocabulary, args);
   };
 
-  this.onHideSearchNavigate = function (vocabulary) {
-    ngObibaMicaSearch.toggleHideSearchNavigate(vocabulary);
-  };
-  
-  this.isInHideNavigate = function (vocabulary) {
-    return $scope.options.hideNavigate.indexOf(vocabulary.name) > -1;
-  };
-
   var self = this;
 
   $scope.$on('$locationChangeSuccess', function () {
@@ -167,9 +155,6 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
 
   $scope.navigateTaxonomy = this.navigateTaxonomy;
   $scope.selectTerm = this.selectTerm;
-
-  $scope.onHideSearchNavigate = this.onHideSearchNavigate;
-  $scope.isInHideNavigate = this.isInHideNavigate;
 }
 /**
  * TaxonomiesPanelController
@@ -713,15 +698,11 @@ angular.module('obiba.mica.search')
 
         // vocabulary (or term) can be used in search iff it doesn't have the 'showSearch' attribute
         function canSearch(vocabulary, hideSearchList) {
-          var hasShowSearch = false;
-
-          if (vocabulary.attributes) {
-            hasShowSearch = vocabulary.attributes.filter(function (attr) {
-                  return attr.key === 'showSearch';
-                }).length > 0;
+          if ((hideSearchList || []).indexOf(vocabulary.name) > -1) {
+            return false;
           }
 
-          return !(hasShowSearch || hideSearchList.indexOf(vocabulary.name) > -1);
+          return (vocabulary.attributes || []).filter(function (attr) { return attr.key === 'showNavigate'; }).length === 0;
         }
 
         return TaxonomiesSearchResource.get({

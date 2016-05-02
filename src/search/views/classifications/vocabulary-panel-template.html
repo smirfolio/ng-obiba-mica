@@ -8,11 +8,6 @@
           <small ng-if="vocabulary.terms"><i class="fa fa-plus-circle" title="{{'add-query' | translate}}"></i></small>
           <small ng-if="!vocabulary.terms"><i class="fa fa-plus-circle" title="{{'add-query' | translate}}"></i></small>
         </a>
-        <span class="pull-right">
-          <a href ng-click="onHideSearchNavigate(vocabulary)">
-            <small><i class="fa fa-{{isInHideNavigate(vocabulary) ? '' : 'check-'}}square-o"></i></small>
-          </a>
-        </span>
       </div>
     </div>
     <div class="panel-body">
