@@ -8613,13 +8613,14 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "                  <ul class=\"nav nav-pills nav-stacked\" ng-if=\"taxonomies.vocabulary.terms\">\n" +
     "                    <li ng-repeat=\"term in taxonomies.vocabulary.terms\"\n" +
     "                        class=\"{{taxonomies.term.name === term.name ? 'active' : ''}}\">\n" +
-    "                      <a id=\"search-navigate-vocabulary\" href ng-click=\"navigateTaxonomy(taxonomies.taxonomy, taxonomies.vocabulary, term)\">\n" +
+    "                      <a class=\"clearfix\" id=\"search-navigate-vocabulary\" href ng-click=\"navigateTaxonomy(taxonomies.taxonomy, taxonomies.vocabulary, term)\">\n" +
     "                        <span ng-repeat=\"label in term.title\" ng-if=\"label.locale === lang\">\n" +
     "                          {{label.text}}\n" +
     "                        </span>\n" +
     "                        <span ng-if=\"!term.title\">\n" +
     "                          {{term.name}}\n" +
     "                        </span>\n" +
+    "                        <i class=\"pull-right {{taxonomies.term.name !== term.name ? 'hidden' : ''}} hidden-sm hidden-xs fa fa-chevron-circle-right\"></i>\n" +
     "                      </a>\n" +
     "                    </li>\n" +
     "                  </ul>\n" +
