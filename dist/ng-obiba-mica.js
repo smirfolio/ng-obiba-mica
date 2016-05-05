@@ -7963,7 +7963,7 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "      <tr ng-show=\"!data.isRoot && data.document.path !== data.rootPath && !data.search.active\">\n" +
     "        <td colspan=\"5\">\n" +
     "          <i class=\"fa fa-folder\"></i>\n" +
-    "          <span><a href class=\"no-text-decoration\" ng-click=\"navigateBack()\"> ..</a></span>\n" +
+    "          <span><a href style=\"text-decoration: none\" class=\"no-text-decoration\" ng-click=\"navigateBack()\"> ..</a></span>\n" +
     "        </td>\n" +
     "      </tr>\n" +
     "      <tr ng-class=\"{'selected-row': $index === pagination.selected}\"\n" +
