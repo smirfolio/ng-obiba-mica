@@ -1359,9 +1359,14 @@ angular.module('obiba.mica.search', [
       var localeResolver = ['LocalizedValues', function (LocalizedValues) {
         return LocalizedValues.getLocal();
       }], options = {
-        taxonomyTabsOrder: [QUERY_TARGETS.VARIABLE, QUERY_TARGETS.DATASET, QUERY_TARGETS.STUDY, QUERY_TARGETS.NETWORK],
+        targetTabsOrder: [QUERY_TARGETS.VARIABLE, QUERY_TARGETS.DATASET, QUERY_TARGETS.STUDY, QUERY_TARGETS.NETWORK],
         searchTabsOrder: [DISPLAY_TYPES.LIST, DISPLAY_TYPES.COVERAGE, DISPLAY_TYPES.GRAPHICS],
         resultTabsOrder: [QUERY_TARGETS.VARIABLE, QUERY_TARGETS.DATASET, QUERY_TARGETS.STUDY, QUERY_TARGETS.NETWORK],
+        showAllFacetedTaxonomies: true,
+        variableTaxonomiesOrder: [],
+        studyTaxonomiesOrder: [],
+        datasetTaxonomiesOrder: [],
+        networkTaxonomiesOrder: [],
         hideNavigate: [],
         hideSearch: ['studyIds', 'dceIds', 'datasetId', 'networkId', 'studyId'],
         variables: {
@@ -1432,9 +1437,13 @@ angular.module('obiba.mica.search', [
       this.setOptions = function (value) {
         options = angular.merge(options, value);
         //NOTICE: angular.merge merges arrays by position. Overriding manually.
-        options.taxonomyTabsOrder = value.taxonomyTabsOrder || options.taxonomyTabsOrder;
+        options.targetTabsOrder = value.targetTabsOrder || options.targetTabsOrder;
         options.searchTabsOrder = value.searchTabsOrder || options.searchTabsOrder;
         options.resultTabsOrder = value.resultTabsOrder || options.resultTabsOrder;
+        options.variableTaxonomiesOrder = value.variableTaxonomiesOrder || options.variableTaxonomiesOrder;
+        options.studyTaxonomiesOrder = value.studyTaxonomiesOrder || options.studyTaxonomiesOrder;
+        options.datasetTaxonomiesOrder = value.datasetTaxonomiesOrder || options.datasetTaxonomiesOrder;
+        options.networkTaxonomiesOrder = value.networkTaxonomiesOrder || options.networkTaxonomiesOrder;
         options.hideNavigate = value.hideNavigate || options.hideNavigate;
         options.hideSearch = value.hideSearch || options.hideSearch;
       };
@@ -3706,14 +3715,26 @@ angular.module('obiba.mica.search')
 
         $scope.hasFacetedTaxonomies = false;
 
-        $scope.facetedTaxonomies = t.vocabularies.reduce(function(res, v) {
-          res[v.name] = flattenTaxonomies(v.terms).filter(function(t) {
+        $scope.facetedTaxonomies = t.vocabularies.reduce(function(res, target) {
+          var taxonomies = flattenTaxonomies(target.terms).filter(function(t) {
             return t.attributes && t.attributes.some(function(att) {
                 return att.key === 'showFacetedNavigation' &&  att.value.toString() === 'true';
               });
           });
           
-          $scope.hasFacetedTaxonomies = $scope.hasFacetedTaxonomies || res[v.name].length;
+          function getTaxonomy(taxonomyName) {
+            return taxonomies.filter(function(t) {
+              return t.name === taxonomyName;
+            })[0];
+          }
+          
+          function notNull(t) {
+            return t !== null && t !== undefined;
+          }
+
+          res[target.name] = $scope.options.showAllFacetedTaxonomies ? taxonomies :
+            ($scope.options[target.name + 'TaxonomiesOrder'] || []).map(getTaxonomy).filter(notNull);
+          $scope.hasFacetedTaxonomies = $scope.hasFacetedTaxonomies || res[target.name].length;
           
           return res;
         }, {});
@@ -3741,8 +3762,8 @@ angular.module('obiba.mica.search')
               });
         }
 
-        var taxonomyTabsOrderParam = getTabsOrderParam('taxonomyTabsOrder');
-        $scope.taxonomyTabsOrder = (taxonomyTabsOrderParam || $scope.options.taxonomyTabsOrder).filter(function (t) {
+        var targetTabsOrderParam = getTabsOrderParam('targetTabsOrder');
+        $scope.targetTabsOrder = (targetTabsOrderParam || $scope.options.targetTabsOrder).filter(function (t) {
           return searchTaxonomyDisplay[t];
         });
 
@@ -3757,11 +3778,11 @@ angular.module('obiba.mica.search')
         if($location.search().target) {
           $scope.target = $location.search().target;
         } else if (!$scope.target) {
-          $scope.target = $scope.taxonomyTabsOrder[0];
+          $scope.target = $scope.targetTabsOrder[0];
         }
 
         $scope.metaTaxonomy.$promise.then(function (metaTaxonomy) {
-          $scope.taxonomyTabsOrder.forEach(function (target) {
+          $scope.targetTabsOrder.forEach(function (target) {
             var targetVocabulary = metaTaxonomy.vocabularies.filter(function (vocabulary) {
               return vocabulary.name === target;
             }).pop();
@@ -4303,7 +4324,7 @@ angular.module('obiba.mica.search')
       $scope.goToClassifications = function () {
         $scope.viewMode = VIEW_MODES.CLASSIFICATION;
         $location.path('/classifications');
-        $location.search('target', $scope.taxonomyTabsOrder[0]);
+        $location.search('target', $scope.targetTabsOrder[0]);
       };
 
       $scope.navigateToTarget = function(target) {
@@ -4599,7 +4620,7 @@ angular.module('obiba.mica.search')
       
       $scope.$watch('facetedTaxonomies', function(facetedTaxonomies) {
         if(facetedTaxonomies) {
-          $scope.targets = $scope.options.taxonomyTabsOrder.filter(function (t) {
+          $scope.targets = $scope.options.targetTabsOrder.filter(function (t) {
             return facetedTaxonomies[t].length;
           });
           
@@ -8275,8 +8296,8 @@ angular.module("search/views/classifications.html", []).run(["$templateCache", f
     "\n" +
     "  <!-- Classifications region -->\n" +
     "  <div class=\"{{tabs && tabs.length>1 ? 'tab-content voffset4' : ''}}\">\n" +
-    "    <ul class=\"nav nav-pills voffset2\" role=\"tablist\" ng-if=\"taxonomyTabsOrder.length > 1\">\n" +
-    "      <li ng-repeat=\"target in taxonomyTabsOrder\" role=\"presentation\" ng-class=\"{ active: target === $parent.target }\"><a href role=\"tab\"\n" +
+    "    <ul class=\"nav nav-pills voffset2\" role=\"tablist\" ng-if=\"targetTabsOrder.length > 1\">\n" +
+    "      <li ng-repeat=\"target in targetTabsOrder\" role=\"presentation\" ng-class=\"{ active: target === $parent.target }\"><a href role=\"tab\"\n" +
     "          ng-click=\"navigateToTarget(target)\">{{'taxonomy.target.' + target | translate}}</a></li>\n" +
     "    </ul>\n" +
     "\n" +
