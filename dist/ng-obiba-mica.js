@@ -9845,29 +9845,27 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "\n" +
     "      <!-- Search Results region -->\n" +
     "      <div id=\"search-result-region\" class=\"voffset3 can-full-screen\" ng-if=\"search.query\" fullscreen=\"isFullscreen\">\n" +
-    "        <a href class=\"btn btn-sm btn-default pull-right\" ng-click=\"toggleFullscreen()\">\n" +
+    "        <a href class=\"btn btn-sm btn-default pull-right\" ng-click=\"toggleFullscreen()\" ng-if=\"searchTabsOrder.length > 1\">\n" +
     "          <i class=\"glyphicon\" ng-class=\"{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}\"></i>\n" +
     "        </a>\n" +
     "        <ul class=\"nav nav-tabs voffset2\" ng-if=\"searchTabsOrder.length > 1\">\n" +
     "          <li role=\"presentation\" ng-repeat=\"tab in searchTabsOrder\" ng-class=\"{active: search.display === tab}\"><a href\n" +
     "                                                                                                                    ng-click=\"selectDisplay(tab)\">{{ 'search.' + tab | translate}}</a></li>\n" +
     "        </ul>\n" +
-    "        <div class=\"tab-panel\">\n" +
-    "          <div translate>{{'search.' + search.display + '-help'}}</div>\n" +
-    "          <result-panel display=\"search.display\"\n" +
-    "                        type=\"search.type\"\n" +
-    "                        bucket=\"search.bucket\"\n" +
-    "                        query=\"search.executedQuery\"\n" +
-    "                        result=\"search.result\"\n" +
-    "                        loading=\"search.loading\"\n" +
-    "                        on-update-criteria=\"onUpdateCriteria\"\n" +
-    "                        on-type-changed=\"onTypeChanged\"\n" +
-    "                        on-bucket-changed=\"onBucketChanged\"\n" +
-    "                        on-paginate=\"onPaginate\"\n" +
-    "                        search-tabs-order=\"searchTabsOrder\"\n" +
-    "                        result-tabs-order=\"resultTabsOrder\"\n" +
-    "                        lang=\"lang\"></result-panel>\n" +
-    "        </div>\n" +
+    "        <div translate>{{'search.' + search.display + '-help'}}</div>\n" +
+    "        <result-panel display=\"search.display\"\n" +
+    "                      type=\"search.type\"\n" +
+    "                      bucket=\"search.bucket\"\n" +
+    "                      query=\"search.executedQuery\"\n" +
+    "                      result=\"search.result\"\n" +
+    "                      loading=\"search.loading\"\n" +
+    "                      on-update-criteria=\"onUpdateCriteria\"\n" +
+    "                      on-type-changed=\"onTypeChanged\"\n" +
+    "                      on-bucket-changed=\"onBucketChanged\"\n" +
+    "                      on-paginate=\"onPaginate\"\n" +
+    "                      search-tabs-order=\"searchTabsOrder\"\n" +
+    "                      result-tabs-order=\"resultTabsOrder\"\n" +
+    "                      lang=\"lang\"></result-panel>\n" +
     "      </div>\n" +
     "\n" +
     "    </div>\n" +
