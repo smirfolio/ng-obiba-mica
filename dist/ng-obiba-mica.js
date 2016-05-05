@@ -9751,7 +9751,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "          </span>\n" +
     "          </div>\n" +
     "        </div>\n" +
-    "        <div id=\"search-browser-region\" class=\"{{hasFacetedTaxonomies ? '' : 'row'}}\">\n" +
+    "        <div id=\"search-selector-region\" class=\"{{hasFacetedTaxonomies ? '' : 'row'}}\">\n" +
     "          <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-3'}}\"></div>\n" +
     "          <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-6'}}\">\n" +
     "            <small>\n" +
