@@ -160,13 +160,17 @@
 
       <!-- Search Results region -->
       <div id="search-result-region" class="voffset3 can-full-screen" ng-if="search.query" fullscreen="isFullscreen">
-        <a href class="btn btn-sm btn-default pull-right" ng-click="toggleFullscreen()" ng-if="searchTabsOrder.length > 1">
-          <i class="glyphicon" ng-class="{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}"></i>
-        </a>
-        <ul class="nav nav-tabs voffset2" ng-if="searchTabsOrder.length > 1">
-          <li role="presentation" ng-repeat="tab in searchTabsOrder" ng-class="{active: search.display === tab}"><a href
-                                                                                                                    ng-click="selectDisplay(tab)">{{ 'search.' + tab | translate}}</a></li>
-        </ul>
+        <div ng-if="searchTabsOrder.length > 1">
+          <a href class="btn btn-sm btn-default pull-right" ng-click="toggleFullscreen()">
+            <i class="glyphicon" ng-class="{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}"></i>
+          </a>
+          <ul class="nav nav-tabs voffset2">
+            <li role="presentation" ng-repeat="tab in searchTabsOrder" ng-class="{active: search.display === tab}">
+              <a href ng-click="selectDisplay(tab)">{{ 'search.' + tab | translate}}</a>
+            </li>
+          </ul>
+        </div>
+
         <div translate>{{'search.' + search.display + '-help'}}</div>
         <result-panel display="search.display"
                       type="search.type"
