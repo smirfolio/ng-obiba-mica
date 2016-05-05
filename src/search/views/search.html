@@ -20,8 +20,6 @@
       ng-click="setLocale(tab)">{{'language.' + tab | translate}}</a></li>
   </ul>
 
-
-
   <div class="row voffset2">
     <div class="col-md-3" ng-if="hasFacetedTaxonomies" >
       <!-- Search Facets region -->
@@ -32,7 +30,7 @@
 
       <!-- Search box region -->
       <div id="search-region" class="{{tabs && tabs.length>1 ? 'tab-content voffset4' : ''}}">
-        <div class="{{hasFacetedTaxonomies ? '' : 'row'}}">
+        <div id="search-box-region" class="{{hasFacetedTaxonomies ? '' : 'row'}}">
           <div class="{{hasFacetedTaxonomies ? '' : 'col-md-3'}}"></div>
           <div class="{{hasFacetedTaxonomies ? '' : 'col-md-6'}}">
             <script type="text/ng-template" id="customTemplate.html">
@@ -93,7 +91,7 @@
           </span>
           </div>
         </div>
-        <div class="{{hasFacetedTaxonomies ? '' : 'row'}}">
+        <div id="search-browser-region" class="{{hasFacetedTaxonomies ? '' : 'row'}}">
           <div class="{{hasFacetedTaxonomies ? '' : 'col-md-3'}}"></div>
           <div class="{{hasFacetedTaxonomies ? '' : 'col-md-6'}}">
             <small>

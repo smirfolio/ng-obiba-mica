@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-05-04
+ * Date: 2016-05-05
  */
 'use strict';
 
@@ -9680,8 +9680,6 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      ng-click=\"setLocale(tab)\">{{'language.' + tab | translate}}</a></li>\n" +
     "  </ul>\n" +
     "\n" +
-    "\n" +
-    "\n" +
     "  <div class=\"row voffset2\">\n" +
     "    <div class=\"col-md-3\" ng-if=\"hasFacetedTaxonomies\" >\n" +
     "      <!-- Search Facets region -->\n" +
@@ -9692,7 +9690,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "\n" +
     "      <!-- Search box region -->\n" +
     "      <div id=\"search-region\" class=\"{{tabs && tabs.length>1 ? 'tab-content voffset4' : ''}}\">\n" +
-    "        <div class=\"{{hasFacetedTaxonomies ? '' : 'row'}}\">\n" +
+    "        <div id=\"search-box-region\" class=\"{{hasFacetedTaxonomies ? '' : 'row'}}\">\n" +
     "          <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-3'}}\"></div>\n" +
     "          <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-6'}}\">\n" +
     "            <script type=\"text/ng-template\" id=\"customTemplate.html\">\n" +
@@ -9753,7 +9751,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "          </span>\n" +
     "          </div>\n" +
     "        </div>\n" +
-    "        <div class=\"{{hasFacetedTaxonomies ? '' : 'row'}}\">\n" +
+    "        <div id=\"search-browser-region\" class=\"{{hasFacetedTaxonomies ? '' : 'row'}}\">\n" +
     "          <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-3'}}\"></div>\n" +
     "          <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-6'}}\">\n" +
     "            <small>\n" +
