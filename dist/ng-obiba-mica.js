@@ -3716,24 +3716,28 @@ angular.module('obiba.mica.search')
         $scope.hasFacetedTaxonomies = false;
 
         $scope.facetedTaxonomies = t.vocabularies.reduce(function(res, target) {
-          var taxonomies = flattenTaxonomies(target.terms).filter(function(t) {
-            return t.attributes && t.attributes.some(function(att) {
-                return att.key === 'showFacetedNavigation' &&  att.value.toString() === 'true';
-              });
-          });
+          var taxonomies = flattenTaxonomies(target.terms);
           
           function getTaxonomy(taxonomyName) {
             return taxonomies.filter(function(t) {
               return t.name === taxonomyName;
             })[0];
           }
-          
+
           function notNull(t) {
             return t !== null && t !== undefined;
           }
 
-          res[target.name] = $scope.options.showAllFacetedTaxonomies ? taxonomies :
-            ($scope.options[target.name + 'TaxonomiesOrder'] || []).map(getTaxonomy).filter(notNull);
+          if($scope.options.showAllFacetedTaxonomies) {
+            res[target.name] = taxonomies.filter(function(t) {
+              return t.attributes && t.attributes.some(function(att) {
+                  return att.key === 'showFacetedNavigation' &&  att.value.toString() === 'true';
+                });
+            });
+          } else {
+            res[target.name] = ($scope.options[target.name + 'TaxonomiesOrder'] || []).map(getTaxonomy).filter(notNull);
+          }
+          
           $scope.hasFacetedTaxonomies = $scope.hasFacetedTaxonomies || res[target.name].length;
           
           return res;
