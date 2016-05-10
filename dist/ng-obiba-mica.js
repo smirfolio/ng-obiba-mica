@@ -4567,6 +4567,8 @@ angular.module('obiba.mica.search')
       };
 
       function updateCounts(criteria, vocabulary) {
+        var query = null, isCriterionPresent = false;
+
         function createExistsQuery(criteria, criterion) {
           var rootQuery = angular.copy(criteria.rqlQuery);
           criterion.rqlQuery = RqlQueryUtils.buildRqlQuery(criterion);
@@ -4577,11 +4579,22 @@ angular.module('obiba.mica.search')
         var criterion = RqlQueryService.findCriterion(criteria,
           CriteriaIdGenerator.generate($scope.$parent.taxonomy, vocabulary));
 
-        if(!criterion) {
+        if(criterion) {
+          isCriterionPresent = true;
+        } else {
           criterion = RqlQueryService.createCriteriaItem($scope.target, $scope.$parent.taxonomy, $scope.vocabulary);
         }
-
-        var query = RqlQueryUtils.hasTargetQuery(criteria.rqlQuery, criterion.target) ? angular.copy(criteria.rqlQuery) : createExistsQuery(criteria, criterion);
+        
+        if(RqlQueryUtils.hasTargetQuery(criteria.rqlQuery, criterion.target)) {
+          query = angular.copy(criteria.rqlQuery);
+          
+          if(!isCriterionPresent) {
+            RqlQueryService.addCriteriaItem(query, criterion, RQL_NODE.OR);
+          }
+        } else {
+          query = createExistsQuery(criteria, criterion); 
+        }
+        
         var joinQuery = RqlQueryService.prepareCriteriaTermsQuery(query, criterion, criterion.lang);
         JoinQuerySearchResource[targetToType($scope.target)]({query: joinQuery}).$promise.then(function (joinQueryResponse) {
           RqlQueryService.getTargetAggregations(joinQueryResponse, criterion, criterion.lang).forEach(function (term) {
