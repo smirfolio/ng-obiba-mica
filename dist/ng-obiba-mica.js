@@ -9749,7 +9749,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "\n" +
     "      <!-- Search box region -->\n" +
     "      <div id=\"search-region\" class=\"{{tabs && tabs.length>1 ? 'tab-content voffset4' : ''}}\">\n" +
-    "        <div ng-if=\"!hasFacetedTaxonomies || options.showSearchBox\" id=\"search-box-region\" class=\"{{hasFacetedTaxonomies ? '' : 'row'}}\">\n" +
+    "        <div ng-if=\"options.showSearchBox\" id=\"search-box-region\" class=\"{{hasFacetedTaxonomies ? '' : 'row'}}\">\n" +
     "          <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-3'}}\"></div>\n" +
     "          <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-6'}}\">\n" +
     "            <script type=\"text/ng-template\" id=\"customTemplate.html\">\n" +
@@ -9810,7 +9810,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "          </span>\n" +
     "          </div>\n" +
     "        </div>\n" +
-    "        <div ng-if=\"!hasFacetedTaxonomies || options.showSearchBrowser\" id=\"search-selector-region\" class=\"{{hasFacetedTaxonomies ? '' : 'row'}}\">\n" +
+    "        <div ng-if=\"options.showSearchBrowser\" id=\"search-selector-region\" class=\"{{hasFacetedTaxonomies ? '' : 'row'}}\">\n" +
     "          <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-3'}}\"></div>\n" +
     "          <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-6'}}\">\n" +
     "            <small>\n" +
@@ -9843,7 +9843,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "            </small>\n" +
     "          </div>\n" +
     "        </div>\n" +
-    "        <taxonomies-panel ng-if=\"!hasFacetedTaxonomies || options.showSearchBrowser\" taxonomy-name=\"taxonomyName\" target=\"target\" on-select-term=\"onSelectTerm\"\n" +
+    "        <taxonomies-panel ng-if=\"options.showSearchBrowser\" taxonomy-name=\"taxonomyName\" target=\"target\" on-select-term=\"onSelectTerm\"\n" +
     "                          on-close=\"clearTaxonomy\" lang=\"lang\" taxonomies-shown=\"taxonomiesShown\"></taxonomies-panel>\n" +
     "      </div>\n" +
     "\n" +
@@ -9852,7 +9852,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      </div>\n" +
     "\n" +
     "      <!-- Search criteria region -->\n" +
-    "      <div id=\"search-criteria-region\" class=\"panel panel-default voffset2\" ng-if=\"search.criteria.children && search.criteria.children.length>0\">\n" +
+    "      <div id=\"search-criteria-region\" ng-class=\"options.showSearchBox || options.showSearchBrowser ? 'voffset2' : ''\" class=\"panel panel-default\" ng-if=\"search.criteria.children && search.criteria.children.length>0\">\n" +
     "        <div class=\"panel-body\">\n" +
     "          <table style=\"border:none\">\n" +
     "            <tbody>\n" +
