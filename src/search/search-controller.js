@@ -2061,6 +2061,24 @@ angular.module('obiba.mica.search')
           }
         });
       };
+      
+      $scope.isFullCoverage = function() {
+        var selected = [];
+        if ($scope.table && $scope.table.rows) {
+          $scope.table.rows.forEach(function(r){
+            if (r.hits) {
+              if (r.hits.filter(function(h){
+                    return h === 0;
+                  }).length === 0) {
+                selected.push(r);
+              }
+            }
+          });
+        }
+
+        var rows = $scope.table ? ($scope.table.rows || []) : [];
+        return selected.length === rows.length;
+      };
 
 
       $scope.selectFullAndFilter = function() {
