@@ -1287,8 +1287,8 @@ angular.module('obiba.mica.search')
   .controller('ClassificationPanelController', ['$scope', '$location', 'TaxonomyResource',
     'TaxonomiesResource', 'ngObibaMicaSearch', 'RqlQueryUtils', ClassificationPanelController])
 
-  .controller('TaxonomiesFacetsController', ['$scope', 'TaxonomyResource', 'TaxonomiesResource', 'ngObibaMicaSearch',
-    'RqlQueryUtils', function ($scope, TaxonomyResource, TaxonomiesResource, ngObibaMicaSearch, RqlQueryUtils) {
+  .controller('TaxonomiesFacetsController', ['$scope', 'TaxonomyResource', 'TaxonomiesResource', 'LocalizedValues', 'ngObibaMicaSearch',
+    'RqlQueryUtils', function ($scope, TaxonomyResource, TaxonomiesResource, LocalizedValues, ngObibaMicaSearch, RqlQueryUtils) {
       $scope.options = ngObibaMicaSearch.getOptions();
       $scope.taxonomies = {};
       $scope.targets = [];
@@ -1316,6 +1316,10 @@ angular.module('obiba.mica.search')
       
       $scope.loadVocabulary = function(taxonomy, vocabulary) {
         $scope.$broadcast('ngObibaMicaLoadVocabulary', taxonomy, vocabulary);
+      };
+
+      $scope.localize = function (values) {
+        return LocalizedValues.forLocale(values, $scope.lang);
       };
       
       function init(target) {

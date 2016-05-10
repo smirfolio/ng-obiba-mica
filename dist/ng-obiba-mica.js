@@ -4629,8 +4629,8 @@ angular.module('obiba.mica.search')
   .controller('ClassificationPanelController', ['$scope', '$location', 'TaxonomyResource',
     'TaxonomiesResource', 'ngObibaMicaSearch', 'RqlQueryUtils', ClassificationPanelController])
 
-  .controller('TaxonomiesFacetsController', ['$scope', 'TaxonomyResource', 'TaxonomiesResource', 'ngObibaMicaSearch',
-    'RqlQueryUtils', function ($scope, TaxonomyResource, TaxonomiesResource, ngObibaMicaSearch, RqlQueryUtils) {
+  .controller('TaxonomiesFacetsController', ['$scope', 'TaxonomyResource', 'TaxonomiesResource', 'LocalizedValues', 'ngObibaMicaSearch',
+    'RqlQueryUtils', function ($scope, TaxonomyResource, TaxonomiesResource, LocalizedValues, ngObibaMicaSearch, RqlQueryUtils) {
       $scope.options = ngObibaMicaSearch.getOptions();
       $scope.taxonomies = {};
       $scope.targets = [];
@@ -4658,6 +4658,10 @@ angular.module('obiba.mica.search')
       
       $scope.loadVocabulary = function(taxonomy, vocabulary) {
         $scope.$broadcast('ngObibaMicaLoadVocabulary', taxonomy, vocabulary);
+      };
+
+      $scope.localize = function (values) {
+        return LocalizedValues.forLocale(values, $scope.lang);
       };
       
       function init(target) {
@@ -8464,15 +8468,26 @@ angular.module("search/views/classifications/taxonomies-facets-view.html", []).r
     "    <uib-accordion-group ng-repeat=\"taxonomy in taxonomies[target]\" is-open=\"taxonomy.isOpen\" is-disabled=\"false\" template-url=\"search/views/classifications/taxonomy-accordion-group.html\">\n" +
     "      <uib-accordion-heading>\n" +
     "          <i class=\"fa\" ng-class=\"{'fa-chevron-down': taxonomy.isOpen, 'fa-chevron-right': !taxonomy.isOpen}\"></i>\n" +
-    "          <span ng-repeat=\"label in taxonomy.title\" ng-if=\"label.locale === lang\">{{label.text}}</span>\n" +
+    "          <span uib-popover=\"{{localize(taxonomy.description ? taxonomy.description : taxonomy.title)}}\"\n" +
+    "                popover-title=\"{{taxonomy.description ? localize(taxonomy.title) : null}}\"\n" +
+    "                popover-placement=\"bottom\"\n" +
+    "                popover-trigger=\"mouseenter\"\n" +
+    "                popover-popup-delay=\"1000\">\n" +
+    "            {{localize(taxonomy.title)}}\n" +
+    "          </span>\n" +
     "      </uib-accordion-heading>\n" +
     "      <uib-accordion close-others=\"false\">\n" +
     "        <uib-accordion-group ng-repeat=\"vocabulary in taxonomy.vocabularies\" is-open=\"vocabulary.isOpen\" is-disabled=\"false\" template-url=\"search/views/classifications/vocabulary-accordion-group.html\">\n" +
     "          <uib-accordion-heading>\n" +
-    "            <span ng-click=\"loadVocabulary(taxonomy, vocabulary)\">\n" +
+    "            <span uib-popover=\"{{localize(vocabulary.description ? vocabulary.description : vocabulary.title)}}\"\n" +
+    "                  popover-title=\"{{vocabulary.description ? localize(vocabulary.title) : null}}\"\n" +
+    "                  popover-placement=\"bottom\"\n" +
+    "                  popover-trigger=\"mouseenter\"\n" +
+    "                  popover-popup-delay=\"1000\"\n" +
+    "                  ng-click=\"loadVocabulary(taxonomy, vocabulary)\">\n" +
     "              <i class=\"fa\" ng-class=\"{'fa-caret-down': vocabulary.isOpen, 'fa-caret-right': !vocabulary.isOpen}\"></i>\n" +
-    "              <span ng-repeat=\"label in vocabulary.title\" ng-if=\"label.locale === lang\">\n" +
-    "                {{label.text}}\n" +
+    "              <span>\n" +
+    "                {{localize(vocabulary.title)}}\n" +
     "              </span>\n" +
     "              <span ng-if=\"!vocabulary.title\">\n" +
     "                {{vocabulary.name}}\n" +
@@ -8503,12 +8518,18 @@ angular.module("search/views/classifications/taxonomies-facets-view.html", []).r
     "                    class=\"checkbox\" ng-class=\"{active: term.name === term.name}\">\n" +
     "                  <label style=\"max-width: 80%;\">\n" +
     "                    <input type=\"checkbox\" ng-model=\"term.selected\" ng-change=\"selectTerm(target, taxonomy, vocabulary, {term: term})\">\n" +
-    "                      <span ng-repeat=\"label in term.title\" ng-if=\"label.locale === lang\">\n" +
-    "                        {{label.text}}\n" +
+    "                    <span uib-popover=\"{{localize(term.description ? term.description : term.title)}}\"\n" +
+    "                          popover-title=\"{{term.description ? localize(term.title) : null}}\"\n" +
+    "                          popover-placement=\"bottom\"\n" +
+    "                          popover-trigger=\"mouseenter\"\n" +
+    "                          popover-popup-delay=\"1000\">\n" +
+    "                      <span>\n" +
+    "                        {{localize(term.title)}}\n" +
     "                      </span>\n" +
     "                      <span ng-if=\"!term.title\">\n" +
     "                        {{term.name}}\n" +
     "                      </span>\n" +
+    "                    </span>\n" +
     "                  </label>\n" +
     "                    <span class=\"pull-right\" ng-class=\"{'text-muted': !term.selected}\">\n" +
     "                      {{term.count}}\n" +
