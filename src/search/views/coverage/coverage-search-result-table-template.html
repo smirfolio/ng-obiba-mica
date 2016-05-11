@@ -135,7 +135,7 @@
         </td>
         <td ng-repeat="h in table.termHeaders" title="{{h.entity.titles[0].value}}">
           <a href ng-click="updateCriteria(row.value, h, $index, 'variables')"><span class="label label-info"
-            ng-if="row.hits[$index]">{{row.hits[$index]}}</span></a>
+            ng-if="row.hits[$index]"><localized-number value="row.hits[$index]"></localized-number></span></a>
           <span ng-if="!row.hits[$index]">0</span>
         </td>
       </tr>
@@ -145,7 +145,7 @@
         <th></th>
         <th colspan="{{table.cols.colSpan}}" translate>all</th>
         <th ng-repeat="header in table.termHeaders" title="{{header.entity.descriptions[0].value}}">
-          <a href ng-click="updateCriteria(null, header, $index, 'variables')">{{header.hits}}</a>
+          <a href ng-click="updateCriteria(null, header, $index, 'variables')"><localized-number value="header.hits"></localized-number></a>
         </th>
       </tr>
       </tfoot>
