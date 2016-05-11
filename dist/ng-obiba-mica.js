@@ -7648,32 +7648,25 @@ angular.module("access/views/data-access-request-profile-user-modal.html", []).r
     "    </h4>\n" +
     "  </div>\n" +
     "  <div class=\"modal-body\">\n" +
-    "    <div>\n" +
-    "      <label class=\"control-label\">\n" +
-    "        {{'data-access-request.profile.name' | translate}}\n" +
-    "      </label> :\n" +
-    "      <span>\n" +
-    "        {{getFullName(applicant)}}\n" +
-    "      </span>\n" +
-    "    </div>\n" +
     "\n" +
-    "    <div>\n" +
-    "      <label class=\"control-label\">\n" +
-    "        {{'data-access-request.profile.email' | translate}}\n" +
-    "      </label> :\n" +
-    "      <span>\n" +
-    "        {{getProfileEmail(applicant)}}\n" +
-    "      </span>\n" +
-    "    </div>\n" +
+    "    <table class=\"table table-bordered table-striped\">\n" +
+    "      <tbody>\n" +
+    "      <tr>\n" +
+    "        <th>{{'data-access-request.profile.name' | translate}}</th>\n" +
+    "        <td>{{getFullName(applicant)}}</td>\n" +
+    "      </tr>\n" +
+    "      <tr>\n" +
+    "        <th>{{'data-access-request.profile.email' | translate}}</th>\n" +
+    "        <td>{{getProfileEmail(applicant)}}</td>\n" +
+    "      </tr>\n" +
+    "      <tr ng-repeat=\"attribute in applicant.attributes | filterProfileAttributes\">\n" +
+    "        <th>{{attribute.key}}</th>\n" +
+    "        <td>{{attribute.value}}</td>\n" +
+    "      </tr>\n" +
+    "      </tbody>\n" +
+    "    </table>\n" +
     "\n" +
-    "    <div\n" +
-    "      ng-repeat=\"attribute in applicant.attributes | filterProfileAttributes\">\n" +
-    "      <label  class=\"control-label\">\n" +
-    "        {{attribute.key}}\n" +
-    "      </label> :\n" +
-    "      <span >{{attribute.value}}</span>\n" +
-    "    </div>\n" +
-    "    <a  class=\"btn btn-default\" href=\"mailto:{{getProfileEmail(applicant)}}\" target=\"_blank\">\n" +
+    "    <a class=\"btn btn-default\" ng-if=\"getProfileEmail(applicant)\" href=\"mailto:{{getProfileEmail(applicant)}}\" target=\"_blank\">\n" +
     "      {{'data-access-request.profile.send-email' | translate}}</a>\n" +
     "  </div>\n" +
     "  <div class=\"modal-footer\">\n" +
