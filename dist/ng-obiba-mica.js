@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-05-10
+ * Date: 2016-05-11
  */
 'use strict';
 
@@ -7589,13 +7589,14 @@ angular.module("access/views/data-access-request-list.html", []).run(["$template
     "            <span ng-if=\"!actions.canView(request)\">{{request.id}}</span>\n" +
     "          </td>\n" +
     "          <td ng-if=\"showApplicant\">\n" +
-    "            <span ng-if=\"actions.canViewProfile('mica-user')\">\n" +
-    "         {{getFullName(request.profile) || request.applicant}}\n" +
+    "            <span ng-if=\"!request.profile.attributes\">\n" +
+    "              {{request.applicant}}\n" +
     "            </span>\n" +
-    "            <a href ng-click=\"userProfile(request.profile)\"\n" +
-    "                ng-if=\"actions.canViewProfile('mica-data-access-officer')\">\n" +
-    "              {{getFullName(request.profile) ||\n" +
-    "              request.applicant}}\n" +
+    "            <span ng-if=\"request.profile.attributes && actions.canViewProfile('mica-user') && !actions.canViewProfile('mica-data-access-officer')\">\n" +
+    "              {{getFullName(request.profile) || request.applicant}}\n" +
+    "            </span>\n" +
+    "            <a href ng-click=\"userProfile(request.profile)\" ng-if=\"request.profile.attributes && actions.canViewProfile('mica-data-access-officer')\">\n" +
+    "              {{getFullName(request.profile) || request.applicant}}\n" +
     "            </a>\n" +
     "          </td>\n" +
     "          <td>\n" +
