@@ -9029,7 +9029,9 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "            popover-trigger=\"mouseenter\">\n" +
     "          {{header.entity.titles[0].value}}\n" +
     "          </span>\n" +
-    "          <a href ng-click=\"removeVocabulary(header)\"><i class=\"fa fa-times\"></i></a>\n" +
+    "          <small>\n" +
+    "            <a href ng-click=\"removeVocabulary(header)\"><i class=\"fa fa-times\"></i></a>\n" +
+    "          </small>\n" +
     "        </th>\n" +
     "      </tr>\n" +
     "      <tr>\n" +
@@ -9037,7 +9039,6 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "        <th ng-if=\"bucket === BUCKET_TYPES.DCE\" translate>search.coverage-dce-cols.population</th>\n" +
     "        <th ng-if=\"bucket === BUCKET_TYPES.DCE\" translate>search.coverage-dce-cols.dce</th>\n" +
     "        <th ng-repeat=\"header in table.termHeaders\">\n" +
-    "          <span class=\"pull-right\"><a ng-if=\"header.canRemove\" href ng-click=\"removeTerm(header)\"><i class=\"fa fa-times\"></i></a></span>\n" +
     "          <span\n" +
     "            uib-popover=\"{{header.entity.descriptions[0].value}}\"\n" +
     "            popover-title=\"{{header.entity.titles[0].value}}\"\n" +
@@ -9045,6 +9046,9 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "            popover-trigger=\"mouseenter\">\n" +
     "          {{header.entity.titles[0].value}}\n" +
     "          </span>\n" +
+    "          <small>\n" +
+    "            <a ng-if=\"header.canRemove\" href ng-click=\"removeTerm(header)\"><i class=\"fa fa-times\"></i></a>\n" +
+    "          </small>\n" +
     "        </th>\n" +
     "      </tr>\n" +
     "      </thead>\n" +

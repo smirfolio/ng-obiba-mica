@@ -87,7 +87,9 @@
             popover-trigger="mouseenter">
           {{header.entity.titles[0].value}}
           </span>
-          <a href ng-click="removeVocabulary(header)"><i class="fa fa-times"></i></a>
+          <small>
+            <a href ng-click="removeVocabulary(header)"><i class="fa fa-times"></i></a>
+          </small>
         </th>
       </tr>
       <tr>
@@ -95,7 +97,6 @@
         <th ng-if="bucket === BUCKET_TYPES.DCE" translate>search.coverage-dce-cols.population</th>
         <th ng-if="bucket === BUCKET_TYPES.DCE" translate>search.coverage-dce-cols.dce</th>
         <th ng-repeat="header in table.termHeaders">
-          <span class="pull-right"><a ng-if="header.canRemove" href ng-click="removeTerm(header)"><i class="fa fa-times"></i></a></span>
           <span
             uib-popover="{{header.entity.descriptions[0].value}}"
             popover-title="{{header.entity.titles[0].value}}"
@@ -103,6 +104,9 @@
             popover-trigger="mouseenter">
           {{header.entity.titles[0].value}}
           </span>
+          <small>
+            <a ng-if="header.canRemove" href ng-click="removeTerm(header)"><i class="fa fa-times"></i></a>
+          </small>
         </th>
       </tr>
       </thead>
