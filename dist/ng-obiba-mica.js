@@ -6781,7 +6781,6 @@ angular.module('obiba.mica.graphics')
       };
 
       this.getArrayByAggregation = function (aggregationName, entityDto) {
-        console.log('getArrayByAggregation');
         var deferred = $q.defer();
 
         if (!aggregationName || !entityDto) {
@@ -8332,7 +8331,7 @@ angular.module("graphics/views/charts-directive.html", []).run(["$templateCache"
 angular.module("graphics/views/tables-directive.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("graphics/views/tables-directive.html",
     "<div>\n" +
-    "    <table style=\"max-height: 400px;\" class=\"table table-bordered table-striped\" fixed-header=\"chartObject.data\">\n" +
+    "    <table style=\"max-height: 400px;\" class=\"table table-bordered table-striped\" >\n" +
     "        <thead>\n" +
     "        <th ng-repeat=\"header in chartObject.header\">{{header}}</th>\n" +
     "        </thead>\n" +
