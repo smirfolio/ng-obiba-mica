@@ -6565,7 +6565,7 @@ angular.module('obiba.mica.graphics')
                 };
 
                 if (data) {
-                  if ($scope.chartType === 'Table') {
+                  if (/^Table-/.exec($scope.chartType) !== null) {
                     $scope.chartObject.ordered = $scope.chartOrdered;
                     $scope.chartObject.notOrdered = $scope.chartNotOrdered;
                     if($scope.chartHeader.length<3){
@@ -6781,6 +6781,7 @@ angular.module('obiba.mica.graphics')
       };
 
       this.getArrayByAggregation = function (aggregationName, entityDto) {
+        console.log('getArrayByAggregation');
         var deferred = $q.defer();
 
         if (!aggregationName || !entityDto) {

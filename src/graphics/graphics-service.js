@@ -156,6 +156,7 @@ angular.module('obiba.mica.graphics')
       };
 
       this.getArrayByAggregation = function (aggregationName, entityDto) {
+        console.log('getArrayByAggregation');
         var deferred = $q.defer();
 
         if (!aggregationName || !entityDto) {
