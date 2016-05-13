@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-05-12
+ * Date: 2016-05-13
  */
 'use strict';
 
@@ -5460,22 +5460,27 @@ angular.module('obiba.mica.search')
         });
       };
       
-      $scope.isFullCoverage = function() {
-        var selected = [];
-        if ($scope.table && $scope.table.rows) {
-          $scope.table.rows.forEach(function(r){
-            if (r.hits) {
-              if (r.hits.filter(function(h){
-                    return h === 0;
-                  }).length === 0) {
-                selected.push(r);
-              }
-            }
-          });
+      $scope.isFullCoverageImpossibleOrCoverageAlreadyFull = function () {
+        var rows = $scope.table ? ($scope.table.rows || []) : [];
+        var rowsWithZeroHitColumn = 0;
+
+        if (rows.length === 0) {
+          return true;
         }
 
-        var rows = $scope.table ? ($scope.table.rows || []) : [];
-        return selected.length === rows.length;
+        rows.forEach(function (row) {
+          if (row.hits) {
+            if (row.hits.filter(function (hit) { return hit === 0; }).length > 0) {
+              rowsWithZeroHitColumn++;
+            }
+          }
+        });
+        
+        if (rowsWithZeroHitColumn === 0) {
+          return true;
+        }
+
+        return rows.length === rowsWithZeroHitColumn;
       };
 
       $scope.selectFullAndFilter = function() {
@@ -9019,7 +9024,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "      </a>\n" +
     "\n" +
     "      <span ng-if=\"table.taxonomyHeaders.length > 0\" >\n" +
-    "        <a href class=\"btn btn-info btn-responsive\" ng-click=\"selectFullAndFilter()\" ng-hide=\"isFullCoverage()\">\n" +
+    "        <a href class=\"btn btn-info btn-responsive\" ng-click=\"selectFullAndFilter()\" ng-hide=\"isFullCoverageImpossibleOrCoverageAlreadyFull()\">\n" +
     "          {{'search.coverage-select.full' | translate}}\n" +
     "        </a>\n" +
     "        <a target=\"_self\" class=\"btn btn-info btn-responsive\"\n" +
