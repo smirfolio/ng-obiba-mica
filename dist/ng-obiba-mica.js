@@ -9988,7 +9988,12 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "                   typeahead-on-select=\"selectCriteria($item)\"\n" +
     "                   class=\"form-control\">\n" +
     "            <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-search\"></i></span>\n" +
+    "            <span ng-if=\"options.SearchHelpLinkUrl\" class=\"input-group-btn\">\n" +
+    "              <a type=\"button\" target=\"_blank\" class=\"btn btn-default\" href=\"{{options.SearchHelpLinkUrl}}\">\n" +
+    "                <span class=\"glyphicon glyphicon-question-sign\"></span> {{options.SearchHelpLinkLabel}}</a>\n" +
+    "            </span>\n" +
     "          </span>\n" +
+    "\n" +
     "          </div>\n" +
     "        </div>\n" +
     "        <div ng-if=\"options.showSearchBrowser\" id=\"search-selector-region\" class=\"{{hasFacetedTaxonomies ? '' : 'row'}}\">\n" +
