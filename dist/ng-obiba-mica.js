@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-05-13
+ * Date: 2016-05-16
  */
 'use strict';
 
@@ -8743,7 +8743,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "            </ol>\n" +
     "          </div>\n" +
     "          <div class=\"col-md-4\">\n" +
-    "            <h4 ng-click=\"closeTaxonomies()\" title=\"{{'close' | translate}}\" class=\"pull-right\">\n" +
+    "            <h4 ng-click=\"closeTaxonomies()\" title=\"{{'close' | translate}}\" class=\"pull-right\" style=\"cursor: pointer\">\n" +
     "              <i class=\"fa fa-close\"></i>\n" +
     "            </h4>\n" +
     "        </div>\n" +
