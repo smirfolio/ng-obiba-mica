@@ -4158,7 +4158,7 @@ angular.module('obiba.mica.search')
             results = results.splice(0, size);
 
             if (results.length === 0) {
-              // no match, so look at vocabularies without terms and with text type
+              // no match, so look for vocabularies without terms and with text type
               return TaxonomiesSearchResource.get({
                 query: 'termsCount:0 AND (_missing_:attributes.type OR attributes.type:text)', locale: $scope.lang, target: $scope.documents.search.target
               }).$promise;
