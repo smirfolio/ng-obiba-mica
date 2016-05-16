@@ -3674,26 +3674,38 @@ angular.module('obiba.mica.search')
               CoverageGroupByService) {
 
       $scope.options = ngObibaMicaSearch.getOptions();
+      var cookiesSearchHelp = 'micaHideSearchHelpText';
+      var cookiesClassificationHelp = 'micaHideClassificationHelpBox';
 
-      // Retrieve from local cookies if user has disabled the Help Search Box and hide the box if true
-      if ($cookies.get('hideSearchHelpText')) {
-        $scope.options.SearchHelpText = null;
-      }
+      $translate(['search.help', 'search.coverage-help'])
+        .then(function (translation) {
+          if(!$scope.options.SearchHelpText && !$cookies.get(cookiesSearchHelp)){
+            $scope.options.SearchHelpText = translation['search.help'];
+          }
+          if(!$scope.options.ClassificationHelpText && !$cookies.get(cookiesClassificationHelp)){
+            $scope.options.ClassificationHelpText = translation['help.classifications'];
+          }
+        });
       // Close the Help search box and set the local cookies
       $scope.closeHelpBox = function () {
-        $cookies.put('hideSearchHelpText', true);
+        $cookies.put(cookiesSearchHelp, true);
         $scope.options.SearchHelpText = null;
       };
 
-      // Retrieve from local cookies if user has disabled the Help Classification Box and hide the box if true
-      if ($cookies.get('hideClassificationHelpBox')) {
-        $scope.options.ClassificationHelpText = null;
-      }
       // Close the Help classification box and set the local cookies
       $scope.closeClassificationHelpBox = function () {
-        $cookies.put('hideClassificationHelpBox', true);
+        $cookies.put(cookiesClassificationHelp, true);
         $scope.options.ClassificationHelpText = null;
       };
+
+      // Retrieve from local cookies if user has disabled the Help Search Box and hide the box if true
+      if ($cookies.get(cookiesSearchHelp)) {
+        $scope.options.SearchHelpText = null;
+      }
+      // Retrieve from local cookies if user has disabled the Help Classification Box and hide the box if true
+      if ($cookies.get(cookiesClassificationHelp)) {
+        $scope.options.ClassificationHelpText = null;
+      }
 
       $scope.taxonomyTypeMap = { //backwards compatibility for pluralized naming in configs.
         variable: 'variables',
@@ -8506,13 +8518,6 @@ angular.module("search/views/classifications.html", []).run(["$templateCache", f
     "<div>\n" +
     "  <div ng-if=\"classificationsHeaderTemplateUrl\" ng-include=\"classificationsHeaderTemplateUrl\"></div>\n" +
     "\n" +
-    "  <div ng-if=\"options.ClassificationHelpText\">\n" +
-    "    <button ng-click=\"closeClassificationHelpBox()\" type=\"button\" class=\"help-text close\" title=\"{{search.closeAlert | translate}}\">\n" +
-    "      <span aria-hidden=\"true\">&times;</span>\n" +
-    "    </button>\n" +
-    "    <span ng-bind-html=\"options.ClassificationHelpText\"></span>\n" +
-    "  </div>\n" +
-    "\n" +
     "  <div class=\"container alert-fixed-position\">\n" +
     "    <obiba-alert id=\"SearchController\"></obiba-alert>\n" +
     "  </div>\n" +
@@ -9971,14 +9976,6 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
 angular.module("search/views/search.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search.html",
     "<div ng-show=\"inSearchMode()\">\n" +
-    "\n" +
-    "      <div ng-if=\"options.SearchHelpText\">\n" +
-    "        <button ng-click=\"closeHelpBox()\" type=\"button\" class=\"help-text close\" title=\"{{search.closeAlert | translate}}\">\n" +
-    "          <span aria-hidden=\"true\">&times;</span>\n" +
-    "        </button>\n" +
-    "      <span  ng-bind-html=\"options.SearchHelpText\"></span>\n" +
-    "    </div>\n" +
-    "\n" +
     "  <div class=\"container alert-fixed-position\">\n" +
     "    <obiba-alert id=\"SearchController\"></obiba-alert>\n" +
     "  </div>\n" +

@@ -329,26 +329,38 @@ angular.module('obiba.mica.search')
               CoverageGroupByService) {
 
       $scope.options = ngObibaMicaSearch.getOptions();
+      var cookiesSearchHelp = 'micaHideSearchHelpText';
+      var cookiesClassificationHelp = 'micaHideClassificationHelpBox';
 
-      // Retrieve from local cookies if user has disabled the Help Search Box and hide the box if true
-      if ($cookies.get('hideSearchHelpText')) {
-        $scope.options.SearchHelpText = null;
-      }
+      $translate(['search.help', 'search.coverage-help'])
+        .then(function (translation) {
+          if(!$scope.options.SearchHelpText && !$cookies.get(cookiesSearchHelp)){
+            $scope.options.SearchHelpText = translation['search.help'];
+          }
+          if(!$scope.options.ClassificationHelpText && !$cookies.get(cookiesClassificationHelp)){
+            $scope.options.ClassificationHelpText = translation['help.classifications'];
+          }
+        });
       // Close the Help search box and set the local cookies
       $scope.closeHelpBox = function () {
-        $cookies.put('hideSearchHelpText', true);
+        $cookies.put(cookiesSearchHelp, true);
         $scope.options.SearchHelpText = null;
       };
 
-      // Retrieve from local cookies if user has disabled the Help Classification Box and hide the box if true
-      if ($cookies.get('hideClassificationHelpBox')) {
-        $scope.options.ClassificationHelpText = null;
-      }
       // Close the Help classification box and set the local cookies
       $scope.closeClassificationHelpBox = function () {
-        $cookies.put('hideClassificationHelpBox', true);
+        $cookies.put(cookiesClassificationHelp, true);
         $scope.options.ClassificationHelpText = null;
       };
+
+      // Retrieve from local cookies if user has disabled the Help Search Box and hide the box if true
+      if ($cookies.get(cookiesSearchHelp)) {
+        $scope.options.SearchHelpText = null;
+      }
+      // Retrieve from local cookies if user has disabled the Help Classification Box and hide the box if true
+      if ($cookies.get(cookiesClassificationHelp)) {
+        $scope.options.ClassificationHelpText = null;
+      }
 
       $scope.taxonomyTypeMap = { //backwards compatibility for pluralized naming in configs.
         variable: 'variables',

@@ -1,13 +1,6 @@
 <div>
   <div ng-if="classificationsHeaderTemplateUrl" ng-include="classificationsHeaderTemplateUrl"></div>
 
-  <div ng-if="options.ClassificationHelpText">
-    <button ng-click="closeClassificationHelpBox()" type="button" class="help-text close" title="{{search.closeAlert | translate}}">
-      <span aria-hidden="true">&times;</span>
-    </button>
-    <span ng-bind-html="options.ClassificationHelpText"></span>
-  </div>
-
   <div class="container alert-fixed-position">
     <obiba-alert id="SearchController"></obiba-alert>
   </div>
