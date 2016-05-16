@@ -9900,9 +9900,13 @@ angular.module("search/views/search-result-list-template.html", []).run(["$templ
     "  <ul class=\"nav nav-pills voffset2\" ng-if=\"resultTabsOrder.length > 1\">\n" +
     "    <li role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
     "        ng-class=\"{active: activeTarget[targetTypeMap[res]].active}\"\n" +
-    "        ng-if=\"options[targetTypeMap[res]].showSearchTab\"><a href\n" +
-    "        ng-click=\"selectTarget(targetTypeMap[res])\">{{targetTypeMap[res] | translate}} ({{result.list[res +\n" +
-    "      'ResultDto'].totalHits | localizedNumber}})</a></li>\n" +
+    "        ng-if=\"options[targetTypeMap[res]].showSearchTab\">\n" +
+    "      <a href\n" +
+    "        ng-click=\"selectTarget(targetTypeMap[res])\">\n" +
+    "      {{targetTypeMap[res] | translate}}\n" +
+    "      ({{result.list[res + 'ResultDto'].totalHits === 0 ? 0 : (result.list[res + 'ResultDto'].totalHits | localizedNumber)}})\n" +
+    "    </a>\n" +
+    "    </li>\n" +
     "    <li ng-repeat=\"res in resultTabsOrder\" ng-show=\"activeTarget[targetTypeMap[res]].active\" class=\"pull-right\">\n" +
     "      <span search-result-pagination\n" +
     "            target=\"activeTarget[targetTypeMap[res]].name\"\n" +
