@@ -8500,7 +8500,7 @@ angular.module("search/views/classifications.html", []).run(["$templateCache", f
     "  </a>\n" +
     "\n" +
     "  <!-- Lang tabs -->\n" +
-    "  <ul class=\"nav nav-tabs\" role=\"tablist\" ng-if=\"tabs && tabs.length>1\">\n" +
+    "  <ul class=\"nav nav-tabs voffset2\" role=\"tablist\" ng-if=\"tabs && tabs.length>1\">\n" +
     "    <li ng-repeat=\"tab in tabs\" role=\"presentation\" ng-class=\"{ active: tab === lang }\"><a href role=\"tab\"\n" +
     "      ng-click=\"setLocale(tab)\">{{'language.' + tab | translate}}</a></li>\n" +
     "  </ul>\n" +

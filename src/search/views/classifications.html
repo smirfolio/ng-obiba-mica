@@ -19,7 +19,7 @@
   </a>
 
   <!-- Lang tabs -->
-  <ul class="nav nav-tabs" role="tablist" ng-if="tabs && tabs.length>1">
+  <ul class="nav nav-tabs voffset2" role="tablist" ng-if="tabs && tabs.length>1">
     <li ng-repeat="tab in tabs" role="presentation" ng-class="{ active: tab === lang }"><a href role="tab"
       ng-click="setLocale(tab)">{{'language.' + tab | translate}}</a></li>
   </ul>
