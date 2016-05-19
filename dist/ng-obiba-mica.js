@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-05-17
+ * Date: 2016-05-19
  */
 'use strict';
 
@@ -6879,7 +6879,8 @@ angular.module('obiba.mica.graphics')
                     angular.forEach(aggregation['obiba.mica.TermsAggregationResultDto.terms'], function (term) {
                       angular.forEach(term.aggs, function (aggBucket) {
                         if (aggBucket.aggregation === 'numberOfParticipants-participant-number') {
-                          numberOfParticipant = LocalizedValues.formatNumber(aggBucket['obiba.mica.StatsAggregationResultDto.stats'].data.sum);
+                          var aggregateBucket = aggBucket['obiba.mica.StatsAggregationResultDto.stats'];
+                          numberOfParticipant = LocalizedValues.formatNumber(aggregateBucket ? aggregateBucket.data.sum : 0);
                         }
                       });
                       if (sortTerm.name === term.key) {
