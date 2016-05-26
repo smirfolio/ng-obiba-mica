@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-05-25
+ * Date: 2016-05-26
  */
 'use strict';
 
@@ -2510,7 +2510,7 @@ angular.module('obiba.mica.search')
     };
 
     this.isNumericVocabulary = function (vocabulary) {
-      return !self.isTermsVocabulary(vocabulary) && (self.vocabularyType(vocabulary) === VOCABULARY_TYPES.INTEGER || self.vocabularyType(vocabulary) === VOCABULARY_TYPES.DECIMAL);
+      return !vocabulary.terms && (self.vocabularyType(vocabulary) === VOCABULARY_TYPES.INTEGER || self.vocabularyType(vocabulary) === VOCABULARY_TYPES.DECIMAL);
     };
 
     this.isRangeVocabulary = function (vocabulary) {
