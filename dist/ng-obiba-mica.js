@@ -5688,17 +5688,20 @@ angular.module('obiba.mica.search')
 
           setChartObject('methods-designs',
             result.studyResultDto,
-            [$filter('translate')(charOptions.studiesDesigns.header[0]), $filter('translate')(charOptions.studiesDesigns.header[1]), $filter('translate')(charOptions.studiesDesigns.header[2])],
+            [$filter('translate')(charOptions.studiesDesigns.header[0]),
+              $filter('translate')(charOptions.studiesDesigns.header[1]),
+              //$filter('translate')(charOptions.studiesDesigns.header[2])
+              ],
             $filter('translate')(charOptions.studiesDesigns.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
             charOptions.studiesDesigns.options).then(function(methodDesignStudies) {
               if (methodDesignStudies) {
                 angular.extend($scope.chartObjects, {
                   studiesDesigns: {
-                    directiveTitle: methodDesignStudies.options.title ,
+                    //directiveTitle: methodDesignStudies.options.title ,
                     headerTitle: $filter('translate')('graphics.study-design'),
                     chartObject: {
                       options: methodDesignStudies.options,
-                      type: 'google.charts.Bar',
+                      type: 'BarChart',
                       data: methodDesignStudies.data,
                       vocabulary: methodDesignStudies.vocabulary,
                       entries: methodDesignStudies.entries
@@ -6665,7 +6668,7 @@ angular.module('obiba.mica.graphics')
                       $scope.chartObject.header = [
                         $filter('translate')($scope.chartHeader[0]),
                         $filter('translate')($scope.chartHeader[1]),
-                        $filter('translate')($scope.chartHeader[2])
+                   //     $filter('translate')($scope.chartHeader[2])
                       ];
                     }
                     $scope.chartObject.type = $scope.chartType;
@@ -6681,7 +6684,7 @@ angular.module('obiba.mica.graphics')
                       data.unshift([
                         $filter('translate')($scope.chartHeader[0]),
                         $filter('translate')($scope.chartHeader[1]),
-                        $filter('translate')($scope.chartHeader[2])
+                   //     $filter('translate')($scope.chartHeader[2])
                       ]);
                     }
                     $scope.chartObject.term = true;
@@ -6899,12 +6902,12 @@ angular.module('obiba.mica.graphics')
                   i = 0;
                   angular.forEach(aggregations, function (sortTerm) {
                     angular.forEach(aggregation['obiba.mica.TermsAggregationResultDto.terms'], function (term) {
-                      angular.forEach(term.aggs, function (aggBucket) {
-                        if (aggBucket.aggregation === 'numberOfParticipants-participant-number') {
-                          var aggregateBucket = aggBucket['obiba.mica.StatsAggregationResultDto.stats'];
-                          numberOfParticipant = LocalizedValues.formatNumber(aggregateBucket ? aggregateBucket.data.sum : 0);
-                        }
-                      });
+                      //angular.forEach(term.aggs, function (aggBucket) {
+                      //  if (aggBucket.aggregation === 'numberOfParticipants-participant-number') {
+                      //    var aggregateBucket = aggBucket['obiba.mica.StatsAggregationResultDto.stats'];
+                      //    numberOfParticipant = LocalizedValues.formatNumber(aggregateBucket ? aggregateBucket.data.sum : 0);
+                      //  }
+                      //});
                       if (sortTerm.name === term.key) {
                         if (term.count) {
                           arrayData[i] = {
