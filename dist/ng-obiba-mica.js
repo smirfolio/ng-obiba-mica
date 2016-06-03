@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-05-30
+ * Date: 2016-06-03
  */
 'use strict';
 
@@ -135,7 +135,7 @@ angular.module('ngObibaMica', [
 
 ;'use strict';
 
-angular.module('obiba.mica.utils', [])
+angular.module('obiba.mica.utils', ['schemaForm'])
 
   .factory('UserProfileService',
     function () {
@@ -275,9 +275,29 @@ angular.module('obiba.mica.utils', [])
         });
       }
     };
-  }]);
+  }])
 
-;'use strict';
+  .config(['schemaFormProvider',
+    function (schemaFormProvider) {
+      schemaFormProvider.postProcess(function (form) {
+        form.filter(function (e) {
+          return e.hasOwnProperty('wordLimit');
+        }).forEach(function (e) {
+          e.$validators = {
+            wordLimitError: function (value) {
+              if (angular.isDefined(value) && value !== null) {
+                var wordCount = (value.match(/\S+/g) || []).length;
+                if (wordCount > parseInt(e.wordLimit)) {
+                  return false;
+                }
+              }
+              return true;
+            }
+          };
+        });
+        return form;
+      });
+    }]);;'use strict';
 
 angular.module('obiba.mica.file', ['ngResource']);
 ;'use strict';
