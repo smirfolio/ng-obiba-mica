@@ -13,6 +13,7 @@ function NgObibaMicaUrlProvider() {
     'DataAccessRequestsResource': 'ws/data-access-requests',
     'DataAccessRequestResource': 'ws/data-access-request/:id',
     'DataAccessRequestAttachmentDownloadResource': '/ws/data-access-request/:id/attachments/:attachmentId/_download',
+    'SchemaFormAttachmentDownloadResource': '/ws/:path/form/attachments/:attachmentName/:attachmentId/_download',
     'DataAccessRequestDownloadPdfResource': '/ws/data-access-request/:id/_pdf',
     'DataAccessRequestCommentsResource': 'ws/data-access-request/:id/comments',
     'DataAccessRequestCommentResource': 'ws/data-access-request/:id/comment/:commentId',
@@ -339,7 +340,7 @@ angular.module('obiba.mica.attachment')
     return {
       restrict: 'E',
       scope: {
-        hrefBuilder: '&',
+        hrefBuilder: '=',
         files: '='
       },
       templateUrl: 'attachment/attachment-list-template.html',
@@ -351,7 +352,7 @@ angular.module('obiba.mica.attachment')
           if (val) {
             scope.attachments = val.map(function (a) {
               var temp = angular.copy(a);
-              temp.href = scope.hrefBuilder({id: a.id});
+              temp.href = scope.hrefBuilder(a);
               return temp;
             });
           }
@@ -366,7 +367,8 @@ angular.module('obiba.mica.attachment')
       scope: {
         multiple: '=',
         accept: '@',
-        files: '='
+        files: '=',
+        disabled: '='
       },
       templateUrl: 'attachment/attachment-input-template.html',
       controller: 'AttachmentCtrl'
@@ -375,7 +377,7 @@ angular.module('obiba.mica.attachment')
   .controller('AttachmentCtrl', ['$scope', '$timeout', '$log', 'Upload', 'TempFileResource', 'ngObibaMicaUrl',
     function ($scope, $timeout, $log, Upload, TempFileResource, ngObibaMicaUrl) {
       var uploadFile = function (file) {
-        $log.debug('file', file);
+        $scope.files = $scope.files || [];
 
         var attachment = {
           showProgressBar: true,
@@ -710,9 +712,9 @@ angular.module('obiba.mica.access')
         }
       });
 
-      $scope.getDownloadHref = function(attachments, id) {
+      $scope.getDownloadHref = function(attachment) {
         return ngObibaMicaUrl.getUrl('DataAccessRequestAttachmentDownloadResource')
-          .replace(':id', $scope.dataAccessRequest.id).replace(':attachmentId', id);
+          .replace(':id', $scope.dataAccessRequest.id).replace(':attachmentId', attachment.id);
       };
 
       $scope.config = DataAccessRequestConfig.getOptions();
@@ -8269,7 +8271,7 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "        </p>\n" +
     "\n" +
     "        <attachment-list files=\"dataAccessRequest.attachments\"\n" +
-    "            href-builder=\"getDownloadHref(attachments, id)\"></attachment-list>\n" +
+    "            href-builder=\"getDownloadHref\"></attachment-list>\n" +
     "      </uib-tab>\n" +
     "      <uib-tab ng-if=\"config.commentsEnabled\" ng-click=\"selectTab('comments')\" heading=\"{{'data-access-request.comments' | translate}}\">\n" +
     "        <obiba-comments comments=\"form.comments\" on-update=\"updateComment\" on-delete=\"deleteComment\" name-resolver=\"userProfileService.getFullName\" edit-action=\"EDIT\" delete-action=\"DELETE\"></obiba-comments>\n" +
@@ -8287,7 +8289,7 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
 
 angular.module("attachment/attachment-input-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("attachment/attachment-input-template.html",
-    "<button type=\"button\" class=\"btn btn-primary btn-xs\" aria-hidden=\"true\" ngf-multiple=\"{{multiple}}\" ngf-select\n" +
+    "<button ng-hide=\"{{disabled}}\" type=\"button\" class=\"btn btn-primary btn-xs\" aria-hidden=\"true\" ngf-multiple=\"{{multiple}}\" ngf-select\n" +
     "        ngf-change=\"onFileSelect($files)\" translate>file.upload.button\n" +
     "</button>\n" +
     "\n" +
