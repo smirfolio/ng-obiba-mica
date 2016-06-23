@@ -8382,7 +8382,7 @@ angular.module("attachment/attachment-input-template.html", []).run(["$templateC
     "        ngf-change=\"onFileSelect($files)\" translate>file.upload.button\n" +
     "</button>\n" +
     "\n" +
-    "<table ng-show=\"files.length\" class=\"table table-striped\">\n" +
+    "<table ng-show=\"files.length\" class=\"table table-bordered table-striped\">\n" +
     "  <tbody>\n" +
     "  <tr ng-repeat=\"file in files\">\n" +
     "    <td>\n" +
@@ -8391,10 +8391,12 @@ angular.module("attachment/attachment-input-template.html", []).run(["$templateC
     "        {{file.progress}}%\n" +
     "      </uib-progressbar>\n" +
     "    </td>\n" +
-    "    <td>\n" +
-    "      {{file.size | bytes}}\n" +
+    "    <td style=\"width:1%;\">\n" +
+    "        <span class=\"pull-right\" style=\"white-space: nowrap;\">\n" +
+    "          {{file.size | bytes}}\n" +
+    "        </span>\n" +
     "    </td>\n" +
-    "    <td>\n" +
+    "    <td style=\"width:20px;\">\n" +
     "      <a ng-show=\"file.id\" ng-click=\"deleteFile(file.id)\" class=\"action\">\n" +
     "        <i class=\"fa fa-trash-o\"></i>\n" +
     "      </a>\n" +
@@ -8420,8 +8422,10 @@ angular.module("attachment/attachment-list-template.html", []).run(["$templateCa
     "           download=\"{{attachment.fileName}}\">{{attachment.fileName}}\n" +
     "        </a>\n" +
     "      </th>\n" +
-    "      <td>\n" +
-    "        {{attachment.size | bytes}}\n" +
+    "      <td style=\"width:1%;\">\n" +
+    "        <span class=\"pull-right\" style=\"white-space: nowrap;\">\n" +
+    "          {{attachment.size | bytes}}\n" +
+    "        </span>\n" +
     "      </td>\n" +
     "    </tr>\n" +
     "    </tbody>\n" +
