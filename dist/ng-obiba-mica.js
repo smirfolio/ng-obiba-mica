@@ -10140,10 +10140,10 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "          </td>\n" +
     "          <td>\n" +
     "            <span ng-if=\"summary.targetNumber.number\">\n" +
-    "                <localized-number value=\"summary.targetNumber.number\"></localized-number>\n" +
+    "              <localized-number value=\"summary.targetNumber.number\"></localized-number>\n" +
     "            </span>\n" +
     "            <span translate ng-if=\"summary.targetNumber.noLimit\">\n" +
-    "            numberOfParticipants.no-limit\n" +
+    "              numberOfParticipants.no-limit\n" +
     "            </span>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showStudiesNetworksColumn\">\n" +
