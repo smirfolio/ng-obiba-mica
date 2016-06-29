@@ -10139,7 +10139,12 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "              ng-if=\"!hasDatasource(summary.dataSources, 'others')\">-</span>\n" +
     "          </td>\n" +
     "          <td>\n" +
-    "            <localized-number value=\"summary.targetNumber.number\"></localized-number>\n" +
+    "            <span ng-if=\"summary.targetNumber.number\">\n" +
+    "                <localized-number value=\"summary.targetNumber.number\"></localized-number>\n" +
+    "            </span>\n" +
+    "            <span translate ng-if=\"summary.targetNumber.noLimit\">\n" +
+    "            numberOfParticipants.no-limit\n" +
+    "            </span>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showStudiesNetworksColumn\">\n" +
     "            <a href ng-click=\"updateCriteria(summary.id, 'networks')\"\n" +
