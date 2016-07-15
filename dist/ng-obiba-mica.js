@@ -4959,6 +4959,13 @@ angular.module('obiba.mica.search')
         $scope.$parent.onTypeChanged(type);
       };
 
+      $scope.getTotalHits = function(type) {
+        if (!$scope.result.list || !$scope.result.list[type + 'ResultDto']) {
+          return '...';
+        }
+        return $scope.result.list[type + 'ResultDto'].totalHits;
+      };
+
       $scope.$watchCollection('result', function () {
         if ($scope.result.list) {
           $scope.activeTarget[QUERY_TYPES.VARIABLES].totalHits = $scope.result.list.variableResultDto.totalHits;
@@ -7466,7 +7473,7 @@ angular.module('obiba.mica.localized')
 
   .filter('localizedNumber', ['LocalizedValues', function(LocalizedValues) {
     return function(value){
-      return value ? LocalizedValues.formatNumber(value) : '';
+      return value === 0 ? 0 : value ? LocalizedValues.formatNumber(value) : '';
     };
   }]);
 ;'use strict';
@@ -10287,11 +10294,11 @@ angular.module("search/views/search-result-list-template.html", []).run(["$templ
     "      <a href\n" +
     "        ng-click=\"selectTarget(targetTypeMap[res])\" ng-if=\"resultTabsOrder.length > 1\">\n" +
     "       {{targetTypeMap[res] | translate}}\n" +
-    "      <span class=\"badge hoffset1\"><small>{{result.list[res + 'ResultDto'].totalHits === 0 ? 0 : (result.list[res + 'ResultDto'].totalHits | localizedNumber)}}</small></span>\n" +
+    "      <span class=\"badge hoffset1\"><small>{{getTotalHits(res) | localizedNumber}}</small></span>\n" +
     "      </a>\n" +
     "      <a href style=\"cursor: default;\" ng-if=\"resultTabsOrder.length === 1\">\n" +
     "      <span class=\"text-primary\">\n" +
-    "        {{targetTypeMap[res] | translate}} (<small>{{result.list[res + 'ResultDto'].totalHits === 0 ? 0 : (result.list[res + 'ResultDto'].totalHits | localizedNumber)}}</small>)\n" +
+    "        {{targetTypeMap[res] | translate}} (<small>{{getTotalHits(res) | localizedNumber)}}</small>)\n" +
     "      </span>\n" +
     "      </a>\n" +
     "    </li>\n" +
