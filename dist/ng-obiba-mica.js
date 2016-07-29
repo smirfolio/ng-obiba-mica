@@ -1,9 +1,9 @@
 /*!
- * ng-obiba-mica - v1.2.3
+ * ng-obiba-mica - v1.2.4
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-07-28
+ * Date: 2016-07-29
  */
 'use strict';
 
