@@ -391,6 +391,11 @@ angular.module('obiba.mica.access')
         }
       };
 
+      var printForm = function() {
+        // let angular digest!
+        setTimeout(function(){ window.print(); }, 250);
+      };
+
       $scope.submit = function () {
         $scope.$broadcast('schemaFormValidate');
         if ($scope.forms.requestForm.$valid) {
@@ -444,6 +449,8 @@ angular.module('obiba.mica.access')
 
         return result && result.length > 0 ? result[0].value : null;
       };
+
+      $scope.printForm = printForm;
 
       $scope.getFullName = function (profile) {
         if (profile) {
