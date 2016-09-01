@@ -8712,7 +8712,7 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "        <th colspan=\"2\" translate>name</th>\n" +
     "        <th style=\"width: 100px\" translate>type</th>\n" +
     "        <th style=\"width: 100px\" translate>size</th>\n" +
-    "        <th style=\"width: 150px\" translate>modified</th>\n" +
+    "        <th style=\"width: 150px\" translate>global.modified</th>\n" +
     "        <th ng-if=\"data.search.active\" translate>folder</th>\n" +
     "      </tr>\n" +
     "      </thead>\n" +
@@ -8749,7 +8749,7 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "\n" +
     "        <td class=\"fit-content\">\n" +
     "          <span class=\"btn-group pull-right\" uib-dropdown is-open=\"status.isopen\">\n" +
-    "            <a title=\"{{'show-details' | translate}}\" id=\"single-button\" class=\"dropdown-anchor\" uib-dropdown-toggle\n" +
+    "            <a title=\"{{'file.show-details' | translate}}\" id=\"single-button\" class=\"dropdown-anchor\" uib-dropdown-toggle\n" +
     "               ng-disabled=\"disabled\">\n" +
     "              <i class=\"glyphicon glyphicon-option-horizontal btn-large\"></i>\n" +
     "            </a>\n" +
