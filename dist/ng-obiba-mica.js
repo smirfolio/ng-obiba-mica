@@ -8167,7 +8167,7 @@ angular.module("access/views/data-access-request-history-view.html", []).run(["$
     "    <th class=\"status-icon\"></th>\n" +
     "    <th translate>status</th>\n" +
     "    <th translate>changed-by</th>\n" +
-    "    <th translate>Changed On</th>\n" +
+    "    <th translate>changed-on</th>\n" +
     "  </tr>\n" +
     "  </thead>\n" +
     "  <tbody>\n" +
