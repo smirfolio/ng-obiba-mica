@@ -8484,7 +8484,7 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "    <div ng-if=\"validForm\">\n" +
     "\n" +
     "      <p class=\"help-block pull-left\"><span translate>created-by</span>\n" +
-    "         <span ng-if=\"actions.canViewProfile('mica-user')\">\n" +
+    "        <span ng-if=\"!actions.canViewProfile('mica-data-access-officer')\">\n" +
     "           {{getFullName(dataAccessRequest.profile) || dataAccessRequest.applicant}}\n" +
     "        </span>\n" +
     "        <a href ng-click=\"userProfile(dataAccessRequest.profile)\"\n" +
