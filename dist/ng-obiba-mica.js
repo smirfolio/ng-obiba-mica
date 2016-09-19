@@ -3,12 +3,13 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-09-14
+ * Date: 2016-09-19
  */
 'use strict';
 
 function NgObibaMicaUrlProvider() {
   var registry = {
+    'DataAccessClientDetailPath': '',
     'DataAccessFormConfigResource': 'ws/config/data-access-form',
     'DataAccessRequestsResource': 'ws/data-access-requests',
     'DataAccessRequestsExportCsvResource': 'ws/data-access-requests/csv?lang=:lang',
@@ -647,6 +648,16 @@ angular.module('obiba.mica.access')
 
       $scope.getCsvExportHref = function () {
         return ngObibaMicaUrl.getUrl('DataAccessRequestsExportCsvResource').replace(':lang', $translate.use());
+      };
+
+      $scope.getDataAccessRequestPageUrl = function () {
+        var DataAccessClientDetailPath = ngObibaMicaUrl.getUrl('DataAccessClientDetailPath');
+        if(DataAccessClientDetailPath){
+          return ngObibaMicaUrl.getUrl('BaseUrl') + ngObibaMicaUrl.getUrl('DataAccessClientDetailPath');
+        }
+        else{
+          return null;
+        }
       };
 
       $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, id) {
@@ -8267,7 +8278,7 @@ angular.module("access/views/data-access-request-list.html", []).run(["$template
     "        <tr\n" +
     "            dir-paginate=\"request in requests | filter:{status: searchStatus.filter} | filter:searchText | itemsPerPage: 20\">\n" +
     "          <td>\n" +
-    "            <a ng-href=\"#/data-access-request/{{request.id}}\"\n" +
+    "            <a ng-href=\"{{getDataAccessRequestPageUrl()}}#/data-access-request/{{request.id}}\"\n" +
     "                ng-if=\"actions.canView(request)\" translate>{{request.id}}</a>\n" +
     "            <span ng-if=\"!actions.canView(request)\">{{request.id}}</span>\n" +
     "          </td>\n" +
