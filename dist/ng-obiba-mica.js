@@ -3,13 +3,14 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-09-19
+ * Date: 2016-09-20
  */
 'use strict';
 
 function NgObibaMicaUrlProvider() {
   var registry = {
     'DataAccessClientDetailPath': '',
+    'DataAccessClientListPath': '',
     'DataAccessFormConfigResource': 'ws/config/data-access-form',
     'DataAccessRequestsResource': 'ws/data-access-requests',
     'DataAccessRequestsExportCsvResource': 'ws/data-access-requests/csv?lang=:lang',
@@ -987,6 +988,8 @@ angular.module('obiba.mica.access')
         });
       };
 
+      $scope.getDataAccessListPageUrl = DataAccessRequestService.getListDataAccessRequestPageUrl();
+
       var getAttributeValue = function(attributes, key) {
         var result = attributes.filter(function (attribute) {
           return attribute.key === key;
@@ -1094,6 +1097,8 @@ angular.module('obiba.mica.access')
       };
 
       $scope.sfOptions = SfOptionsService.sfOptions;
+
+      $scope.getDataAccessListPageUrl = DataAccessRequestService.getListDataAccessRequestPageUrl();
 
       var validate = function() {
         $scope.$broadcast('schemaFormValidate');
@@ -1347,8 +1352,8 @@ angular.module('obiba.mica.access')
 
   })
 
-  .service('DataAccessRequestService', ['$translate', 'SessionProxy', 'USER_ROLES',
-    function ($translate, SessionProxy, USER_ROLES) {
+  .service('DataAccessRequestService', ['$translate', 'SessionProxy', 'USER_ROLES', 'ngObibaMicaUrl',
+    function ($translate, SessionProxy, USER_ROLES, ngObibaMicaUrl) {
       var statusList = {
         OPENED: 'OPENED',
         SUBMITTED: 'SUBMITTED',
@@ -1522,6 +1527,16 @@ angular.module('obiba.mica.access')
         }
 
         return id;
+      };
+
+      this.getListDataAccessRequestPageUrl = function () {
+        var DataAccessClientListPath = ngObibaMicaUrl.getUrl('DataAccessClientListPath');
+        if(DataAccessClientListPath){
+          return ngObibaMicaUrl.getUrl('BaseUrl') + ngObibaMicaUrl.getUrl('DataAccessClientListPath');
+        }
+        else{
+          return null;
+        }
       };
 
       return this;
