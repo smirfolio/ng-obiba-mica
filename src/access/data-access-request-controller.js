@@ -462,6 +462,8 @@ angular.module('obiba.mica.access')
         });
       };
 
+      $scope.getDataAccessListPageUrl = DataAccessRequestService.getListDataAccessRequestPageUrl();
+
       var getAttributeValue = function(attributes, key) {
         var result = attributes.filter(function (attribute) {
           return attribute.key === key;
@@ -569,6 +571,8 @@ angular.module('obiba.mica.access')
       };
 
       $scope.sfOptions = SfOptionsService.sfOptions;
+
+      $scope.getDataAccessListPageUrl = DataAccessRequestService.getListDataAccessRequestPageUrl();
 
       var validate = function() {
         $scope.$broadcast('schemaFormValidate');
