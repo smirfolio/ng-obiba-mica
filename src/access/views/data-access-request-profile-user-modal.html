@@ -20,8 +20,8 @@
       </tr>
       <tr ng-repeat="attribute in applicant.attributes | filterProfileAttributes">
           <th>{{
-              ('userManagement.' + attribute.key | translate) !== ('userManagement.' + attribute.key) ?
-              ('userManagement.' + attribute.key | translate) :
+              ('userProfile.' + attribute.key | translate) !== ('userProfile.' + attribute.key) ?
+              ('userProfile.' + attribute.key | translate) :
               (attribute.key)
               }}
           </th>
