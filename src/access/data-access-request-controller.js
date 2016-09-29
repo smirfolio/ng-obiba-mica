@@ -205,7 +205,9 @@ angular.module('obiba.mica.access')
         });
       };
 
-      $scope.sfOptions = SfOptionsService.sfOptions;
+      SfOptionsService.sfOptions.then(function(options) {
+        $scope.sfOptions = SfOptionsService.transform(options);
+      });
 
       var retrieveComments = function() {
         $scope.form.comments = DataAccessRequestCommentsResource.query({id: $routeParams.id});
@@ -570,7 +572,9 @@ angular.module('obiba.mica.access')
         });
       };
 
-      $scope.sfOptions = SfOptionsService.sfOptions;
+      SfOptionsService.sfOptions.then(function(options) {
+        $scope.sfOptions = SfOptionsService.transform(options);
+      });
 
       $scope.getDataAccessListPageUrl = DataAccessRequestService.getListDataAccessRequestPageUrl();
 
