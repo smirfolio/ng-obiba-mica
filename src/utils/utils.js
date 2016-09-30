@@ -2,6 +2,11 @@
 
 angular.module('obiba.mica.utils', ['schemaForm'])
 
+  .factory('urlEncode', function() {
+    return function(input) {
+      return window.encodeURIComponent(input);
+    };
+  })
   .factory('UserProfileService',
     function () {
 
