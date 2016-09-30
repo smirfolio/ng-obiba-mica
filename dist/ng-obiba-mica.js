@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-09-26
+ * Date: 2016-09-29
  */
 'use strict';
 
@@ -309,14 +309,19 @@ angular.module('obiba.mica.utils', ['schemaForm'])
     };
   }])
 
-  .service('SfOptionsService', ['$filter',
-    function ($filter) {
-      this.sfOptions = {
-        validationMessage: {
-          'default': $filter('translate')('errors.does-not-validate'),
-          302: $filter('translate')('required')
-        }
+  .service('SfOptionsService', ['$translate', '$q',
+    function ($translate, $q) {
+      this.transform = function (result) {
+        return {
+          validationMessage: {
+            302: result.required,
+            'default': result['errors.does-not-validate']
+          }
+        };
       };
+      var deferred = $q.defer();
+      deferred.resolve($translate(['errors.does-not-validate', 'required']));
+      this.sfOptions = deferred.promise;
     }])  
 
   .config(['schemaFormProvider',
@@ -731,7 +736,9 @@ angular.module('obiba.mica.access')
         });
       };
 
-      $scope.sfOptions = SfOptionsService.sfOptions;
+      SfOptionsService.sfOptions.then(function(options) {
+        $scope.sfOptions = SfOptionsService.transform(options);
+      });
 
       var retrieveComments = function() {
         $scope.form.comments = DataAccessRequestCommentsResource.query({id: $routeParams.id});
@@ -1096,7 +1103,9 @@ angular.module('obiba.mica.access')
         });
       };
 
-      $scope.sfOptions = SfOptionsService.sfOptions;
+      SfOptionsService.sfOptions.then(function(options) {
+        $scope.sfOptions = SfOptionsService.transform(options);
+      });
 
       $scope.getDataAccessListPageUrl = DataAccessRequestService.getListDataAccessRequestPageUrl();
 
