@@ -172,6 +172,7 @@ angular.module('obiba.mica.access')
       'DataAccessRequestConfig',
       'LocalizedSchemaFormService',
       'SfOptionsService',
+      'moment',
 
     function ($rootScope,
               $scope,
@@ -195,7 +196,8 @@ angular.module('obiba.mica.access')
               NOTIFICATION_EVENTS,
               DataAccessRequestConfig,
               LocalizedSchemaFormService,
-              SfOptionsService) {
+              SfOptionsService,
+              moment) {
 
       var onError = function (response) {
         AlertService.alert({
@@ -264,6 +266,18 @@ angular.module('obiba.mica.access')
         var history = $scope.dataAccessRequest.statusChangeHistory || [];
         return history.filter(function(item) {
           return item.to === DataAccessRequestService.status.SUBMITTED;
+        }).sort(function (a, b) {
+          if (moment(a).isBefore(b)) {
+            return -1;
+          }
+
+          if (moment(a).isSame(b)) {
+            return 0;
+          }
+
+          if (moment(a).isAfter(b)) {
+            return 1;
+          }
         }).pop();
       }
 
