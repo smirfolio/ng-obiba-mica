@@ -8666,6 +8666,14 @@ angular.module("attachment/attachment-input-template.html", []).run(["$templateC
     "</button>\n" +
     "\n" +
     "<table ng-show=\"files.length\" class=\"table table-bordered table-striped\">\n" +
+    "  <thead>\n" +
+    "  <tr>\n" +
+    "    <th translate>data-access-request.default.documents.title</th>\n" +
+    "    <th class=\"col-xs-2\"><span class=\"pull-right\" translate>file.upload.date</span></th>\n" +
+    "    <th translate>size</th>\n" +
+    "    <th translate>actions</th>\n" +
+    "  </tr>\n" +
+    "  </thead>\n" +
     "  <tbody>\n" +
     "  <tr ng-repeat=\"file in files\">\n" +
     "    <td>\n" +
@@ -8674,8 +8682,8 @@ angular.module("attachment/attachment-input-template.html", []).run(["$templateC
     "        {{file.progress}}%\n" +
     "      </uib-progressbar>\n" +
     "    </td>\n" +
-    "    <td ng-if=\"file.timestamps\" class=\"col-xs-2\">\n" +
-    "      <span class=\"pull-right\" title=\"{{ file.timestamps.created | amDateFormat: 'lll' }}\">{{file.timestamps.created | amCalendar }}</span>\n" +
+    "    <td>\n" +
+    "      <span class=\"pull-right\" ng-if=\"file.timestamps\" title=\"{{ file.timestamps.created | amDateFormat: 'lll' }}\">{{file.timestamps.created | amCalendar }}</span>\n" +
     "    </td>\n" +
     "    <td style=\"width:1%;\">\n" +
     "        <span class=\"pull-right\" style=\"white-space: nowrap;\">\n" +
@@ -8701,6 +8709,13 @@ angular.module("attachment/attachment-list-template.html", []).run(["$templateCa
     "<div>\n" +
     "  <span ng-if=\"!hasAttachments && emptyMessage\"><em>{{emptyMessage}}</em></span>\n" +
     "  <table ng-if=\"hasAttachments\" class=\"table table-bordered table-striped\" >\n" +
+    "    <thead>\n" +
+    "    <tr>\n" +
+    "      <th translate>data-access-request.default.documents.title</th>\n" +
+    "      <th class=\"col-xs-2\"><span class=\"pull-right\" translate>file.upload.date</span></th>\n" +
+    "      <th translate>size</th>\n" +
+    "    </tr>\n" +
+    "    </thead>\n" +
     "    <tbody>\n" +
     "    <tr ng-repeat=\"attachment in attachments\">\n" +
     "      <th>\n" +
@@ -8708,7 +8723,7 @@ angular.module("attachment/attachment-list-template.html", []).run(["$templateCa
     "           download=\"{{attachment.fileName}}\">{{attachment.fileName}}\n" +
     "        </a>\n" +
     "      </th>\n" +
-    "      <td ng-if=\"attachment.timestamps\" class=\"col-xs-2\"><span class=\"pull-right\" title=\"{{ attachment.timestamps.created | amDateFormat: 'lll' }}\">{{attachment.timestamps.created | amCalendar }}</span></td>\n" +
+    "      <td><span class=\"pull-right\" ng-if=\"attachment.timestamps\" title=\"{{ attachment.timestamps.created | amDateFormat: 'lll' }}\">{{attachment.timestamps.created | amCalendar }}</span></td>\n" +
     "      <td style=\"width:1%;\">\n" +
     "        <span class=\"pull-right\" style=\"white-space: nowrap;\">\n" +
     "          {{attachment.size | bytes}}\n" +
