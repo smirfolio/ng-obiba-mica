@@ -8200,6 +8200,22 @@ angular.module("access/views/data-access-request-form.html", []).run(["$template
     "    <form name=\"form.requestForm\" ng-submit=\"submit(form.requestForm)\">\n" +
     "      <div sf-model=\"form.model\" sf-form=\"form.definition\" sf-schema=\"form.schema\" required=\"true\" sf-options=\"sfOptions\"></div>\n" +
     "    </form>\n" +
+    "\n" +
+    "    <div class=\"pull-right\" ng-if=\"loaded\">\n" +
+    "      <a ng-click=\"cancel()\" type=\"button\" class=\"btn btn-default\">\n" +
+    "        <span translate>cancel</span>\n" +
+    "      </a>\n" +
+    "\n" +
+    "      <a ng-click=\"save()\" type=\"button\" class=\"btn btn-primary\">\n" +
+    "        <span translate>save</span>\n" +
+    "      </a>\n" +
+    "\n" +
+    "      <a ng-click=\"validate()\" type=\"button\" class=\"btn btn-info\">\n" +
+    "        <span translate>validate</span>\n" +
+    "      </a>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div class=\"clearfix voffet2\"></div>\n" +
     "  </div>\n" +
     "\n" +
     "</div>\n" +
