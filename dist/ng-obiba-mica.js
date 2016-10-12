@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-10-07
+ * Date: 2016-10-12
  */
 'use strict';
 
@@ -4064,7 +4064,14 @@ angular.module('obiba.mica.search')
           $scope.hasClassificationsLinkLabel = translation['search.classifications-link'];
           $scope.hasFacetedNavigationHelp = translation['search.faceted-navigation-help'];
         });
-      
+
+      var searchTaxonomyDisplay = {
+        variable: $scope.options.variables.showSearchTab,
+        dataset: $scope.options.datasets.showSearchTab,
+        study: $scope.options.studies.showSearchTab,
+        network: $scope.options.networks.showSearchTab
+      };
+
       var taxonomyTypeInverseMap = Object.keys($scope.taxonomyTypeMap).reduce(function (prev, k) {
         prev[$scope.taxonomyTypeMap[k]] = k;
         return prev;
@@ -4075,8 +4082,12 @@ angular.module('obiba.mica.search')
         target: 'taxonomy',
         taxonomy: 'Mica_taxonomy'
       }, function (t) {
-        $scope.targets = t.vocabularies.map(function (v) {
+        var stuff = t.vocabularies.map(function (v) {
           return v.name;
+        });
+
+        $scope.targets = stuff.filter(function (target) {
+          return searchTaxonomyDisplay[target];
         });
         
         function flattenTaxonomies(terms){
@@ -4126,13 +4137,6 @@ angular.module('obiba.mica.search')
           return res;
         }, {});
       });
-
-      var searchTaxonomyDisplay = {
-        variable: $scope.options.variables.showSearchTab,
-        dataset: $scope.options.datasets.showSearchTab,
-        study: $scope.options.studies.showSearchTab,
-        network: $scope.options.networks.showSearchTab
-      };
 
       function initSearchTabs() {
         $scope.taxonomyNav = [];
