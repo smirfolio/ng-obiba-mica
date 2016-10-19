@@ -1444,13 +1444,9 @@ angular.module('obiba.mica.access')
 
   })
 
-  .service('DataAccessRequestDirtyStateService', ['$rootScope',
-    function($rootScope) {
+  .service('DataAccessRequestDirtyStateService', [
+    function() {
       var form = null;
-      
-      this.test = function() {
-        return $rootScope;
-      };
       
       this.setForm = function (f) {
         form = f;
