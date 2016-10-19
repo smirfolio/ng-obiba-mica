@@ -118,6 +118,19 @@ angular.module('obiba.mica.access')
 
   })
 
+  .service('DataAccessRequestDirtyStateService', [
+    function() {
+      var form = null;
+      
+      this.setForm = function (f) {
+        form = f;
+      };
+      
+      this.isDirty = function () {
+        return form && form.$dirty;
+      };
+    }])
+
   .service('DataAccessRequestService', ['$translate', 'SessionProxy', 'USER_ROLES', 'ngObibaMicaUrl',
     function ($translate, SessionProxy, USER_ROLES, ngObibaMicaUrl) {
       var statusList = {

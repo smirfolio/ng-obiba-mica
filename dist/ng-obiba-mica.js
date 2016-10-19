@@ -1,9 +1,9 @@
 /*!
- * ng-obiba-mica - v1.5.0
+ * ng-obiba-mica - v1.5.1
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-10-12
+ * Date: 2016-10-19
  */
 'use strict';
 
@@ -1143,6 +1143,7 @@ angular.module('obiba.mica.access')
     'DataAccessRequestConfig',
     'SfOptionsService',
     'FormDirtyStateObserver',
+    'DataAccessRequestDirtyStateService',
 
     function ($log, $scope, $routeParams, $location, $uibModal, LocalizedSchemaFormService,
               DataAccessRequestsResource,
@@ -1156,7 +1157,8 @@ angular.module('obiba.mica.access')
               ngObibaMicaAccessTemplateUrl,
               DataAccessRequestConfig,
               SfOptionsService,
-              FormDirtyStateObserver) {
+              FormDirtyStateObserver,
+              DataAccessRequestDirtyStateService) {
 
       var onSuccess = function(response, getResponseHeaders) {
         FormDirtyStateObserver.unobserve();
@@ -1282,6 +1284,11 @@ angular.module('obiba.mica.access')
       });
 
       FormDirtyStateObserver.observe($scope);
+
+      DataAccessRequestDirtyStateService.setForm($scope.form);
+      $scope.$on('$destroy', function () {
+        DataAccessRequestDirtyStateService.setForm(null);
+      });
 
     }]);
 ;/*
@@ -1436,6 +1443,19 @@ angular.module('obiba.mica.access')
     };
 
   })
+
+  .service('DataAccessRequestDirtyStateService', [
+    function() {
+      var form = null;
+      
+      this.setForm = function (f) {
+        form = f;
+      };
+      
+      this.isDirty = function () {
+        return form && form.$dirty;
+      };
+    }])
 
   .service('DataAccessRequestService', ['$translate', 'SessionProxy', 'USER_ROLES', 'ngObibaMicaUrl',
     function ($translate, SessionProxy, USER_ROLES, ngObibaMicaUrl) {
