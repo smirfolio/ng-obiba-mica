@@ -10,10 +10,12 @@
     <div class="panel-body">
       <div class="row">
         <div class="col-md-6">
-          <div ng-if="chart.directiveTitle" class="chart-title">
-            {{chart.directiveTitle}}
+          <div ng-if="chart.chartObject.type === 'GeoChart'">
+            <obiba-geo config="chart.chartObject.d3Config"></obiba-geo>
           </div>
-          <div google-chart chart="chart.chartObject" style="min-height:350px; width:100%;"></div>
+          <div ng-if="chart.chartObject.type !== 'GeoChart'">
+            <obiba-nv-chart chart-config="chart.chartObject.d3Config"></obiba-nv-chart>
+          </div>
         </div>
         <div class="col-md-6">
           <div class="table-responsive" ng-if="chart.getTable().data  &&  chart.getTable().data.length>1">

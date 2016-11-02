@@ -2299,11 +2299,12 @@ angular.module('obiba.mica.search')
     'RqlQueryService',
     '$filter',
     '$scope',
+    'D3GeoConfig', 'D3ChartConfig',
     function (GraphicChartsConfig,
               GraphicChartsUtils,
               RqlQueryService,
               $filter,
-              $scope) {
+              $scope, D3GeoConfig, D3ChartConfig) {
 
       var setChartObject = function (vocabulary, dtoObject, header, title, options, isTable) {
 
@@ -2363,11 +2364,14 @@ angular.module('obiba.mica.search')
                       type: 'GeoChart',
                       vocabulary: geoStudies.vocabulary,
                       data: geoStudies.data,
-                      entries: geoStudies.entries
+                      entries: geoStudies.entries,
+                      d3Config: new D3GeoConfig()
+                          .withData(geoStudies.entries)
+                          .withTitle($filter('translate')(charOptions.geoChartOptions.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
                     }
                   }
                 };
-                chartObject.geoChartOptions.getTable= function(){
+                chartObject.geoChartOptions.getTable = function(){
                   return chartObject.geoChartOptions.chartObject;
                 };
                 angular.extend($scope.chartObjects, chartObject);
@@ -2391,7 +2395,10 @@ angular.module('obiba.mica.search')
                       type: 'BarChart',
                       data: methodDesignStudies.data,
                       vocabulary: methodDesignStudies.vocabulary,
-                      entries: methodDesignStudies.entries
+                      entries: methodDesignStudies.entries,
+                      d3Config: new D3ChartConfig(methodDesignStudies.vocabulary)
+                          .withTitle($filter('translate')(charOptions.studiesDesigns.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
+                          .withData(methodDesignStudies.entries, false, $filter('translate')('graphics.nbr-studies'))
                     }
                   }
                 };
@@ -2440,7 +2447,10 @@ angular.module('obiba.mica.search')
                       type: 'PieChart',
                       data: numberParticipant.data,
                       vocabulary: numberParticipant.vocabulary,
-                      entries: numberParticipant.entries
+                      entries: numberParticipant.entries,
+                      d3Config: new D3ChartConfig(numberParticipant.vocabulary)
+                          .withTitle($filter('translate')(charOptions.numberParticipants.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
+                          .withData(numberParticipant.entries, true)
                     }
                   }
                 };
@@ -2465,7 +2475,10 @@ angular.module('obiba.mica.search')
                       type: 'BarChart',
                       data: bioSamplesStudies.data,
                       vocabulary: bioSamplesStudies.vocabulary,
-                      entries: bioSamplesStudies.entries
+                      entries: bioSamplesStudies.entries,
+                      d3Config: new D3ChartConfig(bioSamplesStudies.vocabulary)
+                          .withTitle($filter('translate')(charOptions.biologicalSamples.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
+                          .withData(bioSamplesStudies.entries, false, $filter('translate')('graphics.nbr-studies'))
                     }
                   }
                 };
