@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-11-01
+ * Date: 2016-11-03
  */
 'use strict';
 
@@ -6965,7 +6965,6 @@ function GraphicChartsDataProvider() {
 }
 
 angular.module('obiba.mica.graphics', [
-    'googlechart',
     'obiba.utils',
     'templates-ngObibaMica'
   ])
@@ -7055,7 +7054,7 @@ angular.module('obiba.mica.graphics')
     'GraphicChartsData',
     'RqlQueryService',
     'ngObibaMicaUrl',
-    'googleChartApiPromise',
+    'D3GeoConfig', 'D3ChartConfig',  
     function ($rootScope,
               $scope,
               $filter,
@@ -7065,7 +7064,7 @@ angular.module('obiba.mica.graphics')
               GraphicChartsData,
               RqlQueryService,
               ngObibaMicaUrl,
-              googleChartApiPromise) {
+              D3GeoConfig, D3ChartConfig) {
 
       function initializeChartData() {
         $scope.chartObject = {};
@@ -7146,15 +7145,20 @@ angular.module('obiba.mica.graphics')
                     $scope.$parent.directive = {title: $scope.chartObject.options.title};
                   }
                 }
+                
+                if ($scope.chartType === 'GeoChart') {
+                  $scope.chartObject.d3Config = new D3GeoConfig().withData(entries).withTitle($scope.chartObject.options.title);
+                } else {                  
+                  $scope.chartObject.d3Config = new D3ChartConfig($scope.chartAggregationName)
+                      .withData(entries, $scope.chartType === 'PieChart').withTitle($filter('translate')($scope.chartTitleGraph) + ' (N=' + StudiesData.studyResultDto.totalHits + ')');
+                }
               });
           }
         });
 
       }
 
-      googleChartApiPromise.then(function() {
-        $scope.ready = true;
-      });
+      $scope.ready = true;
 
       $scope.$watch('chartAggregationName', function() {
         if ($scope.chartAggregationName) {
@@ -9140,7 +9144,11 @@ angular.module("file-browser/views/toolbar-template.html", []).run(["$templateCa
 angular.module("graphics/views/charts-directive.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("graphics/views/charts-directive.html",
     "<div>\n" +
-    "  <div google-chart chart=\"chartObject\" style=\"min-height:{{chartObject.type=='GeoChart'?250:350}}px; width:100%;\">\n" +
+    "  <div ng-if=\"chartObject.type === 'GeoChart'\">\n" +
+    "    <obiba-geo config=\"chartObject.d3Config\"></obiba-geo>\n" +
+    "  </div>\n" +
+    "  <div ng-if=\"chartObject.type !== 'GeoChart'\">\n" +
+    "    <obiba-nv-chart chart-config=\"chartObject.d3Config\"></obiba-nv-chart>\n" +
     "  </div>\n" +
     "</div>\n" +
     "");

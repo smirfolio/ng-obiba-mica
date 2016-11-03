@@ -38,7 +38,7 @@ function GraphicChartsDataProvider() {
 }
 
 angular.module('obiba.mica.graphics', [
-    'googlechart',
+    'obiba.graphics',
     'obiba.utils',
     'templates-ngObibaMica'
   ])
