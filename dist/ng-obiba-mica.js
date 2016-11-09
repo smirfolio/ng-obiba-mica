@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-11-03
+ * Date: 2016-11-09
  */
 'use strict';
 
@@ -6965,6 +6965,7 @@ function GraphicChartsDataProvider() {
 }
 
 angular.module('obiba.mica.graphics', [
+    'obiba.graphics',
     'obiba.utils',
     'templates-ngObibaMica'
   ])
@@ -7654,15 +7655,18 @@ angular.module('obiba.mica.localized')
         return rval;
       };
 
-      this.objectToArray = function (languages, values) {
+      this.objectToArray = function (values, languages) {
         var rval = [];
-        if (values && languages) {
-          languages.forEach(function (lang) {
-            rval.push({
-              lang: lang,
-              value: values[lang]
+        if (values) {
+          var locales = languages ? languages : Object.keys(values);
+          if (locales) {
+            locales.forEach(function (lang) {
+              rval.push({
+                lang: lang,
+                value: values[lang]
+              });
             });
-          });
+          }
         }
         return rval;
       };
