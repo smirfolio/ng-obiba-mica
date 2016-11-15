@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-11-09
+ * Date: 2016-11-15
  */
 'use strict';
 
@@ -342,7 +342,7 @@ angular.module('obiba.mica.utils', ['schemaForm'])
               }).result.then(function (answer) {
                 if (answer === true) {
                   onLocationChangeOff();
-                  $location.path($location.url(newUrl).hash());
+                  $location.path(angular.copy($location).url(newUrl).hash());
                 }
               });
 
