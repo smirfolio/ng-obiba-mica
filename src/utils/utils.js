@@ -201,7 +201,7 @@ angular.module('obiba.mica.utils', ['schemaForm'])
               }).result.then(function (answer) {
                 if (answer === true) {
                   onLocationChangeOff();
-                  $location.path($location.url(newUrl).hash());
+                  $location.path(angular.copy($location).url(newUrl).hash());
                 }
               });
 
