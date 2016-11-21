@@ -119,8 +119,8 @@ angular.module('obiba.mica.graphics')
     return factory;
 
   })
-  .service('GraphicChartsUtils', ['LocalizedValues','TaxonomyResource', '$q',
-    function (LocalizedValues, TaxonomyResource, $q) {
+  .service('GraphicChartsUtils', ['LocalizedValues', 'TaxonomyResource', 'RqlQueryUtils', '$q',
+    function (LocalizedValues, TaxonomyResource, RqlQueryUtils, $q) {
       var studyTaxonomy = {};
 
       studyTaxonomy.getTerms = function (aggregationName) {
@@ -130,7 +130,7 @@ angular.module('obiba.mica.graphics')
           var terms = null;
           if (studyTaxonomy.vocabularies){
             angular.forEach(studyTaxonomy.vocabularies, function (vocabulary) {
-              if (vocabulary.name === aggregationName) {
+              if (RqlQueryUtils.vocabularyAlias(vocabulary) === aggregationName) {
                 terms = vocabulary.terms;
               }
             });
@@ -183,7 +183,7 @@ angular.module('obiba.mica.graphics')
               }
               else {
                 // MK-924 sort countries by title in the display language
-                if (aggregation.aggregation === 'populations-selectionCriteria-countriesIso') {
+                if (aggregation.aggregation === 'populations-model-selectionCriteria-countriesIso') {
                   var locale = LocalizedValues.getLocal();
                   sortedTerms.sort(function(a, b) {
                     var textA = LocalizedValues.forLocale(a.title, locale);
@@ -197,10 +197,10 @@ angular.module('obiba.mica.graphics')
                   angular.forEach(aggregation['obiba.mica.TermsAggregationResultDto.terms'], function (term) {
                     if (sortTerm.name === term.key) {
                       if (term.count) {
-                        if (aggregation.aggregation === 'methods-designs') {
+                        if (aggregation.aggregation === 'model-methods-design') {
 
                           angular.forEach(term.aggs, function (aggBucket) {
-                            if (aggBucket.aggregation === 'numberOfParticipants-participant-number') {
+                            if (aggBucket.aggregation === 'model-numberOfParticipants-participant-number') {
                               var aggregateBucket = aggBucket['obiba.mica.StatsAggregationResultDto.stats'];
                               numberOfParticipant = LocalizedValues.formatNumber(aggregateBucket ? aggregateBucket.data.sum : 0);
                             }
@@ -243,7 +243,7 @@ angular.module('obiba.mica.graphics')
       var localizedQuery = new RqlQuery().serializeArgs(localizedRqlQuery.args);
       return RqlQueryService.prepareGraphicsQuery(localizedQuery,
         ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'],
-        ['Mica_study.methods-designs']
+        ['Mica_study.methods-design']
       );
     };
   }]);
