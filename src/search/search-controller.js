@@ -690,7 +690,7 @@ angular.module('obiba.mica.search')
             $scope.search.loading = true;
             $scope.search.executedQuery = RqlQueryService.prepareGraphicsQuery(localizedQuery,
               ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'],
-              ['Mica_study.methods-designs']);
+              ['Mica_study.methods-design']);
             JoinQuerySearchResource.studies({query: $scope.search.executedQuery},
               function onSuccess(response) {
                 $scope.search.result.graphics = response;
@@ -2348,7 +2348,7 @@ angular.module('obiba.mica.search')
 
         if (result && result.studyResultDto.totalHits) {
           $scope.noResults = false;
-          setChartObject('populations-selectionCriteria-countriesIso',
+          setChartObject('populations-model-selectionCriteria-countriesIso',
             result.studyResultDto,
             [$filter('translate')(charOptions.geoChartOptions.header[0]), $filter('translate')(charOptions.geoChartOptions.header[1])],
             $filter('translate')(charOptions.geoChartOptions.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
@@ -2378,7 +2378,7 @@ angular.module('obiba.mica.search')
               }
             });
           // Study design chart.
-          setChartObject('methods-designs',
+          setChartObject('model-methods-design',
             result.studyResultDto,
             [$filter('translate')(charOptions.studiesDesigns.header[0]),
               $filter('translate')(charOptions.studiesDesigns.header[1])
@@ -2397,6 +2397,7 @@ angular.module('obiba.mica.search')
                       vocabulary: methodDesignStudies.vocabulary,
                       entries: methodDesignStudies.entries,
                       d3Config: new D3ChartConfig(methodDesignStudies.vocabulary)
+                          .withType('multiBarHorizontalChart')
                           .withTitle($filter('translate')(charOptions.studiesDesigns.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
                           .withData(methodDesignStudies.entries, false, $filter('translate')('graphics.nbr-studies'))
                     }
@@ -2407,7 +2408,7 @@ angular.module('obiba.mica.search')
             });
 
           // Study design table.
-          setChartObject('methods-designs',
+          setChartObject('model-methods-design',
             result.studyResultDto,
             [$filter('translate')(charOptions.studiesDesigns.header[0]),
               $filter('translate')(charOptions.studiesDesigns.header[1]),
@@ -2433,7 +2434,7 @@ angular.module('obiba.mica.search')
             }
           });
 
-          setChartObject('numberOfParticipants-participant-range',
+          setChartObject('model-numberOfParticipants-participant-range',
             result.studyResultDto,
             [$filter('translate')(charOptions.numberParticipants.header[0]), $filter('translate')(charOptions.numberParticipants.header[1])],
             $filter('translate')(charOptions.numberParticipants.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
@@ -2449,6 +2450,7 @@ angular.module('obiba.mica.search')
                       vocabulary: numberParticipant.vocabulary,
                       entries: numberParticipant.entries,
                       d3Config: new D3ChartConfig(numberParticipant.vocabulary)
+                          .withType('pieChart')
                           .withTitle($filter('translate')(charOptions.numberParticipants.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
                           .withData(numberParticipant.entries, true)
                     }
@@ -2461,7 +2463,7 @@ angular.module('obiba.mica.search')
               }
             });
 
-          setChartObject('populations-dataCollectionEvents-bioSamples',
+          setChartObject('populations-dataCollectionEvents-model-bioSamples',
             result.studyResultDto,
             [$filter('translate')(charOptions.biologicalSamples.header[0]), $filter('translate')(charOptions.biologicalSamples.header[1])],
             $filter('translate')(charOptions.biologicalSamples.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
@@ -2477,6 +2479,7 @@ angular.module('obiba.mica.search')
                       vocabulary: bioSamplesStudies.vocabulary,
                       entries: bioSamplesStudies.entries,
                       d3Config: new D3ChartConfig(bioSamplesStudies.vocabulary)
+                          .withType('multiBarHorizontalChart')
                           .withTitle($filter('translate')(charOptions.biologicalSamples.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
                           .withData(bioSamplesStudies.entries, false, $filter('translate')('graphics.nbr-studies'))
                     }

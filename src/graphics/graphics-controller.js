@@ -117,8 +117,9 @@ angular.module('obiba.mica.graphics')
                 if ($scope.chartType === 'GeoChart') {
                   $scope.chartObject.d3Config = new D3GeoConfig().withData(entries).withTitle($scope.chartObject.options.title);
                 } else {                  
-                  $scope.chartObject.d3Config = new D3ChartConfig($scope.chartAggregationName)
-                      .withData(entries, $scope.chartType === 'PieChart').withTitle($filter('translate')($scope.chartTitleGraph) + ' (N=' + StudiesData.studyResultDto.totalHits + ')');
+                  $scope.chartObject.d3Config = new D3ChartConfig($scope.chartAggregationName).withType($scope.chartType === 'PieChart' ? 'pieChart' : 'multiBarHorizontalChart')
+                      .withData(entries, $scope.chartType === 'PieChart', $filter('translate')('graphics.nbr-studies'))
+                      .withTitle($filter('translate')($scope.chartTitleGraph) + ' (N=' + StudiesData.studyResultDto.totalHits + ')');
                 }
               });
           }

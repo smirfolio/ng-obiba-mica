@@ -195,7 +195,7 @@ angular.module('obiba.mica.search')
           scope.taxonomy = taxonomy;
           getDatasourceTitles();
           scope.designs = taxonomy.vocabularies.filter(function (v) {
-            return v.name === 'methods-designs';
+            return v.name === 'methods-design';
           })[0].terms.reduce(function (prev, t) {
               prev[t.name] = t.title.map(function (t) {
                 return {lang: t.locale, value: t.text};
