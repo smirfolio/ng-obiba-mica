@@ -119,8 +119,8 @@ angular.module('obiba.mica.graphics')
     return factory;
 
   })
-  .service('GraphicChartsUtils', ['LocalizedValues', 'TaxonomyResource', 'RqlQueryUtils', '$q',
-    function (LocalizedValues, TaxonomyResource, RqlQueryUtils, $q) {
+  .service('GraphicChartsUtils', ['LocalizedValues', 'TaxonomyResource', 'RqlQueryUtils', '$q', '$translate',
+    function (LocalizedValues, TaxonomyResource, RqlQueryUtils, $q, $translate) {
       var studyTaxonomy = {};
 
       studyTaxonomy.getTerms = function (aggregationName) {
@@ -174,7 +174,7 @@ angular.module('obiba.mica.graphics')
                   angular.forEach(aggregation['obiba.mica.RangeAggregationResultDto.ranges'], function (term) {
                     if (sortTerm.name === term.key) {
                       if (term.count) {
-                        arrayData[i] = {title: term.title, value: term.count, key: term.key};
+                        arrayData[i] = {title: LocalizedValues.forLocale(sortTerm.title, $translate.use()), value: term.count, key: term.key};
                         i++;
                       }
                     }
@@ -184,7 +184,7 @@ angular.module('obiba.mica.graphics')
               else {
                 // MK-924 sort countries by title in the display language
                 if (aggregation.aggregation === 'populations-model-selectionCriteria-countriesIso') {
-                  var locale = LocalizedValues.getLocal();
+                  var locale = $translate.use();
                   sortedTerms.sort(function(a, b) {
                     var textA = LocalizedValues.forLocale(a.title, locale);
                     var textB = LocalizedValues.forLocale(b.title, locale);
@@ -206,13 +206,13 @@ angular.module('obiba.mica.graphics')
                             }
                           });
                           arrayData[i] = {
-                            title: term.title,
+                            title: LocalizedValues.forLocale(sortTerm.title, $translate.use()),
                             value: term.count,
                             participantsNbr: numberOfParticipant,
                             key: term.key
                           };
                         } else {
-                          arrayData[i] = {title: term.title, value: term.count, key: term.key};
+                          arrayData[i] = {title: LocalizedValues.forLocale(sortTerm.title, $translate.use()), value: term.count, key: term.key};
                         }
                         i++;
                       }
