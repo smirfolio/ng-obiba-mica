@@ -1099,7 +1099,7 @@ angular.module('obiba.mica.search')
             target: target,
             taxonomy: taxonomy
           }).$promise.then(function (taxonomy) {
-            vocabulary = taxonomy.vocabularies.filter(function (v) {return v.name === vocabulary; })[0];
+            vocabulary = taxonomy.vocabularies.filter(function (v) {return RqlQueryUtils.vocabularyAlias(v) === vocabulary; })[0];
             term = vocabulary.terms.filter(function (t) {return t.name === term; })[0];
 
             return createBuilder(taxonomy, vocabulary, term).build();
