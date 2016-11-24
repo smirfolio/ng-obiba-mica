@@ -2386,6 +2386,12 @@ angular.module('obiba.mica.search')
             $filter('translate')(charOptions.studiesDesigns.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
             charOptions.studiesDesigns.options).then(function(methodDesignStudies) {
               if (methodDesignStudies) {
+                var d3Config = new D3ChartConfig(methodDesignStudies.vocabulary)
+                    .withType('multiBarHorizontalChart')
+                    .withTitle($filter('translate')(charOptions.studiesDesigns.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
+                    .withData(methodDesignStudies.entries, false, $filter('translate')('graphics.nbr-studies'));
+                d3Config.options.chart.showLegend = false;
+
                 var chartObject= {
                   studiesDesigns: {
                     //directiveTitle: methodDesignStudies.options.title ,
@@ -2396,10 +2402,7 @@ angular.module('obiba.mica.search')
                       data: methodDesignStudies.data,
                       vocabulary: methodDesignStudies.vocabulary,
                       entries: methodDesignStudies.entries,
-                      d3Config: new D3ChartConfig(methodDesignStudies.vocabulary)
-                          .withType('multiBarHorizontalChart')
-                          .withTitle($filter('translate')(charOptions.studiesDesigns.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
-                          .withData(methodDesignStudies.entries, false, $filter('translate')('graphics.nbr-studies'))
+                      d3Config: d3Config
                     }
                   }
                 };
@@ -2469,6 +2472,12 @@ angular.module('obiba.mica.search')
             $filter('translate')(charOptions.biologicalSamples.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
             charOptions.biologicalSamples.options).then(function(bioSamplesStudies) {
               if (bioSamplesStudies) {
+                var d3Config = new D3ChartConfig(bioSamplesStudies.vocabulary)
+                    .withType('multiBarHorizontalChart')
+                    .withTitle($filter('translate')(charOptions.biologicalSamples.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
+                    .withData(bioSamplesStudies.entries, false, $filter('translate')('graphics.nbr-studies'));
+                d3Config.options.chart.showLegend = false;
+
                 var chartObject = {
                   biologicalSamples: {
                     headerTitle: $filter('translate')('graphics.bio-samples'),
@@ -2478,10 +2487,7 @@ angular.module('obiba.mica.search')
                       data: bioSamplesStudies.data,
                       vocabulary: bioSamplesStudies.vocabulary,
                       entries: bioSamplesStudies.entries,
-                      d3Config: new D3ChartConfig(bioSamplesStudies.vocabulary)
-                          .withType('multiBarHorizontalChart')
-                          .withTitle($filter('translate')(charOptions.biologicalSamples.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
-                          .withData(bioSamplesStudies.entries, false, $filter('translate')('graphics.nbr-studies'))
+                      d3Config: d3Config
                     }
                   }
                 };

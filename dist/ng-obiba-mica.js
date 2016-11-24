@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-11-23
+ * Date: 2016-11-24
  */
 'use strict';
 
@@ -6092,6 +6092,12 @@ angular.module('obiba.mica.search')
             $filter('translate')(charOptions.studiesDesigns.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
             charOptions.studiesDesigns.options).then(function(methodDesignStudies) {
               if (methodDesignStudies) {
+                var d3Config = new D3ChartConfig(methodDesignStudies.vocabulary)
+                    .withType('multiBarHorizontalChart')
+                    .withTitle($filter('translate')(charOptions.studiesDesigns.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
+                    .withData(methodDesignStudies.entries, false, $filter('translate')('graphics.nbr-studies'));
+                d3Config.options.chart.showLegend = false;
+
                 var chartObject= {
                   studiesDesigns: {
                     //directiveTitle: methodDesignStudies.options.title ,
@@ -6102,10 +6108,7 @@ angular.module('obiba.mica.search')
                       data: methodDesignStudies.data,
                       vocabulary: methodDesignStudies.vocabulary,
                       entries: methodDesignStudies.entries,
-                      d3Config: new D3ChartConfig(methodDesignStudies.vocabulary)
-                          .withType('multiBarHorizontalChart')
-                          .withTitle($filter('translate')(charOptions.studiesDesigns.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
-                          .withData(methodDesignStudies.entries, false, $filter('translate')('graphics.nbr-studies'))
+                      d3Config: d3Config
                     }
                   }
                 };
@@ -6175,6 +6178,12 @@ angular.module('obiba.mica.search')
             $filter('translate')(charOptions.biologicalSamples.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
             charOptions.biologicalSamples.options).then(function(bioSamplesStudies) {
               if (bioSamplesStudies) {
+                var d3Config = new D3ChartConfig(bioSamplesStudies.vocabulary)
+                    .withType('multiBarHorizontalChart')
+                    .withTitle($filter('translate')(charOptions.biologicalSamples.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
+                    .withData(bioSamplesStudies.entries, false, $filter('translate')('graphics.nbr-studies'));
+                d3Config.options.chart.showLegend = false;
+
                 var chartObject = {
                   biologicalSamples: {
                     headerTitle: $filter('translate')('graphics.bio-samples'),
@@ -6184,10 +6193,7 @@ angular.module('obiba.mica.search')
                       data: bioSamplesStudies.data,
                       vocabulary: bioSamplesStudies.vocabulary,
                       entries: bioSamplesStudies.entries,
-                      d3Config: new D3ChartConfig(bioSamplesStudies.vocabulary)
-                          .withType('multiBarHorizontalChart')
-                          .withTitle($filter('translate')(charOptions.biologicalSamples.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
-                          .withData(bioSamplesStudies.entries, false, $filter('translate')('graphics.nbr-studies'))
+                      d3Config: d3Config
                     }
                   }
                 };
@@ -7156,6 +7162,10 @@ angular.module('obiba.mica.graphics')
                   $scope.chartObject.d3Config = new D3ChartConfig($scope.chartAggregationName).withType($scope.chartType === 'PieChart' ? 'pieChart' : 'multiBarHorizontalChart')
                       .withData(entries, $scope.chartType === 'PieChart', $filter('translate')('graphics.nbr-studies'))
                       .withTitle($filter('translate')($scope.chartTitleGraph) + ' (N=' + StudiesData.studyResultDto.totalHits + ')');
+
+                  if ($scope.chartType !== 'PieChart') {
+                    $scope.chartObject.d3Config.options.chart.showLegend = false;
+                  }
                 }
               });
           }
