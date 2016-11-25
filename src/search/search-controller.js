@@ -527,6 +527,7 @@ angular.module('obiba.mica.search')
 
       function onError(response) {
         $scope.search.result = {};
+        $scope.search.loading = false;
         AlertService.alert({
           id: 'SearchController',
           type: 'danger',
@@ -1109,10 +1110,6 @@ angular.module('obiba.mica.search')
           active: false,
           target: null
         }
-      };
-
-      $scope.hasSearchResult = function() {
-        return Object.keys($scope.search.result).length > 0;
       };
 
       $scope.searchHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('search');
