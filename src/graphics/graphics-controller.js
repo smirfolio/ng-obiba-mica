@@ -120,6 +120,10 @@ angular.module('obiba.mica.graphics')
                   $scope.chartObject.d3Config = new D3ChartConfig($scope.chartAggregationName).withType($scope.chartType === 'PieChart' ? 'pieChart' : 'multiBarHorizontalChart')
                       .withData(entries, $scope.chartType === 'PieChart', $filter('translate')('graphics.nbr-studies'))
                       .withTitle($filter('translate')($scope.chartTitleGraph) + ' (N=' + StudiesData.studyResultDto.totalHits + ')');
+
+                  if ($scope.chartType !== 'PieChart') {
+                    $scope.chartObject.d3Config.options.chart.showLegend = false;
+                  }
                 }
               });
           }
