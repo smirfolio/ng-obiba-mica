@@ -1111,6 +1111,10 @@ angular.module('obiba.mica.search')
         }
       };
 
+      $scope.hasSearchResult = function() {
+        return Object.keys($scope.search.result).length > 0;
+      };
+
       $scope.searchHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('search');
       $scope.classificationsHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('classifications');
       $scope.selectSearchTarget = selectSearchTarget;

@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-11-24
+ * Date: 2016-11-25
  */
 'use strict';
 
@@ -4815,6 +4815,10 @@ angular.module('obiba.mica.search')
           active: false,
           target: null
         }
+      };
+
+      $scope.hasSearchResult = function() {
+        return Object.keys($scope.search.result).length > 0;
       };
 
       $scope.searchHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('search');
@@ -10892,7 +10896,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      </div>\n" +
     "\n" +
     "      <!-- Search Results region -->\n" +
-    "      <div id=\"search-result-region\" class=\"voffset3 can-full-screen\" ng-if=\"search.query\" fullscreen=\"isFullscreen\">\n" +
+    "      <div id=\"search-result-region\" class=\"voffset3 can-full-screen\" ng-if=\"hasSearchResult() && search.query\" fullscreen=\"isFullscreen\">\n" +
     "        <div ng-if=\"searchTabsOrder.length > 1\">\n" +
     "          <a href class=\"btn btn-sm btn-default pull-right\" ng-click=\"toggleFullscreen()\">\n" +
     "            <i class=\"glyphicon\" ng-class=\"{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}\"></i>\n" +
