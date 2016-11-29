@@ -1,5 +1,5 @@
 <div>
-    <table style="max-height: 400px;" class="table table-bordered table-striped" fixed-header="chartObject.getTable().data">
+    <table ng-if="chartObject.entries && chartObject.entries.length" style="max-height: 400px;" class="table table-bordered table-striped" fixed-header="chartObject.getTable().data">
         <thead>
         <tr>
         <th ng-repeat="header in chartObject.header track by $index">{{header}}</th>
