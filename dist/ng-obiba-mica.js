@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-12-01
+ * Date: 2016-12-05
  */
 'use strict';
 
@@ -7159,6 +7159,9 @@ angular.module('obiba.mica.graphics')
                 
                 if ($scope.chartType === 'GeoChart') {
                   $scope.chartObject.d3Config = new D3GeoConfig().withData(entries).withTitle($scope.chartObject.options.title);
+                  if ($scope.chartObject.options && $scope.chartObject.options.colorAxis && $scope.chartObject.options.colorAxis.colors) {
+                    $scope.chartObject.d3Config.withColor($scope.chartObject.options.colorAxis.colors);
+                  }
                 } else {                  
                   $scope.chartObject.d3Config = new D3ChartConfig($scope.chartAggregationName).withType($scope.chartType === 'PieChart' ? 'pieChart' : 'multiBarHorizontalChart')
                       .withData(entries, $scope.chartType === 'PieChart', $filter('translate')('graphics.nbr-studies'))
@@ -7166,6 +7169,10 @@ angular.module('obiba.mica.graphics')
 
                   if ($scope.chartType !== 'PieChart') {
                     $scope.chartObject.d3Config.options.chart.showLegend = false;
+                  }
+
+                  if ($scope.chartObject.options && $scope.chartObject.options.colors) {
+                    $scope.chartObject.d3Config.options.chart.color = $scope.chartOptions.colors;
                   }
                 }
               });
