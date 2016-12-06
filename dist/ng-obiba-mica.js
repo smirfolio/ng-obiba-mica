@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-12-05
+ * Date: 2016-12-06
  */
 'use strict';
 
@@ -7690,7 +7690,7 @@ angular.module('obiba.mica.localized')
             });
           }
         }
-        return rval;
+        return rval.length === 0 ? undefined : rval;
       };
     })
 

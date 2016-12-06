@@ -80,7 +80,7 @@ angular.module('obiba.mica.localized')
             });
           }
         }
-        return rval;
+        return rval.length === 0 ? undefined : rval;
       };
     })
 
