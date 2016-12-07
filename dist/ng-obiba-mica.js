@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-12-06
+ * Date: 2016-12-07
  */
 'use strict';
 
@@ -10695,37 +10695,38 @@ angular.module("search/views/search-result-list-study-template.html", []).run(["
 angular.module("search/views/search-result-list-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-template.html",
     "<div ng-show=\"display === 'list'\">\n" +
-    "  <ul class=\"nav nav-pills voffset2\">\n" +
-    "    <li role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
-    "        ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}\"\n" +
-    "        ng-if=\"options[targetTypeMap[res]].showSearchTab\">\n" +
-    "      <a href\n" +
-    "        ng-click=\"selectTarget(targetTypeMap[res])\" ng-if=\"resultTabsOrder.length > 1\">\n" +
-    "       {{targetTypeMap[res] | translate}}\n" +
-    "      <span class=\"badge hoffset1\"><small>{{getTotalHits(res) | localizedNumber}}</small></span>\n" +
-    "      </a>\n" +
-    "      <a href style=\"cursor: default;\" ng-if=\"resultTabsOrder.length === 1\">\n" +
+    "    <ul class=\"nav nav-pills pull-left voffset2\">\n" +
+    "        <li role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
+    "            ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}\"\n" +
+    "            ng-if=\"options[targetTypeMap[res]].showSearchTab\">\n" +
+    "            <a href\n" +
+    "               ng-click=\"selectTarget(targetTypeMap[res])\" ng-if=\"resultTabsOrder.length > 1\">\n" +
+    "                {{targetTypeMap[res] | translate}}\n" +
+    "                <span class=\"badge hoffset1\"><small>{{getTotalHits(res) | localizedNumber}}</small></span>\n" +
+    "            </a>\n" +
+    "            <a href style=\"cursor: default;\" ng-if=\"resultTabsOrder.length === 1\">\n" +
     "      <span class=\"text-primary\">\n" +
     "        {{targetTypeMap[res] | translate}} (<small>{{getTotalHits(res) | localizedNumber}}</small>)\n" +
     "      </span>\n" +
-    "      </a>\n" +
-    "    </li>\n" +
-    "    <li ng-repeat=\"res in resultTabsOrder\" ng-show=\"activeTarget[targetTypeMap[res]].active\" class=\"pull-right\">\n" +
-    "      <span search-result-pagination\n" +
-    "            target=\"activeTarget[targetTypeMap[res]].name\"\n" +
-    "            total-hits=\"activeTarget[targetTypeMap[res]].totalHits\"\n" +
-    "            on-change=\"onPaginate\"></span>\n" +
-    "    </li>\n" +
-    "    <li class=\"pull-right\">\n" +
-    "      <a target=\"_self\" download class=\"btn btn-info pull-right\" ng-href=\"{{getReportUrl()}}\">\n" +
-    "        <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
-    "      </a>\n" +
-    "    </li>\n" +
-    "  </ul>\n" +
-    "  <div class=\"tab-content\">\n" +
-    "    <ng-include include-replace ng-repeat=\"res in resultTabsOrder\"\n" +
-    "        src=\"'search/views/search-result-list-' + res + '-template.html'\"></ng-include>\n" +
-    "  </div>\n" +
+    "            </a>\n" +
+    "        </li>\n" +
+    "    </ul>\n" +
+    "    <div class=\"pull-right voffset2\">\n" +
+    "        <a target=\"_self\" download class=\"btn btn-info\" ng-href=\"{{getReportUrl()}}\">\n" +
+    "            <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
+    "        </a>\n" +
+    "        <div ng-repeat=\"res in resultTabsOrder\" ng-show=\"activeTarget[targetTypeMap[res]].active\" class=\"inline\">\n" +
+    "          <span search-result-pagination\n" +
+    "                target=\"activeTarget[targetTypeMap[res]].name\"\n" +
+    "                total-hits=\"activeTarget[targetTypeMap[res]].totalHits\"\n" +
+    "                on-change=\"onPaginate\"></span>\n" +
+    "        </div>\n" +
+    "    </div>\n" +
+    "    <div class=\"clearfix\"/>\n" +
+    "    <div class=\"tab-content\">\n" +
+    "        <ng-include include-replace ng-repeat=\"res in resultTabsOrder\"\n" +
+    "                    src=\"'search/views/search-result-list-' + res + '-template.html'\"></ng-include>\n" +
+    "    </div>\n" +
     "</div>\n" +
     "");
 }]);
