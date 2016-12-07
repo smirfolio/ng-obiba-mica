@@ -5795,6 +5795,7 @@ angular.module('obiba.mica.search')
         var groupId;
         $scope.result.rows.forEach(function (row) {
           cols.ids[row.value] = [];
+          if(!row.end) {row.end =currentYear + '-' + currentMonth;}
           if ($scope.bucket === BUCKET_TYPES.DCE) {
             var ids = row.value.split(':');
             var titles = row.title.split(':');
