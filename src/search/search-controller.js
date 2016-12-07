@@ -977,7 +977,7 @@ angular.module('obiba.mica.search')
         }
       };
 
-      function reduce(criteriaItem) {
+      function reduce(criteriaItem, originalItem) {
         var parentItem = criteriaItem.parent;
         if (parentItem.type === RQL_NODE.OR) {
           var grandParentItem = parentItem.parent;
@@ -990,8 +990,19 @@ angular.module('obiba.mica.search')
           grandParentRql.args[parentRqlIndex] = criteriaItem.rqlQuery;
 
           if (grandParentItem.type !== QUERY_TARGETS.VARIABLE) {
-            reduce(grandParentItem);
+            reduce(grandParentItem, criteriaItem);
           }
+        } else if (criteriaItem.type === RQL_NODE.OR) {
+          // Reduce to a criterion node when parent is OR node
+          var index = parentItem.children.indexOf(criteriaItem);
+          parentItem.children[index] = originalItem;
+
+          index = parentItem.rqlQuery.args.indexOf(criteriaItem.rqlQuery);
+          parentItem.rqlQuery.args[index] = originalItem.rqlQuery;
+          reduce(parentItem, criteriaItem);
+        } else if (criteriaItem.type !== RQL_NODE.VARIABLE && parentItem.type === RQL_NODE.AND) {
+          // Reduce until parent is Variable node or another AND node
+          reduce(parentItem, parentItem);
         }
       }
 
@@ -2215,7 +2226,7 @@ angular.module('obiba.mica.search')
         // if id is null, it is a click on the total count for the term
         if (id) {
           criteria.item = RqlQueryService.createCriteriaItem(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary, id);
-        } else if ($scope.bucket === BUCKET_TYPES.STUDY || $scope.bucket === BUCKET_TYPES.DATASET) {
+        } else if ($scope.bucket === BUCKET_TYPES.STUDY || $scope.bucket === BUCKET_TYPES.DCE || $scope.bucket === BUCKET_TYPES.DATASET) {
           criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'StudyDataset');
         } else if ($scope.bucket === BUCKET_TYPES.NETWORK || $scope.bucket === BUCKET_TYPES.DATASCHEMA) {
           criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'HarmonizationDataset');
