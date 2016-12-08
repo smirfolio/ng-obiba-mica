@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-12-07
+ * Date: 2016-12-08
  */
 'use strict';
 
@@ -5778,7 +5778,8 @@ angular.module('obiba.mica.search')
 
         var currentYear = new Date().getFullYear();
         var currentMonth = new Date().getMonth() + 1;
-        var currentDate = toTime(currentYear + '-' + currentMonth, true);
+        var currentYearMonth = currentYear + '-' + currentMonth;
+        var currentDate = toTime(currentYearMonth, true);
 
         function getProgress(startYearMonth, endYearMonth) {
           var start = toTime(startYearMonth, true);
@@ -5795,7 +5796,6 @@ angular.module('obiba.mica.search')
         var groupId;
         $scope.result.rows.forEach(function (row) {
           cols.ids[row.value] = [];
-          if(!row.end) {row.end =currentYear + '-' + currentMonth;}
           if ($scope.bucket === BUCKET_TYPES.DCE) {
             var ids = row.value.split(':');
             var titles = row.title.split(':');
@@ -5812,7 +5812,7 @@ angular.module('obiba.mica.search')
               groupId = id;
             }
             rowSpan = appendRowSpan(id);
-            appendMinMax(id,row.start, row.end);
+            appendMinMax(id,row.start || currentYearMonth, row.end || currentYearMonth);
             cols.ids[row.value].push({
               id: id,
               url: PageUrlService.studyPage(id),
@@ -5838,7 +5838,7 @@ angular.module('obiba.mica.search')
               title: titles[2],
               description: descriptions[2],
               start: row.start,
-              current: currentYear + '-' + currentMonth,
+              current: currentYearMonth,
               end: row.end,
               progressClass: odd ? 'info' : 'warning',
               url: PageUrlService.studyPopulationPage(ids[0], ids[1]),
@@ -5856,7 +5856,7 @@ angular.module('obiba.mica.search')
               end: row.end,
               max: row.end,
               progressStart: 0,
-              progress: getProgress(row.start ? row.start + '-01' : undefined, row.end ? row.end + '-12' : undefined),
+              progress: getProgress(row.start ? row.start + '-01' : currentYearMonth, row.end ? row.end + '-12' : currentYearMonth),
               progressClass: odd ? 'info' : 'warning',
               rowSpan: 1
             });
@@ -5877,8 +5877,8 @@ angular.module('obiba.mica.search')
             if (minMax[ids[0]]) {
               var min = minMax[ids[0]][0];
               var max = minMax[ids[0]][1];
-              var start = cols.ids[row.value][2].start;
-              var end = cols.ids[row.value][2].end;
+              var start = cols.ids[row.value][2].start || currentYearMonth;
+              var end = cols.ids[row.value][2].end || currentYearMonth;
               var diff = toTime(max, false) - toTime(min, true);
               // set the DCE min and max dates of the study
               cols.ids[row.value][2].min = min;
