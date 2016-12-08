@@ -890,7 +890,7 @@ angular.module('obiba.mica.search')
        * Propagates a Scope change that results in criteria panel update
        * @param item
        */
-      var selectCriteria = function (item, logicalOp, replace, showNotification) {
+      var selectCriteria = function (item, logicalOp, replace, showNotification, fullCoverage) {
         if (angular.isUndefined(showNotification)) {
           showNotification = true;
         }
@@ -900,7 +900,7 @@ angular.module('obiba.mica.search')
           var existingItem = $scope.search.criteriaItemMap[id];
           var growlMsgKey;
 
-          if (existingItem && id.indexOf('dceIds') !== -1) {
+          if (existingItem && id.indexOf('dceIds') !== -1 && fullCoverage) {
             removeCriteriaItem(existingItem);
             growlMsgKey = 'search.criterion.updated';
             RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item, logicalOp);
@@ -977,8 +977,14 @@ angular.module('obiba.mica.search')
         }
       };
 
-      function reduce(criteriaItem, originalItem) {
-        var parentItem = criteriaItem.parent;
+      /**
+       * Reduce the current query such that all irrelevant criteria is removed but the criterion. The exceptions are
+       * when the criterion is inside an AND, in this case this latter is reduced.
+       *
+       * @param parentItem
+       * @param criteriaItem
+       */
+      function reduce(parentItem, criteriaItem) {
         if (parentItem.type === RQL_NODE.OR) {
           var grandParentItem = parentItem.parent;
           var parentItemIndex = grandParentItem.children.indexOf(parentItem);
@@ -992,21 +998,13 @@ angular.module('obiba.mica.search')
           if (grandParentItem.type !== QUERY_TARGETS.VARIABLE) {
             reduce(grandParentItem, criteriaItem);
           }
-        } else if (criteriaItem.type === RQL_NODE.OR) {
-          // Reduce to a criterion node when parent is OR node
-          var index = parentItem.children.indexOf(criteriaItem);
-          parentItem.children[index] = originalItem;
-
-          index = parentItem.rqlQuery.args.indexOf(criteriaItem.rqlQuery);
-          parentItem.rqlQuery.args[index] = originalItem.rqlQuery;
-          reduce(parentItem, criteriaItem);
         } else if (criteriaItem.type !== RQL_NODE.VARIABLE && parentItem.type === RQL_NODE.AND) {
           // Reduce until parent is Variable node or another AND node
-          reduce(parentItem, parentItem);
+          reduce(parentItem.parent, parentItem);
         }
       }
 
-      var onUpdateCriteria = function (item, type, useCurrentDisplay, replaceTarget, showNotification) {
+      var onUpdateCriteria = function (item, type, useCurrentDisplay, replaceTarget, showNotification, fullCoverage) {
         if (type) {
           onTypeChanged(type);
         }
@@ -1014,12 +1012,12 @@ angular.module('obiba.mica.search')
         if (replaceTarget) {
           var criteriaItem = criteriaItemFromMap(item);
           if (criteriaItem) {
-            reduce(criteriaItem);
+            reduce(criteriaItem.parent, criteriaItem);
           }
         }
 
         onDisplayChanged(useCurrentDisplay && $scope.search.display ? $scope.search.display : DISPLAY_TYPES.LIST);
-        selectCriteria(item, RQL_NODE.AND, true, showNotification);
+        selectCriteria(item, RQL_NODE.AND, true, showNotification, fullCoverage);
       };
 
       function criteriaItemFromMap(item) {
@@ -1989,7 +1987,7 @@ angular.module('obiba.mica.search')
         return '';
       }
 
-      function updateFilterCriteriaInternal(selected) {
+      function updateFilterCriteriaInternal(selected, fullCoverage) {
         var vocabulary = $scope.bucket === BUCKET_TYPES.DCE ? 'dceIds' : 'id';
         $q.all(selected.map(function (r) {
           return RqlQueryService.createCriteriaItem(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary, r.value);
@@ -2007,8 +2005,7 @@ angular.module('obiba.mica.search')
             item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
             return item;
           }, null);
-
-          $scope.onUpdateCriteria(selectionItem, 'variables', true);
+          $scope.onUpdateCriteria(selectionItem, 'variables', true, undefined, undefined, fullCoverage);
         });
       }
 
@@ -2234,10 +2231,15 @@ angular.module('obiba.mica.search')
         }
 
         $q.all(criteria).then(function (criteria) {
+
           $scope.onUpdateCriteria(criteria.varItem, type, false, true);
 
           if (criteria.item) {
-            $scope.onUpdateCriteria(criteria.item, type);
+            var consume = $scope.$on('ngObibaMicaQueryUpdated', function() {
+              // do not initiate the next query until all search parts, namely, the item map is updated
+              consume();
+              $scope.onUpdateCriteria(criteria.item, type);
+            });
           }
         });
       };
@@ -2278,7 +2280,7 @@ angular.module('obiba.mica.search')
             }
           });
         }
-        updateFilterCriteriaInternal(selected);
+        updateFilterCriteriaInternal(selected, true);
       };
 
       $scope.updateFilterCriteria = function () {
