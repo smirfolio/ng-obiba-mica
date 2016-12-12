@@ -936,11 +936,12 @@ angular.module('obiba.mica.search')
 
   .service('RqlQueryService', [
     '$q',
+    '$log',
     'TaxonomiesResource',
     'TaxonomyResource',
     'LocalizedValues',
     'RqlQueryUtils',
-    function ($q, TaxonomiesResource, TaxonomyResource, LocalizedValues, RqlQueryUtils) {
+    function ($q, $log, TaxonomiesResource, TaxonomyResource, LocalizedValues, RqlQueryUtils) {
       var taxonomiesCache = {
         variable: null,
         dataset: null,
@@ -1063,6 +1064,16 @@ angular.module('obiba.mica.search')
         }
 
       }
+
+      this.parseQuery = function(query) {
+        try {
+          return new RqlParser().parse(query);
+        } catch (e) {
+          $log.error(e.message);
+        }
+
+        return new RqlQuery();
+      };
 
       /**
        * Removes the item from criteria item tree. This should be from a leaf.
@@ -1259,7 +1270,7 @@ angular.module('obiba.mica.search')
           }
         }
 
-        var parsedQuery = new RqlParser().parse(query);
+        var parsedQuery = this.parseQuery(query);
         var targetQuery = parsedQuery.args.filter(function (node) {
           return node.name === item.target;
         }).pop();
@@ -1312,7 +1323,7 @@ angular.module('obiba.mica.search')
        * @returns the new query
        */
       this.prepareCoverageQuery = function (query, bucketArg) {
-        var parsedQuery = new RqlParser().parse(query);
+        var parsedQuery = this.parseQuery(query);
         var aggregate = new RqlQuery('aggregate');
         var bucketField;
 
@@ -1366,7 +1377,7 @@ angular.module('obiba.mica.search')
       };
 
       this.prepareGraphicsQuery = function (query, aggregateArgs, bucketArgs) {
-        var parsedQuery = new RqlParser().parse(query);
+        var parsedQuery = this.parseQuery(query);
         // aggregate
         var aggregate = new RqlQuery(RQL_NODE.AGGREGATE);
         aggregateArgs.forEach(function (a) {

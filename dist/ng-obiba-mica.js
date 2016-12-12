@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-12-08
+ * Date: 2016-12-12
  */
 'use strict';
 
@@ -2859,11 +2859,12 @@ angular.module('obiba.mica.search')
 
   .service('RqlQueryService', [
     '$q',
+    '$log',
     'TaxonomiesResource',
     'TaxonomyResource',
     'LocalizedValues',
     'RqlQueryUtils',
-    function ($q, TaxonomiesResource, TaxonomyResource, LocalizedValues, RqlQueryUtils) {
+    function ($q, $log, TaxonomiesResource, TaxonomyResource, LocalizedValues, RqlQueryUtils) {
       var taxonomiesCache = {
         variable: null,
         dataset: null,
@@ -2986,6 +2987,16 @@ angular.module('obiba.mica.search')
         }
 
       }
+
+      this.parseQuery = function(query) {
+        try {
+          return new RqlParser().parse(query);
+        } catch (e) {
+          $log.error(e.message);
+        }
+
+        return new RqlQuery();
+      };
 
       /**
        * Removes the item from criteria item tree. This should be from a leaf.
@@ -3182,7 +3193,7 @@ angular.module('obiba.mica.search')
           }
         }
 
-        var parsedQuery = new RqlParser().parse(query);
+        var parsedQuery = this.parseQuery(query);
         var targetQuery = parsedQuery.args.filter(function (node) {
           return node.name === item.target;
         }).pop();
@@ -3235,7 +3246,7 @@ angular.module('obiba.mica.search')
        * @returns the new query
        */
       this.prepareCoverageQuery = function (query, bucketArg) {
-        var parsedQuery = new RqlParser().parse(query);
+        var parsedQuery = this.parseQuery(query);
         var aggregate = new RqlQuery('aggregate');
         var bucketField;
 
@@ -3289,7 +3300,7 @@ angular.module('obiba.mica.search')
       };
 
       this.prepareGraphicsQuery = function (query, aggregateArgs, bucketArgs) {
-        var parsedQuery = new RqlParser().parse(query);
+        var parsedQuery = this.parseQuery(query);
         // aggregate
         var aggregate = new RqlQuery(RQL_NODE.AGGREGATE);
         aggregateArgs.forEach(function (a) {
@@ -4282,7 +4293,7 @@ angular.module('obiba.mica.search')
           $scope.search.bucket = bucket;
           $scope.search.display = display;
           $scope.search.query = query;
-          $scope.search.rqlQuery = new RqlParser().parse(query);
+          $scope.search.rqlQuery = RqlQueryService.parseQuery(query);
 
           return true;
         } catch (e) {
@@ -5167,10 +5178,12 @@ angular.module('obiba.mica.search')
     '$scope',
     'ngObibaMicaSearch',
     'ngObibaMicaUrl',
+    'RqlQueryService',
     'RqlQueryUtils',
     function ($scope,
               ngObibaMicaSearch,
               ngObibaMicaUrl,
+              RqlQueryService,
               RqlQueryUtils) {
 
       function updateTarget(type) {
@@ -5208,7 +5221,7 @@ angular.module('obiba.mica.search')
           return $scope.query;
         }
 
-        var parsedQuery = new RqlParser().parse($scope.query);
+        var parsedQuery = RqlQueryService.parseQuery($scope.query);
         var target = typeToTarget($scope.type);
         var targetQuery = parsedQuery.args.filter(function (query) {
           return query.name === target;
@@ -5552,7 +5565,7 @@ angular.module('obiba.mica.search')
           vocabularyHeaders[j].taxonomyName = headers[i].entity.name;
         }
       }
-      
+
       function decorateTermHeaders(headers, termHeaders, attr) {
         var idx = 0;
         return headers.reduce(function(result, h) {
@@ -5638,7 +5651,7 @@ angular.module('obiba.mica.search')
 
       $scope.hasVariableTarget = function () {
         var query = $location.search().query;
-        return query && RqlQueryUtils.hasTargetQuery(new RqlParser().parse(query), RQL_NODE.VARIABLE);
+        return query && RqlQueryUtils.hasTargetQuery(RqlQueryService.parseQuery(query), RQL_NODE.VARIABLE);
       };
 
       $scope.hasSelected = function () {
@@ -7444,7 +7457,7 @@ angular.module('obiba.mica.graphics')
       if(entityType && entityIds !== 'NaN') {
         query =  entityType + '(in(Mica_'+ entityType +'.id,(' + entityIds + ')))';
       }
-      var localizedRqlQuery = angular.copy(new RqlParser().parse(query));
+      var localizedRqlQuery = angular.copy(RqlQueryService.parseQuery(query));
       RqlQueryUtils.addLocaleQuery(localizedRqlQuery, LocalizedValues.getLocal());
       var localizedQuery = new RqlQuery().serializeArgs(localizedRqlQuery.args);
       return RqlQueryService.prepareGraphicsQuery(localizedQuery,
