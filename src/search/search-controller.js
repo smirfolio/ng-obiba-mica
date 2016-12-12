@@ -576,7 +576,7 @@ angular.module('obiba.mica.search')
           $scope.search.bucket = bucket;
           $scope.search.display = display;
           $scope.search.query = query;
-          $scope.search.rqlQuery = new RqlParser().parse(query);
+          $scope.search.rqlQuery = RqlQueryService.parseQuery(query);
 
           return true;
         } catch (e) {
@@ -1461,10 +1461,12 @@ angular.module('obiba.mica.search')
     '$scope',
     'ngObibaMicaSearch',
     'ngObibaMicaUrl',
+    'RqlQueryService',
     'RqlQueryUtils',
     function ($scope,
               ngObibaMicaSearch,
               ngObibaMicaUrl,
+              RqlQueryService,
               RqlQueryUtils) {
 
       function updateTarget(type) {
@@ -1502,7 +1504,7 @@ angular.module('obiba.mica.search')
           return $scope.query;
         }
 
-        var parsedQuery = new RqlParser().parse($scope.query);
+        var parsedQuery = RqlQueryService.parseQuery($scope.query);
         var target = typeToTarget($scope.type);
         var targetQuery = parsedQuery.args.filter(function (query) {
           return query.name === target;
@@ -1846,7 +1848,7 @@ angular.module('obiba.mica.search')
           vocabularyHeaders[j].taxonomyName = headers[i].entity.name;
         }
       }
-      
+
       function decorateTermHeaders(headers, termHeaders, attr) {
         var idx = 0;
         return headers.reduce(function(result, h) {
@@ -1932,7 +1934,7 @@ angular.module('obiba.mica.search')
 
       $scope.hasVariableTarget = function () {
         var query = $location.search().query;
-        return query && RqlQueryUtils.hasTargetQuery(new RqlParser().parse(query), RQL_NODE.VARIABLE);
+        return query && RqlQueryUtils.hasTargetQuery(RqlQueryService.parseQuery(query), RQL_NODE.VARIABLE);
       };
 
       $scope.hasSelected = function () {

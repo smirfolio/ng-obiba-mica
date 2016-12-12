@@ -238,7 +238,7 @@ angular.module('obiba.mica.graphics')
       if(entityType && entityIds !== 'NaN') {
         query =  entityType + '(in(Mica_'+ entityType +'.id,(' + entityIds + ')))';
       }
-      var localizedRqlQuery = angular.copy(new RqlParser().parse(query));
+      var localizedRqlQuery = angular.copy(RqlQueryService.parseQuery(query));
       RqlQueryUtils.addLocaleQuery(localizedRqlQuery, LocalizedValues.getLocal());
       var localizedQuery = new RqlQuery().serializeArgs(localizedRqlQuery.args);
       return RqlQueryService.prepareGraphicsQuery(localizedQuery,
