@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-12-13
+ * Date: 2016-12-14
  */
 'use strict';
 
@@ -1728,6 +1728,7 @@ angular.module('obiba.mica.search', [
         showAllFacetedTaxonomies: true,
         showSearchBox: true,
         showSearchBrowser: true,
+        showSearchRefreshButton: false,
         variableTaxonomiesOrder: [],
         studyTaxonomiesOrder: [],
         datasetTaxonomiesOrder: [],
@@ -9414,8 +9415,9 @@ angular.module("search/views/classifications/classifications-view.html", []).run
     "      </li>\n" +
     "    </ol>\n" +
     "\n" +
-    "    <a title=\"{{'search.refresh-taxonomies' | translate}}\" href class=\"hoffset1\" ng-click=\"refreshTaxonomyCache()\">\n" +
-    "      <span class=\"glyphicon glyphicon-refresh\"></span>\n" +
+    "    <a ng-if=\"options.showSearchRefreshButton\" title=\"{{'search.refresh-taxonomies' | translate}}\"\n" +
+    "       href class=\"hoffset1\" ng-click=\"refreshTaxonomyCache()\">\n" +
+    "      <span class=\"fa fa-refresh\"></span>\n" +
     "    </a>\n" +
     "  </div>\n" +
     "\n" +
@@ -9625,8 +9627,9 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "                <h4 ng-repeat=\"label in taxonomies.taxonomy.title\" ng-if=\"label.locale === lang\">\n" +
     "                  <strong>{{label.text}}</strong>\n" +
     "\n" +
-    "                  <a title=\"{{'search.refresh-taxonomies' | translate}}\" href class=\"hoffset1 pull-right\" ng-click=\"refreshTaxonomyCache(target, taxonomies.taxonomy.name)\">\n" +
-    "                    <span class=\"glyphicon glyphicon-refresh\"></span>\n" +
+    "                  <a ng-if=\"options.showSearchRefreshButton\" title=\"{{'search.refresh-taxonomies' | translate}}\"\n" +
+    "                     href class=\"hoffset1 pull-right\" ng-click=\"refreshTaxonomyCache(target, taxonomies.taxonomy.name)\">\n" +
+    "                    <span class=\"fa fa-refresh\"></span>\n" +
     "                  </a>\n" +
     "                </h4>\n" +
     "              </li>\n" +
