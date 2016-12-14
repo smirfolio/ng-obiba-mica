@@ -9415,12 +9415,12 @@ angular.module("search/views/classifications/classifications-view.html", []).run
     "          {{label.text}}\n" +
     "        </span>\n" +
     "      </li>\n" +
+    "      <a ng-if=\"options.showSearchRefreshButton\" title=\"{{'search.refresh-taxonomies' | translate}}\"\n" +
+    "         href class=\"hoffset1\" ng-click=\"refreshTaxonomyCache()\">\n" +
+    "        <span class=\"fa fa-refresh\"></span>\n" +
+    "      </a>\n" +
     "    </ol>\n" +
     "\n" +
-    "    <a ng-if=\"options.showSearchRefreshButton\" title=\"{{'search.refresh-taxonomies' | translate}}\"\n" +
-    "       href class=\"hoffset1\" ng-click=\"refreshTaxonomyCache()\">\n" +
-    "      <span class=\"fa fa-refresh\"></span>\n" +
-    "    </a>\n" +
     "  </div>\n" +
     "\n" +
     "  <div ng-if=\"taxonomies.search.active\" class=\"loading\"></div>\n" +
@@ -9626,14 +9626,13 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "          <div class=\"col-md-8\">\n" +
     "            <ol class=\"breadcrumb no-margin no-padding pull-left\">\n" +
     "              <li ng-if=\"taxonomies.taxonomy\">\n" +
-    "                <h4 ng-repeat=\"label in taxonomies.taxonomy.title\" ng-if=\"label.locale === lang\">\n" +
+    "                <h4 ng-repeat=\"label in taxonomies.taxonomy.title\" ng-if=\"label.locale === lang\" class=\"pull-left\">\n" +
     "                  <strong>{{label.text}}</strong>\n" +
-    "\n" +
-    "                  <a ng-if=\"options.showSearchRefreshButton\" title=\"{{'search.refresh-taxonomies' | translate}}\"\n" +
-    "                     href class=\"hoffset1 pull-right\" ng-click=\"refreshTaxonomyCache(target, taxonomies.taxonomy.name)\">\n" +
-    "                    <span class=\"fa fa-refresh\"></span>\n" +
-    "                  </a>\n" +
     "                </h4>\n" +
+    "                <a ng-if=\"options.showSearchRefreshButton\" title=\"{{'search.refresh-taxonomies' | translate}}\"\n" +
+    "                   href class=\"hoffset1 voffset2 pull-right\" ng-click=\"refreshTaxonomyCache(target, taxonomies.taxonomy.name)\">\n" +
+    "                  <span class=\"fa fa-refresh\"></span>\n" +
+    "                </a>\n" +
     "              </li>\n" +
     "            </ol>\n" +
     "          </div>\n" +
