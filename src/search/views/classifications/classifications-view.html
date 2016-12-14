@@ -24,6 +24,11 @@
         </span>
       </li>
     </ol>
+
+    <a ng-if="options.showSearchRefreshButton" title="{{'search.refresh-taxonomies' | translate}}"
+       href class="hoffset1" ng-click="refreshTaxonomyCache()">
+      <span class="fa fa-refresh"></span>
+    </a>
   </div>
 
   <div ng-if="taxonomies.search.active" class="loading"></div>

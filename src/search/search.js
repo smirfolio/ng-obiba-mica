@@ -45,6 +45,7 @@ angular.module('obiba.mica.search', [
         showAllFacetedTaxonomies: true,
         showSearchBox: true,
         showSearchBrowser: true,
+        showSearchRefreshButton: false,
         variableTaxonomiesOrder: [],
         studyTaxonomiesOrder: [],
         datasetTaxonomiesOrder: [],
