@@ -871,14 +871,16 @@ angular.module('obiba.mica.search')
     };
 
     this.addLimit = function (targetQuery, limitQuery) {
-      var found = targetQuery.args.filter(function (arg) {
-        return arg.name === RQL_NODE.LIMIT;
-      }).pop();
+      if (targetQuery && targetQuery.args) {
+        var found = targetQuery.args.filter(function (arg) {
+          return arg.name === RQL_NODE.LIMIT;
+        }).pop();
 
-      if (found) {
-        found.args = limitQuery.args;
-      } else {
-        targetQuery.args.push(limitQuery);
+        if (found) {
+          found.args = limitQuery.args;
+        } else {
+          targetQuery.args.push(limitQuery);
+        }
       }
     };
 
