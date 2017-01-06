@@ -3,8 +3,18 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-01-05
+ * Date: 2017-01-06
  */
+/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 'use strict';
 
 function NgObibaMicaUrlProvider() {
@@ -139,7 +149,17 @@ angular.module('ngObibaMica', [
     paginationTemplateProvider.setPath('views/pagination-template.html');
   }]);
 
-;'use strict';
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
 
 angular.module('obiba.mica.utils', ['schemaForm'])
 
@@ -407,10 +427,30 @@ angular.module('obiba.mica.utils', ['schemaForm'])
         return form;
       });
     }]);
-;'use strict';
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ */
+
+'use strict';
 
 angular.module('obiba.mica.file', ['ngResource']);
-;'use strict';
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ */
+
+'use strict';
 
 angular.module('obiba.mica.file')
   .filter('bytes', function () {
@@ -419,7 +459,17 @@ angular.module('obiba.mica.file')
     };
   });
 
-;'use strict';
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
 
 angular.module('obiba.mica.file')
   .factory('TempFileResource', ['$resource', 'ngObibaMicaUrl',
@@ -430,7 +480,17 @@ angular.module('obiba.mica.file')
       });
     }])
 ;
-;'use strict';
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ */
+
+'use strict';
 
 angular.module('obiba.mica.attachment', [
   'obiba.mica.file',
@@ -439,7 +499,17 @@ angular.module('obiba.mica.attachment', [
   'ngFileUpload',
   'templates-ngObibaMica'
 ]);
-;'use strict';
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
 
 angular.module('obiba.mica.attachment')
   .directive('attachmentList', [function() {
@@ -561,7 +631,7 @@ angular.module('obiba.mica.attachment')
     }
   ]);
 ;/*
- * Copyright (c) 2014 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -592,7 +662,7 @@ angular.module('obiba.mica.access', [
     ));
   }]);
 ;/*
- * Copyright (c) 2014 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -1326,13 +1396,13 @@ angular.module('obiba.mica.access')
 
     }]);
 ;/*
- * Copyright (c) 2014 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
 'use strict';
@@ -1359,7 +1429,7 @@ angular.module('obiba.mica.access')
         });
     }]);
 ;/*
- * Copyright (c) 2014 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -1696,13 +1766,13 @@ angular.module('obiba.mica.access')
     };
   }]);
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
 'use strict';
@@ -1716,7 +1786,7 @@ angular.module('obiba.mica.access')
       templateUrl: 'access/views/data-access-request-print-preview.html'
     };
   }]);;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -1888,7 +1958,7 @@ angular.module('obiba.mica.search', [
     GraphicChartsConfigurations.setClientConfig();
   }]);
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -1957,7 +2027,7 @@ angular.module('obiba.mica.search')
       })[2];
     };
   });;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -3502,7 +3572,7 @@ angular.module('obiba.mica.search')
       };
     }]);
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -3753,7 +3823,7 @@ angular.module('obiba.mica.search')
   }]);
 
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -6354,7 +6424,7 @@ angular.module('obiba.mica.search')
   }]);
 
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -7004,7 +7074,7 @@ angular.module('obiba.mica.search')
     };
   }]);
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -7031,7 +7101,7 @@ angular.module('obiba.mica.search')
         });
     }]);
 ;/*
- * Copyright (c) 2014 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -7082,7 +7152,7 @@ angular.module('obiba.mica.graphics', [
     GraphicChartsConfigurations.setClientConfig();
   }]);
 ;/*
- * Copyright (c) 2014 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -7137,7 +7207,7 @@ angular.module('obiba.mica.graphics')
     controller: 'GraphicChartsController'
   };
 }]);;/*
- * Copyright (c) 2014 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -7286,7 +7356,7 @@ angular.module('obiba.mica.graphics')
 
     }]);
 ;/*
- * Copyright (c) 2014 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -7534,14 +7604,34 @@ angular.module('obiba.mica.graphics')
       );
     };
   }]);
-;'use strict';
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ */
+
+'use strict';
 
 angular.module('obiba.mica.localized', [
   'obiba.notification',
   'pascalprecht.translate',
   'templates-ngObibaMica'
 ]);
-;'use strict';
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
 
 angular.module('obiba.mica.localized')
 
@@ -7708,7 +7798,7 @@ angular.module('obiba.mica.localized')
     };
   }]);
 ;/*
- * Copyright (c) 2015 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -7863,13 +7953,13 @@ angular.module('obiba.mica.localized')
 
   }]);
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
 'use strict';
@@ -7881,7 +7971,17 @@ angular.module('obiba.mica.localized')
       return value === 0 ? 0 : value ? LocalizedValues.formatNumber(value) : '';
     };
   }]);
-;'use strict';
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
 
 function NgObibaMicaFileBrowserOptionsProvider() {
   var options = {
@@ -7905,7 +8005,7 @@ angular.module('obiba.mica.fileBrowser', [
   $provide.provider('ngObibaMicaFileBrowserOptions', new NgObibaMicaFileBrowserOptionsProvider());
 }]);
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -7932,7 +8032,7 @@ angular.module('obiba.mica.fileBrowser')
     };
   }]);
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -8224,7 +8324,7 @@ angular.module('obiba.mica.fileBrowser')
     }]);
 
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -8371,7 +8471,7 @@ angular.module('obiba.mica.fileBrowser')
 angular.module("access/views/data-access-request-documents-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-documents-view.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2016 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -8419,7 +8519,7 @@ angular.module("access/views/data-access-request-documents-view.html", []).run([
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2015 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -8480,7 +8580,7 @@ angular.module("access/views/data-access-request-form.html", []).run(["$template
 angular.module("access/views/data-access-request-history-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-history-view.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2015 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -8518,7 +8618,7 @@ angular.module("access/views/data-access-request-history-view.html", []).run(["$
 angular.module("access/views/data-access-request-list.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-list.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2015 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -8684,6 +8784,16 @@ angular.module("access/views/data-access-request-print-preview.html", []).run(["
 
 angular.module("access/views/data-access-request-profile-user-modal.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-profile-user-modal.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"modal-content\">\n" +
     "  <div class=\"modal-header\">\n" +
     "    <button type=\"button\" class=\"close\" aria-hidden=\"true\"\n" +
@@ -8740,7 +8850,7 @@ angular.module("access/views/data-access-request-submitted-modal.html", []).run(
     "\n" +
     "?>\n" +
     "<!--\n" +
-    "  ~ Copyright (c) 2015 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -8772,6 +8882,16 @@ angular.module("access/views/data-access-request-submitted-modal.html", []).run(
 
 angular.module("access/views/data-access-request-validation-modal.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-validation-modal.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"modal-content\">\n" +
     "  <div class=\"modal-header\">\n" +
     "    <button type=\"button\" class=\"close\" aria-hidden=\"true\" ng-click=\"$dismiss()\">&times;</button>\n" +
@@ -8801,7 +8921,7 @@ angular.module("access/views/data-access-request-validation-modal.html", []).run
 angular.module("access/views/data-access-request-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-view.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2015 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -8916,6 +9036,16 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
 
 angular.module("attachment/attachment-input-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("attachment/attachment-input-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<button ng-hide=\"{{disabled}}\" type=\"button\" class=\"btn btn-primary btn-xs\" aria-hidden=\"true\" ngf-multiple=\"{{multiple}}\" ngf-select\n" +
     "        ngf-change=\"onFileSelect($files)\" translate>file.upload.button\n" +
     "</button>\n" +
@@ -8961,6 +9091,16 @@ angular.module("attachment/attachment-input-template.html", []).run(["$templateC
 
 angular.module("attachment/attachment-list-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("attachment/attachment-list-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div>\n" +
     "  <span ng-if=\"!hasAttachments && emptyMessage\"><em>{{emptyMessage}}</em></span>\n" +
     "  <table ng-if=\"hasAttachments\" class=\"table table-bordered table-striped\" >\n" +
@@ -8995,7 +9135,7 @@ angular.module("attachment/attachment-list-template.html", []).run(["$templateCa
 angular.module("file-browser/views/document-detail-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("file-browser/views/document-detail-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2016 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -9071,6 +9211,16 @@ angular.module("file-browser/views/document-detail-template.html", []).run(["$te
 
 angular.module("file-browser/views/documents-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("file-browser/views/documents-table-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"panel panel-default table-responsive table-responsive-dropdown\">\n" +
     "  <div class=\"panel-heading\" ng-if=\"data.search.active\">\n" +
     "      <a class=\"no-text-decoration\" ng-click=\"clearSearch()\">\n" +
@@ -9210,14 +9360,14 @@ angular.module("file-browser/views/file-browser-template.html", []).run(["$templ
 angular.module("file-browser/views/toolbar-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("file-browser/views/toolbar-template.html",
     "<!--\n" +
-    " ~ Copyright (c) 2016 OBiBa. All rights reserved.\n" +
-    " ~\n" +
-    " ~ This program and the accompanying materials\n" +
-    " ~ are made available under the terms of the GNU Public License v3.0.\n" +
-    " ~\n" +
-    " ~ You should have received a copy of the GNU General Public License\n" +
-    " ~ along with this program. If not, see <http://www.gnu.org/licenses/>.\n" +
-    " -->\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
     "<div>\n" +
     "    <div class=\"pull-left voffset3\">\n" +
     "        <ol ng-show=\"data.document.path !== data.rootPath\" class=\"breadcrumb mica-breadcrumb no-margin no-padding\">\n" +
@@ -9312,6 +9462,16 @@ angular.module("graphics/views/tables-directive.html", []).run(["$templateCache"
 
 angular.module("localized/localized-input-group-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("localized/localized-input-group-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"form-group\" ng-class=\"{'has-error': (form[fieldName].$dirty || form.saveAttempted) && form[fieldName].$invalid}\">\n" +
     "  <label for=\"{{fieldName}}\" class=\"control-label\">\n" +
     "    {{label | translate}}\n" +
@@ -9333,6 +9493,16 @@ angular.module("localized/localized-input-group-template.html", []).run(["$templ
 
 angular.module("localized/localized-input-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("localized/localized-input-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"form-group\" ng-class=\"{'has-error': (form[fieldName].$dirty || form.saveAttempted) && form[fieldName].$invalid}\">\n" +
     "  <label for=\"{{fieldName}}\" class=\"control-label\">\n" +
     "    {{label | translate}}\n" +
@@ -9349,11 +9519,31 @@ angular.module("localized/localized-input-template.html", []).run(["$templateCac
 
 angular.module("localized/localized-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("localized/localized-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<span>{{LocalizedValues.for(value,lang,keyLang,keyValue)}}</span>");
 }]);
 
 angular.module("localized/localized-textarea-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("localized/localized-textarea-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"form-group\" ng-class=\"{'has-error': (form[fieldName].$dirty || form.saveAttempted) && form[fieldName].$invalid}\">\n" +
     "\n" +
     "  <label for=\"{{fieldName}}\" class=\"control-label\">\n" +
@@ -9375,6 +9565,16 @@ angular.module("localized/localized-textarea-template.html", []).run(["$template
 
 angular.module("search/views/classifications.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/classifications.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div>\n" +
     "  <div ng-if=\"classificationsHeaderTemplateUrl\" ng-include=\"classificationsHeaderTemplateUrl\"></div>\n" +
     "\n" +
@@ -9574,6 +9774,16 @@ angular.module("search/views/classifications/classifications-view.html", []).run
 
 angular.module("search/views/classifications/taxonomies-facets-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/classifications/taxonomies-facets-view.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<ul class=\"nav nav-tabs\" role=\"tablist\" ng-if=\"targets.length > 1\">\n" +
     "  <li ng-repeat=\"tab in targets\" role=\"presentation\" ng-class=\"{ active: tab === target }\">\n" +
     "    <a href role=\"tab\" ng-click=\"setTarget(tab)\">{{'search.' + tab + '.facet-label' | translate}}</a></li>\n" +
@@ -9850,6 +10060,16 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
 
 angular.module("search/views/classifications/taxonomy-accordion-group.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/classifications/taxonomy-accordion-group.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"panel no-margin no-border-radius\" ng-class=\"panelClass || 'panel-default'\">\n" +
     "  <div role=\"tab\" id=\"{{::headingId}}\" aria-selected=\"{{isOpen}}\" class=\"panel-heading\" ng-keypress=\"toggleOpen($event)\">\n" +
     "    <h4 class=\"panel-title\">\n" +
@@ -9882,6 +10102,16 @@ angular.module("search/views/classifications/taxonomy-panel-template.html", []).
 
 angular.module("search/views/classifications/taxonomy-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/classifications/taxonomy-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div ng-repeat=\"vocabulary in taxonomies.taxonomy.vocabularies\" ng-if=\"$index % 3 == 0\" class=\"row\">\n" +
     "  <div class=\"col-md-4\">\n" +
     "    <div vocabulary-panel taxonomy=\"taxonomies.taxonomy.vocabularies[$index]\"></div>\n" +
@@ -9922,6 +10152,16 @@ angular.module("search/views/classifications/term-panel-template.html", []).run(
 
 angular.module("search/views/classifications/vocabulary-accordion-group.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/classifications/vocabulary-accordion-group.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"panel no-margin no-padding no-border-radius\" ng-class=\"panelClass || 'panel-default'\">\n" +
     "  <div role=\"tab\" id=\"{{::headingId}}\" aria-selected=\"{{isOpen}}\" class=\"panel-heading\" ng-keypress=\"toggleOpen($event)\">\n" +
     "    <h4 class=\"panel-title\">\n" +
@@ -10209,6 +10449,16 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
 
 angular.module("search/views/criteria/criterion-header-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criterion-header-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<li class=\"criteria-list-item\">\n" +
     "  <label uib-popover=\"{{localize(criterion.vocabulary.description)}}\"\n" +
     "         popover-title=\"{{localize(criterion.vocabulary.title)}}\"\n" +
@@ -10348,6 +10598,16 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
 
 angular.module("search/views/criteria/target-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/target-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<span></span>");
 }]);
 
@@ -10531,6 +10791,16 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
 
 angular.module("search/views/list/pagination-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/list/pagination-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<span class=\"input-group voffset1\">\n" +
     "  <ul class=\"pagination pagination-sm no-padding no-margin\">\n" +
     "    <li ng-if=\"::boundaryLinks\" ng-class=\"{disabled: noPrevious()||ngDisabled}\" class=\"pagination-first\">\n" +
@@ -10759,6 +11029,16 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
 
 angular.module("search/views/search-result-coverage-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-coverage-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div ng-show=\"display === 'coverage'\">\n" +
     "  <coverage-result-table\n" +
     "    result=\"result.coverage\"\n" +
@@ -10774,6 +11054,16 @@ angular.module("search/views/search-result-coverage-template.html", []).run(["$t
 
 angular.module("search/views/search-result-graphics-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-graphics-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div ng-show=\"display === 'graphics'\">\n" +
     "  <graphics-result on-update-criteria=\"onUpdateCriteria\" result=\"result.graphics\" loading=\"loading\" class=\"voffset2\"></graphics-result>\n" +
     "</div>");
@@ -10781,6 +11071,16 @@ angular.module("search/views/search-result-graphics-template.html", []).run(["$t
 
 angular.module("search/views/search-result-list-dataset-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-dataset-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"tab-pane\" ng-show=\"options.datasets.showSearchTab\" ng-class=\"{'active': activeTarget.datasets.active}\">\n" +
     "  <datasets-result-table loading=\"loading\" on-update-criteria=\"onUpdateCriteria\"\n" +
     "      summaries=\"result.list.datasetResultDto['obiba.mica.DatasetResultDto.result'].datasets\"></datasets-result-table>\n" +
@@ -10790,6 +11090,16 @@ angular.module("search/views/search-result-list-dataset-template.html", []).run(
 
 angular.module("search/views/search-result-list-network-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-network-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"tab-pane\" ng-show=\"options.networks.showSearchTab\" ng-class=\"{'active': activeTarget.networks.active}\">\n" +
     "  <networks-result-table loading=\"loading\" on-update-criteria=\"onUpdateCriteria\"\n" +
     "      summaries=\"result.list.networkResultDto['obiba.mica.NetworkResultDto.result'].networks\"></networks-result-table>\n" +
@@ -10799,6 +11109,16 @@ angular.module("search/views/search-result-list-network-template.html", []).run(
 
 angular.module("search/views/search-result-list-study-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-study-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"tab-pane\" ng-show=\"options.studies.showSearchTab\" ng-class=\"{'active': activeTarget.studies.active}\">\n" +
     "  <studies-result-table lang=\"lang\" loading=\"loading\" on-update-criteria=\"onUpdateCriteria\"\n" +
     "      summaries=\"result.list.studyResultDto['obiba.mica.StudyResultDto.result'].summaries\"></studies-result-table>\n" +
@@ -10807,6 +11127,16 @@ angular.module("search/views/search-result-list-study-template.html", []).run(["
 
 angular.module("search/views/search-result-list-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div ng-show=\"display === 'list'\">\n" +
     "    <ul class=\"nav nav-pills pull-left voffset2\">\n" +
     "        <li role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
@@ -10846,6 +11176,16 @@ angular.module("search/views/search-result-list-template.html", []).run(["$templ
 
 angular.module("search/views/search-result-list-variable-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-variable-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"tab-pane\" ng-show=\"options.variables.showSearchTab\" ng-class=\"{'active': activeTarget.variables.active}\">\n" +
     "  <variables-result-table loading=\"loading\"\n" +
     "      summaries=\"result.list.variableResultDto['obiba.mica.DatasetVariableResultDto.result'].summaries\"></variables-result-table>\n" +
@@ -10864,6 +11204,16 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
 
 angular.module("search/views/search.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div ng-show=\"inSearchMode()\">\n" +
     "  <div class=\"container alert-fixed-position\">\n" +
     "    <obiba-alert id=\"SearchController\"></obiba-alert>\n" +
@@ -11056,6 +11406,16 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
 
 angular.module("utils/views/unsaved-modal.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("utils/views/unsaved-modal.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"modal-content\">\n" +
     "    <div class=\"modal-header\">\n" +
     "        <h4 class=\"modal-title\" translate>unsaved-title</h4>\n" +
@@ -11074,7 +11434,7 @@ angular.module("utils/views/unsaved-modal.html", []).run(["$templateCache", func
 angular.module("views/pagination-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("views/pagination-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2016 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
