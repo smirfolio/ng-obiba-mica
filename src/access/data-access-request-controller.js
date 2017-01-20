@@ -263,6 +263,7 @@ angular.module('obiba.mica.access')
       function initializeForm() {
         SfOptionsService.transform().then(function(options) {
           $scope.sfOptions = options;
+          $scope.sfOptions.pristine = {errors: true, success: false};
         });
 
         // Retrieve form data
