@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-01-06
+ * Date: 2017-01-20
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -836,6 +836,7 @@ angular.module('obiba.mica.access')
       'LocalizedSchemaFormService',
       'SfOptionsService',
       'moment',
+      '$timeout',
 
     function ($rootScope,
               $scope,
@@ -860,7 +861,8 @@ angular.module('obiba.mica.access')
               DataAccessRequestConfig,
               LocalizedSchemaFormService,
               SfOptionsService,
-              moment) {
+              moment,
+              $timeout) {
 
       var onError = function (response) {
         AlertService.alert({
@@ -952,7 +954,11 @@ angular.module('obiba.mica.access')
               });
             }
             $scope.form.schema.readonly = true;
-            $scope.$broadcast('schemaFormRedraw');
+
+            $timeout(function () {
+              $scope.form = angular.copy($scope.form);
+              $scope.$broadcast('schemaFormRedraw');
+            }, 250);
           },
           onError
         );
@@ -1233,6 +1239,7 @@ angular.module('obiba.mica.access')
     'SfOptionsService',
     'FormDirtyStateObserver',
     'DataAccessRequestDirtyStateService',
+    '$timeout',
 
     function ($rootScope,
               $log,
@@ -1253,7 +1260,8 @@ angular.module('obiba.mica.access')
               DataAccessRequestConfig,
               SfOptionsService,
               FormDirtyStateObserver,
-              DataAccessRequestDirtyStateService) {
+              DataAccessRequestDirtyStateService,
+              $timeout) {
 
       var onSuccess = function(response, getResponseHeaders) {
         FormDirtyStateObserver.unobserve();
@@ -1354,7 +1362,10 @@ angular.module('obiba.mica.access')
                 };
             }
 
-            $scope.loaded = true;
+            $timeout(function () {
+              $scope.form = angular.copy($scope.form);
+              $scope.loaded = true;
+            }, 250);
           },
           onError
         );
