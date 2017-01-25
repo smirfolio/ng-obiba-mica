@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-01-20
+ * Date: 2017-01-25
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -4747,6 +4747,13 @@ angular.module('obiba.mica.search')
           } else {
             return [];
           }
+        }, function (response) {
+          AlertService.alert({
+            id: 'SearchController',
+            type: 'danger',
+            msg: response.data && response.data.message ? response.data.message : $translate.instant('search.error'),
+            delay: 5000
+          });
         });
 
         return criteria;

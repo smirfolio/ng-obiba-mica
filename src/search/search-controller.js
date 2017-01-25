@@ -911,6 +911,13 @@ angular.module('obiba.mica.search')
           } else {
             return [];
           }
+        }, function (response) {
+          AlertService.alert({
+            id: 'SearchController',
+            type: 'danger',
+            msg: response.data && response.data.message ? response.data.message : $translate.instant('search.error'),
+            delay: 5000
+          });
         });
 
         return criteria;
