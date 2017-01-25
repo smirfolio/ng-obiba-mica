@@ -617,13 +617,14 @@ angular.module('obiba.mica.access')
 
       $scope.getDataAccessListPageUrl = DataAccessRequestService.getListDataAccessRequestPageUrl();
 
-      var validate = function() {
+      var validate = function(form) {
         $scope.$broadcast('schemaFormValidate');
-
-        $uibModal.open({
-          scope: $scope,
-          templateUrl: 'access/views/data-access-request-validation-modal.html'
-        });
+        if (form.$valid) {
+          $uibModal.open({
+            scope: $scope,
+            templateUrl: 'access/views/data-access-request-validation-modal.html'
+          });
+        }
       };
 
       var cancel = function() {
@@ -731,10 +732,6 @@ angular.module('obiba.mica.access')
         definition: null,
         model: {}
       };
-      
-      $scope.$watch('form.requestForm.$dirty', function (val) {
-        $scope.form.$dirty = val;
-      });
 
       FormDirtyStateObserver.observe($scope);
 
