@@ -16,39 +16,39 @@
 
   <div ng-if="validForm">
 
-    <div class="pull-right" ng-if="loaded">
-      <a ng-click="cancel()" type="button" class="btn btn-default">
-        <span translate>cancel</span>
-      </a>
+    <form name="request">
+      <div class="pull-right" ng-if="loaded">
+        <a ng-click="cancel()" type="button" class="btn btn-default">
+          <span translate>cancel</span>
+        </a>
 
-      <a ng-click="save()" type="button" class="btn btn-primary">
-        <span translate>save</span>
-      </a>
+        <a ng-click="save()" type="button" class="btn btn-primary">
+          <span translate>save</span>
+        </a>
 
-      <a ng-click="validate()" type="button" class="btn btn-info">
-        <span translate>validate</span>
-      </a>
-    </div>
+        <a ng-click="validate(request)" type="button" class="btn btn-info">
+          <span translate>validate</span>
+        </a>
+      </div>
 
-    <div class="clearfix"></div>
+      <div class="clearfix"></div>
 
-    <form name="form.requestForm" ng-submit="submit(form.requestForm)">
       <div sf-model="form.model" sf-form="form.definition" sf-schema="form.schema" required="true" sf-options="sfOptions"></div>
-    </form>
 
-    <div class="pull-right" ng-if="loaded">
-      <a ng-click="cancel()" type="button" class="btn btn-default">
-        <span translate>cancel</span>
-      </a>
+      <div class="pull-right" ng-if="loaded">
+        <a ng-click="cancel()" type="button" class="btn btn-default">
+          <span translate>cancel</span>
+        </a>
 
       <a ng-click="save()" type="button" class="btn btn-primary">
         <span translate>save</span>
       </a>
 
-      <a ng-click="validate()" type="button" class="btn btn-info">
-        <span translate>validate</span>
-      </a>
-    </div>
+        <a ng-click="validate(request)" type="button" class="btn btn-info">
+          <span translate>validate</span>
+        </a>
+      </div>
+    </form>
 
     <div class="clearfix voffet2"></div>
   </div>
