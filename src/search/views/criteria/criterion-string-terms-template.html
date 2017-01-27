@@ -48,7 +48,7 @@
         uib-popover="{{term.description ? term.description : (truncate(term.title) === term.title ? null : term.title)}}"
         popover-title="{{term.description ? term.title : null}}"
         popover-placement="bottom"
-        popover-trigger="mouseenter">
+        popover-trigger="'mouseenter'">
           <span>
             <label class="control-label">
               <input ng-model="checkboxTerms[term.key]"

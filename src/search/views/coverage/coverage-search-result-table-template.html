@@ -84,7 +84,7 @@
             uib-popover="{{header.entity.descriptions[0].value}}"
             popover-title="{{header.entity.titles[0].value}}"
             popover-placement="bottom"
-            popover-trigger="mouseenter">
+            popover-trigger="'mouseenter'">
           {{header.entity.titles[0].value}}
           </span>
           <small>
@@ -101,7 +101,7 @@
             uib-popover="{{header.entity.descriptions[0].value}}"
             popover-title="{{header.entity.titles[0].value}}"
             popover-placement="bottom"
-            popover-trigger="mouseenter">
+            popover-trigger="'mouseenter'">
           {{header.entity.titles[0].value}}
           </span>
           <small>
@@ -120,7 +120,7 @@
             uib-popover-html="col.description === col.title ? null : col.description"
             popover-title="{{col.title}}"
             popover-placement="bottom"
-            popover-trigger="mouseenter">{{col.title}}</a>
+            popover-trigger="'mouseenter'">{{col.title}}</a>
           <div style="text-align: center" ng-if="col.start && bucket === BUCKET_TYPES.DCE">
             <div>
               <small class="help-block no-margin">
