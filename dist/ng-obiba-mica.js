@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-01-25
+ * Date: 2017-01-27
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -9806,24 +9806,24 @@ angular.module("search/views/classifications/taxonomies-facets-view.html", []).r
     "</ul>\n" +
     "\n" +
     "<uib-accordion close-others=\"false\">\n" +
-    "    <uib-accordion-group ng-repeat=\"taxonomy in taxonomies[target]\" is-open=\"taxonomy.isOpen\" is-disabled=\"false\" template-url=\"search/views/classifications/taxonomy-accordion-group.html\">\n" +
+    "    <div uib-accordion-group ng-repeat=\"taxonomy in taxonomies[target]\" is-open=\"taxonomy.isOpen\" is-disabled=\"false\" template-url=\"search/views/classifications/taxonomy-accordion-group.html\">\n" +
     "      <uib-accordion-heading>\n" +
     "          <i class=\"fa\" ng-class=\"{'fa-chevron-down': taxonomy.isOpen, 'fa-chevron-right': !taxonomy.isOpen}\"></i>\n" +
     "          <span uib-popover=\"{{localize(taxonomy.description ? taxonomy.description : taxonomy.title)}}\"\n" +
     "                popover-title=\"{{taxonomy.description ? localize(taxonomy.title) : null}}\"\n" +
     "                popover-placement=\"bottom\"\n" +
-    "                popover-trigger=\"mouseenter\"\n" +
+    "                popover-trigger=\"'mouseenter'\"\n" +
     "                popover-popup-delay=\"1000\">\n" +
     "            {{localize(taxonomy.title)}}\n" +
     "          </span>\n" +
     "      </uib-accordion-heading>\n" +
     "      <uib-accordion close-others=\"false\">\n" +
-    "        <uib-accordion-group ng-repeat=\"vocabulary in taxonomy.vocabularies\" is-open=\"vocabulary.isOpen\" is-disabled=\"false\" template-url=\"search/views/classifications/vocabulary-accordion-group.html\">\n" +
+    "        <div uib-accordion-group ng-repeat=\"vocabulary in taxonomy.vocabularies\" is-open=\"vocabulary.isOpen\" is-disabled=\"false\" template-url=\"search/views/classifications/vocabulary-accordion-group.html\">\n" +
     "          <uib-accordion-heading>\n" +
     "            <span uib-popover=\"{{localize(vocabulary.description ? vocabulary.description : vocabulary.title)}}\"\n" +
     "                  popover-title=\"{{vocabulary.description ? localize(vocabulary.title) : null}}\"\n" +
     "                  popover-placement=\"bottom\"\n" +
-    "                  popover-trigger=\"mouseenter\"\n" +
+    "                  popover-trigger=\"'mouseenter'\"\n" +
     "                  popover-popup-delay=\"1000\"\n" +
     "                  ng-click=\"loadVocabulary(taxonomy, vocabulary)\">\n" +
     "              <i class=\"fa\" ng-class=\"{'fa-caret-down': vocabulary.isOpen, 'fa-caret-right': !vocabulary.isOpen}\"></i>\n" +
@@ -9862,7 +9862,7 @@ angular.module("search/views/classifications/taxonomies-facets-view.html", []).r
     "                    <span uib-popover=\"{{localize(term.description ? term.description : term.title)}}\"\n" +
     "                          popover-title=\"{{term.description ? localize(term.title) : null}}\"\n" +
     "                          popover-placement=\"bottom\"\n" +
-    "                          popover-trigger=\"mouseenter\"\n" +
+    "                          popover-trigger=\"'mouseenter'\"\n" +
     "                          popover-popup-delay=\"1000\">\n" +
     "                      <span>\n" +
     "                        {{localize(term.title)}}\n" +
@@ -9883,9 +9883,9 @@ angular.module("search/views/classifications/taxonomies-facets-view.html", []).r
     "              </div>\n" +
     "            </div>\n" +
     "          </div>\n" +
-    "        </uib-accordion-group>\n" +
+    "        </div >\n" +
     "      </uib-accordion>\n" +
-    "    </uib-accordion-group>\n" +
+    "    </div>\n" +
     "</uib-accordion>\n" +
     "");
 }]);
@@ -10302,7 +10302,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "            uib-popover=\"{{header.entity.descriptions[0].value}}\"\n" +
     "            popover-title=\"{{header.entity.titles[0].value}}\"\n" +
     "            popover-placement=\"bottom\"\n" +
-    "            popover-trigger=\"mouseenter\">\n" +
+    "            popover-trigger=\"'mouseenter'\">\n" +
     "          {{header.entity.titles[0].value}}\n" +
     "          </span>\n" +
     "          <small>\n" +
@@ -10319,7 +10319,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "            uib-popover=\"{{header.entity.descriptions[0].value}}\"\n" +
     "            popover-title=\"{{header.entity.titles[0].value}}\"\n" +
     "            popover-placement=\"bottom\"\n" +
-    "            popover-trigger=\"mouseenter\">\n" +
+    "            popover-trigger=\"'mouseenter'\">\n" +
     "          {{header.entity.titles[0].value}}\n" +
     "          </span>\n" +
     "          <small>\n" +
@@ -10338,7 +10338,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "            uib-popover-html=\"col.description === col.title ? null : col.description\"\n" +
     "            popover-title=\"{{col.title}}\"\n" +
     "            popover-placement=\"bottom\"\n" +
-    "            popover-trigger=\"mouseenter\">{{col.title}}</a>\n" +
+    "            popover-trigger=\"'mouseenter'\">{{col.title}}</a>\n" +
     "          <div style=\"text-align: center\" ng-if=\"col.start && bucket === BUCKET_TYPES.DCE\">\n" +
     "            <div>\n" +
     "              <small class=\"help-block no-margin\">\n" +
@@ -10437,7 +10437,7 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
     "    <span uib-popover=\"{{localize(criterion.vocabulary.description ? criterion.vocabulary.description : criterion.vocabulary.title)}}\"\n" +
     "          popover-title=\"{{criterion.vocabulary.description ? localize(criterion.vocabulary.title) : null}}\"\n" +
     "          popover-placement=\"bottom\"\n" +
-    "          popover-trigger=\"mouseenter\">\n" +
+    "          popover-trigger=\"'mouseenter'\">\n" +
     "    <i class=\"fa fa-info-circle\"> </i>\n" +
     "  </span>\n" +
     "    <span title=\"{{localizeCriterion()}}\">\n" +
@@ -10479,7 +10479,7 @@ angular.module("search/views/criteria/criterion-header-template.html", []).run([
     "  <label uib-popover=\"{{localize(criterion.vocabulary.description)}}\"\n" +
     "         popover-title=\"{{localize(criterion.vocabulary.title)}}\"\n" +
     "         popover-placement=\"bottom\"\n" +
-    "         popover-trigger=\"mouseenter\">\n" +
+    "         popover-trigger=\"'mouseenter'\">\n" +
     "    {{localize(criterion.vocabulary.title)}}\n" +
     "  </label>\n" +
     "  <span class=\"pull-right\" title=\"{{'search.close-and-search' | translate}}\" ng-click=\"$parent.$parent.closeDropdown()\"><i class=\"fa fa-close\"></i></span>\n" +
@@ -10593,7 +10593,7 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
     "        uib-popover=\"{{term.description ? term.description : (truncate(term.title) === term.title ? null : term.title)}}\"\n" +
     "        popover-title=\"{{term.description ? term.title : null}}\"\n" +
     "        popover-placement=\"bottom\"\n" +
-    "        popover-trigger=\"mouseenter\">\n" +
+    "        popover-trigger=\"'mouseenter'\">\n" +
     "          <span>\n" +
     "            <label class=\"control-label\">\n" +
     "              <input ng-model=\"checkboxTerms[term.key]\"\n" +
@@ -11269,7 +11269,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "                          uib-popover-html=\"match.model.itemDescription | uibTypeaheadHighlight:query\"\n" +
     "                          popover-title=\"{{match.model.itemTitle}}\"\n" +
     "                          popover-placement=\"bottom\"\n" +
-    "                          popover-trigger=\"mouseenter\"\n" +
+    "                          popover-trigger=\"'mouseenter'\"\n" +
     "                          ng-bind-html=\"match.model.itemTitle | uibTypeaheadHighlight:query\">\n" +
     "                  </span>\n" +
     "                      <small class=\"help-block no-margin\" title=\"{{match.model.itemParentDescription}}\">\n" +

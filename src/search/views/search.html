@@ -47,7 +47,7 @@
                           uib-popover-html="match.model.itemDescription | uibTypeaheadHighlight:query"
                           popover-title="{{match.model.itemTitle}}"
                           popover-placement="bottom"
-                          popover-trigger="mouseenter"
+                          popover-trigger="'mouseenter'"
                           ng-bind-html="match.model.itemTitle | uibTypeaheadHighlight:query">
                   </span>
                       <small class="help-block no-margin" title="{{match.model.itemParentDescription}}">
