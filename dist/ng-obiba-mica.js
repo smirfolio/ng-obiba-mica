@@ -1,10 +1,20 @@
 /*!
- * ng-obiba-mica - v1.5.1
+ * ng-obiba-mica - v1.3.0
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2016-10-19
+ * Date: 2017-02-01
  */
+/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 'use strict';
 
 function NgObibaMicaUrlProvider() {
@@ -139,7 +149,17 @@ angular.module('ngObibaMica', [
     paginationTemplateProvider.setPath('views/pagination-template.html');
   }]);
 
-;'use strict';
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
 
 angular.module('obiba.mica.utils', ['schemaForm'])
 
@@ -220,7 +240,6 @@ angular.module('obiba.mica.utils', ['schemaForm'])
           // wrap in $timeout to give table a chance to finish rendering
           $timeout(function () {
             $scope.redraw = true;
-            console.log('do redrawTable');
             // set widths of columns
             var totalColumnWidth = 0;
             angular.forEach(elem.querySelectorAll('tr:first-child th'), function (thElem, i) {
@@ -342,7 +361,7 @@ angular.module('obiba.mica.utils', ['schemaForm'])
               }).result.then(function (answer) {
                 if (answer === true) {
                   onLocationChangeOff();
-                  $location.path($location.url(newUrl).hash());
+                  $location.path(angular.copy($location).url(newUrl).hash());
                 }
               });
 
@@ -363,18 +382,29 @@ angular.module('obiba.mica.utils', ['schemaForm'])
 
   .service('SfOptionsService', ['$translate', '$q',
     function ($translate, $q) {
-      this.transform = function (result) {
-        return {
-          validationMessage: {
-            302: result.required,
-            'default': result['errors.does-not-validate']
-          }
-        };
+      var validationMessages = [
+        'required',
+        'errors.does-not-validate',
+        'errors.localized.completed'
+      ];
+
+      this.transform = function () {
+        var deferred = $q.defer();
+        $translate(validationMessages).then(function(result){
+          deferred.resolve(
+            {
+              validationMessage: {
+                302: result.required,
+                'default': result['errors.does-not-validate'],
+                'completed': result['errors.localized.completed']
+              }
+            }
+          );
+        });
+
+        return deferred.promise;
       };
-      var deferred = $q.defer();
-      deferred.resolve($translate(['errors.does-not-validate', 'required']));
-      this.sfOptions = deferred.promise;
-    }])  
+    }])
 
   .config(['schemaFormProvider',
     function (schemaFormProvider) {
@@ -397,10 +427,30 @@ angular.module('obiba.mica.utils', ['schemaForm'])
         return form;
       });
     }]);
-;'use strict';
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ */
+
+'use strict';
 
 angular.module('obiba.mica.file', ['ngResource']);
-;'use strict';
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ */
+
+'use strict';
 
 angular.module('obiba.mica.file')
   .filter('bytes', function () {
@@ -409,7 +459,17 @@ angular.module('obiba.mica.file')
     };
   });
 
-;'use strict';
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
 
 angular.module('obiba.mica.file')
   .factory('TempFileResource', ['$resource', 'ngObibaMicaUrl',
@@ -420,7 +480,17 @@ angular.module('obiba.mica.file')
       });
     }])
 ;
-;'use strict';
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ */
+
+'use strict';
 
 angular.module('obiba.mica.attachment', [
   'obiba.mica.file',
@@ -429,7 +499,17 @@ angular.module('obiba.mica.attachment', [
   'ngFileUpload',
   'templates-ngObibaMica'
 ]);
-;'use strict';
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
 
 angular.module('obiba.mica.attachment')
   .directive('attachmentList', [function() {
@@ -551,7 +631,7 @@ angular.module('obiba.mica.attachment')
     }
   ]);
 ;/*
- * Copyright (c) 2014 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -582,7 +662,7 @@ angular.module('obiba.mica.access', [
     ));
   }]);
 ;/*
- * Copyright (c) 2014 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -756,6 +836,7 @@ angular.module('obiba.mica.access')
       'LocalizedSchemaFormService',
       'SfOptionsService',
       'moment',
+      '$timeout',
 
     function ($rootScope,
               $scope,
@@ -780,7 +861,8 @@ angular.module('obiba.mica.access')
               DataAccessRequestConfig,
               LocalizedSchemaFormService,
               SfOptionsService,
-              moment) {
+              moment,
+              $timeout) {
 
       var onError = function (response) {
         AlertService.alert({
@@ -789,10 +871,6 @@ angular.module('obiba.mica.access')
           msg: ServerErrorUtils.buildMessage(response)
         });
       };
-
-      SfOptionsService.sfOptions.then(function(options) {
-        $scope.sfOptions = SfOptionsService.transform(options);
-      });
 
       var retrieveComments = function() {
         $scope.form.comments = DataAccessRequestCommentsResource.query({id: $routeParams.id});
@@ -844,6 +922,48 @@ angular.module('obiba.mica.access')
           $scope.dataAccessRequest = getRequest();
         });
       };
+
+      function initializeForm() {
+        SfOptionsService.transform().then(function(options) {
+          $scope.sfOptions = options;
+          $scope.sfOptions.pristine = {errors: true, success: false};
+        });
+
+        // Retrieve form data
+        DataAccessFormConfigResource.get(
+          function onSuccess(dataAccessForm) {
+            $scope.form.definition = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.definition, []));
+            $scope.form.schema = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.schema, {}));
+            $scope.form.downloadTemplate = dataAccessForm.pdfDownloadType === 'Template';
+
+            if ($scope.form.definition.length === 0) {
+              $scope.validForm = false;
+              $scope.form.definition = [];
+              AlertService.alert({
+                id: 'DataAccessRequestViewController',
+                type: 'danger',
+                msgKey: 'data-access-config.parse-error.definition'
+              });
+            }
+            if (Object.getOwnPropertyNames($scope.form.schema).length === 0) {
+              $scope.validForm = false;
+              $scope.form.schema = {readonly: true};
+              AlertService.alert({
+                id: 'DataAccessRequestViewController',
+                type: 'danger',
+                msgKey: 'data-access-config.parse-error.schema'
+              });
+            }
+            $scope.form.schema.readonly = true;
+
+            $timeout(function () {
+              $scope.form = angular.copy($scope.form);
+              $scope.$broadcast('schemaFormRedraw');
+            }, 250);
+          },
+          onError
+        );
+      }
 
       function findLastSubmittedDate() {
         var history = $scope.dataAccessRequest.statusChangeHistory || [];
@@ -924,36 +1044,7 @@ angular.module('obiba.mica.access')
             });
           }
 
-          // Retrieve form data
-          DataAccessFormConfigResource.get(
-            function onSuccess(dataAccessForm) {
-              $scope.form.definition = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.definition, []));
-              $scope.form.schema = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.schema, {}));
-              $scope.form.downloadTemplate = dataAccessForm.pdfDownloadType === 'Template';
-
-              if ($scope.form.definition.length === 0) {
-                $scope.validForm = false;
-                $scope.form.definition = [];
-                AlertService.alert({
-                  id: 'DataAccessRequestViewController',
-                  type: 'danger',
-                  msgKey: 'data-access-config.parse-error.definition'
-                });
-              }
-              if (Object.getOwnPropertyNames($scope.form.schema).length === 0) {
-                $scope.validForm = false;
-                $scope.form.schema = {readonly: true};
-                AlertService.alert({
-                  id: 'DataAccessRequestViewController',
-                  type: 'danger',
-                  msgKey: 'data-access-config.parse-error.schema'
-                });
-              }
-              $scope.form.schema.readonly = true;
-              $scope.$broadcast('schemaFormRedraw');
-            },
-            onError
-          );
+          initializeForm();
 
           request.attachments = request.attachments || [];
 
@@ -1123,10 +1214,15 @@ angular.module('obiba.mica.access')
         }
       );
 
+      $rootScope.$on('$translateChangeSuccess', function () {
+        initializeForm();
+      });
+
       $scope.forms = {};
     }])
 
-  .controller('DataAccessRequestEditController', ['$log',
+  .controller('DataAccessRequestEditController', ['$rootScope',
+    '$log',
     '$scope',
     '$routeParams',
     '$location',
@@ -1144,8 +1240,15 @@ angular.module('obiba.mica.access')
     'SfOptionsService',
     'FormDirtyStateObserver',
     'DataAccessRequestDirtyStateService',
+    '$timeout',
 
-    function ($log, $scope, $routeParams, $location, $uibModal, LocalizedSchemaFormService,
+    function ($rootScope,
+              $log,
+              $scope,
+              $routeParams,
+              $location,
+              $uibModal,
+              LocalizedSchemaFormService,
               DataAccessRequestsResource,
               DataAccessRequestResource,
               DataAccessFormConfigResource,
@@ -1158,7 +1261,8 @@ angular.module('obiba.mica.access')
               DataAccessRequestConfig,
               SfOptionsService,
               FormDirtyStateObserver,
-              DataAccessRequestDirtyStateService) {
+              DataAccessRequestDirtyStateService,
+              $timeout) {
 
       var onSuccess = function(response, getResponseHeaders) {
         FormDirtyStateObserver.unobserve();
@@ -1174,19 +1278,16 @@ angular.module('obiba.mica.access')
         });
       };
 
-      SfOptionsService.sfOptions.then(function(options) {
-        $scope.sfOptions = SfOptionsService.transform(options);
-      });
-
       $scope.getDataAccessListPageUrl = DataAccessRequestService.getListDataAccessRequestPageUrl();
 
-      var validate = function() {
+      var validate = function(form) {
         $scope.$broadcast('schemaFormValidate');
-
-        $uibModal.open({
-          scope: $scope,
-          templateUrl: 'access/views/data-access-request-validation-modal.html'
-        });
+        if (form.$valid) {
+          $uibModal.open({
+            scope: $scope,
+            templateUrl: 'access/views/data-access-request-validation-modal.html'
+          });
+        }
       };
 
       var cancel = function() {
@@ -1194,7 +1295,7 @@ angular.module('obiba.mica.access')
       };
 
       var save = function() {
-        $scope.dataAccessRequest.content = JSON.stringify($scope.form.model);
+        $scope.dataAccessRequest.content = angular.toJson($scope.form.model);
 
         if ($scope.newRequest) {
           DataAccessRequestsResource.save($scope.dataAccessRequest, onSuccess, onError);
@@ -1206,61 +1307,77 @@ angular.module('obiba.mica.access')
         }
       };
 
-      // Retrieve form data
-      DataAccessFormConfigResource.get(
-        function onSuccess(dataAccessForm) {
-          $scope.form.definition = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.definition, []));
-          $scope.form.schema = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.schema, {}));
-          if ($scope.form.definition.length === 0) {
-            $scope.form.definition = [];
-            $scope.validForm = false;
-            AlertService.alert({
-              id: 'DataAccessRequestEditController',
-              type: 'danger',
-              msgKey: 'data-access-config.parse-error.definition'
-            });
-          }
-          if (Object.getOwnPropertyNames($scope.form.schema).length === 0) {
-            $scope.form.schema = {};
-            $scope.validForm = false;
-            AlertService.alert({
-              id: 'DataAccessRequestEditController',
-              type: 'danger',
-              msgKey: 'data-access-config.parse-error.schema'
-            });
-          }
+      function initializeForm() {
+        // Retrieve form data
 
-          if ($scope.validForm) {
-            $scope.dataAccessRequest = $routeParams.id ?
-              DataAccessRequestResource.get({id: $routeParams.id}, function onSuccess(request) {
-                try {
-                  $scope.form.model = request.content ? JSON.parse(request.content) : {};
-                } catch (e) {
-                  $scope.form.model = {};
-                  AlertService.alert({
-                    id: 'DataAccessRequestEditController',
-                    type: 'danger',
-                    msgKey: 'data-access-request.parse-error'
-                  });
-                }
+        SfOptionsService.transform().then(function(options) {
+          $scope.sfOptions = options;
+        });
 
-                $scope.canEdit = DataAccessRequestService.actions.canEdit(request);
-                $scope.form.schema.readonly = !$scope.canEdit;
-                $scope.$broadcast('schemaFormRedraw');
+        DataAccessFormConfigResource.get(
+          function onSuccess(dataAccessForm) {
+            $scope.form.definition = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.definition, []));
+            $scope.form.schema = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.schema, {}));
+            if ($scope.form.definition.length === 0) {
+              $scope.form.definition = [];
+              $scope.validForm = false;
+              AlertService.alert({
+                id: 'DataAccessRequestEditController',
+                type: 'danger',
+                msgKey: 'data-access-config.parse-error.definition'
+              });
+            }
+            if (Object.getOwnPropertyNames($scope.form.schema).length === 0) {
+              $scope.form.schema = {};
+              $scope.validForm = false;
+              AlertService.alert({
+                id: 'DataAccessRequestEditController',
+                type: 'danger',
+                msgKey: 'data-access-config.parse-error.schema'
+              });
+            }
 
-                request.attachments = request.attachments || [];
-                return request;
-              }) : {
-              applicant: SessionProxy.login(),
-              status: DataAccessRequestService.status.OPENED,
-              attachments: []
-            };
-          }
+            if ($scope.validForm) {
+              $scope.dataAccessRequest = $routeParams.id ?
+                DataAccessRequestResource.get({id: $routeParams.id}, function onSuccess(request) {
+                  try {
+                    $scope.form.model = request.content ? JSON.parse(request.content) : {};
+                  } catch (e) {
+                    $scope.form.model = {};
+                    AlertService.alert({
+                      id: 'DataAccessRequestEditController',
+                      type: 'danger',
+                      msgKey: 'data-access-request.parse-error'
+                    });
+                  }
 
-          $scope.loaded = true;
-        },
-        onError
+                  $scope.canEdit = DataAccessRequestService.actions.canEdit(request);
+                  $scope.form.schema.readonly = !$scope.canEdit;
+                  $scope.$broadcast('schemaFormRedraw');
+
+                  request.attachments = request.attachments || [];
+                  return request;
+                }) : {
+                  applicant: SessionProxy.login(),
+                  status: DataAccessRequestService.status.OPENED,
+                  attachments: []
+                };
+            }
+
+            $timeout(function () {
+              $scope.form = angular.copy($scope.form);
+              $scope.loaded = true;
+            }, 250);
+          },
+          onError
         );
+      }
+
+      $rootScope.$on('$translateChangeSuccess', function () {
+        initializeForm();
+      });
+
+      initializeForm();
 
       $scope.loaded = false;
       $scope.config = DataAccessRequestConfig.getOptions();
@@ -1278,10 +1395,6 @@ angular.module('obiba.mica.access')
         definition: null,
         model: {}
       };
-      
-      $scope.$watch('form.requestForm.$dirty', function (val) {
-        $scope.form.$dirty = val;
-      });
 
       FormDirtyStateObserver.observe($scope);
 
@@ -1292,13 +1405,13 @@ angular.module('obiba.mica.access')
 
     }]);
 ;/*
- * Copyright (c) 2014 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
 'use strict';
@@ -1325,7 +1438,7 @@ angular.module('obiba.mica.access')
         });
     }]);
 ;/*
- * Copyright (c) 2014 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -1662,13 +1775,13 @@ angular.module('obiba.mica.access')
     };
   }]);
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
 'use strict';
@@ -1682,7 +1795,7 @@ angular.module('obiba.mica.access')
       templateUrl: 'access/views/data-access-request-print-preview.html'
     };
   }]);;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -1728,6 +1841,7 @@ angular.module('obiba.mica.search', [
         showAllFacetedTaxonomies: true,
         showSearchBox: true,
         showSearchBrowser: true,
+        showSearchRefreshButton: false,
         variableTaxonomiesOrder: [],
         studyTaxonomiesOrder: [],
         datasetTaxonomiesOrder: [],
@@ -1853,7 +1967,7 @@ angular.module('obiba.mica.search', [
     GraphicChartsConfigurations.setClientConfig();
   }]);
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -1922,7 +2036,7 @@ angular.module('obiba.mica.search')
       })[2];
     };
   });;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -2794,14 +2908,16 @@ angular.module('obiba.mica.search')
     };
 
     this.addLimit = function (targetQuery, limitQuery) {
-      var found = targetQuery.args.filter(function (arg) {
-        return arg.name === RQL_NODE.LIMIT;
-      }).pop();
+      if (targetQuery && targetQuery.args) {
+        var found = targetQuery.args.filter(function (arg) {
+          return arg.name === RQL_NODE.LIMIT;
+        }).pop();
 
-      if (found) {
-        found.args = limitQuery.args;
-      } else {
-        targetQuery.args.push(limitQuery);
+        if (found) {
+          found.args = limitQuery.args;
+        } else {
+          targetQuery.args.push(limitQuery);
+        }
       }
     };
 
@@ -2859,11 +2975,12 @@ angular.module('obiba.mica.search')
 
   .service('RqlQueryService', [
     '$q',
+    '$log',
     'TaxonomiesResource',
     'TaxonomyResource',
     'LocalizedValues',
     'RqlQueryUtils',
-    function ($q, TaxonomiesResource, TaxonomyResource, LocalizedValues, RqlQueryUtils) {
+    function ($q, $log, TaxonomiesResource, TaxonomyResource, LocalizedValues, RqlQueryUtils) {
       var taxonomiesCache = {
         variable: null,
         dataset: null,
@@ -2987,6 +3104,16 @@ angular.module('obiba.mica.search')
 
       }
 
+      this.parseQuery = function(query) {
+        try {
+          return new RqlParser().parse(query);
+        } catch (e) {
+          $log.error(e.message);
+        }
+
+        return new RqlQuery();
+      };
+
       /**
        * Removes the item from criteria item tree. This should be from a leaf.
        * @param item
@@ -3022,7 +3149,7 @@ angular.module('obiba.mica.search')
             target: target,
             taxonomy: taxonomy
           }).$promise.then(function (taxonomy) {
-            vocabulary = taxonomy.vocabularies.filter(function (v) {return v.name === vocabulary; })[0];
+            vocabulary = taxonomy.vocabularies.filter(function (v) {return v.name === vocabulary || RqlQueryUtils.vocabularyAlias(v) === vocabulary; })[0];
             term = vocabulary.terms.filter(function (t) {return t.name === term; })[0];
 
             return createBuilder(taxonomy, vocabulary, term).build();
@@ -3182,7 +3309,7 @@ angular.module('obiba.mica.search')
           }
         }
 
-        var parsedQuery = new RqlParser().parse(query);
+        var parsedQuery = this.parseQuery(query);
         var targetQuery = parsedQuery.args.filter(function (node) {
           return node.name === item.target;
         }).pop();
@@ -3235,7 +3362,7 @@ angular.module('obiba.mica.search')
        * @returns the new query
        */
       this.prepareCoverageQuery = function (query, bucketArg) {
-        var parsedQuery = new RqlParser().parse(query);
+        var parsedQuery = this.parseQuery(query);
         var aggregate = new RqlQuery('aggregate');
         var bucketField;
 
@@ -3289,7 +3416,7 @@ angular.module('obiba.mica.search')
       };
 
       this.prepareGraphicsQuery = function (query, aggregateArgs, bucketArgs) {
-        var parsedQuery = new RqlParser().parse(query);
+        var parsedQuery = this.parseQuery(query);
         // aggregate
         var aggregate = new RqlQuery(RQL_NODE.AGGREGATE);
         aggregateArgs.forEach(function (a) {
@@ -3454,7 +3581,7 @@ angular.module('obiba.mica.search')
       };
     }]);
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -3705,7 +3832,7 @@ angular.module('obiba.mica.search')
   }]);
 
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -3771,7 +3898,7 @@ function CriterionState() {
  * @param ngObibaMicaSearch
  * @constructor
  */
-function BaseTaxonomiesController($scope, $location, TaxonomyResource, TaxonomiesResource, ngObibaMicaSearch, RqlQueryUtils) {
+function BaseTaxonomiesController($scope, $location, TaxonomyResource, TaxonomiesResource, ngObibaMicaSearch, RqlQueryUtils, $cacheFactory) {
   $scope.options = ngObibaMicaSearch.getOptions();
   $scope.RqlQueryUtils = RqlQueryUtils;
   $scope.metaTaxonomy = TaxonomyResource.get({
@@ -3843,6 +3970,13 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
     $scope.onSelectTerm(target, taxonomy, vocabulary, args);
   };
 
+  this.clearCache = function () {
+    var taxonomyResourceCache = $cacheFactory.get('taxonomyResource');
+    if (taxonomyResourceCache) {
+      taxonomyResourceCache.removeAll();
+    }
+  };
+
   var self = this;
 
   $scope.$on('$locationChangeSuccess', function () {
@@ -3863,6 +3997,7 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
 
   $scope.navigateTaxonomy = this.navigateTaxonomy;
   $scope.selectTerm = this.selectTerm;
+  $scope.clearCache = this.clearCache;
 }
 /**
  * TaxonomiesPanelController
@@ -3874,8 +4009,18 @@ function BaseTaxonomiesController($scope, $location, TaxonomyResource, Taxonomie
  * @param ngObibaMicaSearch
  * @constructor
  */
-function TaxonomiesPanelController($scope, $location, TaxonomyResource, TaxonomiesResource, ngObibaMicaSearch, RqlQueryUtils) {
-  BaseTaxonomiesController.call(this, $scope, $location, TaxonomyResource, TaxonomiesResource, ngObibaMicaSearch, RqlQueryUtils);
+function TaxonomiesPanelController($scope, $location, TaxonomyResource, TaxonomiesResource, ngObibaMicaSearch, RqlQueryUtils, $cacheFactory) {
+  BaseTaxonomiesController.call(this, $scope, $location, TaxonomyResource, TaxonomiesResource, ngObibaMicaSearch, RqlQueryUtils, $cacheFactory);
+  function getPanelTaxonomies(target, taxonomyName) {
+    TaxonomyResource.get({
+      target: target,
+      taxonomy: taxonomyName
+    }, function onSuccess(response) {
+      $scope.taxonomies.taxonomy = response;
+      $scope.taxonomies.search.active = false;
+    });
+  }
+
   $scope.$watchGroup(['taxonomyName', 'target'], function (newVal) {
     if (newVal[0] && newVal[1]) {
       if ($scope.showTaxonomies) {
@@ -3887,16 +4032,17 @@ function TaxonomiesPanelController($scope, $location, TaxonomyResource, Taxonomi
       $scope.taxonomies.taxonomy = null;
       $scope.taxonomies.vocabulary = null;
       $scope.taxonomies.term = null;
-      TaxonomyResource.get({
-        target: newVal[1],
-        taxonomy: newVal[0]
-      }, function onSuccess(response) {
-        $scope.taxonomies.taxonomy = response;
-        $scope.taxonomies.search.active = false;
-      });
+
+      getPanelTaxonomies(newVal[1], newVal[0]);
     }
   });
 
+  this.refreshTaxonomyCache = function (target, taxonomyName) {
+    $scope.clearCache();
+    getPanelTaxonomies(target, taxonomyName);
+  };
+
+  $scope.refreshTaxonomyCache = this.refreshTaxonomyCache;
 }
 /**
  * ClassificationPanelController
@@ -3908,8 +4054,8 @@ function TaxonomiesPanelController($scope, $location, TaxonomyResource, Taxonomi
  * @param ngObibaMicaSearch
  * @constructor
  */
-function ClassificationPanelController($scope, $location, TaxonomyResource, TaxonomiesResource, ngObibaMicaSearch, RqlQueryUtils) {
-  BaseTaxonomiesController.call(this, $scope, $location, TaxonomyResource, TaxonomiesResource, ngObibaMicaSearch, RqlQueryUtils);
+function ClassificationPanelController($scope, $location, TaxonomyResource, TaxonomiesResource, ngObibaMicaSearch, RqlQueryUtils, $cacheFactory) {
+  BaseTaxonomiesController.call(this, $scope, $location, TaxonomyResource, TaxonomiesResource, ngObibaMicaSearch, RqlQueryUtils, $cacheFactory);
   var groupTaxonomies = function (taxonomies, target) {
     var res = taxonomies.reduce(function (res, t) {
       res[t.name] = t;
@@ -3966,6 +4112,18 @@ function ClassificationPanelController($scope, $location, TaxonomyResource, Taxo
   };
 
   var self = this;
+
+  function getClassificationTaxonomies() {
+    TaxonomiesResource.get({
+      target: $scope.taxonomies.target
+    }, function onSuccess(taxonomies) {
+      $scope.taxonomies.all = taxonomies;
+      groupTaxonomies(taxonomies, $scope.taxonomies.target);
+      $scope.taxonomies.search.active = false;
+      self.updateStateFromLocation();
+    });
+  }
+
   $scope.$watch('target', function (newVal) {
     if (newVal) {
       $scope.taxonomies.target = newVal;
@@ -3975,16 +4133,16 @@ function ClassificationPanelController($scope, $location, TaxonomyResource, Taxo
       $scope.taxonomies.vocabulary = null;
       $scope.taxonomies.term = null;
 
-      TaxonomiesResource.get({
-        target: $scope.taxonomies.target
-      }, function onSuccess(taxonomies) {
-        $scope.taxonomies.all = taxonomies;
-        groupTaxonomies(taxonomies, $scope.taxonomies.target);
-        $scope.taxonomies.search.active = false;
-        self.updateStateFromLocation();
-      });
+      getClassificationTaxonomies();
     }
   });
+
+  this.refreshTaxonomyCache = function () {
+    $scope.clearCache();
+    getClassificationTaxonomies();
+  };
+
+  $scope.refreshTaxonomyCache = this.refreshTaxonomyCache;
 }
 
 angular.module('obiba.mica.search')
@@ -4091,7 +4249,6 @@ angular.module('obiba.mica.search')
         study: $scope.options.studies.showSearchTab,
         network: $scope.options.networks.showSearchTab
       };
-
       var taxonomyTypeInverseMap = Object.keys($scope.taxonomyTypeMap).reduce(function (prev, k) {
         prev[$scope.taxonomyTypeMap[k]] = k;
         return prev;
@@ -4109,7 +4266,7 @@ angular.module('obiba.mica.search')
         $scope.targets = stuff.filter(function (target) {
           return searchTaxonomyDisplay[target];
         });
-        
+
         function flattenTaxonomies(terms){
           function inner(acc, terms) {
             angular.forEach(terms, function(t) {
@@ -4131,7 +4288,7 @@ angular.module('obiba.mica.search')
 
         $scope.facetedTaxonomies = t.vocabularies.reduce(function(res, target) {
           var taxonomies = flattenTaxonomies(target.terms);
-          
+
           function getTaxonomy(taxonomyName) {
             return taxonomies.filter(function(t) {
               return t.name === taxonomyName;
@@ -4151,9 +4308,9 @@ angular.module('obiba.mica.search')
           } else {
             res[target.name] = ($scope.options[target.name + 'TaxonomiesOrder'] || []).map(getTaxonomy).filter(notNull);
           }
-          
+
           $scope.hasFacetedTaxonomies = $scope.hasFacetedTaxonomies || res[target.name].length;
-          
+
           return res;
         }, {});
       });
@@ -4234,6 +4391,7 @@ angular.module('obiba.mica.search')
 
       function onError(response) {
         $scope.search.result = {};
+        $scope.search.loading = false;
         AlertService.alert({
           id: 'SearchController',
           type: 'danger',
@@ -4282,7 +4440,7 @@ angular.module('obiba.mica.search')
           $scope.search.bucket = bucket;
           $scope.search.display = display;
           $scope.search.query = query;
-          $scope.search.rqlQuery = new RqlParser().parse(query);
+          $scope.search.rqlQuery = RqlQueryService.parseQuery(query);
 
           return true;
         } catch (e) {
@@ -4328,7 +4486,7 @@ angular.module('obiba.mica.search')
           }
         }
       };
-      
+
       function sortCriteriaItems(items) {
         items.sort(function (a, b) {
           if (a.target === 'network' || b.target === 'variable') {
@@ -4397,7 +4555,7 @@ angular.module('obiba.mica.search')
             $scope.search.loading = true;
             $scope.search.executedQuery = RqlQueryService.prepareGraphicsQuery(localizedQuery,
               ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'],
-              ['Mica_study.methods-designs']);
+              ['Mica_study.methods-design']);
             JoinQuerySearchResource.studies({query: $scope.search.executedQuery},
               function onSuccess(response) {
                 $scope.search.result.graphics = response;
@@ -4431,11 +4589,19 @@ angular.module('obiba.mica.search')
         }
       }
 
-      $scope.setLocale = function (locale) {
-        $scope.lang = locale;
+      $scope.translateTaxonomyNav = function(t, key) {
+        var value = t[key] && t[key].filter(function(item) {
+          return item.locale === $translate.use();
+        }).pop();
+
+        return value ? value.text : key;
+      };
+
+      $rootScope.$on('$translateChangeSuccess', function () {
+        $scope.lang = $translate.use();
         SearchContext.setLocale($scope.lang);
         executeSearchQuery();
-      };
+      });
 
       var showTaxonomy = function (target, name) {
         if ($scope.target === target && $scope.taxonomyName === name && $scope.taxonomiesShown) {
@@ -4578,6 +4744,13 @@ angular.module('obiba.mica.search')
           } else {
             return [];
           }
+        }, function (response) {
+          AlertService.alert({
+            id: 'SearchController',
+            type: 'danger',
+            msg: response.data && response.data.message ? response.data.message : $translate.instant('search.error'),
+            delay: 5000
+          });
         });
 
         return criteria;
@@ -4596,17 +4769,17 @@ angular.module('obiba.mica.search')
        * Propagates a Scope change that results in criteria panel update
        * @param item
        */
-      var selectCriteria = function (item, logicalOp, replace, showNotification) {
+      var selectCriteria = function (item, logicalOp, replace, showNotification, fullCoverage) {
         if (angular.isUndefined(showNotification)) {
           showNotification = true;
         }
-        
+
         if (item.id) {
           var id = CriteriaIdGenerator.generate(item.taxonomy, item.vocabulary);
           var existingItem = $scope.search.criteriaItemMap[id];
           var growlMsgKey;
 
-          if (existingItem && id.indexOf('dceIds') !== -1) {
+          if (existingItem && id.indexOf('dceIds') !== -1 && fullCoverage) {
             removeCriteriaItem(existingItem);
             growlMsgKey = 'search.criterion.updated';
             RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item, logicalOp);
@@ -4683,8 +4856,14 @@ angular.module('obiba.mica.search')
         }
       };
 
-      function reduce(criteriaItem) {
-        var parentItem = criteriaItem.parent;
+      /**
+       * Reduce the current query such that all irrelevant criteria is removed but the criterion. The exceptions are
+       * when the criterion is inside an AND, in this case this latter is reduced.
+       *
+       * @param parentItem
+       * @param criteriaItem
+       */
+      function reduce(parentItem, criteriaItem) {
         if (parentItem.type === RQL_NODE.OR) {
           var grandParentItem = parentItem.parent;
           var parentItemIndex = grandParentItem.children.indexOf(parentItem);
@@ -4696,12 +4875,15 @@ angular.module('obiba.mica.search')
           grandParentRql.args[parentRqlIndex] = criteriaItem.rqlQuery;
 
           if (grandParentItem.type !== QUERY_TARGETS.VARIABLE) {
-            reduce(grandParentItem);
+            reduce(grandParentItem, criteriaItem);
           }
+        } else if (criteriaItem.type !== RQL_NODE.VARIABLE && parentItem.type === RQL_NODE.AND) {
+          // Reduce until parent is Variable node or another AND node
+          reduce(parentItem.parent, parentItem);
         }
       }
 
-      var onUpdateCriteria = function (item, type, useCurrentDisplay, replaceTarget, showNotification) {
+      var onUpdateCriteria = function (item, type, useCurrentDisplay, replaceTarget, showNotification, fullCoverage) {
         if (type) {
           onTypeChanged(type);
         }
@@ -4709,12 +4891,12 @@ angular.module('obiba.mica.search')
         if (replaceTarget) {
           var criteriaItem = criteriaItemFromMap(item);
           if (criteriaItem) {
-            reduce(criteriaItem);
+            reduce(criteriaItem.parent, criteriaItem);
           }
         }
 
         onDisplayChanged(useCurrentDisplay && $scope.search.display ? $scope.search.display : DISPLAY_TYPES.LIST);
-        selectCriteria(item, RQL_NODE.AND, true, showNotification);
+        selectCriteria(item, RQL_NODE.AND, true, showNotification, fullCoverage);
       };
 
       function criteriaItemFromMap(item) {
@@ -4725,17 +4907,17 @@ angular.module('obiba.mica.search')
       }
 
       var onRemoveCriteria = function(item) {
-        var found = RqlQueryService.findCriterion($scope.search.criteria, item.id); 
+        var found = RqlQueryService.findCriterion($scope.search.criteria, item.id);
         removeCriteriaItem(found);
       };
 
       var onSelectTerm = function (target, taxonomy, vocabulary, args) {
         args = args || {};
-        
+
         if(angular.isString(args)) {
           args = {term: args};
         }
-        
+
         if (vocabulary) {
           var item;
           if (RqlQueryUtils.isNumericVocabulary(vocabulary)) {
@@ -4863,18 +5045,10 @@ angular.module('obiba.mica.search')
       });
 
       function init() {
-        ngObibaMicaSearch.getLocale(function (locales) {
-          if (angular.isArray(locales)) {
-            $scope.tabs = locales;
-            $scope.lang = locales[0];
-          } else {
-            $scope.lang = locales || $scope.lang;
-          }
-
-          SearchContext.setLocale($scope.lang);
-          initSearchTabs();
-          executeSearchQuery();
-        });
+        $scope.lang = $translate.use();
+        SearchContext.setLocale($scope.lang);
+        initSearchTabs();
+        executeSearchQuery();
       }
 
       init();
@@ -5077,10 +5251,10 @@ angular.module('obiba.mica.search')
   }])
 
   .controller('TaxonomiesPanelController', ['$scope', '$location', 'TaxonomyResource',
-    'TaxonomiesResource', 'ngObibaMicaSearch', 'RqlQueryUtils', TaxonomiesPanelController])
+    'TaxonomiesResource', 'ngObibaMicaSearch', 'RqlQueryUtils', '$cacheFactory', TaxonomiesPanelController])
 
   .controller('ClassificationPanelController', ['$scope', '$location', 'TaxonomyResource',
-    'TaxonomiesResource', 'ngObibaMicaSearch', 'RqlQueryUtils', ClassificationPanelController])
+    'TaxonomiesResource', 'ngObibaMicaSearch', 'RqlQueryUtils', '$cacheFactory', ClassificationPanelController])
 
   .controller('TaxonomiesFacetsController', ['$scope', '$timeout', 'TaxonomyResource', 'TaxonomiesResource', 'LocalizedValues', 'ngObibaMicaSearch',
     'RqlQueryUtils', function ($scope, $timeout, TaxonomyResource, TaxonomiesResource, LocalizedValues, ngObibaMicaSearch, RqlQueryUtils) {
@@ -5158,10 +5332,12 @@ angular.module('obiba.mica.search')
     '$scope',
     'ngObibaMicaSearch',
     'ngObibaMicaUrl',
+    'RqlQueryService',
     'RqlQueryUtils',
     function ($scope,
               ngObibaMicaSearch,
               ngObibaMicaUrl,
+              RqlQueryService,
               RqlQueryUtils) {
 
       function updateTarget(type) {
@@ -5199,7 +5375,7 @@ angular.module('obiba.mica.search')
           return $scope.query;
         }
 
-        var parsedQuery = new RqlParser().parse($scope.query);
+        var parsedQuery = RqlQueryService.parseQuery($scope.query);
         var target = typeToTarget($scope.type);
         var targetQuery = parsedQuery.args.filter(function (query) {
           return query.name === target;
@@ -5543,7 +5719,7 @@ angular.module('obiba.mica.search')
           vocabularyHeaders[j].taxonomyName = headers[i].entity.name;
         }
       }
-      
+
       function decorateTermHeaders(headers, termHeaders, attr) {
         var idx = 0;
         return headers.reduce(function(result, h) {
@@ -5629,7 +5805,7 @@ angular.module('obiba.mica.search')
 
       $scope.hasVariableTarget = function () {
         var query = $location.search().query;
-        return query && RqlQueryUtils.hasTargetQuery(new RqlParser().parse(query), RQL_NODE.VARIABLE);
+        return query && RqlQueryUtils.hasTargetQuery(RqlQueryService.parseQuery(query), RQL_NODE.VARIABLE);
       };
 
       $scope.hasSelected = function () {
@@ -5684,7 +5860,7 @@ angular.module('obiba.mica.search')
         return '';
       }
 
-      function updateFilterCriteriaInternal(selected) {
+      function updateFilterCriteriaInternal(selected, fullCoverage) {
         var vocabulary = $scope.bucket === BUCKET_TYPES.DCE ? 'dceIds' : 'id';
         $q.all(selected.map(function (r) {
           return RqlQueryService.createCriteriaItem(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary, r.value);
@@ -5702,8 +5878,7 @@ angular.module('obiba.mica.search')
             item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
             return item;
           }, null);
-
-          $scope.onUpdateCriteria(selectionItem, 'variables', true);
+          $scope.onUpdateCriteria(selectionItem, 'variables', true, undefined, undefined, fullCoverage);
         });
       }
 
@@ -5767,7 +5942,8 @@ angular.module('obiba.mica.search')
 
         var currentYear = new Date().getFullYear();
         var currentMonth = new Date().getMonth() + 1;
-        var currentDate = toTime(currentYear + '-' + currentMonth, true);
+        var currentYearMonth = currentYear + '-' + currentMonth;
+        var currentDate = toTime(currentYearMonth, true);
 
         function getProgress(startYearMonth, endYearMonth) {
           var start = toTime(startYearMonth, true);
@@ -5800,7 +5976,7 @@ angular.module('obiba.mica.search')
               groupId = id;
             }
             rowSpan = appendRowSpan(id);
-            appendMinMax(id,row.start, row.end);
+            appendMinMax(id,row.start || currentYearMonth, row.end || currentYearMonth);
             cols.ids[row.value].push({
               id: id,
               url: PageUrlService.studyPage(id),
@@ -5826,7 +6002,7 @@ angular.module('obiba.mica.search')
               title: titles[2],
               description: descriptions[2],
               start: row.start,
-              current: currentYear + '-' + currentMonth,
+              current: currentYearMonth,
               end: row.end,
               progressClass: odd ? 'info' : 'warning',
               url: PageUrlService.studyPopulationPage(ids[0], ids[1]),
@@ -5844,7 +6020,7 @@ angular.module('obiba.mica.search')
               end: row.end,
               max: row.end,
               progressStart: 0,
-              progress: getProgress(row.start ? row.start + '-01' : undefined, row.end ? row.end + '-12' : undefined),
+              progress: getProgress(row.start ? row.start + '-01' : currentYearMonth, row.end ? row.end + '-12' : currentYearMonth),
               progressClass: odd ? 'info' : 'warning',
               rowSpan: 1
             });
@@ -5865,8 +6041,8 @@ angular.module('obiba.mica.search')
             if (minMax[ids[0]]) {
               var min = minMax[ids[0]][0];
               var max = minMax[ids[0]][1];
-              var start = cols.ids[row.value][2].start;
-              var end = cols.ids[row.value][2].end;
+              var start = cols.ids[row.value][2].start || currentYearMonth;
+              var end = cols.ids[row.value][2].end || currentYearMonth;
               var diff = toTime(max, false) - toTime(min, true);
               // set the DCE min and max dates of the study
               cols.ids[row.value][2].min = min;
@@ -5921,17 +6097,22 @@ angular.module('obiba.mica.search')
         // if id is null, it is a click on the total count for the term
         if (id) {
           criteria.item = RqlQueryService.createCriteriaItem(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary, id);
-        } else if ($scope.bucket === BUCKET_TYPES.STUDY || $scope.bucket === BUCKET_TYPES.DATASET) {
+        } else if ($scope.bucket === BUCKET_TYPES.STUDY || $scope.bucket === BUCKET_TYPES.DCE || $scope.bucket === BUCKET_TYPES.DATASET) {
           criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'StudyDataset');
         } else if ($scope.bucket === BUCKET_TYPES.NETWORK || $scope.bucket === BUCKET_TYPES.DATASCHEMA) {
           criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'HarmonizationDataset');
         }
 
         $q.all(criteria).then(function (criteria) {
+
           $scope.onUpdateCriteria(criteria.varItem, type, false, true);
 
           if (criteria.item) {
-            $scope.onUpdateCriteria(criteria.item, type);
+            var consume = $scope.$on('ngObibaMicaQueryUpdated', function() {
+              // do not initiate the next query until all search parts, namely, the item map is updated
+              consume();
+              $scope.onUpdateCriteria(criteria.item, type);
+            });
           }
         });
       };
@@ -5972,7 +6153,7 @@ angular.module('obiba.mica.search')
             }
           });
         }
-        updateFilterCriteriaInternal(selected);
+        updateFilterCriteriaInternal(selected, true);
       };
 
       $scope.updateFilterCriteria = function () {
@@ -6006,11 +6187,12 @@ angular.module('obiba.mica.search')
     'RqlQueryService',
     '$filter',
     '$scope',
+    'D3GeoConfig', 'D3ChartConfig',
     function (GraphicChartsConfig,
               GraphicChartsUtils,
               RqlQueryService,
               $filter,
-              $scope) {
+              $scope, D3GeoConfig, D3ChartConfig) {
 
       var setChartObject = function (vocabulary, dtoObject, header, title, options, isTable) {
 
@@ -6054,7 +6236,7 @@ angular.module('obiba.mica.search')
 
         if (result && result.studyResultDto.totalHits) {
           $scope.noResults = false;
-          setChartObject('populations-selectionCriteria-countriesIso',
+          setChartObject('populations-model-selectionCriteria-countriesIso',
             result.studyResultDto,
             [$filter('translate')(charOptions.geoChartOptions.header[0]), $filter('translate')(charOptions.geoChartOptions.header[1])],
             $filter('translate')(charOptions.geoChartOptions.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
@@ -6070,18 +6252,21 @@ angular.module('obiba.mica.search')
                       type: 'GeoChart',
                       vocabulary: geoStudies.vocabulary,
                       data: geoStudies.data,
-                      entries: geoStudies.entries
+                      entries: geoStudies.entries,
+                      d3Config: new D3GeoConfig()
+                          .withData(geoStudies.entries)
+                          .withTitle($filter('translate')(charOptions.geoChartOptions.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
                     }
                   }
                 };
-                chartObject.geoChartOptions.getTable= function(){
+                chartObject.geoChartOptions.getTable = function(){
                   return chartObject.geoChartOptions.chartObject;
                 };
                 angular.extend($scope.chartObjects, chartObject);
               }
             });
           // Study design chart.
-          setChartObject('methods-designs',
+          setChartObject('model-methods-design',
             result.studyResultDto,
             [$filter('translate')(charOptions.studiesDesigns.header[0]),
               $filter('translate')(charOptions.studiesDesigns.header[1])
@@ -6089,6 +6274,12 @@ angular.module('obiba.mica.search')
             $filter('translate')(charOptions.studiesDesigns.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
             charOptions.studiesDesigns.options).then(function(methodDesignStudies) {
               if (methodDesignStudies) {
+                var d3Config = new D3ChartConfig(methodDesignStudies.vocabulary)
+                    .withType('multiBarHorizontalChart')
+                    .withTitle($filter('translate')(charOptions.studiesDesigns.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
+                    .withData(methodDesignStudies.entries, false, $filter('translate')('graphics.nbr-studies'));
+                d3Config.options.chart.showLegend = false;
+
                 var chartObject= {
                   studiesDesigns: {
                     //directiveTitle: methodDesignStudies.options.title ,
@@ -6098,7 +6289,8 @@ angular.module('obiba.mica.search')
                       type: 'BarChart',
                       data: methodDesignStudies.data,
                       vocabulary: methodDesignStudies.vocabulary,
-                      entries: methodDesignStudies.entries
+                      entries: methodDesignStudies.entries,
+                      d3Config: d3Config
                     }
                   }
                 };
@@ -6107,7 +6299,7 @@ angular.module('obiba.mica.search')
             });
 
           // Study design table.
-          setChartObject('methods-designs',
+          setChartObject('model-methods-design',
             result.studyResultDto,
             [$filter('translate')(charOptions.studiesDesigns.header[0]),
               $filter('translate')(charOptions.studiesDesigns.header[1]),
@@ -6133,7 +6325,7 @@ angular.module('obiba.mica.search')
             }
           });
 
-          setChartObject('numberOfParticipants-participant-range',
+          setChartObject('model-numberOfParticipants-participant-range',
             result.studyResultDto,
             [$filter('translate')(charOptions.numberParticipants.header[0]), $filter('translate')(charOptions.numberParticipants.header[1])],
             $filter('translate')(charOptions.numberParticipants.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
@@ -6147,7 +6339,11 @@ angular.module('obiba.mica.search')
                       type: 'PieChart',
                       data: numberParticipant.data,
                       vocabulary: numberParticipant.vocabulary,
-                      entries: numberParticipant.entries
+                      entries: numberParticipant.entries,
+                      d3Config: new D3ChartConfig(numberParticipant.vocabulary)
+                          .withType('pieChart')
+                          .withTitle($filter('translate')(charOptions.numberParticipants.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
+                          .withData(numberParticipant.entries, true)
                     }
                   }
                 };
@@ -6158,12 +6354,18 @@ angular.module('obiba.mica.search')
               }
             });
 
-          setChartObject('populations-dataCollectionEvents-bioSamples',
+          setChartObject('populations-dataCollectionEvents-model-bioSamples',
             result.studyResultDto,
             [$filter('translate')(charOptions.biologicalSamples.header[0]), $filter('translate')(charOptions.biologicalSamples.header[1])],
             $filter('translate')(charOptions.biologicalSamples.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
             charOptions.biologicalSamples.options).then(function(bioSamplesStudies) {
               if (bioSamplesStudies) {
+                var d3Config = new D3ChartConfig(bioSamplesStudies.vocabulary)
+                    .withType('multiBarHorizontalChart')
+                    .withTitle($filter('translate')(charOptions.biologicalSamples.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
+                    .withData(bioSamplesStudies.entries, false, $filter('translate')('graphics.nbr-studies'));
+                d3Config.options.chart.showLegend = false;
+
                 var chartObject = {
                   biologicalSamples: {
                     headerTitle: $filter('translate')('graphics.bio-samples'),
@@ -6172,7 +6374,8 @@ angular.module('obiba.mica.search')
                       type: 'BarChart',
                       data: bioSamplesStudies.data,
                       vocabulary: bioSamplesStudies.vocabulary,
-                      entries: bioSamplesStudies.entries
+                      entries: bioSamplesStudies.entries,
+                      d3Config: d3Config
                     }
                   }
                 };
@@ -6237,7 +6440,7 @@ angular.module('obiba.mica.search')
   }]);
 
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -6352,7 +6555,15 @@ angular.module('obiba.mica.search')
       };
   }])
 
-  .directive('datasetsResultTable', ['PageUrlService', 'ngObibaMicaSearch', 'TaxonomyResource', 'RqlQueryService', function (PageUrlService, ngObibaMicaSearch, TaxonomyResource, RqlQueryService) {
+  .directive('datasetsResultTable', ['$log',
+    'PageUrlService',
+    'ngObibaMicaSearch',
+    'TaxonomyResource',
+    'RqlQueryService', function ($log,
+                                 PageUrlService,
+                                 ngObibaMicaSearch,
+                                 TaxonomyResource,
+                                 RqlQueryService) {
     return {
       restrict: 'EA',
       replace: true,
@@ -6368,15 +6579,20 @@ angular.module('obiba.mica.search')
           target: 'dataset',
           taxonomy: 'Mica_dataset'
         }).$promise.then(function (taxonomy) {
+
+          if (taxonomy.vocabularies) {
             scope.classNames = taxonomy.vocabularies.filter(function (v) {
               return v.name === 'className';
             })[0].terms.reduce(function (prev, t) {
-                prev[t.name] = t.title.map(function (t) {
-                  return {lang: t.locale, value: t.text};
-                });
-                return prev;
-              }, {});
-          });
+              prev[t.name] = t.title.map(function (t) {
+                return {lang: t.locale, value: t.text};
+              });
+              return prev;
+            }, {});
+          } else {
+            $log.warn('Taxonomy has no vocabularies');
+          }
+        });
 
         scope.updateCriteria = function (id, type) {
           RqlQueryService.createCriteriaItem('dataset', 'Mica_dataset', 'id', id).then(function(item) {
@@ -6391,8 +6607,18 @@ angular.module('obiba.mica.search')
     };
   }])
 
-  .directive('studiesResultTable', ['PageUrlService', 'ngObibaMicaSearch', 'TaxonomyResource', 'RqlQueryService', 'LocalizedValues',
-    function (PageUrlService, ngObibaMicaSearch, TaxonomyResource, RqlQueryService, LocalizedValues) {
+  .directive('studiesResultTable', ['$log',
+    'PageUrlService',
+    'ngObibaMicaSearch',
+    'TaxonomyResource',
+    'RqlQueryService',
+    'LocalizedValues',
+    function ($log,
+              PageUrlService,
+              ngObibaMicaSearch,
+              TaxonomyResource,
+              RqlQueryService,
+              LocalizedValues) {
     return {
       restrict: 'EA',
       replace: true,
@@ -6409,7 +6635,9 @@ angular.module('obiba.mica.search')
         scope.datasourceTitles = {};
 
         function getDatasourceTitles() {
-          if (Object.keys(scope.taxonomy) < 1 || Object.keys(scope.datasourceTitles) > 0) {
+          if (Object.keys(scope.taxonomy).length < 1 ||
+            !scope.taxonomy.vocabularies ||
+            Object.keys(scope.datasourceTitles).length > 0) {
             return;
           }
 
@@ -6432,14 +6660,18 @@ angular.module('obiba.mica.search')
         }).$promise.then(function (taxonomy) {
           scope.taxonomy = taxonomy;
           getDatasourceTitles();
-          scope.designs = taxonomy.vocabularies.filter(function (v) {
-            return v.name === 'methods-designs';
-          })[0].terms.reduce(function (prev, t) {
+          if (taxonomy.vocabularies) {
+            scope.designs = taxonomy.vocabularies.filter(function (v) {
+              return v.name === 'methods-design';
+            })[0].terms.reduce(function (prev, t) {
               prev[t.name] = t.title.map(function (t) {
                 return {lang: t.locale, value: t.text};
               });
               return prev;
             }, {});
+          } else {
+            $log.warn('Taxonomy has no vocabularies');
+          }
         });
 
         scope.hasDatasource = function (datasources, id) {
@@ -6681,7 +6913,7 @@ angular.module('obiba.mica.search')
         var onDocumentClick = function (event) {
           var isChild = document.querySelector('#'+$scope.criterion.id.replace('.','-')+'-dropdown-'+$scope.timestamp)
             .contains(event.target);
-          
+
           if (!isChild) {
             $timeout(function() {
               $scope.$apply('closeDropdown()');
@@ -6759,7 +6991,7 @@ angular.module('obiba.mica.search')
       templateUrl: 'search/views/classifications/taxonomies-facets-view.html'
     };
   }])
-  
+
   .directive('taxonomiesPanel',[function() {
     return {
     restrict: 'EA',
@@ -6887,7 +7119,7 @@ angular.module('obiba.mica.search')
     };
   }]);
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -6914,7 +7146,7 @@ angular.module('obiba.mica.search')
         });
     }]);
 ;/*
- * Copyright (c) 2014 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -6953,7 +7185,7 @@ function GraphicChartsDataProvider() {
 }
 
 angular.module('obiba.mica.graphics', [
-    'googlechart',
+    'obiba.graphics',
     'obiba.utils',
     'templates-ngObibaMica'
   ])
@@ -6965,7 +7197,7 @@ angular.module('obiba.mica.graphics', [
     GraphicChartsConfigurations.setClientConfig();
   }]);
 ;/*
- * Copyright (c) 2014 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -7020,7 +7252,7 @@ angular.module('obiba.mica.graphics')
     controller: 'GraphicChartsController'
   };
 }]);;/*
- * Copyright (c) 2014 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -7043,7 +7275,7 @@ angular.module('obiba.mica.graphics')
     'GraphicChartsData',
     'RqlQueryService',
     'ngObibaMicaUrl',
-    'googleChartApiPromise',
+    'D3GeoConfig', 'D3ChartConfig',  
     function ($rootScope,
               $scope,
               $filter,
@@ -7053,7 +7285,7 @@ angular.module('obiba.mica.graphics')
               GraphicChartsData,
               RqlQueryService,
               ngObibaMicaUrl,
-              googleChartApiPromise) {
+              D3GeoConfig, D3ChartConfig) {
 
       function initializeChartData() {
         $scope.chartObject = {};
@@ -7134,15 +7366,32 @@ angular.module('obiba.mica.graphics')
                     $scope.$parent.directive = {title: $scope.chartObject.options.title};
                   }
                 }
+                
+                if ($scope.chartType === 'GeoChart') {
+                  $scope.chartObject.d3Config = new D3GeoConfig().withData(entries).withTitle($scope.chartObject.options.title);
+                  if ($scope.chartObject.options && $scope.chartObject.options.colorAxis && $scope.chartObject.options.colorAxis.colors) {
+                    $scope.chartObject.d3Config.withColor($scope.chartObject.options.colorAxis.colors);
+                  }
+                } else {                  
+                  $scope.chartObject.d3Config = new D3ChartConfig($scope.chartAggregationName).withType($scope.chartType === 'PieChart' ? 'pieChart' : 'multiBarHorizontalChart')
+                      .withData(entries, $scope.chartType === 'PieChart', $filter('translate')('graphics.nbr-studies'))
+                      .withTitle($filter('translate')($scope.chartTitleGraph) + ' (N=' + StudiesData.studyResultDto.totalHits + ')');
+
+                  if ($scope.chartType !== 'PieChart') {
+                    $scope.chartObject.d3Config.options.chart.showLegend = false;
+                  }
+
+                  if ($scope.chartObject.options && $scope.chartObject.options.colors) {
+                    $scope.chartObject.d3Config.options.chart.color = $scope.chartOptions.colors;
+                  }
+                }
               });
           }
         });
 
       }
 
-      googleChartApiPromise.then(function() {
-        $scope.ready = true;
-      });
+      $scope.ready = true;
 
       $scope.$watch('chartAggregationName', function() {
         if ($scope.chartAggregationName) {
@@ -7152,7 +7401,7 @@ angular.module('obiba.mica.graphics')
 
     }]);
 ;/*
- * Copyright (c) 2014 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -7272,8 +7521,8 @@ angular.module('obiba.mica.graphics')
     return factory;
 
   })
-  .service('GraphicChartsUtils', ['LocalizedValues','TaxonomyResource', '$q',
-    function (LocalizedValues, TaxonomyResource, $q) {
+  .service('GraphicChartsUtils', ['LocalizedValues', 'TaxonomyResource', 'RqlQueryUtils', '$q', '$translate',
+    function (LocalizedValues, TaxonomyResource, RqlQueryUtils, $q, $translate) {
       var studyTaxonomy = {};
 
       studyTaxonomy.getTerms = function (aggregationName) {
@@ -7283,7 +7532,7 @@ angular.module('obiba.mica.graphics')
           var terms = null;
           if (studyTaxonomy.vocabularies){
             angular.forEach(studyTaxonomy.vocabularies, function (vocabulary) {
-              if (vocabulary.name === aggregationName) {
+              if (RqlQueryUtils.vocabularyAlias(vocabulary) === aggregationName) {
                 terms = vocabulary.terms;
               }
             });
@@ -7327,7 +7576,7 @@ angular.module('obiba.mica.graphics')
                   angular.forEach(aggregation['obiba.mica.RangeAggregationResultDto.ranges'], function (term) {
                     if (sortTerm.name === term.key) {
                       if (term.count) {
-                        arrayData[i] = {title: term.title, value: term.count, key: term.key};
+                        arrayData[i] = {title: LocalizedValues.forLocale(sortTerm.title, $translate.use()), value: term.count, key: term.key};
                         i++;
                       }
                     }
@@ -7336,8 +7585,8 @@ angular.module('obiba.mica.graphics')
               }
               else {
                 // MK-924 sort countries by title in the display language
-                if (aggregation.aggregation === 'populations-selectionCriteria-countriesIso') {
-                  var locale = LocalizedValues.getLocal();
+                if (aggregation.aggregation === 'populations-model-selectionCriteria-countriesIso') {
+                  var locale = $translate.use();
                   sortedTerms.sort(function(a, b) {
                     var textA = LocalizedValues.forLocale(a.title, locale);
                     var textB = LocalizedValues.forLocale(b.title, locale);
@@ -7350,22 +7599,22 @@ angular.module('obiba.mica.graphics')
                   angular.forEach(aggregation['obiba.mica.TermsAggregationResultDto.terms'], function (term) {
                     if (sortTerm.name === term.key) {
                       if (term.count) {
-                        if (aggregation.aggregation === 'methods-designs') {
+                        if (aggregation.aggregation === 'model-methods-design') {
 
                           angular.forEach(term.aggs, function (aggBucket) {
-                            if (aggBucket.aggregation === 'numberOfParticipants-participant-number') {
+                            if (aggBucket.aggregation === 'model-numberOfParticipants-participant-number') {
                               var aggregateBucket = aggBucket['obiba.mica.StatsAggregationResultDto.stats'];
                               numberOfParticipant = LocalizedValues.formatNumber(aggregateBucket ? aggregateBucket.data.sum : 0);
                             }
                           });
                           arrayData[i] = {
-                            title: term.title,
+                            title: LocalizedValues.forLocale(sortTerm.title, $translate.use()),
                             value: term.count,
                             participantsNbr: numberOfParticipant,
                             key: term.key
                           };
                         } else {
-                          arrayData[i] = {title: term.title, value: term.count, key: term.key};
+                          arrayData[i] = {title: LocalizedValues.forLocale(sortTerm.title, $translate.use()), value: term.count, key: term.key};
                         }
                         i++;
                       }
@@ -7391,23 +7640,43 @@ angular.module('obiba.mica.graphics')
       if(entityType && entityIds !== 'NaN') {
         query =  entityType + '(in(Mica_'+ entityType +'.id,(' + entityIds + ')))';
       }
-      var localizedRqlQuery = angular.copy(new RqlParser().parse(query));
+      var localizedRqlQuery = angular.copy(RqlQueryService.parseQuery(query));
       RqlQueryUtils.addLocaleQuery(localizedRqlQuery, LocalizedValues.getLocal());
       var localizedQuery = new RqlQuery().serializeArgs(localizedRqlQuery.args);
       return RqlQueryService.prepareGraphicsQuery(localizedQuery,
         ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'],
-        ['Mica_study.methods-designs']
+        ['Mica_study.methods-design']
       );
     };
   }]);
-;'use strict';
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ */
+
+'use strict';
 
 angular.module('obiba.mica.localized', [
   'obiba.notification',
   'pascalprecht.translate',
   'templates-ngObibaMica'
 ]);
-;'use strict';
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
 
 angular.module('obiba.mica.localized')
 
@@ -7416,10 +7685,14 @@ angular.module('obiba.mica.localized')
       restrict: 'AE',
       scope: {
         value: '=',
-        lang: '='
+        lang: '=',
+        keyLang: '@',
+        keyValue: '@'
       },
       templateUrl: 'localized/localized-template.html',
       link: function(scope) {
+        scope.keyLang = scope.keyLang || 'lang';
+        scope.keyValue = scope.keyValue || 'value';
         scope.LocalizedValues = LocalizedValues;
       }
     };
@@ -7570,7 +7843,7 @@ angular.module('obiba.mica.localized')
     };
   }]);
 ;/*
- * Copyright (c) 2015 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -7594,7 +7867,17 @@ angular.module('obiba.mica.localized')
 
           if (result && result.length > 0) {
             return result[0][keyValue];
+          } else {
+
+            var langs = values.map(function(value) {
+              return value[keyLang];
+            });
+
+            if (langs.length > 0) {
+              return self.for(values, langs.length === 1 ? langs[0] : 'en', keyLang, keyValue);
+            }
           }
+  
         } else if (angular.isObject(values)) {
           return self.for(Object.keys(values).map(function(k) {
             return {lang: k, value: values[k]};
@@ -7638,17 +7921,20 @@ angular.module('obiba.mica.localized')
         return rval;
       };
 
-      this.objectToArray = function (languages, values) {
+      this.objectToArray = function (values, languages) {
         var rval = [];
-        if (values && languages) {
-          languages.forEach(function (lang) {
-            rval.push({
-              lang: lang,
-              value: values[lang]
+        if (values) {
+          var locales = languages ? languages : Object.keys(values);
+          if (locales) {
+            locales.forEach(function (lang) {
+              rval.push({
+                lang: lang,
+                value: values[lang]
+              });
             });
-          });
+          }
         }
-        return rval;
+        return rval.length === 0 ? undefined : rval;
       };
     })
 
@@ -7712,13 +7998,13 @@ angular.module('obiba.mica.localized')
 
   }]);
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */
 
 'use strict';
@@ -7730,7 +8016,17 @@ angular.module('obiba.mica.localized')
       return value === 0 ? 0 : value ? LocalizedValues.formatNumber(value) : '';
     };
   }]);
-;'use strict';
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
 
 function NgObibaMicaFileBrowserOptionsProvider() {
   var options = {
@@ -7754,7 +8050,7 @@ angular.module('obiba.mica.fileBrowser', [
   $provide.provider('ngObibaMicaFileBrowserOptions', new NgObibaMicaFileBrowserOptionsProvider());
 }]);
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -7781,7 +8077,7 @@ angular.module('obiba.mica.fileBrowser')
     };
   }]);
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -8073,7 +8369,7 @@ angular.module('obiba.mica.fileBrowser')
     }]);
 
 ;/*
- * Copyright (c) 2016 OBiBa. All rights reserved.
+ * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -8220,7 +8516,7 @@ angular.module('obiba.mica.fileBrowser')
 angular.module("access/views/data-access-request-documents-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-documents-view.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2016 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -8268,7 +8564,7 @@ angular.module("access/views/data-access-request-documents-view.html", []).run([
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2015 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -8285,39 +8581,39 @@ angular.module("access/views/data-access-request-form.html", []).run(["$template
     "\n" +
     "  <div ng-if=\"validForm\">\n" +
     "\n" +
-    "    <div class=\"pull-right\" ng-if=\"loaded\">\n" +
-    "      <a ng-click=\"cancel()\" type=\"button\" class=\"btn btn-default\">\n" +
-    "        <span translate>cancel</span>\n" +
-    "      </a>\n" +
+    "    <form name=\"request\">\n" +
+    "      <div class=\"pull-right\" ng-if=\"loaded\">\n" +
+    "        <a ng-click=\"cancel()\" type=\"button\" class=\"btn btn-default\">\n" +
+    "          <span translate>cancel</span>\n" +
+    "        </a>\n" +
     "\n" +
-    "      <a ng-click=\"save()\" type=\"button\" class=\"btn btn-primary\">\n" +
-    "        <span translate>save</span>\n" +
-    "      </a>\n" +
+    "        <a ng-click=\"save()\" type=\"button\" class=\"btn btn-primary\">\n" +
+    "          <span translate>save</span>\n" +
+    "        </a>\n" +
     "\n" +
-    "      <a ng-click=\"validate()\" type=\"button\" class=\"btn btn-info\">\n" +
-    "        <span translate>validate</span>\n" +
-    "      </a>\n" +
-    "    </div>\n" +
+    "        <a ng-click=\"validate(request)\" type=\"button\" class=\"btn btn-info\">\n" +
+    "          <span translate>validate</span>\n" +
+    "        </a>\n" +
+    "      </div>\n" +
     "\n" +
-    "    <div class=\"clearfix\"></div>\n" +
+    "      <div class=\"clearfix\"></div>\n" +
     "\n" +
-    "    <form name=\"form.requestForm\" ng-submit=\"submit(form.requestForm)\">\n" +
     "      <div sf-model=\"form.model\" sf-form=\"form.definition\" sf-schema=\"form.schema\" required=\"true\" sf-options=\"sfOptions\"></div>\n" +
-    "    </form>\n" +
     "\n" +
-    "    <div class=\"pull-right\" ng-if=\"loaded\">\n" +
-    "      <a ng-click=\"cancel()\" type=\"button\" class=\"btn btn-default\">\n" +
-    "        <span translate>cancel</span>\n" +
-    "      </a>\n" +
+    "      <div class=\"pull-right\" ng-if=\"loaded\">\n" +
+    "        <a ng-click=\"cancel()\" type=\"button\" class=\"btn btn-default\">\n" +
+    "          <span translate>cancel</span>\n" +
+    "        </a>\n" +
     "\n" +
     "      <a ng-click=\"save()\" type=\"button\" class=\"btn btn-primary\">\n" +
     "        <span translate>save</span>\n" +
     "      </a>\n" +
     "\n" +
-    "      <a ng-click=\"validate()\" type=\"button\" class=\"btn btn-info\">\n" +
-    "        <span translate>validate</span>\n" +
-    "      </a>\n" +
-    "    </div>\n" +
+    "        <a ng-click=\"validate(request)\" type=\"button\" class=\"btn btn-info\">\n" +
+    "          <span translate>validate</span>\n" +
+    "        </a>\n" +
+    "      </div>\n" +
+    "    </form>\n" +
     "\n" +
     "    <div class=\"clearfix voffet2\"></div>\n" +
     "  </div>\n" +
@@ -8329,7 +8625,7 @@ angular.module("access/views/data-access-request-form.html", []).run(["$template
 angular.module("access/views/data-access-request-history-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-history-view.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2015 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -8367,7 +8663,7 @@ angular.module("access/views/data-access-request-history-view.html", []).run(["$
 angular.module("access/views/data-access-request-list.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-list.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2015 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -8533,6 +8829,16 @@ angular.module("access/views/data-access-request-print-preview.html", []).run(["
 
 angular.module("access/views/data-access-request-profile-user-modal.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-profile-user-modal.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"modal-content\">\n" +
     "  <div class=\"modal-header\">\n" +
     "    <button type=\"button\" class=\"close\" aria-hidden=\"true\"\n" +
@@ -8589,7 +8895,7 @@ angular.module("access/views/data-access-request-submitted-modal.html", []).run(
     "\n" +
     "?>\n" +
     "<!--\n" +
-    "  ~ Copyright (c) 2015 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -8621,6 +8927,16 @@ angular.module("access/views/data-access-request-submitted-modal.html", []).run(
 
 angular.module("access/views/data-access-request-validation-modal.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-validation-modal.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"modal-content\">\n" +
     "  <div class=\"modal-header\">\n" +
     "    <button type=\"button\" class=\"close\" aria-hidden=\"true\" ng-click=\"$dismiss()\">&times;</button>\n" +
@@ -8650,7 +8966,7 @@ angular.module("access/views/data-access-request-validation-modal.html", []).run
 angular.module("access/views/data-access-request-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-view.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2015 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -8735,7 +9051,7 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "      <uib-tabset class=\"voffset5\">\n" +
     "        <uib-tab ng-click=\"selectTab('form')\" heading=\"{{'data-access-request.form' | translate}}\">\n" +
     "          <form id=\"request-form\" name=\"forms.requestForm\">\n" +
-    "            <div sf-model=\"form.model\" sf-form=\"form.definition\" sf-schema=\"form.schema\"></div>\n" +
+    "            <div sf-model=\"form.model\" sf-form=\"form.definition\" sf-schema=\"form.schema\" sf-options=\"sfOptions\"></div>\n" +
     "          </form>\n" +
     "        </uib-tab>\n" +
     "        <uib-tab ng-click=\"selectTab('documents')\">\n" +
@@ -8765,6 +9081,16 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
 
 angular.module("attachment/attachment-input-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("attachment/attachment-input-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<button ng-hide=\"{{disabled}}\" type=\"button\" class=\"btn btn-primary btn-xs\" aria-hidden=\"true\" ngf-multiple=\"{{multiple}}\" ngf-select\n" +
     "        ngf-change=\"onFileSelect($files)\" translate>file.upload.button\n" +
     "</button>\n" +
@@ -8810,6 +9136,16 @@ angular.module("attachment/attachment-input-template.html", []).run(["$templateC
 
 angular.module("attachment/attachment-list-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("attachment/attachment-list-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div>\n" +
     "  <span ng-if=\"!hasAttachments && emptyMessage\"><em>{{emptyMessage}}</em></span>\n" +
     "  <table ng-if=\"hasAttachments\" class=\"table table-bordered table-striped\" >\n" +
@@ -8844,7 +9180,7 @@ angular.module("attachment/attachment-list-template.html", []).run(["$templateCa
 angular.module("file-browser/views/document-detail-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("file-browser/views/document-detail-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2016 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -8920,6 +9256,16 @@ angular.module("file-browser/views/document-detail-template.html", []).run(["$te
 
 angular.module("file-browser/views/documents-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("file-browser/views/documents-table-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"panel panel-default table-responsive table-responsive-dropdown\">\n" +
     "  <div class=\"panel-heading\" ng-if=\"data.search.active\">\n" +
     "      <a class=\"no-text-decoration\" ng-click=\"clearSearch()\">\n" +
@@ -9059,14 +9405,14 @@ angular.module("file-browser/views/file-browser-template.html", []).run(["$templ
 angular.module("file-browser/views/toolbar-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("file-browser/views/toolbar-template.html",
     "<!--\n" +
-    " ~ Copyright (c) 2016 OBiBa. All rights reserved.\n" +
-    " ~\n" +
-    " ~ This program and the accompanying materials\n" +
-    " ~ are made available under the terms of the GNU Public License v3.0.\n" +
-    " ~\n" +
-    " ~ You should have received a copy of the GNU General Public License\n" +
-    " ~ along with this program. If not, see <http://www.gnu.org/licenses/>.\n" +
-    " -->\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
     "<div>\n" +
     "    <div class=\"pull-left voffset3\">\n" +
     "        <ol ng-show=\"data.document.path !== data.rootPath\" class=\"breadcrumb mica-breadcrumb no-margin no-padding\">\n" +
@@ -9128,7 +9474,11 @@ angular.module("file-browser/views/toolbar-template.html", []).run(["$templateCa
 angular.module("graphics/views/charts-directive.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("graphics/views/charts-directive.html",
     "<div>\n" +
-    "  <div google-chart chart=\"chartObject\" style=\"min-height:{{chartObject.type=='GeoChart'?250:350}}px; width:100%;\">\n" +
+    "  <div ng-if=\"chartObject.type === 'GeoChart'\">\n" +
+    "    <obiba-geo config=\"chartObject.d3Config\"></obiba-geo>\n" +
+    "  </div>\n" +
+    "  <div ng-if=\"chartObject.type !== 'GeoChart'\">\n" +
+    "    <obiba-nv-chart chart-config=\"chartObject.d3Config\"></obiba-nv-chart>\n" +
     "  </div>\n" +
     "</div>\n" +
     "");
@@ -9137,7 +9487,7 @@ angular.module("graphics/views/charts-directive.html", []).run(["$templateCache"
 angular.module("graphics/views/tables-directive.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("graphics/views/tables-directive.html",
     "<div>\n" +
-    "    <table style=\"max-height: 400px;\" class=\"table table-bordered table-striped\" fixed-header=\"chartObject.getTable().data\">\n" +
+    "    <table ng-if=\"chartObject.entries && chartObject.entries.length\" style=\"max-height: 400px;\" class=\"table table-bordered table-striped\" fixed-header=\"chartObject.getTable().data\">\n" +
     "        <thead>\n" +
     "        <tr>\n" +
     "        <th ng-repeat=\"header in chartObject.header track by $index\">{{header}}</th>\n" +
@@ -9157,6 +9507,16 @@ angular.module("graphics/views/tables-directive.html", []).run(["$templateCache"
 
 angular.module("localized/localized-input-group-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("localized/localized-input-group-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"form-group\" ng-class=\"{'has-error': (form[fieldName].$dirty || form.saveAttempted) && form[fieldName].$invalid}\">\n" +
     "  <label for=\"{{fieldName}}\" class=\"control-label\">\n" +
     "    {{label | translate}}\n" +
@@ -9178,6 +9538,16 @@ angular.module("localized/localized-input-group-template.html", []).run(["$templ
 
 angular.module("localized/localized-input-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("localized/localized-input-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"form-group\" ng-class=\"{'has-error': (form[fieldName].$dirty || form.saveAttempted) && form[fieldName].$invalid}\">\n" +
     "  <label for=\"{{fieldName}}\" class=\"control-label\">\n" +
     "    {{label | translate}}\n" +
@@ -9194,11 +9564,31 @@ angular.module("localized/localized-input-template.html", []).run(["$templateCac
 
 angular.module("localized/localized-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("localized/localized-template.html",
-    "<span>{{LocalizedValues.forLang(value,lang)}}</span>");
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
+    "<span>{{LocalizedValues.for(value,lang,keyLang,keyValue)}}</span>");
 }]);
 
 angular.module("localized/localized-textarea-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("localized/localized-textarea-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"form-group\" ng-class=\"{'has-error': (form[fieldName].$dirty || form.saveAttempted) && form[fieldName].$invalid}\">\n" +
     "\n" +
     "  <label for=\"{{fieldName}}\" class=\"control-label\">\n" +
@@ -9220,6 +9610,16 @@ angular.module("localized/localized-textarea-template.html", []).run(["$template
 
 angular.module("search/views/classifications.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/classifications.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div>\n" +
     "  <div ng-if=\"classificationsHeaderTemplateUrl\" ng-include=\"classificationsHeaderTemplateUrl\"></div>\n" +
     "\n" +
@@ -9308,7 +9708,12 @@ angular.module("search/views/classifications/classifications-view.html", []).run
     "          {{label.text}}\n" +
     "        </span>\n" +
     "      </li>\n" +
+    "      <a ng-if=\"options.showSearchRefreshButton\" title=\"{{'search.refresh-taxonomies' | translate}}\"\n" +
+    "         href class=\"hoffset1\" ng-click=\"refreshTaxonomyCache()\">\n" +
+    "        <span class=\"fa fa-refresh\"></span>\n" +
+    "      </a>\n" +
     "    </ol>\n" +
+    "\n" +
     "  </div>\n" +
     "\n" +
     "  <div ng-if=\"taxonomies.search.active\" class=\"loading\"></div>\n" +
@@ -9414,30 +9819,40 @@ angular.module("search/views/classifications/classifications-view.html", []).run
 
 angular.module("search/views/classifications/taxonomies-facets-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/classifications/taxonomies-facets-view.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<ul class=\"nav nav-tabs\" role=\"tablist\" ng-if=\"targets.length > 1\">\n" +
     "  <li ng-repeat=\"tab in targets\" role=\"presentation\" ng-class=\"{ active: tab === target }\">\n" +
     "    <a href role=\"tab\" ng-click=\"setTarget(tab)\">{{'search.' + tab + '.facet-label' | translate}}</a></li>\n" +
     "</ul>\n" +
     "\n" +
     "<uib-accordion close-others=\"false\">\n" +
-    "    <uib-accordion-group ng-repeat=\"taxonomy in taxonomies[target]\" is-open=\"taxonomy.isOpen\" is-disabled=\"false\" template-url=\"search/views/classifications/taxonomy-accordion-group.html\">\n" +
+    "    <div uib-accordion-group ng-repeat=\"taxonomy in taxonomies[target]\" is-open=\"taxonomy.isOpen\" is-disabled=\"false\" template-url=\"search/views/classifications/taxonomy-accordion-group.html\">\n" +
     "      <uib-accordion-heading>\n" +
     "          <i class=\"fa\" ng-class=\"{'fa-chevron-down': taxonomy.isOpen, 'fa-chevron-right': !taxonomy.isOpen}\"></i>\n" +
     "          <span uib-popover=\"{{localize(taxonomy.description ? taxonomy.description : taxonomy.title)}}\"\n" +
     "                popover-title=\"{{taxonomy.description ? localize(taxonomy.title) : null}}\"\n" +
     "                popover-placement=\"bottom\"\n" +
-    "                popover-trigger=\"mouseenter\"\n" +
+    "                popover-trigger=\"'mouseenter'\"\n" +
     "                popover-popup-delay=\"1000\">\n" +
     "            {{localize(taxonomy.title)}}\n" +
     "          </span>\n" +
     "      </uib-accordion-heading>\n" +
     "      <uib-accordion close-others=\"false\">\n" +
-    "        <uib-accordion-group ng-repeat=\"vocabulary in taxonomy.vocabularies\" is-open=\"vocabulary.isOpen\" is-disabled=\"false\" template-url=\"search/views/classifications/vocabulary-accordion-group.html\">\n" +
+    "        <div uib-accordion-group ng-repeat=\"vocabulary in taxonomy.vocabularies\" is-open=\"vocabulary.isOpen\" is-disabled=\"false\" template-url=\"search/views/classifications/vocabulary-accordion-group.html\">\n" +
     "          <uib-accordion-heading>\n" +
     "            <span uib-popover=\"{{localize(vocabulary.description ? vocabulary.description : vocabulary.title)}}\"\n" +
     "                  popover-title=\"{{vocabulary.description ? localize(vocabulary.title) : null}}\"\n" +
     "                  popover-placement=\"bottom\"\n" +
-    "                  popover-trigger=\"mouseenter\"\n" +
+    "                  popover-trigger=\"'mouseenter'\"\n" +
     "                  popover-popup-delay=\"1000\"\n" +
     "                  ng-click=\"loadVocabulary(taxonomy, vocabulary)\">\n" +
     "              <i class=\"fa\" ng-class=\"{'fa-caret-down': vocabulary.isOpen, 'fa-caret-right': !vocabulary.isOpen}\"></i>\n" +
@@ -9476,7 +9891,7 @@ angular.module("search/views/classifications/taxonomies-facets-view.html", []).r
     "                    <span uib-popover=\"{{localize(term.description ? term.description : term.title)}}\"\n" +
     "                          popover-title=\"{{term.description ? localize(term.title) : null}}\"\n" +
     "                          popover-placement=\"bottom\"\n" +
-    "                          popover-trigger=\"mouseenter\"\n" +
+    "                          popover-trigger=\"'mouseenter'\"\n" +
     "                          popover-popup-delay=\"1000\">\n" +
     "                      <span>\n" +
     "                        {{localize(term.title)}}\n" +
@@ -9497,9 +9912,9 @@ angular.module("search/views/classifications/taxonomies-facets-view.html", []).r
     "              </div>\n" +
     "            </div>\n" +
     "          </div>\n" +
-    "        </uib-accordion-group>\n" +
+    "        </div >\n" +
     "      </uib-accordion>\n" +
-    "    </uib-accordion-group>\n" +
+    "    </div>\n" +
     "</uib-accordion>\n" +
     "");
 }]);
@@ -9514,9 +9929,13 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "          <div class=\"col-md-8\">\n" +
     "            <ol class=\"breadcrumb no-margin no-padding pull-left\">\n" +
     "              <li ng-if=\"taxonomies.taxonomy\">\n" +
-    "                <h4 ng-repeat=\"label in taxonomies.taxonomy.title\" ng-if=\"label.locale === lang\">\n" +
+    "                <h4 ng-repeat=\"label in taxonomies.taxonomy.title\" ng-if=\"label.locale === lang\" class=\"pull-left\">\n" +
     "                  <strong>{{label.text}}</strong>\n" +
     "                </h4>\n" +
+    "                <a ng-if=\"options.showSearchRefreshButton\" title=\"{{'search.refresh-taxonomies' | translate}}\"\n" +
+    "                   href class=\"hoffset1 voffset2 pull-right\" ng-click=\"refreshTaxonomyCache(target, taxonomies.taxonomy.name)\">\n" +
+    "                  <span class=\"fa fa-refresh\"></span>\n" +
+    "                </a>\n" +
     "              </li>\n" +
     "            </ol>\n" +
     "          </div>\n" +
@@ -9686,6 +10105,16 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
 
 angular.module("search/views/classifications/taxonomy-accordion-group.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/classifications/taxonomy-accordion-group.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"panel no-margin no-border-radius\" ng-class=\"panelClass || 'panel-default'\">\n" +
     "  <div role=\"tab\" id=\"{{::headingId}}\" aria-selected=\"{{isOpen}}\" class=\"panel-heading\" ng-keypress=\"toggleOpen($event)\">\n" +
     "    <h4 class=\"panel-title\">\n" +
@@ -9718,6 +10147,16 @@ angular.module("search/views/classifications/taxonomy-panel-template.html", []).
 
 angular.module("search/views/classifications/taxonomy-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/classifications/taxonomy-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div ng-repeat=\"vocabulary in taxonomies.taxonomy.vocabularies\" ng-if=\"$index % 3 == 0\" class=\"row\">\n" +
     "  <div class=\"col-md-4\">\n" +
     "    <div vocabulary-panel taxonomy=\"taxonomies.taxonomy.vocabularies[$index]\"></div>\n" +
@@ -9736,7 +10175,8 @@ angular.module("search/views/classifications/term-panel-template.html", []).run(
     "<div>\n" +
     "  <div class=\"panel panel-default\" ng-if=\"term\">\n" +
     "    <div class=\"panel-heading\">\n" +
-    "      <div ng-repeat=\"label in term.title\" ng-if=\"label.locale === lang\">\n" +
+    "      <div>\n" +
+    "        <localized value=\"term.title\" lang=\"lang\" key-lang=\"locale\" key-value=\"text\"></localized>\n" +
     "        {{label.text}}\n" +
     "        <small>\n" +
     "          <a href ng-click=\"onSelect(target, taxonomy, vocabulary, {term: term})\">\n" +
@@ -9746,9 +10186,8 @@ angular.module("search/views/classifications/term-panel-template.html", []).run(
     "      </div>\n" +
     "    </div>\n" +
     "    <div class=\"panel-body\">\n" +
-    "      <div ng-repeat=\"label in term.description\" ng-if=\"label.locale === lang\">\n" +
-    "        <span ng-bind-html=\"label.text | dceDescription\" ng-if=\"vocabulary.name === 'dceIds'\"></span>\n" +
-    "        <span ng-bind-html=\"label.text\" ng-if=\"vocabulary.name !== 'dceIds'\"></span>\n" +
+    "      <div>\n" +
+    "        <localized value=\"term.description\" lang=\"lang\" key-lang=\"locale\" key-value=\"text\"></localized>\n" +
     "      </div>\n" +
     "      <div ng-if=\"!term.description\" class=\"help-block\" translate>search.no-description</div>\n" +
     "    </div>\n" +
@@ -9758,6 +10197,16 @@ angular.module("search/views/classifications/term-panel-template.html", []).run(
 
 angular.module("search/views/classifications/vocabulary-accordion-group.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/classifications/vocabulary-accordion-group.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"panel no-margin no-padding no-border-radius\" ng-class=\"panelClass || 'panel-default'\">\n" +
     "  <div role=\"tab\" id=\"{{::headingId}}\" aria-selected=\"{{isOpen}}\" class=\"panel-heading\" ng-keypress=\"toggleOpen($event)\">\n" +
     "    <h4 class=\"panel-title\">\n" +
@@ -9785,8 +10234,8 @@ angular.module("search/views/classifications/vocabulary-panel-template.html", []
     "      </div>\n" +
     "    </div>\n" +
     "    <div class=\"panel-body\">\n" +
-    "      <div ng-repeat=\"label in vocabulary.description\" ng-if=\"label.locale === lang\">\n" +
-    "        {{label.text}}\n" +
+    "      <div>\n" +
+    "        <localized value=\"vocabulary.description\" lang=\"lang\" key-lang=\"locale\" key-value=\"text\"></localized>\n" +
     "      </div>\n" +
     "      <div ng-if=\"!vocabulary.description\" class=\"help-block\" translate>search.no-description</div>\n" +
     "    </div>\n" +
@@ -9882,7 +10331,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "            uib-popover=\"{{header.entity.descriptions[0].value}}\"\n" +
     "            popover-title=\"{{header.entity.titles[0].value}}\"\n" +
     "            popover-placement=\"bottom\"\n" +
-    "            popover-trigger=\"mouseenter\">\n" +
+    "            popover-trigger=\"'mouseenter'\">\n" +
     "          {{header.entity.titles[0].value}}\n" +
     "          </span>\n" +
     "          <small>\n" +
@@ -9899,7 +10348,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "            uib-popover=\"{{header.entity.descriptions[0].value}}\"\n" +
     "            popover-title=\"{{header.entity.titles[0].value}}\"\n" +
     "            popover-placement=\"bottom\"\n" +
-    "            popover-trigger=\"mouseenter\">\n" +
+    "            popover-trigger=\"'mouseenter'\">\n" +
     "          {{header.entity.titles[0].value}}\n" +
     "          </span>\n" +
     "          <small>\n" +
@@ -9918,7 +10367,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "            uib-popover-html=\"col.description === col.title ? null : col.description\"\n" +
     "            popover-title=\"{{col.title}}\"\n" +
     "            popover-placement=\"bottom\"\n" +
-    "            popover-trigger=\"mouseenter\">{{col.title}}</a>\n" +
+    "            popover-trigger=\"'mouseenter'\">{{col.title}}</a>\n" +
     "          <div style=\"text-align: center\" ng-if=\"col.start && bucket === BUCKET_TYPES.DCE\">\n" +
     "            <div>\n" +
     "              <small class=\"help-block no-margin\">\n" +
@@ -10017,7 +10466,7 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
     "    <span uib-popover=\"{{localize(criterion.vocabulary.description ? criterion.vocabulary.description : criterion.vocabulary.title)}}\"\n" +
     "          popover-title=\"{{criterion.vocabulary.description ? localize(criterion.vocabulary.title) : null}}\"\n" +
     "          popover-placement=\"bottom\"\n" +
-    "          popover-trigger=\"mouseenter\">\n" +
+    "          popover-trigger=\"'mouseenter'\">\n" +
     "    <i class=\"fa fa-info-circle\"> </i>\n" +
     "  </span>\n" +
     "    <span title=\"{{localizeCriterion()}}\">\n" +
@@ -10045,11 +10494,21 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
 
 angular.module("search/views/criteria/criterion-header-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criterion-header-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<li class=\"criteria-list-item\">\n" +
     "  <label uib-popover=\"{{localize(criterion.vocabulary.description)}}\"\n" +
     "         popover-title=\"{{localize(criterion.vocabulary.title)}}\"\n" +
     "         popover-placement=\"bottom\"\n" +
-    "         popover-trigger=\"mouseenter\">\n" +
+    "         popover-trigger=\"'mouseenter'\">\n" +
     "    {{localize(criterion.vocabulary.title)}}\n" +
     "  </label>\n" +
     "  <span class=\"pull-right\" title=\"{{'search.close-and-search' | translate}}\" ng-click=\"$parent.$parent.closeDropdown()\"><i class=\"fa fa-close\"></i></span>\n" +
@@ -10163,13 +10622,13 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
     "        uib-popover=\"{{term.description ? term.description : (truncate(term.title) === term.title ? null : term.title)}}\"\n" +
     "        popover-title=\"{{term.description ? term.title : null}}\"\n" +
     "        popover-placement=\"bottom\"\n" +
-    "        popover-trigger=\"mouseenter\">\n" +
+    "        popover-trigger=\"'mouseenter'\">\n" +
     "          <span>\n" +
     "            <label class=\"control-label\">\n" +
     "              <input ng-model=\"checkboxTerms[term.key]\"\n" +
     "                type=\"checkbox\"\n" +
     "                ng-click=\"updateSelection()\">\n" +
-    "              <span>{{truncate(term.title)}}</span>\n" +
+    "              <span>{{truncate(term.title ? term.title : term.key)}}</span>\n" +
     "            </label>\n" +
     "          </span>\n" +
     "          <span class=\"pull-right\">\n" +
@@ -10184,6 +10643,16 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
 
 angular.module("search/views/criteria/target-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/target-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<span></span>");
 }]);
 
@@ -10201,10 +10670,12 @@ angular.module("search/views/graphics/graphics-search-result-template.html", [])
     "    <div class=\"panel-body\">\n" +
     "      <div class=\"row\">\n" +
     "        <div class=\"col-md-6\">\n" +
-    "          <div ng-if=\"chart.directiveTitle\" class=\"chart-title\">\n" +
-    "            {{chart.directiveTitle}}\n" +
+    "          <div ng-if=\"chart.chartObject.type === 'GeoChart'\">\n" +
+    "            <obiba-geo config=\"chart.chartObject.d3Config\"></obiba-geo>\n" +
     "          </div>\n" +
-    "          <div google-chart chart=\"chart.chartObject\" style=\"min-height:350px; width:100%;\"></div>\n" +
+    "          <div ng-if=\"chart.chartObject.type !== 'GeoChart'\">\n" +
+    "            <obiba-nv-chart chart-config=\"chart.chartObject.d3Config\"></obiba-nv-chart>\n" +
+    "          </div>\n" +
     "        </div>\n" +
     "        <div class=\"col-md-6\">\n" +
     "          <div class=\"table-responsive\" ng-if=\"chart.getTable().data  &&  chart.getTable().data.length>1\">\n" +
@@ -10365,6 +10836,16 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
 
 angular.module("search/views/list/pagination-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/list/pagination-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<span class=\"input-group voffset1\">\n" +
     "  <ul class=\"pagination pagination-sm no-padding no-margin\">\n" +
     "    <li ng-if=\"::boundaryLinks\" ng-class=\"{disabled: noPrevious()||ngDisabled}\" class=\"pagination-first\">\n" +
@@ -10438,7 +10919,7 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "              ng-if=\"optionsCols.showStudiesQuestionnaireColumn || optionsCols.showStudiesPmColumn || optionsCols.showStudiesBioColumn || optionsCols.showStudiesOtherColumn\">\n" +
     "            search.study.dataSources\n" +
     "          </th>\n" +
-    "          <th rowspan=\"2\" translate>search.study.participants</th>\n" +
+    "          <th rowspan=\"2\" translate ng-if=\"optionsCols.showStudiesParticipantsColumn\">search.study.participants</th>\n" +
     "          <th rowspan=\"2\" translate ng-if=\"optionsCols.showStudiesNetworksColumn\">networks</th>\n" +
     "          <th translate\n" +
     "              ng-attr-colspan=\"{{optionsCols.showStudiesStudyDatasetsColumn + optionsCols.showStudiesHarmonizationDatasetsColumn}}\"\n" +
@@ -10478,26 +10959,26 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "          <td>\n" +
     "            <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
-    "          <td>\n" +
+    "          <td ng-if=\"optionsCols.showStudiesDesignColumn\">\n" +
     "            <localized ng-repeat=\"d in summary.designs\" value=\"designs[d]\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
-    "          <td>\n" +
+    "          <td ng-if=\"optionsCols.showStudiesQuestionnaireColumn\">\n" +
     "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'questionnaires')\"></i><span\n" +
     "              ng-if=\"!hasDatasource(summary.dataSources, 'questionnaires')\">-</span>\n" +
     "          </td>\n" +
-    "          <td>\n" +
+    "          <td ng-if=\"optionsCols.showStudiesPmColumn\">\n" +
     "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'physical_measures')\"></i><span\n" +
     "              ng-if=\"!hasDatasource(summary.dataSources, 'physical_measures')\">-</span>\n" +
     "          </td>\n" +
-    "          <td>\n" +
+    "          <td ng-if=\"optionsCols.showStudiesBioColumn\">\n" +
     "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'biological_samples')\"></i><span\n" +
     "              ng-if=\"!hasDatasource(summary.dataSources, 'biological_samples')\">-</span>\n" +
     "          </td>\n" +
-    "          <td>\n" +
+    "          <td ng-if=\"optionsCols.showStudiesOtherColumn\">\n" +
     "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'others')\"></i><span\n" +
     "              ng-if=\"!hasDatasource(summary.dataSources, 'others')\">-</span>\n" +
     "          </td>\n" +
-    "          <td>\n" +
+    "          <td ng-if=\"optionsCols.showStudiesParticipantsColumn\">\n" +
     "            <span ng-if=\"summary.targetNumber.number\">\n" +
     "              <localized-number value=\"summary.targetNumber.number\"></localized-number>\n" +
     "            </span>\n" +
@@ -10593,15 +11074,41 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
 
 angular.module("search/views/search-result-coverage-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-coverage-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div ng-show=\"display === 'coverage'\">\n" +
-    "  <coverage-result-table result=\"result.coverage\" loading=\"loading\" bucket=\"bucket\" query=\"query\"\n" +
-    "      class=\"voffset2\" on-update-criteria=\"onUpdateCriteria\" on-remove-criteria=\"onRemoveCriteria\"></coverage-result-table>\n" +
+    "  <coverage-result-table\n" +
+    "    result=\"result.coverage\"\n" +
+    "    loading=\"loading\"\n" +
+    "    bucket=\"bucket\"\n" +
+    "    query=\"query\"\n" +
+    "    class=\"voffset2\"\n" +
+    "    on-update-criteria=\"onUpdateCriteria\"\n" +
+    "    on-remove-criteria=\"onRemoveCriteria\"></coverage-result-table>\n" +
     "</div>\n" +
     "");
 }]);
 
 angular.module("search/views/search-result-graphics-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-graphics-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div ng-show=\"display === 'graphics'\">\n" +
     "  <graphics-result on-update-criteria=\"onUpdateCriteria\" result=\"result.graphics\" loading=\"loading\" class=\"voffset2\"></graphics-result>\n" +
     "</div>");
@@ -10609,6 +11116,16 @@ angular.module("search/views/search-result-graphics-template.html", []).run(["$t
 
 angular.module("search/views/search-result-list-dataset-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-dataset-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"tab-pane\" ng-show=\"options.datasets.showSearchTab\" ng-class=\"{'active': activeTarget.datasets.active}\">\n" +
     "  <datasets-result-table loading=\"loading\" on-update-criteria=\"onUpdateCriteria\"\n" +
     "      summaries=\"result.list.datasetResultDto['obiba.mica.DatasetResultDto.result'].datasets\"></datasets-result-table>\n" +
@@ -10618,6 +11135,16 @@ angular.module("search/views/search-result-list-dataset-template.html", []).run(
 
 angular.module("search/views/search-result-list-network-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-network-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"tab-pane\" ng-show=\"options.networks.showSearchTab\" ng-class=\"{'active': activeTarget.networks.active}\">\n" +
     "  <networks-result-table loading=\"loading\" on-update-criteria=\"onUpdateCriteria\"\n" +
     "      summaries=\"result.list.networkResultDto['obiba.mica.NetworkResultDto.result'].networks\"></networks-result-table>\n" +
@@ -10627,6 +11154,16 @@ angular.module("search/views/search-result-list-network-template.html", []).run(
 
 angular.module("search/views/search-result-list-study-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-study-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"tab-pane\" ng-show=\"options.studies.showSearchTab\" ng-class=\"{'active': activeTarget.studies.active}\">\n" +
     "  <studies-result-table lang=\"lang\" loading=\"loading\" on-update-criteria=\"onUpdateCriteria\"\n" +
     "      summaries=\"result.list.studyResultDto['obiba.mica.StudyResultDto.result'].summaries\"></studies-result-table>\n" +
@@ -10635,44 +11172,65 @@ angular.module("search/views/search-result-list-study-template.html", []).run(["
 
 angular.module("search/views/search-result-list-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div ng-show=\"display === 'list'\">\n" +
-    "  <ul class=\"nav nav-pills voffset2\">\n" +
-    "    <li role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
-    "        ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}\"\n" +
-    "        ng-if=\"options[targetTypeMap[res]].showSearchTab\">\n" +
-    "      <a href\n" +
-    "        ng-click=\"selectTarget(targetTypeMap[res])\" ng-if=\"resultTabsOrder.length > 1\">\n" +
-    "       {{targetTypeMap[res] | translate}}\n" +
-    "      <span class=\"badge hoffset1\"><small>{{getTotalHits(res) | localizedNumber}}</small></span>\n" +
-    "      </a>\n" +
-    "      <a href style=\"cursor: default;\" ng-if=\"resultTabsOrder.length === 1\">\n" +
+    "    <ul class=\"nav nav-pills pull-left voffset2\">\n" +
+    "        <li role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
+    "            ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}\"\n" +
+    "            ng-if=\"options[targetTypeMap[res]].showSearchTab\">\n" +
+    "            <a href\n" +
+    "               ng-click=\"selectTarget(targetTypeMap[res])\" ng-if=\"resultTabsOrder.length > 1\">\n" +
+    "                {{targetTypeMap[res] | translate}}\n" +
+    "                <span class=\"badge hoffset1\"><small>{{getTotalHits(res) | localizedNumber}}</small></span>\n" +
+    "            </a>\n" +
+    "            <a href style=\"cursor: default;\" ng-if=\"resultTabsOrder.length === 1\">\n" +
     "      <span class=\"text-primary\">\n" +
     "        {{targetTypeMap[res] | translate}} (<small>{{getTotalHits(res) | localizedNumber}}</small>)\n" +
     "      </span>\n" +
-    "      </a>\n" +
-    "    </li>\n" +
-    "    <li ng-repeat=\"res in resultTabsOrder\" ng-show=\"activeTarget[targetTypeMap[res]].active\" class=\"pull-right\">\n" +
-    "      <span search-result-pagination\n" +
-    "            target=\"activeTarget[targetTypeMap[res]].name\"\n" +
-    "            total-hits=\"activeTarget[targetTypeMap[res]].totalHits\"\n" +
-    "            on-change=\"onPaginate\"></span>\n" +
-    "    </li>\n" +
-    "    <li class=\"pull-right\">\n" +
-    "      <a target=\"_self\" download class=\"btn btn-info pull-right\" ng-href=\"{{getReportUrl()}}\">\n" +
-    "        <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
-    "      </a>\n" +
-    "    </li>\n" +
-    "  </ul>\n" +
-    "  <div class=\"tab-content\">\n" +
-    "    <ng-include include-replace ng-repeat=\"res in resultTabsOrder\"\n" +
-    "        src=\"'search/views/search-result-list-' + res + '-template.html'\"></ng-include>\n" +
-    "  </div>\n" +
+    "            </a>\n" +
+    "        </li>\n" +
+    "    </ul>\n" +
+    "    <div class=\"pull-right voffset2\">\n" +
+    "        <a target=\"_self\" download class=\"btn btn-info\" ng-href=\"{{getReportUrl()}}\">\n" +
+    "            <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
+    "        </a>\n" +
+    "        <div ng-repeat=\"res in resultTabsOrder\" ng-show=\"activeTarget[targetTypeMap[res]].active\" class=\"inline\">\n" +
+    "          <span search-result-pagination\n" +
+    "                target=\"activeTarget[targetTypeMap[res]].name\"\n" +
+    "                total-hits=\"activeTarget[targetTypeMap[res]].totalHits\"\n" +
+    "                on-change=\"onPaginate\"></span>\n" +
+    "        </div>\n" +
+    "    </div>\n" +
+    "    <div class=\"clearfix\"/>\n" +
+    "    <div class=\"tab-content\">\n" +
+    "        <ng-include include-replace ng-repeat=\"res in resultTabsOrder\"\n" +
+    "                    src=\"'search/views/search-result-list-' + res + '-template.html'\"></ng-include>\n" +
+    "    </div>\n" +
     "</div>\n" +
     "");
 }]);
 
 angular.module("search/views/search-result-list-variable-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-variable-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"tab-pane\" ng-show=\"options.variables.showSearchTab\" ng-class=\"{'active': activeTarget.variables.active}\">\n" +
     "  <variables-result-table loading=\"loading\"\n" +
     "      summaries=\"result.list.variableResultDto['obiba.mica.DatasetVariableResultDto.result'].summaries\"></variables-result-table>\n" +
@@ -10691,6 +11249,16 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
 
 angular.module("search/views/search.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div ng-show=\"inSearchMode()\">\n" +
     "  <div class=\"container alert-fixed-position\">\n" +
     "    <obiba-alert id=\"SearchController\"></obiba-alert>\n" +
@@ -10701,12 +11269,6 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "  </div>\n" +
     "\n" +
     "  <div ng-if=\"searchHeaderTemplateUrl\" ng-include=\"searchHeaderTemplateUrl\"></div>\n" +
-    "\n" +
-    "  <!-- Lang tabs -->\n" +
-    "  <ul class=\"nav nav-tabs\" role=\"tablist\" ng-if=\"tabs && tabs.length>1\">\n" +
-    "    <li ng-repeat=\"tab in tabs\" role=\"presentation\" ng-class=\"{ active: tab === lang }\"><a href role=\"tab\"\n" +
-    "      ng-click=\"setLocale(tab)\">{{'language.' + tab | translate}}</a></li>\n" +
-    "  </ul>\n" +
     "\n" +
     "  <div class=\"row voffset2\">\n" +
     "    <div class=\"col-md-3\" ng-if=\"hasFacetedTaxonomies\" >\n" +
@@ -10736,7 +11298,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "                          uib-popover-html=\"match.model.itemDescription | uibTypeaheadHighlight:query\"\n" +
     "                          popover-title=\"{{match.model.itemTitle}}\"\n" +
     "                          popover-placement=\"bottom\"\n" +
-    "                          popover-trigger=\"mouseenter\"\n" +
+    "                          popover-trigger=\"'mouseenter'\"\n" +
     "                          ng-bind-html=\"match.model.itemTitle | uibTypeaheadHighlight:query\">\n" +
     "                  </span>\n" +
     "                      <small class=\"help-block no-margin\" title=\"{{match.model.itemParentDescription}}\">\n" +
@@ -10792,17 +11354,17 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "                <li ng-if=\"hasClassificationsTitle\">\n" +
     "                  <label class=\"nav-label\" translate>search.classifications-title</label>\n" +
     "                </li>\n" +
-    "                <li ng-repeat=\"t in taxonomyNav track by $index\" title=\"{{t.locale.description.text}}\">\n" +
-    "                  <a href ng-click=\"showTaxonomy(t.target, t.name)\" ng-if=\"!t.terms\">{{t.locale.title.text}}</a>\n" +
+    "                <li ng-repeat=\"t in taxonomyNav track by $index\" title=\"{{translateTaxonomyNav(t, 'description')}}\">\n" +
+    "                  <a href ng-click=\"showTaxonomy(t.target, t.name)\" ng-if=\"!t.terms\">{{translateTaxonomyNav(t, 'title')}}</a>\n" +
     "            <span uib-dropdown ng-if=\"t.terms\">\n" +
     "              <ul class=\"nav nav-pills\">\n" +
     "                <li>\n" +
-    "                  <a href uib-dropdown-toggle>{{t.locale.title.text}} <span class=\"caret\"></span></a>\n" +
+    "                  <a href uib-dropdown-toggle>{{translateTaxonomyNav(t, 'title')}} <span class=\"caret\"></span></a>\n" +
     "                </li>\n" +
     "              </ul>\n" +
     "              <ul uib-dropdown-menu>\n" +
     "                <li ng-repeat=\"st in t.terms\">\n" +
-    "                  <a href ng-click=\"showTaxonomy(t.target, st.name)\" title=\"{{st.locale.description.text}}\">{{st.locale.title.text}}</a>\n" +
+    "                  <a href ng-click=\"showTaxonomy(t.target, st.name)\" title=\"{{translateTaxonomyNav(st, 'description')}}\">{{translateTaxonomyNav(st, 'title')}}</a>\n" +
     "                </li>\n" +
     "              </ul>\n" +
     "            </span>\n" +
@@ -10889,6 +11451,16 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
 
 angular.module("utils/views/unsaved-modal.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("utils/views/unsaved-modal.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"modal-content\">\n" +
     "    <div class=\"modal-header\">\n" +
     "        <h4 class=\"modal-title\" translate>unsaved-title</h4>\n" +
@@ -10907,7 +11479,7 @@ angular.module("utils/views/unsaved-modal.html", []).run(["$templateCache", func
 angular.module("views/pagination-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("views/pagination-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2016 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -10937,7 +11509,7 @@ angular.module("views/pagination-template.html", []).run(["$templateCache", func
     "\n" +
     "<ul class=\"pagination no-margin pagination-sm\" ng-if=\"1 < pages.length\">\n" +
     "  <li>\n" +
-    "    <a href=\"\" class=\"pagination-total\" ng-if=\"1 < pages.length\" class=\"pagination-total\">{{ range.lower }} - {{ range.upper }} of {{ range.total }}</a>\n" +
+    "    <a href=\"\" class=\"pagination-total\" ng-if=\"1 < pages.length\" class=\"pagination-total\"><span>{{ range.lower }} - {{ range.upper }} </span><span translate>pagination.of</span><span> {{ range.total }}</span></a>\n" +
     "  </li>\n" +
     "</ul>");
 }]);
