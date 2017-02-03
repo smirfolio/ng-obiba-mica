@@ -14,13 +14,16 @@ function NgObibaMicaFileBrowserOptionsProvider() {
   var options = {
     locale: 'en',
     downloadInline: true,
+    downloadKey: false,
     folders: {
       excludes: ['population']
     }
   };
 
   this.addExcludeFolder = function (folder) {
-    options.folders.excludes.push(folder);
+    if (folder) {
+      options.folders.excludes.push(folder);
+    }
   };
 
   this.$get = function () {

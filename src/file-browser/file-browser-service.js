@@ -16,7 +16,7 @@ angular.module('obiba.mica.fileBrowser')
     function ($resource, ngObibaMicaUrl) {
       var url = ngObibaMicaUrl.getUrl('FileBrowserFileResource');
       console.log('PATH>', url);
-      return $resource(url, {path: '@path'}, {
+      return $resource(url, {path: '@path', keyToken: '@keyToken'}, {
         'get': {method: 'GET', errorHandler: true}
       });
     }])
@@ -30,10 +30,17 @@ angular.module('obiba.mica.fileBrowser')
 
   .service('FileBrowserDownloadService', ['ngObibaMicaUrl', 'ngObibaMicaFileBrowserOptions',
     function (ngObibaMicaUrl, ngObibaMicaFileBrowserOptions) {
-      this.getUrl = function(path) {
-        return ngObibaMicaUrl.getUrl('FileBrowserDownloadUrl')
+      this.getUrl = function(path, keyToken) {
+        var url = ngObibaMicaUrl.getUrl('FileBrowserDownloadUrl')
           .replace(/:path/, path)
           .replace(/:inline/, ngObibaMicaFileBrowserOptions.downloadInline);
+        if(keyToken){
+          url = url.replace(/:key/, keyToken);
+        }
+        else{
+          url = url.replace(/:key/, '');
+        }
+          return url;
       };
 
       return this;

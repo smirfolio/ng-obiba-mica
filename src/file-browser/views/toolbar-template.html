@@ -11,19 +11,21 @@
     <div class="pull-left voffset3">
         <ol ng-show="data.document.path !== data.rootPath" class="breadcrumb mica-breadcrumb no-margin no-padding">
             <li>
-                <a href ng-click="navigateToPath(data.rootPath)">
+                <a href ng-click="navigateToPath(data.rootPath, data.document.keyToken)">
                     <span><i class="fa {{getDocumentIcon(data.document)}}"></i></span>
                 </a>
             </li>
+
             <li ng-repeat="part in data.breadcrumbs" ng-class="{'active': $first === $last && $last}">
-                <a ng-show="!$last && part.name !== '/'" href ng-click="navigateToPath(part.path)">
+                <a ng-show="!$last && part.name !== '/'" href ng-click="navigateToPath(part.path, data.document.keyToken)">
                     <span ng-show="part.name !== '/'">{{part.name}}</span>
                 </a>
                 <span class="no-padding" ng-if="part.name !== '/' && $last">{{data.document.name || 'empty'}}</span>
             </li>
         </ol>
     </div>
-    <div class="pull-right">
+    <div ng-if="!data.document.keyToken" class="pull-right">
+
       <table style="border:none">
         <tbody>
         <tr>

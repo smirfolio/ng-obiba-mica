@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-02-15
+ * Date: 2017-02-03
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8032,13 +8032,16 @@ function NgObibaMicaFileBrowserOptionsProvider() {
   var options = {
     locale: 'en',
     downloadInline: true,
+    downloadKey: false,
     folders: {
       excludes: ['population']
     }
   };
 
   this.addExcludeFolder = function (folder) {
-    options.folders.excludes.push(folder);
+    if (folder) {
+      options.folders.excludes.push(folder);
+    }
   };
 
   this.$get = function () {
@@ -8075,6 +8078,7 @@ angular.module('obiba.mica.fileBrowser')
       scope: {
         docPath: '@',
         docId: '@',
+        tokenKey: '@',
         subject: '='
       },
       templateUrl: 'file-browser/views/file-browser-template.html'
@@ -8123,15 +8127,15 @@ angular.module('obiba.mica.fileBrowser')
               ngObibaMicaFileBrowserOptions,
               FileBrowserDownloadService) {
 
-      var navigateToPath = function (path) {
+      var navigateToPath = function (path, keyToken) {
         clearSearchInternal();
-        getDocument(path);
+        getDocument(path, keyToken);
       };
 
-      var navigateTo = function (event, document) {
+      var navigateTo = function (event, document, keyToken) {
         event.stopPropagation();
         if (document) {
-          navigateToPath(document.path);
+          navigateToPath(document.path, keyToken);
         }
       };
 
@@ -8152,10 +8156,16 @@ angular.module('obiba.mica.fileBrowser')
         $scope.data.search.active = false;
       }
 
-      function getDocument(path) {
+      function getDocument(path, keyToken) {
+        var fileParam;
         $scope.data.search.active = false;
-
-        FileBrowserFileResource.get({path: path},
+        if(keyToken){
+          fileParam = {path: path, keyToken: keyToken};
+        }
+                else{
+          fileParam = {path: path};
+        }
+        FileBrowserFileResource.get(fileParam,
           function onSuccess(response) {
             $log.info(response);
             $scope.pagination.selected = -1;
@@ -8164,7 +8174,9 @@ angular.module('obiba.mica.fileBrowser')
             if (!$scope.data.document.children) {
               $scope.data.document.children = [];
             }
-
+            if(keyToken){
+              $scope.data.document.keyToken = keyToken;
+            }
             if ($scope.data.document.path === $scope.data.rootPath) {
               $scope.data.document.children = $scope.data.document.children.filter(function(child){
                 return ngObibaMicaFileBrowserOptions.folders.excludes.indexOf(child.name) < 0;
@@ -8180,7 +8192,7 @@ angular.module('obiba.mica.fileBrowser')
         );
       }
 
-      function navigateToParent(event, document) {
+      function navigateToParent(event, document, keyToken) {
         event.stopPropagation();
         var path = document.path;
 
@@ -8189,8 +8201,7 @@ angular.module('obiba.mica.fileBrowser')
         } else {
           path = path.substring(0, path.lastIndexOf('/'));
         }
-
-        navigateToPath(path);
+        navigateToPath(path, keyToken);
       }
 
       function navigateBack() {
@@ -8302,8 +8313,8 @@ angular.module('obiba.mica.fileBrowser')
       };
 
       var getTypeParts = function(document) {
-        return FileBrowserService.isFile(document) && document.attachment.type ?
-          document.attachment.type.split(/,|\s+/) :
+        return FileBrowserService.isFile(document) && document.type ?
+          document.type.split(/,|\s+/) :
           [];
       };
 
@@ -8343,6 +8354,7 @@ angular.module('obiba.mica.fileBrowser')
       };
 
       $scope.data = {
+        keyToken: null,
         details: {
           document: null,
           show: false
@@ -8365,8 +8377,13 @@ angular.module('obiba.mica.fileBrowser')
       $scope.$watchGroup(['docPath', 'docId'], function () {
         if ($scope.docPath && $scope.docId) {
           $scope.data.docRootIcon = BrowserBreadcrumbHelper.rootIcon($scope.docPath);
-          $scope.data.rootPath = $scope.docPath + ($scope.docId !== 'null' ? '/' + $scope.docId : '');
-          getDocument($scope.data.rootPath, null);
+            $scope.data.rootPath = $scope.docPath + ($scope.docId !== 'null' ? '/' + $scope.docId : '');
+          if($scope.tokenKey){
+            getDocument($scope.data.rootPath, $scope.tokenKey, null);
+          }
+          else {
+            getDocument($scope.data.rootPath, null);
+          }
         }
       });
 
@@ -8390,7 +8407,7 @@ angular.module('obiba.mica.fileBrowser')
     function ($resource, ngObibaMicaUrl) {
       var url = ngObibaMicaUrl.getUrl('FileBrowserFileResource');
       console.log('PATH>', url);
-      return $resource(url, {path: '@path'}, {
+      return $resource(url, {path: '@path', keyToken: '@keyToken'}, {
         'get': {method: 'GET', errorHandler: true}
       });
     }])
@@ -8404,12 +8421,18 @@ angular.module('obiba.mica.fileBrowser')
 
   .service('FileBrowserDownloadService', ['ngObibaMicaUrl', 'ngObibaMicaFileBrowserOptions',
     function (ngObibaMicaUrl, ngObibaMicaFileBrowserOptions) {
-      this.getUrl = function(path) {
-        return ngObibaMicaUrl.getUrl('FileBrowserDownloadUrl')
+      this.getUrl = function(path, keyToken) {
+        var url = ngObibaMicaUrl.getUrl('FileBrowserDownloadUrl')
           .replace(/:path/, path)
           .replace(/:inline/, ngObibaMicaFileBrowserOptions.downloadInline);
+        if(keyToken){
+          url = url.replace(/:key/, keyToken);
+        }
+        else{
+          url = url.replace(/:key/, '');
+        }
+          return url;
       };
-
       return this;
     }])
 
@@ -9210,7 +9233,7 @@ angular.module("file-browser/views/document-detail-template.html", []).run(["$te
     "      <div>\n" +
     "        <span ng-if=\"!isFile(data.details.document)\">{{data.details.document.size}} {{data.details.document.size === 1 ? 'item' : 'items' | translate}}</span>\n" +
     "        <span ng-if=\"isFile(data.details.document)\">{{data.details.document.size | bytes}}</span>\n" +
-    "        <a target=\"{{downloadTarget}}\" ng-href=\"{{getDownloadUrl(data.details.document.path)}}\" class=\"hoffset2\" title=\"{{'download' | translate}}\">\n" +
+    "        <a target=\"{{downloadTarget}}\" ng-href=\"{{getDownloadUrl(data.details.document.path, data.document.keyToken)}}\" class=\"hoffset2\" title=\"{{'download' | translate}}\">\n" +
     "          <span><i class=\"fa fa-download\"></i><span class=\"hoffset2\"></span></span>\n" +
     "        </a>\n" +
     "      </div>\n" +
@@ -9307,14 +9330,14 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "            <span ng-if=\"fileDocument\">\n" +
     "              <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
     "              <a ng-if=\"fileDocument\" target=\"{{downloadTarget}}\"\n" +
-    "                 style=\"text-decoration: none\" ng-click=\"$event.stopPropagation();\" ng-href=\"{{getDownloadUrl(document.path)}}\"\n" +
+    "                 style=\"text-decoration: none\" ng-click=\"$event.stopPropagation();\" ng-href=\"{{getDownloadUrl(document.path, data.document.keyToken)}}\"\n" +
     "                  title=\"{{document.name}}\">\n" +
     "                {{document.name}}\n" +
     "              </a>\n" +
     "            </span>\n" +
     "            <span ng-if=\"!fileDocument\">\n" +
     "              <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
-    "              <a href style=\"text-decoration: none\" ng-click=\"navigateTo($event, document)\">\n" +
+    "              <a href style=\"text-decoration: none\" ng-click=\"navigateTo($event, document, data.document.keyToken)\">\n" +
     "                {{document.name}}\n" +
     "              </a>\n" +
     "            </span>\n" +
@@ -9334,7 +9357,7 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "                </a>\n" +
     "              </li>\n" +
     "              <li role=\"menuitem\">\n" +
-    "                <a target=\"{{downloadTarget}}\" ng-href=\"{{getDownloadUrl(document.path)}}\">\n" +
+    "                <a target=\"{{downloadTarget}}\" ng-href=\"{{getDownloadUrl(document.path, data.document.keyToken)}}\">\n" +
     "                  <span><i class=\"fa fa-download\"></i><span class=\"hoffset2\">{{'download' | translate}}</span></span>\n" +
     "                </a>\n" +
     "              </li>\n" +
@@ -9359,7 +9382,7 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "          </span>\n" +
     "        </td>\n" +
     "        <td ng-if=\"data.search.active\">\n" +
-    "          <a href class=\"no-text-decoration\" ng-click=\"navigateToParent($event, document)\">\n" +
+    "          <a href class=\"no-text-decoration\" ng-click=\"navigateToParent($event, document, data.document.keyToken)\">\n" +
     "            {{document.attachment.path === data.rootPath ? '/' : document.attachment.path.replace(data.rootPath, '')}}\n" +
     "          </a>\n" +
     "        </td>\n" +
@@ -9421,19 +9444,21 @@ angular.module("file-browser/views/toolbar-template.html", []).run(["$templateCa
     "    <div class=\"pull-left voffset3\">\n" +
     "        <ol ng-show=\"data.document.path !== data.rootPath\" class=\"breadcrumb mica-breadcrumb no-margin no-padding\">\n" +
     "            <li>\n" +
-    "                <a href ng-click=\"navigateToPath(data.rootPath)\">\n" +
+    "                <a href ng-click=\"navigateToPath(data.rootPath, data.document.keyToken)\">\n" +
     "                    <span><i class=\"fa {{getDocumentIcon(data.document)}}\"></i></span>\n" +
     "                </a>\n" +
     "            </li>\n" +
+    "\n" +
     "            <li ng-repeat=\"part in data.breadcrumbs\" ng-class=\"{'active': $first === $last && $last}\">\n" +
-    "                <a ng-show=\"!$last && part.name !== '/'\" href ng-click=\"navigateToPath(part.path)\">\n" +
+    "                <a ng-show=\"!$last && part.name !== '/'\" href ng-click=\"navigateToPath(part.path, data.document.keyToken)\">\n" +
     "                    <span ng-show=\"part.name !== '/'\">{{part.name}}</span>\n" +
     "                </a>\n" +
     "                <span class=\"no-padding\" ng-if=\"part.name !== '/' && $last\">{{data.document.name || 'empty'}}</span>\n" +
     "            </li>\n" +
     "        </ol>\n" +
     "    </div>\n" +
-    "    <div class=\"pull-right\">\n" +
+    "    <div ng-if=\"!data.document.keyToken\" class=\"pull-right\">\n" +
+    "\n" +
     "      <table style=\"border:none\">\n" +
     "        <tbody>\n" +
     "        <tr>\n" +
@@ -10923,7 +10948,7 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "              ng-if=\"optionsCols.showStudiesQuestionnaireColumn || optionsCols.showStudiesPmColumn || optionsCols.showStudiesBioColumn || optionsCols.showStudiesOtherColumn\">\n" +
     "            search.study.dataSources\n" +
     "          </th>\n" +
-    "          <th rowspan=\"2\" translate ng-if=\"optionsCols.showStudiesParticipantsColumn\">search.study.participants</th>\n" +
+    "          <th rowspan=\"2\" translate>search.study.participants</th>\n" +
     "          <th rowspan=\"2\" translate ng-if=\"optionsCols.showStudiesNetworksColumn\">networks</th>\n" +
     "          <th translate\n" +
     "              ng-attr-colspan=\"{{optionsCols.showStudiesStudyDatasetsColumn + optionsCols.showStudiesHarmonizationDatasetsColumn}}\"\n" +
@@ -10963,26 +10988,26 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "          <td>\n" +
     "            <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"optionsCols.showStudiesDesignColumn\">\n" +
+    "          <td>\n" +
     "            <localized ng-repeat=\"d in summary.designs\" value=\"designs[d]\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"optionsCols.showStudiesQuestionnaireColumn\">\n" +
+    "          <td>\n" +
     "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'questionnaires')\"></i><span\n" +
     "              ng-if=\"!hasDatasource(summary.dataSources, 'questionnaires')\">-</span>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"optionsCols.showStudiesPmColumn\">\n" +
+    "          <td>\n" +
     "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'physical_measures')\"></i><span\n" +
     "              ng-if=\"!hasDatasource(summary.dataSources, 'physical_measures')\">-</span>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"optionsCols.showStudiesBioColumn\">\n" +
+    "          <td>\n" +
     "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'biological_samples')\"></i><span\n" +
     "              ng-if=\"!hasDatasource(summary.dataSources, 'biological_samples')\">-</span>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"optionsCols.showStudiesOtherColumn\">\n" +
+    "          <td>\n" +
     "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'others')\"></i><span\n" +
     "              ng-if=\"!hasDatasource(summary.dataSources, 'others')\">-</span>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"optionsCols.showStudiesParticipantsColumn\">\n" +
+    "          <td>\n" +
     "            <span ng-if=\"summary.targetNumber.number\">\n" +
     "              <localized-number value=\"summary.targetNumber.number\"></localized-number>\n" +
     "            </span>\n" +

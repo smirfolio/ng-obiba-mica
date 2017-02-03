@@ -41,15 +41,15 @@ angular.module('obiba.mica.fileBrowser')
               ngObibaMicaFileBrowserOptions,
               FileBrowserDownloadService) {
 
-      var navigateToPath = function (path) {
+      var navigateToPath = function (path, keyToken) {
         clearSearchInternal();
-        getDocument(path);
+        getDocument(path, keyToken);
       };
 
-      var navigateTo = function (event, document) {
+      var navigateTo = function (event, document, keyToken) {
         event.stopPropagation();
         if (document) {
-          navigateToPath(document.path);
+          navigateToPath(document.path, keyToken);
         }
       };
 
@@ -70,10 +70,16 @@ angular.module('obiba.mica.fileBrowser')
         $scope.data.search.active = false;
       }
 
-      function getDocument(path) {
+      function getDocument(path, keyToken) {
+        var fileParam;
         $scope.data.search.active = false;
-
-        FileBrowserFileResource.get({path: path},
+        if(keyToken){
+          fileParam = {path: path, keyToken: keyToken};
+        }
+        else{
+          fileParam = {path: path};
+        }
+        FileBrowserFileResource.get(fileParam,
           function onSuccess(response) {
             $log.info(response);
             $scope.pagination.selected = -1;
@@ -82,7 +88,9 @@ angular.module('obiba.mica.fileBrowser')
             if (!$scope.data.document.children) {
               $scope.data.document.children = [];
             }
-
+            if(keyToken){
+              $scope.data.document.keyToken = keyToken;
+            }
             if ($scope.data.document.path === $scope.data.rootPath) {
               $scope.data.document.children = $scope.data.document.children.filter(function(child){
                 return ngObibaMicaFileBrowserOptions.folders.excludes.indexOf(child.name) < 0;
@@ -98,7 +106,7 @@ angular.module('obiba.mica.fileBrowser')
         );
       }
 
-      function navigateToParent(event, document) {
+      function navigateToParent(event, document, keyToken) {
         event.stopPropagation();
         var path = document.path;
 
@@ -108,7 +116,7 @@ angular.module('obiba.mica.fileBrowser')
           path = path.substring(0, path.lastIndexOf('/'));
         }
 
-        navigateToPath(path);
+        navigateToPath(path, keyToken);
       }
 
       function navigateBack() {
@@ -220,8 +228,8 @@ angular.module('obiba.mica.fileBrowser')
       };
 
       var getTypeParts = function(document) {
-        return FileBrowserService.isFile(document) && document.attachment.type ?
-          document.attachment.type.split(/,|\s+/) :
+        return FileBrowserService.isFile(document) && document.type ?
+          document.type.split(/,|\s+/) :
           [];
       };
 
@@ -261,6 +269,7 @@ angular.module('obiba.mica.fileBrowser')
       };
 
       $scope.data = {
+        keyToken: null,
         details: {
           document: null,
           show: false
@@ -283,8 +292,13 @@ angular.module('obiba.mica.fileBrowser')
       $scope.$watchGroup(['docPath', 'docId'], function () {
         if ($scope.docPath && $scope.docId) {
           $scope.data.docRootIcon = BrowserBreadcrumbHelper.rootIcon($scope.docPath);
-          $scope.data.rootPath = $scope.docPath + ($scope.docId !== 'null' ? '/' + $scope.docId : '');
-          getDocument($scope.data.rootPath, null);
+            $scope.data.rootPath = $scope.docPath + ($scope.docId !== 'null' ? '/' + $scope.docId : '');
+          if($scope.tokenKey){
+            getDocument($scope.data.rootPath, $scope.tokenKey, null);
+          }
+          else {
+            getDocument($scope.data.rootPath, null);
+          }
         }
       });
 
