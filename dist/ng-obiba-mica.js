@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-02-03
+ * Date: 2017-02-16
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8162,7 +8162,7 @@ angular.module('obiba.mica.fileBrowser')
         if(keyToken){
           fileParam = {path: path, keyToken: keyToken};
         }
-                else{
+        else{
           fileParam = {path: path};
         }
         FileBrowserFileResource.get(fileParam,
@@ -8201,6 +8201,7 @@ angular.module('obiba.mica.fileBrowser')
         } else {
           path = path.substring(0, path.lastIndexOf('/'));
         }
+
         navigateToPath(path, keyToken);
       }
 
@@ -8433,6 +8434,7 @@ angular.module('obiba.mica.fileBrowser')
         }
           return url;
       };
+
       return this;
     }])
 
@@ -10948,7 +10950,7 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "              ng-if=\"optionsCols.showStudiesQuestionnaireColumn || optionsCols.showStudiesPmColumn || optionsCols.showStudiesBioColumn || optionsCols.showStudiesOtherColumn\">\n" +
     "            search.study.dataSources\n" +
     "          </th>\n" +
-    "          <th rowspan=\"2\" translate>search.study.participants</th>\n" +
+    "          <th rowspan=\"2\" translate ng-if=\"optionsCols.showStudiesParticipantsColumn\">search.study.participants</th>\n" +
     "          <th rowspan=\"2\" translate ng-if=\"optionsCols.showStudiesNetworksColumn\">networks</th>\n" +
     "          <th translate\n" +
     "              ng-attr-colspan=\"{{optionsCols.showStudiesStudyDatasetsColumn + optionsCols.showStudiesHarmonizationDatasetsColumn}}\"\n" +
@@ -10988,26 +10990,26 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "          <td>\n" +
     "            <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
-    "          <td>\n" +
+    "          <td ng-if=\"optionsCols.showStudiesDesignColumn\">\n" +
     "            <localized ng-repeat=\"d in summary.designs\" value=\"designs[d]\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
-    "          <td>\n" +
+    "          <td ng-if=\"optionsCols.showStudiesQuestionnaireColumn\">\n" +
     "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'questionnaires')\"></i><span\n" +
     "              ng-if=\"!hasDatasource(summary.dataSources, 'questionnaires')\">-</span>\n" +
     "          </td>\n" +
-    "          <td>\n" +
+    "          <td ng-if=\"optionsCols.showStudiesPmColumn\">\n" +
     "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'physical_measures')\"></i><span\n" +
     "              ng-if=\"!hasDatasource(summary.dataSources, 'physical_measures')\">-</span>\n" +
     "          </td>\n" +
-    "          <td>\n" +
+    "          <td ng-if=\"optionsCols.showStudiesBioColumn\">\n" +
     "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'biological_samples')\"></i><span\n" +
     "              ng-if=\"!hasDatasource(summary.dataSources, 'biological_samples')\">-</span>\n" +
     "          </td>\n" +
-    "          <td>\n" +
+    "          <td ng-if=\"optionsCols.showStudiesOtherColumn\">\n" +
     "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'others')\"></i><span\n" +
     "              ng-if=\"!hasDatasource(summary.dataSources, 'others')\">-</span>\n" +
     "          </td>\n" +
-    "          <td>\n" +
+    "          <td ng-if=\"optionsCols.showStudiesParticipantsColumn\">\n" +
     "            <span ng-if=\"summary.targetNumber.number\">\n" +
     "              <localized-number value=\"summary.targetNumber.number\"></localized-number>\n" +
     "            </span>\n" +
