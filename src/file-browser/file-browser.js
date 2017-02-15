@@ -19,6 +19,10 @@ function NgObibaMicaFileBrowserOptionsProvider() {
     }
   };
 
+  this.addExcludeFolder = function (folder) {
+    options.folders.excludes.push(folder);
+  };
+
   this.$get = function () {
     return options;
   };

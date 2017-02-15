@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-02-01
+ * Date: 2017-02-15
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8035,6 +8035,10 @@ function NgObibaMicaFileBrowserOptionsProvider() {
     folders: {
       excludes: ['population']
     }
+  };
+
+  this.addExcludeFolder = function (folder) {
+    options.folders.excludes.push(folder);
   };
 
   this.$get = function () {
