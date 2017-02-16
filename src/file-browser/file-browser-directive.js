@@ -20,6 +20,7 @@ angular.module('obiba.mica.fileBrowser')
       scope: {
         docPath: '@',
         docId: '@',
+        tokenKey: '@',
         subject: '='
       },
       templateUrl: 'file-browser/views/file-browser-template.html'
