@@ -13,9 +13,10 @@
           <th translate ng-if="optionsCols.showVariablesDatasetsColumn">search.dataset.label</th>
         </tr>
         </thead>
+        <tbody test-ref="search-results">
         <tr ng-repeat="summary in summaries">
           <td>
-            <a
+            <a test-ref="name"
               href="{{PageUrlService.variablePage(summary.id) ? PageUrlService.variablePage(summary.id) : PageUrlService.datasetPage(summary.datasetId, summary.variableType)}}">
               {{summary.name}}
             </a>

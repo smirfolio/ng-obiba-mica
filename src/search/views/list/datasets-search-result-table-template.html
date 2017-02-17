@@ -14,14 +14,14 @@
           <th translate ng-if="optionsCols.showDatasetsVariablesColumn">variables</th>
         </tr>
         </thead>
-        <tbody>
+        <tbody test-ref="search-results">
         <tr ng-if="!summaries || !summaries.length">
           <td colspan="6" translate>search.dataset.noResults</td>
         </tr>
         <tr ng-repeat="summary in summaries">
           <td ng-if="optionsCols.showDatasetsAcronymColumn">
             <a ng-href="{{PageUrlService.datasetPage(summary.id, summary.variableType)}}">
-              <localized value="summary.acronym" lang="lang"></localized>
+              <localized value="summary.acronym" lang="lang" test-ref="acronym"></localized>
             </a>
           </td>
           <td>

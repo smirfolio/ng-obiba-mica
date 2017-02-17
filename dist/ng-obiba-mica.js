@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-02-16
+ * Date: 2017-02-17
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -10500,7 +10500,7 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
     "          popover-trigger=\"'mouseenter'\">\n" +
     "    <i class=\"fa fa-info-circle\"> </i>\n" +
     "  </span>\n" +
-    "    <span title=\"{{localizeCriterion()}}\">\n" +
+    "    <span title=\"{{localizeCriterion()}}\" test-ref=\"search-criterion\">\n" +
     "    {{truncate(localizeCriterion())}}\n" +
     "    </span>\n" +
     "    <span class='fa fa-caret-down'></span>\n" +
@@ -10752,14 +10752,14 @@ angular.module("search/views/list/datasets-search-result-table-template.html", [
     "          <th translate ng-if=\"optionsCols.showDatasetsVariablesColumn\">variables</th>\n" +
     "        </tr>\n" +
     "        </thead>\n" +
-    "        <tbody>\n" +
+    "        <tbody test-ref=\"search-results\">\n" +
     "        <tr ng-if=\"!summaries || !summaries.length\">\n" +
     "          <td colspan=\"6\" translate>search.dataset.noResults</td>\n" +
     "        </tr>\n" +
     "        <tr ng-repeat=\"summary in summaries\">\n" +
     "          <td ng-if=\"optionsCols.showDatasetsAcronymColumn\">\n" +
     "            <a ng-href=\"{{PageUrlService.datasetPage(summary.id, summary.variableType)}}\">\n" +
-    "              <localized value=\"summary.acronym\" lang=\"lang\"></localized>\n" +
+    "              <localized value=\"summary.acronym\" lang=\"lang\" test-ref=\"acronym\"></localized>\n" +
     "            </a>\n" +
     "          </td>\n" +
     "          <td>\n" +
@@ -10821,14 +10821,14 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
     "          <th translate ng-if=\"optionsCols.showNetworksDataschemaVariablesColumn\">search.variable.dataschema</th>\n" +
     "        </tr>\n" +
     "        </thead>\n" +
-    "        <tbody>\n" +
+    "        <tbody test-ref=\"search-results\">\n" +
     "        <tr ng-if=\"!summaries || !summaries.length\">\n" +
     "          <td colspan=\"6\" translate>search.network.noResults</td>\n" +
     "        </tr>\n" +
     "        <tr ng-repeat=\"summary in summaries\">\n" +
     "          <td>\n" +
     "            <a ng-href=\"{{PageUrlService.networkPage(summary.id)}}\">\n" +
-    "              <localized value=\"summary.acronym\" lang=\"lang\"></localized>\n" +
+    "              <localized value=\"summary.acronym\" lang=\"lang\" test-ref=\"acronym\"></localized>\n" +
     "            </a>\n" +
     "          </td>\n" +
     "          <td>\n" +
@@ -11069,9 +11069,10 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
     "          <th translate ng-if=\"optionsCols.showVariablesDatasetsColumn\">search.dataset.label</th>\n" +
     "        </tr>\n" +
     "        </thead>\n" +
+    "        <tbody test-ref=\"search-results\">\n" +
     "        <tr ng-repeat=\"summary in summaries\">\n" +
     "          <td>\n" +
-    "            <a\n" +
+    "            <a test-ref=\"name\"\n" +
     "              href=\"{{PageUrlService.variablePage(summary.id) ? PageUrlService.variablePage(summary.id) : PageUrlService.datasetPage(summary.datasetId, summary.variableType)}}\">\n" +
     "              {{summary.name}}\n" +
     "            </a>\n" +
@@ -11214,19 +11215,19 @@ angular.module("search/views/search-result-list-template.html", []).run(["$templ
     "  -->\n" +
     "\n" +
     "<div ng-show=\"display === 'list'\">\n" +
-    "    <ul class=\"nav nav-pills pull-left voffset2\">\n" +
+    "    <ul class=\"nav nav-pills pull-left voffset2\" test-ref=\"search-counts\">\n" +
     "        <li role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
     "            ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}\"\n" +
     "            ng-if=\"options[targetTypeMap[res]].showSearchTab\">\n" +
     "            <a href\n" +
-    "               ng-click=\"selectTarget(targetTypeMap[res])\" ng-if=\"resultTabsOrder.length > 1\">\n" +
+    "               ng-click=\"selectTarget(targetTypeMap[res])\" ng-if=\"resultTabsOrder.length > 1\"\">\n" +
     "                {{targetTypeMap[res] | translate}}\n" +
-    "                <span class=\"badge hoffset1\"><small>{{getTotalHits(res) | localizedNumber}}</small></span>\n" +
+    "                <span class=\"badge hoffset1\" test-ref=\"{{targetTypeMap[res]}}\"><small>{{getTotalHits(res) | localizedNumber}}</small></span>\n" +
     "            </a>\n" +
     "            <a href style=\"cursor: default;\" ng-if=\"resultTabsOrder.length === 1\">\n" +
-    "      <span class=\"text-primary\">\n" +
-    "        {{targetTypeMap[res] | translate}} (<small>{{getTotalHits(res) | localizedNumber}}</small>)\n" +
-    "      </span>\n" +
+    "              <span class=\"text-primary\">\n" +
+    "                {{targetTypeMap[res] | translate}} (<small>{{getTotalHits(res) | localizedNumber}}</small>)\n" +
+    "              </span>\n" +
     "            </a>\n" +
     "        </li>\n" +
     "    </ul>\n" +
