@@ -27,14 +27,14 @@
           <th translate ng-if="optionsCols.showNetworksDataschemaVariablesColumn">search.variable.dataschema</th>
         </tr>
         </thead>
-        <tbody>
+        <tbody test-ref="search-results">
         <tr ng-if="!summaries || !summaries.length">
           <td colspan="6" translate>search.network.noResults</td>
         </tr>
         <tr ng-repeat="summary in summaries">
           <td>
             <a ng-href="{{PageUrlService.networkPage(summary.id)}}">
-              <localized value="summary.acronym" lang="lang"></localized>
+              <localized value="summary.acronym" lang="lang" test-ref="acronym"></localized>
             </a>
           </td>
           <td>
