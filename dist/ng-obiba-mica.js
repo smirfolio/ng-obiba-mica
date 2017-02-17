@@ -10980,11 +10980,11 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "          <th translate ng-if=\"optionsCols.showStudiesDataschemaVariablesColumn\">search.variable.dataschema</th>\n" +
     "        </tr>\n" +
     "        </thead>\n" +
-    "        <tbody>\n" +
+    "        <tbody test-ref=\"search-results\">\n" +
     "        <tr ng-repeat=\"summary in summaries\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "          <td>\n" +
     "            <a ng-href=\"{{PageUrlService.studyPage(summary.id)}}\">\n" +
-    "              <localized value=\"summary.acronym\" lang=\"lang\"></localized>\n" +
+    "              <localized value=\"summary.acronym\" lang=\"lang\" test-ref=\"acronym\"></localized>\n" +
     "            </a>\n" +
     "          </td>\n" +
     "          <td>\n" +
@@ -11235,7 +11235,7 @@ angular.module("search/views/search-result-list-template.html", []).run(["$templ
     "        <a target=\"_self\" download class=\"btn btn-info\" ng-href=\"{{getReportUrl()}}\">\n" +
     "            <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
     "        </a>\n" +
-    "        <div ng-repeat=\"res in resultTabsOrder\" ng-show=\"activeTarget[targetTypeMap[res]].active\" class=\"inline\">\n" +
+    "        <div ng-repeat=\"res in resultTabsOrder\" ng-show=\"activeTarget[targetTypeMap[res]].active\" class=\"inline\" test-ref=\"pager\">\n" +
     "          <span search-result-pagination\n" +
     "                target=\"activeTarget[targetTypeMap[res]].name\"\n" +
     "                total-hits=\"activeTarget[targetTypeMap[res]].totalHits\"\n" +

@@ -29,7 +29,7 @@
         <a target="_self" download class="btn btn-info" ng-href="{{getReportUrl()}}">
             <i class="fa fa-download"></i> {{'download' | translate}}
         </a>
-        <div ng-repeat="res in resultTabsOrder" ng-show="activeTarget[targetTypeMap[res]].active" class="inline">
+        <div ng-repeat="res in resultTabsOrder" ng-show="activeTarget[targetTypeMap[res]].active" class="inline" test-ref="pager">
           <span search-result-pagination
                 target="activeTarget[targetTypeMap[res]].name"
                 total-hits="activeTarget[targetTypeMap[res]].totalHits"
