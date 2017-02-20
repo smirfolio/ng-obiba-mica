@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-02-17
+ * Date: 2017-02-20
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -6277,7 +6277,7 @@ angular.module('obiba.mica.search')
                 var d3Config = new D3ChartConfig(methodDesignStudies.vocabulary)
                     .withType('multiBarHorizontalChart')
                     .withTitle($filter('translate')(charOptions.studiesDesigns.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
-                    .withData(methodDesignStudies.entries, false, $filter('translate')('graphics.nbr-studies'));
+                    .withData(angular.copy(methodDesignStudies.entries), false, $filter('translate')('graphics.nbr-studies'));
                 d3Config.options.chart.showLegend = false;
 
                 var chartObject= {
@@ -6343,7 +6343,7 @@ angular.module('obiba.mica.search')
                       d3Config: new D3ChartConfig(numberParticipant.vocabulary)
                           .withType('pieChart')
                           .withTitle($filter('translate')(charOptions.numberParticipants.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
-                          .withData(numberParticipant.entries, true)
+                          .withData(angular.copy(numberParticipant.entries), true)
                     }
                   }
                 };
@@ -6363,7 +6363,7 @@ angular.module('obiba.mica.search')
                 var d3Config = new D3ChartConfig(bioSamplesStudies.vocabulary)
                     .withType('multiBarHorizontalChart')
                     .withTitle($filter('translate')(charOptions.biologicalSamples.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
-                    .withData(bioSamplesStudies.entries, false, $filter('translate')('graphics.nbr-studies'));
+                    .withData(angular.copy(bioSamplesStudies.entries), false, $filter('translate')('graphics.nbr-studies'));
                 d3Config.options.chart.showLegend = false;
 
                 var chartObject = {
