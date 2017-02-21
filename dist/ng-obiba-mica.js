@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-02-20
+ * Date: 2017-02-21
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -1282,12 +1282,15 @@ angular.module('obiba.mica.access')
 
       var validate = function(form) {
         $scope.$broadcast('schemaFormValidate');
-        if (form.$valid) {
-          $uibModal.open({
-            scope: $scope,
-            templateUrl: 'access/views/data-access-request-validation-modal.html'
-          });
-        }
+        $uibModal.open({
+          resolve: {
+            isValid: form.$valid
+          },
+          templateUrl: 'access/views/data-access-request-validation-modal.html',
+          controller: ['$scope', 'isValid', function ($scope, isValid) {
+            $scope.isValid = isValid;
+          }]
+        });
       };
 
       var cancel = function() {
@@ -8610,7 +8613,7 @@ angular.module("access/views/data-access-request-form.html", []).run(["$template
     "\n" +
     "  <div ng-if=\"validForm\">\n" +
     "\n" +
-    "    <form name=\"request\">\n" +
+    "    <form name=\"request\" role=\"form\" novalidate class=\"ng-scope ng-invalid ng-invalid-required ng-dirty\">\n" +
     "      <div class=\"pull-right\" ng-if=\"loaded\">\n" +
     "        <a ng-click=\"cancel()\" type=\"button\" class=\"btn btn-default\">\n" +
     "          <span translate>cancel</span>\n" +
@@ -8969,18 +8972,18 @@ angular.module("access/views/data-access-request-validation-modal.html", []).run
     "<div class=\"modal-content\">\n" +
     "  <div class=\"modal-header\">\n" +
     "    <button type=\"button\" class=\"close\" aria-hidden=\"true\" ng-click=\"$dismiss()\">&times;</button>\n" +
-    "    <h4 ng-if=\"form.requestForm.$valid\" class=\"modal-title\">\n" +
+    "    <h4 ng-if=\"isValid\" class=\"modal-title\">\n" +
     "      <i class=\"fa fa-check fa-lg\"></i>\n" +
     "      {{'data-access-request.validation.title-success' | translate}}\n" +
     "    </h4>\n" +
-    "    <h4 ng-if=\"!form.requestForm.$valid\" class=\"modal-title\">\n" +
+    "    <h4 ng-if=\"!isValid\" class=\"modal-title\">\n" +
     "      <i class=\"fa fa-times fa-lg\"></i>\n" +
     "      {{'data-access-request.validation.title-error' | translate}}\n" +
     "    </h4>\n" +
     "  </div>\n" +
     "  <div class=\"modal-body\">\n" +
-    "    <p ng-if=\"form.requestForm.$valid\">{{'data-access-request.validation.success' | translate}}</p>\n" +
-    "    <p ng-if=\"!form.requestForm.$valid\" translate>{{'data-access-request.validation.error' | translate}}</p>\n" +
+    "    <p ng-if=\"isValid\">{{'data-access-request.validation.success' | translate}}</p>\n" +
+    "    <p ng-if=\"!isValid\" translate>{{'data-access-request.validation.error' | translate}}</p>\n" +
     "  </div>\n" +
     "  <div class=\"modal-footer\">\n" +
     "    <button type=\"button\" class=\"btn btn-primary voffest4\" ng-click=\"$dismiss()\">\n" +
