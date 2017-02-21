@@ -619,12 +619,15 @@ angular.module('obiba.mica.access')
 
       var validate = function(form) {
         $scope.$broadcast('schemaFormValidate');
-        if (form.$valid) {
-          $uibModal.open({
-            scope: $scope,
-            templateUrl: 'access/views/data-access-request-validation-modal.html'
-          });
-        }
+        $uibModal.open({
+          resolve: {
+            isValid: form.$valid
+          },
+          templateUrl: 'access/views/data-access-request-validation-modal.html',
+          controller: ['$scope', 'isValid', function ($scope, isValid) {
+            $scope.isValid = isValid;
+          }]
+        });
       };
 
       var cancel = function() {
