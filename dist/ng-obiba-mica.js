@@ -1029,8 +1029,9 @@ angular.module('obiba.mica.access')
         return DataAccessRequestResource.get({id: $routeParams.id}, function onSuccess(request) {
           try {
             $scope.form.model = request.content ? JSON.parse(request.content) : {};
-            $scope.requestDownloadUrl =
-              ngObibaMicaUrl.getUrl('DataAccessRequestDownloadPdfResource').replace(':id', $scope.dataAccessRequest.id) + '?lang=' + $translate.use();
+            var requestDownloadUrlPdf =  ngObibaMicaUrl.getUrl('DataAccessRequestDownloadPdfResource').replace(':id', $scope.dataAccessRequest.id);
+            $scope.requestDownloadUrl = requestDownloadUrlPdf + ((requestDownloadUrlPdf.indexOf('?q=')!==-1)?'&':'?') +'lang=' + $translate.use();
+
 
             $scope.attachments = angular.copy(request.attachments) || [];
           } catch (e) {
