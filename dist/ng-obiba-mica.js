@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-02-22
+ * Date: 2017-02-23
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -9238,7 +9238,7 @@ angular.module("file-browser/views/document-detail-template.html", []).run(["$te
     "      <div>\n" +
     "        <span ng-if=\"!isFile(data.details.document)\">{{data.details.document.size}} {{data.details.document.size === 1 ? 'item' : 'items' | translate}}</span>\n" +
     "        <span ng-if=\"isFile(data.details.document)\">{{data.details.document.size | bytes}}</span>\n" +
-    "        <a target=\"{{downloadTarget}}\" ng-href=\"{{getDownloadUrl(data.details.document.path, data.document.keyToken)}}\" class=\"hoffset2\" title=\"{{'download' | translate}}\">\n" +
+    "        <a target=\"{{downloadTarget}}\" ng-href=\"{{getDownloadUrl(data.details.document.path, data.document.keyToken)}}\" class=\"hoffset2\" title=\"{{'download' | translate}}\" download>\n" +
     "          <span><i class=\"fa fa-download\"></i><span class=\"hoffset2\"></span></span>\n" +
     "        </a>\n" +
     "      </div>\n" +
@@ -9336,13 +9336,13 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "              <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
     "              <a ng-if=\"fileDocument\" target=\"{{downloadTarget}}\"\n" +
     "                 style=\"text-decoration: none\" ng-click=\"$event.stopPropagation();\" ng-href=\"{{getDownloadUrl(document.path, data.document.keyToken)}}\"\n" +
-    "                  title=\"{{document.name}}\">\n" +
+    "                  title=\"{{document.name}}\" download>\n" +
     "                {{document.name}}\n" +
     "              </a>\n" +
     "            </span>\n" +
     "            <span ng-if=\"!fileDocument\">\n" +
     "              <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
-    "              <a href style=\"text-decoration: none\" ng-click=\"navigateTo($event, document, data.document.keyToken)\">\n" +
+    "              <a href style=\"text-decoration: none\" ng-click=\"navigateTo($event, document, data.document.keyToken)\" download>\n" +
     "                {{document.name}}\n" +
     "              </a>\n" +
     "            </span>\n" +
@@ -9362,7 +9362,7 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "                </a>\n" +
     "              </li>\n" +
     "              <li role=\"menuitem\">\n" +
-    "                <a target=\"{{downloadTarget}}\" ng-href=\"{{getDownloadUrl(document.path, data.document.keyToken)}}\">\n" +
+    "                <a target=\"{{downloadTarget}}\" ng-href=\"{{getDownloadUrl(document.path, data.document.keyToken)}}\" download>\n" +
     "                  <span><i class=\"fa fa-download\"></i><span class=\"hoffset2\">{{'download' | translate}}</span></span>\n" +
     "                </a>\n" +
     "              </li>\n" +
