@@ -509,7 +509,7 @@ CriteriaBuilder.prototype.build = function () {
 angular.module('obiba.mica.search')
 
   // TODO merge with RqlQueryService or place all node manipularions here
-  .service('RqlQueryUtils', [function () {
+  .service('RqlQueryUtils', ['LocalizedValues', function (LocalizedValues) {
     var self = this;
 
     /**
@@ -919,6 +919,10 @@ angular.module('obiba.mica.search')
       return vocabularyAttributeValue(vocabulary, 'alias', vocabulary.name);
     };
 
+    this.vocabularyTermsSortKey = function (vocabulary) {
+      return vocabularyAttributeValue(vocabulary, 'termsSortKey', null);
+    };
+
     this.isTermsVocabulary = function (vocabulary) {
       return self.vocabularyType(vocabulary) === VOCABULARY_TYPES.STRING && vocabulary.terms;
     };
@@ -933,6 +937,26 @@ angular.module('obiba.mica.search')
 
     this.isRangeVocabulary = function (vocabulary) {
       return vocabulary.terms && (self.vocabularyType(vocabulary) === VOCABULARY_TYPES.INTEGER || self.vocabularyType(vocabulary) === VOCABULARY_TYPES.DECIMAL);
+    };
+
+    this.sortVocabularyTerms = function(vocabulary, locale) {
+      var termsSortKey = self.vocabularyTermsSortKey(vocabulary);
+      if (termsSortKey && vocabulary.terms && vocabulary.terms.length > 0) {
+        switch (termsSortKey) {
+          case 'name':
+            vocabulary.terms.sort(function (a, b) {
+              return a[termsSortKey].localeCompare(b[termsSortKey]);
+            });
+            break;
+          case 'title':
+            vocabulary.terms.sort(function (a, b) {
+              var titleA = LocalizedValues.forLocale(a[termsSortKey], locale);
+              var titleB = LocalizedValues.forLocale(b[termsSortKey], locale);
+              return titleA.localeCompare(titleB);
+            });
+            break;
+        }
+      }
     };
   }])
 
