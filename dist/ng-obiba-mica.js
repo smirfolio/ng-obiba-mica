@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-02-23
+ * Date: 2017-02-24
  */
 'use strict';
 
@@ -8843,7 +8843,7 @@ angular.module("attachment/attachment-list-template.html", []).run(["$templateCa
 angular.module("file-browser/views/document-detail-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("file-browser/views/document-detail-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2016 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -8869,7 +8869,7 @@ angular.module("file-browser/views/document-detail-template.html", []).run(["$te
     "      <div>\n" +
     "        <span ng-if=\"!isFile(data.details.document)\">{{data.details.document.size}} {{data.details.document.size === 1 ? 'item' : 'items' | translate}}</span>\n" +
     "        <span ng-if=\"isFile(data.details.document)\">{{data.details.document.size | bytes}}</span>\n" +
-    "        <a target=\"{{downloadTarget}}\" ng-href=\"{{getDownloadUrl(data.details.document.path)}}\" class=\"hoffset2\" title=\"{{'download' | translate}}\">\n" +
+    "        <a target=\"{{downloadTarget}}\" ng-href=\"{{getDownloadUrl(data.details.document.path)}}\" class=\"hoffset2\" title=\"{{'download' | translate}}\" download>\n" +
     "          <span><i class=\"fa fa-download\"></i><span class=\"hoffset2\"></span></span>\n" +
     "        </a>\n" +
     "      </div>\n" +
@@ -8919,6 +8919,16 @@ angular.module("file-browser/views/document-detail-template.html", []).run(["$te
 
 angular.module("file-browser/views/documents-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("file-browser/views/documents-table-template.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
     "<div class=\"panel panel-default table-responsive table-responsive-dropdown\">\n" +
     "  <div class=\"panel-heading\" ng-if=\"data.search.active\">\n" +
     "      <a class=\"no-text-decoration\" ng-click=\"clearSearch()\">\n" +
@@ -8957,13 +8967,13 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "              <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
     "              <a ng-if=\"fileDocument\" target=\"{{downloadTarget}}\"\n" +
     "                 style=\"text-decoration: none\" ng-click=\"$event.stopPropagation();\" ng-href=\"{{getDownloadUrl(document.path)}}\"\n" +
-    "                  title=\"{{document.name}}\">\n" +
+    "                  title=\"{{document.name}}\" download>\n" +
     "                {{document.name}}\n" +
     "              </a>\n" +
     "            </span>\n" +
     "            <span ng-if=\"!fileDocument\">\n" +
     "              <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
-    "              <a href style=\"text-decoration: none\" ng-click=\"navigateTo($event, document)\">\n" +
+    "              <a href style=\"text-decoration: none\" ng-click=\"navigateTo($event, document)\" download>\n" +
     "                {{document.name}}\n" +
     "              </a>\n" +
     "            </span>\n" +
@@ -8983,7 +8993,7 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "                </a>\n" +
     "              </li>\n" +
     "              <li role=\"menuitem\">\n" +
-    "                <a target=\"{{downloadTarget}}\" ng-href=\"{{getDownloadUrl(document.path)}}\">\n" +
+    "                <a target=\"{{downloadTarget}}\" ng-href=\"{{getDownloadUrl(document.path)}}\" download>\n" +
     "                  <span><i class=\"fa fa-download\"></i><span class=\"hoffset2\">{{'download' | translate}}</span></span>\n" +
     "                </a>\n" +
     "              </li>\n" +

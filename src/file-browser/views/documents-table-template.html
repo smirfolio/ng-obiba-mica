@@ -1,3 +1,13 @@
+<!--
+  ~ Copyright (c) 2017 OBiBa. All rights reserved.
+  ~
+  ~ This program and the accompanying materials
+  ~ are made available under the terms of the GNU Public License v3.0.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
 <div class="panel panel-default table-responsive table-responsive-dropdown">
   <div class="panel-heading" ng-if="data.search.active">
       <a class="no-text-decoration" ng-click="clearSearch()">
@@ -36,13 +46,13 @@
               <i class="fa {{getDocumentIcon(document)}}"></i>
               <a ng-if="fileDocument" target="{{downloadTarget}}"
                  style="text-decoration: none" ng-click="$event.stopPropagation();" ng-href="{{getDownloadUrl(document.path)}}"
-                  title="{{document.name}}">
+                  title="{{document.name}}" download>
                 {{document.name}}
               </a>
             </span>
             <span ng-if="!fileDocument">
               <i class="fa {{getDocumentIcon(document)}}"></i>
-              <a href style="text-decoration: none" ng-click="navigateTo($event, document)">
+              <a href style="text-decoration: none" ng-click="navigateTo($event, document)" download>
                 {{document.name}}
               </a>
             </span>
@@ -62,7 +72,7 @@
                 </a>
               </li>
               <li role="menuitem">
-                <a target="{{downloadTarget}}" ng-href="{{getDownloadUrl(document.path)}}">
+                <a target="{{downloadTarget}}" ng-href="{{getDownloadUrl(document.path)}}" download>
                   <span><i class="fa fa-download"></i><span class="hoffset2">{{'download' | translate}}</span></span>
                 </a>
               </li>
