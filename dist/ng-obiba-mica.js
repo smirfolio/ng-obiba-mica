@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-02-24
+ * Date: 2017-02-27
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -9385,13 +9385,13 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
     "              <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
     "              <a ng-if=\"fileDocument\" target=\"{{downloadTarget}}\"\n" +
     "                 style=\"text-decoration: none\" ng-click=\"$event.stopPropagation();\" ng-href=\"{{getDownloadUrl(document.path, data.document.keyToken)}}\"\n" +
-    "                  title=\"{{document.name}}\" download>\n" +
+    "                  title=\"{{document.name}}\">\n" +
     "                {{document.name}}\n" +
     "              </a>\n" +
     "            </span>\n" +
     "            <span ng-if=\"!fileDocument\">\n" +
     "              <i class=\"fa {{getDocumentIcon(document)}}\"></i>\n" +
-    "              <a href style=\"text-decoration: none\" ng-click=\"navigateTo($event, document, data.document.keyToken)\" download>\n" +
+    "              <a href style=\"text-decoration: none\" ng-click=\"navigateTo($event, document, data.document.keyToken)\">\n" +
     "                {{document.name}}\n" +
     "              </a>\n" +
     "            </span>\n" +
