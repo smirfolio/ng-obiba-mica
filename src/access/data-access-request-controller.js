@@ -576,6 +576,7 @@ angular.module('obiba.mica.access')
     'DataAccessRequestConfig',
     'SfOptionsService',
     'FormDirtyStateObserver',
+    'DataAccessRequestDirtyStateService',
     '$timeout',
 
     function ($rootScope,
@@ -597,6 +598,7 @@ angular.module('obiba.mica.access')
               DataAccessRequestConfig,
               SfOptionsService,
               FormDirtyStateObserver,
+              DataAccessRequestDirtyStateService,
               $timeout) {
 
       var onSuccess = function(response, getResponseHeaders) {
@@ -735,5 +737,10 @@ angular.module('obiba.mica.access')
       };
 
       FormDirtyStateObserver.observe($scope);
+
+      DataAccessRequestDirtyStateService.setForm($scope.form);
+      $scope.$on('$destroy', function () {
+        DataAccessRequestDirtyStateService.setForm(null);
+      });
 
     }]);
