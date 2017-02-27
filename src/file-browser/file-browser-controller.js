@@ -228,8 +228,8 @@ angular.module('obiba.mica.fileBrowser')
       };
 
       var getTypeParts = function(document) {
-        return FileBrowserService.isFile(document) && document.type ?
-          document.type.split(/,|\s+/) :
+        return FileBrowserService.isFile(document) && document.attachment.type ?
+          document.attachment.type.split(/,|\s+/) :
           [];
       };
 
