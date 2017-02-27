@@ -1239,6 +1239,7 @@ angular.module('obiba.mica.access')
     'DataAccessRequestConfig',
     'SfOptionsService',
     'FormDirtyStateObserver',
+    'DataAccessRequestDirtyStateService',
     '$timeout',
 
     function ($rootScope,
@@ -1260,6 +1261,7 @@ angular.module('obiba.mica.access')
               DataAccessRequestConfig,
               SfOptionsService,
               FormDirtyStateObserver,
+              DataAccessRequestDirtyStateService,
               $timeout) {
 
       var onSuccess = function(response, getResponseHeaders) {
@@ -1398,6 +1400,11 @@ angular.module('obiba.mica.access')
       };
 
       FormDirtyStateObserver.observe($scope);
+
+      DataAccessRequestDirtyStateService.setForm($scope.form);
+      $scope.$on('$destroy', function () {
+        DataAccessRequestDirtyStateService.setForm(null);
+      });
 
     }]);
 ;/*
@@ -1552,6 +1559,19 @@ angular.module('obiba.mica.access')
     };
 
   })
+
+  .service('DataAccessRequestDirtyStateService', [
+    function() {
+      var form = null;
+
+      this.setForm = function (f) {
+        form = f;
+      };
+
+      this.isDirty = function () {
+        return form && form.$dirty;
+      };
+    }])
 
   .service('DataAccessRequestService', ['$translate', 'SessionProxy', 'USER_ROLES', 'ngObibaMicaUrl',
     function ($translate, SessionProxy, USER_ROLES, ngObibaMicaUrl) {
