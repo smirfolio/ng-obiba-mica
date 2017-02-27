@@ -14,9 +14,10 @@
 
   <obiba-alert id="DataAccessRequestEditController"></obiba-alert>
 
-  <div ng-if="validForm">
+  <!-- 'ng-if' does not bind the form to controller scope -->
+  <div ng-show="validForm">
 
-    <form name="request" role="form" novalidate class="ng-scope ng-invalid ng-invalid-required ng-dirty">
+    <form name="form" role="form" novalidate class="ng-scope ng-invalid ng-invalid-required ng-dirty">
       <div class="pull-right" ng-if="loaded">
         <a ng-click="cancel()" type="button" class="btn btn-default">
           <span translate>cancel</span>
@@ -26,14 +27,14 @@
           <span translate>save</span>
         </a>
 
-        <a ng-click="validate(request)" type="button" class="btn btn-info">
+        <a ng-click="validate(form)" type="button" class="btn btn-info">
           <span translate>validate</span>
         </a>
       </div>
 
       <div class="clearfix"></div>
 
-      <div sf-model="form.model" sf-form="form.definition" sf-schema="form.schema" required="true" sf-options="sfOptions"></div>
+      <div sf-model="sfForm.model" sf-form="sfForm.definition" sf-schema="sfForm.schema" required="true" sf-options="sfOptions"></div>
 
       <div class="pull-right" ng-if="loaded">
         <a ng-click="cancel()" type="button" class="btn btn-default">
@@ -44,7 +45,7 @@
         <span translate>save</span>
       </a>
 
-        <a ng-click="validate(request)" type="button" class="btn btn-info">
+        <a ng-click="validate(form)" type="button" class="btn btn-info">
           <span translate>validate</span>
         </a>
       </div>

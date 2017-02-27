@@ -1239,7 +1239,6 @@ angular.module('obiba.mica.access')
     'DataAccessRequestConfig',
     'SfOptionsService',
     'FormDirtyStateObserver',
-    'DataAccessRequestDirtyStateService',
     '$timeout',
 
     function ($rootScope,
@@ -1261,7 +1260,6 @@ angular.module('obiba.mica.access')
               DataAccessRequestConfig,
               SfOptionsService,
               FormDirtyStateObserver,
-              DataAccessRequestDirtyStateService,
               $timeout) {
 
       var onSuccess = function(response, getResponseHeaders) {
@@ -1298,7 +1296,7 @@ angular.module('obiba.mica.access')
       };
 
       var save = function() {
-        $scope.dataAccessRequest.content = angular.toJson($scope.form.model);
+        $scope.dataAccessRequest.content = angular.toJson($scope.sfForm.model);
 
         if ($scope.newRequest) {
           DataAccessRequestsResource.save($scope.dataAccessRequest, onSuccess, onError);
@@ -1319,10 +1317,10 @@ angular.module('obiba.mica.access')
 
         DataAccessFormConfigResource.get(
           function onSuccess(dataAccessForm) {
-            $scope.form.definition = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.definition, []));
-            $scope.form.schema = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.schema, {}));
-            if ($scope.form.definition.length === 0) {
-              $scope.form.definition = [];
+            $scope.sfForm.definition = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.definition, []));
+            $scope.sfForm.schema = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.schema, {}));
+            if ($scope.sfForm.definition.length === 0) {
+              $scope.sfForm.definition = [];
               $scope.validForm = false;
               AlertService.alert({
                 id: 'DataAccessRequestEditController',
@@ -1330,8 +1328,8 @@ angular.module('obiba.mica.access')
                 msgKey: 'data-access-config.parse-error.definition'
               });
             }
-            if (Object.getOwnPropertyNames($scope.form.schema).length === 0) {
-              $scope.form.schema = {};
+            if (Object.getOwnPropertyNames($scope.sfForm.schema).length === 0) {
+              $scope.sfForm.schema = {};
               $scope.validForm = false;
               AlertService.alert({
                 id: 'DataAccessRequestEditController',
@@ -1344,9 +1342,9 @@ angular.module('obiba.mica.access')
               $scope.dataAccessRequest = $routeParams.id ?
                 DataAccessRequestResource.get({id: $routeParams.id}, function onSuccess(request) {
                   try {
-                    $scope.form.model = request.content ? JSON.parse(request.content) : {};
+                    $scope.sfForm.model = request.content ? JSON.parse(request.content) : {};
                   } catch (e) {
-                    $scope.form.model = {};
+                    $scope.sfForm.model = {};
                     AlertService.alert({
                       id: 'DataAccessRequestEditController',
                       type: 'danger',
@@ -1355,7 +1353,7 @@ angular.module('obiba.mica.access')
                   }
 
                   $scope.canEdit = DataAccessRequestService.actions.canEdit(request);
-                  $scope.form.schema.readonly = !$scope.canEdit;
+                  $scope.sfForm.schema.readonly = !$scope.canEdit;
                   $scope.$broadcast('schemaFormRedraw');
 
                   request.attachments = request.attachments || [];
@@ -1368,7 +1366,7 @@ angular.module('obiba.mica.access')
             }
 
             $timeout(function () {
-              $scope.form = angular.copy($scope.form);
+              $scope.sfForm = angular.copy($scope.sfForm);
               $scope.loaded = true;
             }, 250);
           },
@@ -1393,18 +1391,13 @@ angular.module('obiba.mica.access')
       $scope.validate = validate;
       $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('form');
       $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('form');
-      $scope.form = {
+      $scope.sfForm = {
         schema: null,
         definition: null,
         model: {}
       };
 
       FormDirtyStateObserver.observe($scope);
-
-      DataAccessRequestDirtyStateService.setForm($scope.form);
-      $scope.$on('$destroy', function () {
-        DataAccessRequestDirtyStateService.setForm(null);
-      });
 
     }]);
 ;/*
@@ -1559,19 +1552,6 @@ angular.module('obiba.mica.access')
     };
 
   })
-
-  .service('DataAccessRequestDirtyStateService', [
-    function() {
-      var form = null;
-      
-      this.setForm = function (f) {
-        form = f;
-      };
-      
-      this.isDirty = function () {
-        return form && form.$dirty;
-      };
-    }])
 
   .service('DataAccessRequestService', ['$translate', 'SessionProxy', 'USER_ROLES', 'ngObibaMicaUrl',
     function ($translate, SessionProxy, USER_ROLES, ngObibaMicaUrl) {
@@ -8660,9 +8640,10 @@ angular.module("access/views/data-access-request-form.html", []).run(["$template
     "\n" +
     "  <obiba-alert id=\"DataAccessRequestEditController\"></obiba-alert>\n" +
     "\n" +
-    "  <div ng-if=\"validForm\">\n" +
+    "  <!-- 'ng-if' does not bind the form to controller scope -->\n" +
+    "  <div ng-show=\"validForm\">\n" +
     "\n" +
-    "    <form name=\"request\" role=\"form\" novalidate class=\"ng-scope ng-invalid ng-invalid-required ng-dirty\">\n" +
+    "    <form name=\"form\" role=\"form\" novalidate class=\"ng-scope ng-invalid ng-invalid-required ng-dirty\">\n" +
     "      <div class=\"pull-right\" ng-if=\"loaded\">\n" +
     "        <a ng-click=\"cancel()\" type=\"button\" class=\"btn btn-default\">\n" +
     "          <span translate>cancel</span>\n" +
@@ -8672,14 +8653,14 @@ angular.module("access/views/data-access-request-form.html", []).run(["$template
     "          <span translate>save</span>\n" +
     "        </a>\n" +
     "\n" +
-    "        <a ng-click=\"validate(request)\" type=\"button\" class=\"btn btn-info\">\n" +
+    "        <a ng-click=\"validate(form)\" type=\"button\" class=\"btn btn-info\">\n" +
     "          <span translate>validate</span>\n" +
     "        </a>\n" +
     "      </div>\n" +
     "\n" +
     "      <div class=\"clearfix\"></div>\n" +
     "\n" +
-    "      <div sf-model=\"form.model\" sf-form=\"form.definition\" sf-schema=\"form.schema\" required=\"true\" sf-options=\"sfOptions\"></div>\n" +
+    "      <div sf-model=\"sfForm.model\" sf-form=\"sfForm.definition\" sf-schema=\"sfForm.schema\" required=\"true\" sf-options=\"sfOptions\"></div>\n" +
     "\n" +
     "      <div class=\"pull-right\" ng-if=\"loaded\">\n" +
     "        <a ng-click=\"cancel()\" type=\"button\" class=\"btn btn-default\">\n" +
@@ -8690,7 +8671,7 @@ angular.module("access/views/data-access-request-form.html", []).run(["$template
     "        <span translate>save</span>\n" +
     "      </a>\n" +
     "\n" +
-    "        <a ng-click=\"validate(request)\" type=\"button\" class=\"btn btn-info\">\n" +
+    "        <a ng-click=\"validate(form)\" type=\"button\" class=\"btn btn-info\">\n" +
     "          <span translate>validate</span>\n" +
     "        </a>\n" +
     "      </div>\n" +
