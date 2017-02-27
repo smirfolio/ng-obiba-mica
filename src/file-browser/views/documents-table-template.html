@@ -46,13 +46,13 @@
               <i class="fa {{getDocumentIcon(document)}}"></i>
               <a ng-if="fileDocument" target="{{downloadTarget}}"
                  style="text-decoration: none" ng-click="$event.stopPropagation();" ng-href="{{getDownloadUrl(document.path)}}"
-                  title="{{document.name}}" download>
+                  title="{{document.name}}">
                 {{document.name}}
               </a>
             </span>
             <span ng-if="!fileDocument">
               <i class="fa {{getDocumentIcon(document)}}"></i>
-              <a href style="text-decoration: none" ng-click="navigateTo($event, document)" download>
+              <a href style="text-decoration: none" ng-click="navigateTo($event, document)">
                 {{document.name}}
               </a>
             </span>
