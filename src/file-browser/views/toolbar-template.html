@@ -34,11 +34,12 @@
               <span class="input-group input-group-sm no-padding-top no-padding-right">
                <span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
                <input ng-keyup="searchKeyUp($event)"
-                   ng-model="data.search.text"
-                   type="text"
-                   class="form-control ng-pristine ng-untouched ng-valid"
-                   aria-describedby="study-search"
-                   style="max-width: 200px;">
+                      ng-model="data.search.text"
+                      type="text"
+                      class="form-control ng-pristine ng-untouched ng-valid"
+                      aria-describedby="study-search"
+                      style="max-width: 200px;"
+                      test-ref="file-search-input">
                <span ng-show="data.search.text" title="{{'search-tooltip.clear' | translate}}" ng-click="clearSearch()"
                   class="input-group-addon">
                 <i class="fa fa-times"></i>

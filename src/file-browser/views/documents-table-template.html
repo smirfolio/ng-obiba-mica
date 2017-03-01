@@ -17,7 +17,7 @@
       <span ng-if="!data.search.recursively">{{'file.search-results.current' | translate}}</span>
       ({{data.document.children.length}})
   </div>
-  <div ng-if="data.document.children.length > 0">
+  <div ng-if="data.document.children.length > 0" test-ref="file-search-result-list">
     <table class="table table-bordered table-striped no-padding no-margin">
       <thead>
       <tr>
@@ -44,7 +44,7 @@
           <span>
             <span ng-if="fileDocument">
               <i class="fa {{getDocumentIcon(document)}}"></i>
-              <a ng-if="fileDocument" target="{{downloadTarget}}"
+              <a ng-if="fileDocument" target="{{downloadTarget}}" test-ref="file-name"
                  style="text-decoration: none" ng-click="$event.stopPropagation();" ng-href="{{getDownloadUrl(document.path, data.document.keyToken)}}"
                   title="{{document.name}}">
                 {{document.name}}
@@ -82,22 +82,22 @@
 
         <td>
           <span ng-repeat="t in getTypeParts(document) track by $index"
-            class="label label-info"
+            class="label label-info" test-ref="file-type"
             ng-class="{'hoffset1' : !$first}">{{t}}</span>
         </td>
-        <td class="no-wrap" ng-if="fileDocument">
+        <td class="no-wrap" ng-if="fileDocument" test-ref="file-size">
           {{document.size | bytes}}
         </td>
         <td class="no-wrap" ng-if="!fileDocument">
           {{document.size}} {{document.size === 1 ? 'item' : 'items' | translate}}
         </td>
         <td>
-          <span title="{{document.timestamps.lastUpdate | amDateFormat: 'lll'}}">
+          <span title="{{document.timestamps.lastUpdate | amDateFormat: 'lll'}}" test-ref="file-lastModification">
             {{document.timestamps.lastUpdate | amTimeAgo}}
           </span>
         </td>
         <td ng-if="data.search.active">
-          <a href class="no-text-decoration" ng-click="navigateToParent($event, document, data.document.keyToken)">
+          <a href class="no-text-decoration" ng-click="navigateToParent($event, document, data.document.keyToken)" test-ref="file-parent">
             {{document.attachment.path === data.rootPath ? '/' : document.attachment.path.replace(data.rootPath, '')}}
           </a>
         </td>
