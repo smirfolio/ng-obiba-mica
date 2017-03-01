@@ -1104,7 +1104,12 @@ angular.module('obiba.mica.search')
       };
 
       var onSelectTerm = function (target, taxonomy, vocabulary, args) {
+
         args = args || {};
+
+        if (args.text) {
+          args.text = args.text.replace(/[^a-zA-Z0-9 _-]/g, '');
+        }
 
         if(angular.isString(args)) {
           args = {term: args};
