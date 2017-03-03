@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-03-01
+ * Date: 2017-03-03
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -547,7 +547,8 @@ angular.module('obiba.mica.attachment')
         multiple: '=',
         accept: '@',
         files: '=',
-        disabled: '='
+        disabled: '=',
+        onError:'='
       },
       templateUrl: 'attachment/attachment-input-template.html',
       controller: 'AttachmentCtrl'
@@ -597,7 +598,18 @@ angular.module('obiba.mica.attachment')
                 $timeout(function () { attachment.showProgressBar = false; }, 1000);
               }
             );
-          });
+          })
+          .error(function(response){
+            $log.error('File upload failed: ', JSON.stringify(response, null, 2));
+            var index = $scope.files.indexOf(attachment);
+            if (index !== -1) {
+              $scope.files.splice(index, 1);
+            }
+
+            if ($scope.onError){
+              $scope.onError(attachment);
+            }
+        });
       };
 
       $scope.onFileSelect = function (file) {
@@ -871,6 +883,15 @@ angular.module('obiba.mica.access')
         });
       };
 
+      function onAttachmentError(attachment) {
+        AlertService.alert({
+          id: 'DataAccessRequestViewController',
+          type: 'danger',
+          msgKey: 'server.error.file.upload',
+          msgArgs: [attachment.fileName]
+        });
+      }
+
       var retrieveComments = function() {
         $scope.form.comments = DataAccessRequestCommentsResource.query({id: $routeParams.id});
       };
@@ -1016,6 +1037,7 @@ angular.module('obiba.mica.access')
       $scope.editAttachments = function() {
         toggleAttachmentsForm(true);
       };
+      $scope.onAttachmentError = onAttachmentError;
       $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('view');
       $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('view');
       $scope.getStatusHistoryInfoId = DataAccessRequestService.getStatusHistoryInfoId;
@@ -1278,6 +1300,15 @@ angular.module('obiba.mica.access')
         });
       };
 
+      function onAttachmentError(attachment) {
+        AlertService.alert({
+          id: 'DataAccessRequestEditController',
+          type: 'danger',
+          msgKey: 'server.error.file.upload',
+          msgArgs: [attachment.fileName]
+        });
+      }
+
       $scope.getDataAccessListPageUrl = DataAccessRequestService.getListDataAccessRequestPageUrl();
 
       var validate = function(form) {
@@ -1315,6 +1346,7 @@ angular.module('obiba.mica.access')
 
         SfOptionsService.transform().then(function(options) {
           $scope.sfOptions = options;
+          $scope.sfOptions.onError = onAttachmentError;
         });
 
         DataAccessFormConfigResource.get(
@@ -8618,7 +8650,7 @@ angular.module("access/views/data-access-request-documents-view.html", []).run([
     "\n" +
     "    <div class=\"panel panel-default\" ng-show=\"showAttachmentsForm\">\n" +
     "      <div class=\"panel-body\">\n" +
-    "        <attachment-input files=\"attachments\" multiple=\"true\"></attachment-input>\n" +
+    "        <attachment-input files=\"attachments\" multiple=\"true\" on-error=\"onAttachmentError\"></attachment-input>\n" +
     "\n" +
     "        <div class=\"voffset2\">\n" +
     "          <a ng-click=\"cancelAttachments()\" type=\"button\" class=\"btn btn-default\">\n" +
