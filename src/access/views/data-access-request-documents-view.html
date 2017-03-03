@@ -15,7 +15,7 @@
 
     <div class="panel panel-default" ng-show="showAttachmentsForm">
       <div class="panel-body">
-        <attachment-input files="attachments" multiple="true"></attachment-input>
+        <attachment-input files="attachments" multiple="true" on-error="onAttachmentError"></attachment-input>
 
         <div class="voffset2">
           <a ng-click="cancelAttachments()" type="button" class="btn btn-default">

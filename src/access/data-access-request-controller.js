@@ -208,6 +208,15 @@ angular.module('obiba.mica.access')
         });
       };
 
+      function onAttachmentError(attachment) {
+        AlertService.alert({
+          id: 'DataAccessRequestViewController',
+          type: 'danger',
+          msgKey: 'server.error.file.upload',
+          msgArgs: [attachment.fileName]
+        });
+      }
+
       var retrieveComments = function() {
         $scope.form.comments = DataAccessRequestCommentsResource.query({id: $routeParams.id});
       };
@@ -353,6 +362,7 @@ angular.module('obiba.mica.access')
       $scope.editAttachments = function() {
         toggleAttachmentsForm(true);
       };
+      $scope.onAttachmentError = onAttachmentError;
       $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('view');
       $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('view');
       $scope.getStatusHistoryInfoId = DataAccessRequestService.getStatusHistoryInfoId;
@@ -615,6 +625,15 @@ angular.module('obiba.mica.access')
         });
       };
 
+      function onAttachmentError(attachment) {
+        AlertService.alert({
+          id: 'DataAccessRequestEditController',
+          type: 'danger',
+          msgKey: 'server.error.file.upload',
+          msgArgs: [attachment.fileName]
+        });
+      }
+
       $scope.getDataAccessListPageUrl = DataAccessRequestService.getListDataAccessRequestPageUrl();
 
       var validate = function(form) {
@@ -652,6 +671,7 @@ angular.module('obiba.mica.access')
 
         SfOptionsService.transform().then(function(options) {
           $scope.sfOptions = options;
+          $scope.sfOptions.onError = onAttachmentError;
         });
 
         DataAccessFormConfigResource.get(

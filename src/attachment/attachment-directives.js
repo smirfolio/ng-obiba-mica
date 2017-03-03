@@ -46,7 +46,8 @@ angular.module('obiba.mica.attachment')
         multiple: '=',
         accept: '@',
         files: '=',
-        disabled: '='
+        disabled: '=',
+        onError:'='
       },
       templateUrl: 'attachment/attachment-input-template.html',
       controller: 'AttachmentCtrl'
@@ -96,7 +97,18 @@ angular.module('obiba.mica.attachment')
                 $timeout(function () { attachment.showProgressBar = false; }, 1000);
               }
             );
-          });
+          })
+          .error(function(response){
+            $log.error('File upload failed: ', JSON.stringify(response, null, 2));
+            var index = $scope.files.indexOf(attachment);
+            if (index !== -1) {
+              $scope.files.splice(index, 1);
+            }
+
+            if ($scope.onError){
+              $scope.onError(attachment);
+            }
+        });
       };
 
       $scope.onFileSelect = function (file) {
