@@ -968,7 +968,7 @@ angular.module('obiba.mica.search')
 
         if (item.id) {
           var id = CriteriaIdGenerator.generate(item.taxonomy, item.vocabulary);
-          var existingItem = $scope.search.criteriaItemMap[id];
+          var existingItem = RqlQueryService.findCriteriaItemFromTree(item, $scope.search.criteria);
           var growlMsgKey;
 
           if (existingItem && id.indexOf('dceIds') !== -1 && fullCoverage) {
@@ -1081,7 +1081,7 @@ angular.module('obiba.mica.search')
         }
 
         if (replaceTarget) {
-          var criteriaItem = criteriaItemFromMap(item);
+          var criteriaItem = RqlQueryService.findCriteriaItemFromTree(item, $scope.search.criteria);
           if (criteriaItem) {
             reduce(criteriaItem.parent, criteriaItem);
           }
@@ -1090,13 +1090,6 @@ angular.module('obiba.mica.search')
         onDisplayChanged(useCurrentDisplay && $scope.search.display ? $scope.search.display : DISPLAY_TYPES.LIST);
         selectCriteria(item, RQL_NODE.AND, true, showNotification, fullCoverage);
       };
-
-      function criteriaItemFromMap(item) {
-        var key = Object.keys($scope.search.criteriaItemMap).filter(function (k) {
-          return item.id.indexOf(k) !== -1;
-        })[0];
-        return $scope.search.criteriaItemMap[key];
-      }
 
       var onRemoveCriteria = function(item) {
         var found = RqlQueryService.findCriterion($scope.search.criteria, item.id);
@@ -2293,6 +2286,12 @@ angular.module('obiba.mica.search')
 
         // if id is null, it is a click on the total count for the term
         if (id) {
+          // This extra query is to enforce a narrow down based on the dataset type which affects counts
+          if ($scope.bucket === BUCKET_TYPES.STUDY || $scope.bucket === BUCKET_TYPES.DCE) {
+            criteria.bucketItem = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'StudyDataset');
+          } else if ($scope.bucket === BUCKET_TYPES.NETWORK) {
+            criteria.bucketItem = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'HarmonizationDataset');
+          }
           criteria.item = RqlQueryService.createCriteriaItem(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary, id);
         } else if ($scope.bucket === BUCKET_TYPES.STUDY || $scope.bucket === BUCKET_TYPES.DCE || $scope.bucket === BUCKET_TYPES.DATASET) {
           criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'StudyDataset');
@@ -2301,20 +2300,12 @@ angular.module('obiba.mica.search')
         }
 
         $q.all(criteria).then(function (criteria) {
-          if ($scope.bucket === BUCKET_TYPES.STUDY || $scope.bucket === BUCKET_TYPES.DCE) {
-            RqlQueryService.ensureCriteria($scope.criteria, QUERY_TARGETS.VARIABLE, 'Mica_variable', 'variableType', 'Study').then(function () {
-              $scope.onUpdateCriteria(criteria.varItem, type, false, true);
-            });
-          } else {
-            $scope.onUpdateCriteria(criteria.varItem, type, false, true);
-          }
-
+          $scope.onUpdateCriteria(criteria.varItem, type, false, true);
           if (criteria.item) {
-            var consume = $scope.$on('ngObibaMicaQueryUpdated', function() {
-              // do not initiate the next query until all search parts, namely, the item map is updated
-              consume();
-              $scope.onUpdateCriteria(criteria.item, type);
-            });
+            $scope.onUpdateCriteria(criteria.item, type);
+          }
+          if (criteria.bucketItem) {
+            $scope.onUpdateCriteria(criteria.bucketItem, type);
           }
         });
       };
