@@ -752,13 +752,22 @@ angular.module('obiba.mica.search')
         if ($location.path() !== '/search') {
           return;
         }
+
+        var sort = $scope.search.type === QUERY_TYPES.VARIABLES ? SORT_FIELDS.NAME : SORT_FIELDS.ACRONYM;
+
+        if ($scope.search.type === QUERY_TYPES.VARIABLES) {
+          sort = [SORT_FIELDS.CONTAINER_ID, SORT_FIELDS.POPULATION_IDS, SORT_FIELDS.EARLIER_START, SORT_FIELDS.DATASET_ID, SORT_FIELDS.INDEX, SORT_FIELDS.NAME];
+        } else if ($scope.search.type === QUERY_TYPES.DATASETS) {
+          sort = [SORT_FIELDS.STUDY_TABLE.STUDY_ID, SORT_FIELDS.STUDY_TABLE.POPULATION_ID, SORT_FIELDS.START, SORT_FIELDS.ACRONYM];
+        }
+
         var localizedQuery =
           RqlQueryService.prepareSearchQuery(
             $scope.search.type,
             $scope.search.rqlQuery,
             $scope.search.pagination,
             $scope.lang,
-            $scope.search.type === QUERY_TYPES.VARIABLES ? SORT_FIELDS.NAME : SORT_FIELDS.ACRONYM
+            sort
           );
         switch ($scope.search.display) {
           case DISPLAY_TYPES.LIST:
