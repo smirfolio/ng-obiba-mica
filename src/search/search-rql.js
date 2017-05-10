@@ -74,7 +74,17 @@ var RQL_NODE = {
 /* exported SORT_FIELDS */
 var SORT_FIELDS = {
   ACRONYM: 'acronym',
-  NAME: 'name'
+  NAME: 'name',
+  CONTAINER_ID: 'containerId',
+  POPULATION_IDS: 'populationIds',
+  EARLIER_START: 'earliestStart',
+  DATASET_ID: 'datasetId',
+  INDEX: 'index',
+  STUDY_TABLE: {
+    STUDY_ID: 'studyTable.studyId',
+    POPULATION_ID: 'studyTable.populationId'
+  },
+  START: 'start'
 };
 
 /* exported targetToType */
@@ -891,7 +901,15 @@ angular.module('obiba.mica.search')
 
       if (!found) {
         var sortQuery = new RqlQuery('sort');
-        sortQuery.args.push(sort);
+
+        if (Array.isArray(sort)) {
+          sort.forEach(function (s) {
+            sortQuery.args.push(s);
+          });
+        } else {
+          sortQuery.args.push(sort);
+        }
+
         targetQuery.args.push(sortQuery);
       }
     };

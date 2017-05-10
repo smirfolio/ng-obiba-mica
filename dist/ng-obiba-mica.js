@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-05-04
+ * Date: 2017-05-09
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -2152,7 +2152,17 @@ var RQL_NODE = {
 /* exported SORT_FIELDS */
 var SORT_FIELDS = {
   ACRONYM: 'acronym',
-  NAME: 'name'
+  NAME: 'name',
+  CONTAINER_ID: 'containerId',
+  POPULATION_IDS: 'populationIds',
+  EARLIER_START: 'earliestStart',
+  DATASET_ID: 'datasetId',
+  INDEX: 'index',
+  STUDY_TABLE: {
+    STUDY_ID: 'studyTable.studyId',
+    POPULATION_ID: 'studyTable.populationId'
+  },
+  START: 'start'
 };
 
 /* exported targetToType */
@@ -2969,7 +2979,15 @@ angular.module('obiba.mica.search')
 
       if (!found) {
         var sortQuery = new RqlQuery('sort');
-        sortQuery.args.push(sort);
+
+        if (Array.isArray(sort)) {
+          sort.forEach(function (s) {
+            sortQuery.args.push(s);
+          });
+        } else {
+          sortQuery.args.push(sort);
+        }
+
         targetQuery.args.push(sortQuery);
       }
     };
@@ -4729,13 +4747,22 @@ angular.module('obiba.mica.search')
         if ($location.path() !== '/search') {
           return;
         }
+
+        var sort = $scope.search.type === QUERY_TYPES.VARIABLES ? SORT_FIELDS.NAME : SORT_FIELDS.ACRONYM;
+
+        if ($scope.search.type === QUERY_TYPES.VARIABLES) {
+          sort = [SORT_FIELDS.CONTAINER_ID, SORT_FIELDS.POPULATION_IDS, SORT_FIELDS.EARLIER_START, SORT_FIELDS.DATASET_ID, SORT_FIELDS.INDEX, SORT_FIELDS.NAME];
+        } else if ($scope.search.type === QUERY_TYPES.DATASETS) {
+          sort = [SORT_FIELDS.STUDY_TABLE.STUDY_ID, SORT_FIELDS.STUDY_TABLE.POPULATION_ID, SORT_FIELDS.START, SORT_FIELDS.ACRONYM];
+        }
+
         var localizedQuery =
           RqlQueryService.prepareSearchQuery(
             $scope.search.type,
             $scope.search.rqlQuery,
             $scope.search.pagination,
             $scope.lang,
-            $scope.search.type === QUERY_TYPES.VARIABLES ? SORT_FIELDS.NAME : SORT_FIELDS.ACRONYM
+            sort
           );
         switch ($scope.search.display) {
           case DISPLAY_TYPES.LIST:
