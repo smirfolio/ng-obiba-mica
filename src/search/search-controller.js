@@ -183,7 +183,6 @@ function BaseTaxonomiesController($rootScope,
       self.updateStateFromLocation();
     }
   });
-  
   $scope.$watch('taxonomies.vocabulary', function(value) {
     if(RqlQueryUtils && value) {
       $scope.taxonomies.isNumericVocabulary = RqlQueryUtils.isNumericVocabulary($scope.taxonomies.vocabulary);
@@ -753,21 +752,30 @@ angular.module('obiba.mica.search')
           return;
         }
 
-        var sort = $scope.search.type === QUERY_TYPES.VARIABLES ? SORT_FIELDS.NAME : SORT_FIELDS.ACRONYM;
+      function updateSortByType() {
+        var rqlSort = RqlQueryService.getTargetQuerySort($scope.search.type, $scope.search.rqlQuery);
+        var sort = rqlSort && rqlSort.args ? rqlSort.args : null;
 
-        if ($scope.search.type === QUERY_TYPES.VARIABLES) {
-          sort = [SORT_FIELDS.CONTAINER_ID, SORT_FIELDS.POPULATION_IDS, SORT_FIELDS.EARLIER_START, SORT_FIELDS.DATASET_ID, SORT_FIELDS.INDEX, SORT_FIELDS.NAME];
-        } else if ($scope.search.type === QUERY_TYPES.DATASETS) {
-          sort = [SORT_FIELDS.STUDY_TABLE.STUDY_ID, SORT_FIELDS.STUDY_TABLE.POPULATION_ID, SORT_FIELDS.START, SORT_FIELDS.ACRONYM];
+        if (!sort) {
+          sort = $scope.search.type === QUERY_TYPES.VARIABLES ? SORT_FIELDS.NAME : SORT_FIELDS.ACRONYM;
+
+          if ($scope.search.type === QUERY_TYPES.VARIABLES) {
+            sort = [SORT_FIELDS.CONTAINER_ID, SORT_FIELDS.POPULATION_IDS, SORT_FIELDS.EARLIER_START, SORT_FIELDS.DATASET_ID, SORT_FIELDS.INDEX, SORT_FIELDS.NAME];
+          } else if ($scope.search.type === QUERY_TYPES.DATASETS) {
+            sort = [SORT_FIELDS.STUDY_TABLE.STUDY_ID, SORT_FIELDS.STUDY_TABLE.POPULATION_ID, SORT_FIELDS.START, SORT_FIELDS.ACRONYM];
+          }
         }
 
+        return sort;
+      }
+
         var localizedQuery =
-          RqlQueryService.prepareSearchQuery(
+          RqlQueryService.prepareSearchQueryAndSerialize(
             $scope.search.type,
             $scope.search.rqlQuery,
             $scope.search.pagination,
             $scope.lang,
-            sort
+            updateSortByType()
           );
         switch ($scope.search.display) {
           case DISPLAY_TYPES.LIST:
@@ -1280,7 +1288,7 @@ angular.module('obiba.mica.search')
         $scope.isFullscreen = !$scope.isFullscreen;
       };
 
-      $scope.$on('$locationChangeSuccess', function (newLocation, oldLocation) {
+      $scope.$on('$locationChangeSuccess', function (event, newLocation, oldLocation) {
         initSearchTabs();
 
         if (newLocation !== oldLocation) {
@@ -1290,6 +1298,17 @@ angular.module('obiba.mica.search')
 
       $rootScope.$on('ngObibaMicaSearch.fullscreenChange', function(obj, isEnabled) {
         $scope.isFullscreen = isEnabled;
+      });
+      
+      $rootScope.$on('ngObibaMicaSearch.sortChange', function(obj, sort) {
+        $scope.search.rqlQuery = RqlQueryService.prepareSearchQuery(
+          $scope.search.type,
+          $scope.search.rqlQuery,
+          $scope.search.pagination,
+          $scope.lang,
+          sort.order+sort.sort
+        );
+        refreshQuery();
       });
 
       function init() {
@@ -1611,11 +1630,13 @@ angular.module('obiba.mica.search')
     'ngObibaMicaUrl',
     'RqlQueryService',
     'RqlQueryUtils',
+    'ngObibaMicaSearchTemplateUrl',
     function ($scope,
               ngObibaMicaSearch,
               ngObibaMicaUrl,
               RqlQueryService,
-              RqlQueryUtils) {
+              RqlQueryUtils,
+              ngObibaMicaSearchTemplateUrl) {
 
       function updateTarget(type) {
         Object.keys($scope.activeTarget).forEach(function (key) {
@@ -1632,6 +1653,17 @@ angular.module('obiba.mica.search')
       $scope.activeTarget[QUERY_TYPES.DATASETS] = {active: false, name: QUERY_TARGETS.DATASET, totalHits: 0};
       $scope.activeTarget[QUERY_TYPES.STUDIES] = {active: false, name: QUERY_TARGETS.STUDY, totalHits: 0};
       $scope.activeTarget[QUERY_TYPES.NETWORKS] = {active: false, name: QUERY_TARGETS.NETWORK, totalHits: 0};
+
+      $scope.getUrlTemplate = function (tab) {
+        switch (tab){
+          case 'list' :
+            return ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchResultList');
+          case 'coverage' :
+            return ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchResultCoverage');
+          case 'graphics' :
+            return ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchResultGraphics');
+        }
+      };
 
       $scope.selectTarget = function (type) {
         updateTarget(type);

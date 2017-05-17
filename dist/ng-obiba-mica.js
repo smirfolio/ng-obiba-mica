@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-05-09
+ * Date: 2017-05-25
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -79,6 +79,12 @@ function NgObibaMicaUrlProvider() {
 
 /* exported NgObibaMicaTemplateUrlFactory */
 function NgObibaMicaTemplateUrlFactory() {
+  var templates = {
+    'searchStudiesResultTable' :'search/views/list/studies-search-result-table-template.html',
+    'searchResultList' :'search/views/search-result-list-template.html',
+    'searchResultCoverage' :'search/views/search-result-coverage-template.html',
+    'searchResultGraphics' :'search/views/search-result-graphics-template.html'
+  };
   var factory = {registry: null};
 
   function TemplateUrlProvider(registry) {
@@ -99,7 +105,22 @@ function NgObibaMicaTemplateUrlFactory() {
 
       return null;
     };
+
+    this.getTemplateUrl = function (key) {
+      if (key in urlRegistry) {
+        return urlRegistry[key].template?urlRegistry[key].template:templates[key];
+      }
+
+      return null;
+    };
   }
+
+
+  factory.setTemplateUrl = function (key, url) {
+    if (key in this.registry) {
+      this.registry[key].template = url;
+    }
+  };
 
   factory.setHeaderUrl = function (key, url) {
     if (key in this.registry) {
@@ -1861,6 +1882,10 @@ angular.module('obiba.mica.search', [
     $provide.provider('ngObibaMicaSearchTemplateUrl', new NgObibaMicaTemplateUrlFactory().create(
       {
         search: {header: null, footer: null},
+        searchStudiesResultTable: {template: null},
+        searchResultList: {template: null},
+        searchResultCoverage: {template: null},
+        searchResultGraphics: {template: null},
         classifications: {header: null, footer: null}
       }
     ));
@@ -2972,24 +2997,23 @@ angular.module('obiba.mica.search')
       }
     };
 
+    /**
+     * Adds a sort criteria on given fields
+     *
+     * @param targetQuery
+     * @param sort field name or an array of field names
+     */
     this.addSort = function (targetQuery, sort) {
-      var found = targetQuery.args.filter(function (arg) {
+      var sortQuery = targetQuery.args.filter(function (arg) {
         return arg.name === RQL_NODE.SORT;
       }).pop();
 
-      if (!found) {
-        var sortQuery = new RqlQuery('sort');
-
-        if (Array.isArray(sort)) {
-          sort.forEach(function (s) {
-            sortQuery.args.push(s);
-          });
-        } else {
-          sortQuery.args.push(sort);
-        }
-
+      if (!sortQuery) {
+        sortQuery = new RqlQuery('sort');
         targetQuery.args.push(sortQuery);
       }
+
+      sortQuery.args = Array.isArray(sort) ? sort : [sort];
     };
 
     /**
@@ -3471,6 +3495,19 @@ angular.module('obiba.mica.search')
         return parsedQuery.serializeArgs(parsedQuery.args);
       };
 
+      this.getTargetQuerySort = function (type, query) {
+        var target = typeToTarget(type);
+        var targetQuery = findTargetQuery(target, query);
+        var sort = null;
+        if (targetQuery) {
+          sort = targetQuery.args.filter(function (arg) {
+            return arg.name === RQL_NODE.SORT;
+          }).pop();
+        }
+
+        return sort;
+      };
+
       this.prepareSearchQuery = function (type, query, pagination, lang, sort) {
         var rqlQuery = angular.copy(query);
         var target = typeToTarget(type);
@@ -3489,7 +3526,11 @@ angular.module('obiba.mica.search')
           RqlQueryUtils.addSort(targetQuery, sort);
         }
 
-        return new RqlQuery().serializeArgs(rqlQuery.args);
+        return rqlQuery;
+      };
+
+      this.prepareSearchQueryAndSerialize = function (type, query, pagination, lang, sort) {
+        return new RqlQuery().serializeArgs(self.prepareSearchQuery(type, query, pagination, lang, sort).args);
       };
 
       /**
@@ -4178,7 +4219,6 @@ function BaseTaxonomiesController($rootScope,
       self.updateStateFromLocation();
     }
   });
-  
   $scope.$watch('taxonomies.vocabulary', function(value) {
     if(RqlQueryUtils && value) {
       $scope.taxonomies.isNumericVocabulary = RqlQueryUtils.isNumericVocabulary($scope.taxonomies.vocabulary);
@@ -4748,21 +4788,30 @@ angular.module('obiba.mica.search')
           return;
         }
 
-        var sort = $scope.search.type === QUERY_TYPES.VARIABLES ? SORT_FIELDS.NAME : SORT_FIELDS.ACRONYM;
+      function updateSortByType() {
+        var rqlSort = RqlQueryService.getTargetQuerySort($scope.search.type, $scope.search.rqlQuery);
+        var sort = rqlSort && rqlSort.args ? rqlSort.args : null;
 
-        if ($scope.search.type === QUERY_TYPES.VARIABLES) {
-          sort = [SORT_FIELDS.CONTAINER_ID, SORT_FIELDS.POPULATION_IDS, SORT_FIELDS.EARLIER_START, SORT_FIELDS.DATASET_ID, SORT_FIELDS.INDEX, SORT_FIELDS.NAME];
-        } else if ($scope.search.type === QUERY_TYPES.DATASETS) {
-          sort = [SORT_FIELDS.STUDY_TABLE.STUDY_ID, SORT_FIELDS.STUDY_TABLE.POPULATION_ID, SORT_FIELDS.START, SORT_FIELDS.ACRONYM];
+        if (!sort) {
+          sort = $scope.search.type === QUERY_TYPES.VARIABLES ? SORT_FIELDS.NAME : SORT_FIELDS.ACRONYM;
+
+          if ($scope.search.type === QUERY_TYPES.VARIABLES) {
+            sort = [SORT_FIELDS.CONTAINER_ID, SORT_FIELDS.POPULATION_IDS, SORT_FIELDS.EARLIER_START, SORT_FIELDS.DATASET_ID, SORT_FIELDS.INDEX, SORT_FIELDS.NAME];
+          } else if ($scope.search.type === QUERY_TYPES.DATASETS) {
+            sort = [SORT_FIELDS.STUDY_TABLE.STUDY_ID, SORT_FIELDS.STUDY_TABLE.POPULATION_ID, SORT_FIELDS.START, SORT_FIELDS.ACRONYM];
+          }
         }
 
+        return sort;
+      }
+
         var localizedQuery =
-          RqlQueryService.prepareSearchQuery(
+          RqlQueryService.prepareSearchQueryAndSerialize(
             $scope.search.type,
             $scope.search.rqlQuery,
             $scope.search.pagination,
             $scope.lang,
-            sort
+            updateSortByType()
           );
         switch ($scope.search.display) {
           case DISPLAY_TYPES.LIST:
@@ -5275,7 +5324,7 @@ angular.module('obiba.mica.search')
         $scope.isFullscreen = !$scope.isFullscreen;
       };
 
-      $scope.$on('$locationChangeSuccess', function (newLocation, oldLocation) {
+      $scope.$on('$locationChangeSuccess', function (event, newLocation, oldLocation) {
         initSearchTabs();
 
         if (newLocation !== oldLocation) {
@@ -5285,6 +5334,17 @@ angular.module('obiba.mica.search')
 
       $rootScope.$on('ngObibaMicaSearch.fullscreenChange', function(obj, isEnabled) {
         $scope.isFullscreen = isEnabled;
+      });
+      
+      $rootScope.$on('ngObibaMicaSearch.sortChange', function(obj, sort) {
+        $scope.search.rqlQuery = RqlQueryService.prepareSearchQuery(
+          $scope.search.type,
+          $scope.search.rqlQuery,
+          $scope.search.pagination,
+          $scope.lang,
+          sort.order+sort.sort
+        );
+        refreshQuery();
       });
 
       function init() {
@@ -5606,11 +5666,13 @@ angular.module('obiba.mica.search')
     'ngObibaMicaUrl',
     'RqlQueryService',
     'RqlQueryUtils',
+    'ngObibaMicaSearchTemplateUrl',
     function ($scope,
               ngObibaMicaSearch,
               ngObibaMicaUrl,
               RqlQueryService,
-              RqlQueryUtils) {
+              RqlQueryUtils,
+              ngObibaMicaSearchTemplateUrl) {
 
       function updateTarget(type) {
         Object.keys($scope.activeTarget).forEach(function (key) {
@@ -5627,6 +5689,17 @@ angular.module('obiba.mica.search')
       $scope.activeTarget[QUERY_TYPES.DATASETS] = {active: false, name: QUERY_TARGETS.DATASET, totalHits: 0};
       $scope.activeTarget[QUERY_TYPES.STUDIES] = {active: false, name: QUERY_TARGETS.STUDY, totalHits: 0};
       $scope.activeTarget[QUERY_TYPES.NETWORKS] = {active: false, name: QUERY_TARGETS.NETWORK, totalHits: 0};
+
+      $scope.getUrlTemplate = function (tab) {
+        switch (tab){
+          case 'list' :
+            return ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchResultList');
+          case 'coverage' :
+            return ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchResultCoverage');
+          case 'graphics' :
+            return ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchResultGraphics');
+        }
+      };
 
       $scope.selectTarget = function (type) {
         updateTarget(type);
@@ -6890,12 +6963,14 @@ angular.module('obiba.mica.search')
     'TaxonomyResource',
     'RqlQueryService',
     'LocalizedValues',
+    'ngObibaMicaSearchTemplateUrl',
     function ($log,
               PageUrlService,
               ngObibaMicaSearch,
               TaxonomyResource,
               RqlQueryService,
-              LocalizedValues) {
+              LocalizedValues,
+              ngObibaMicaSearchTemplateUrl) {
     return {
       restrict: 'EA',
       replace: true,
@@ -6905,7 +6980,7 @@ angular.module('obiba.mica.search')
         loading: '=',
         onUpdateCriteria: '='
       },
-      templateUrl: 'search/views/list/studies-search-result-table-template.html',
+      templateUrl: ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchStudiesResultTable'),
       link: function(scope) {
         scope.taxonomy = {};
         scope.designs = {};
@@ -7973,6 +8048,7 @@ angular.module('obiba.mica.localized')
       scope: {
         value: '=',
         lang: '=',
+        ellipsisSize: '=',
         keyLang: '@',
         keyValue: '@'
       },
@@ -9893,8 +9969,7 @@ angular.module("localized/localized-template.html", []).run(["$templateCache", f
     "  ~ You should have received a copy of the GNU General Public License\n" +
     "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
     "  -->\n" +
-    "\n" +
-    "<span>{{LocalizedValues.for(value,lang,keyLang,keyValue)}}</span>");
+    "<span ng-bind-html=\"LocalizedValues.for(value,lang,keyLang,keyValue)  | markdown | ellipsis:ellipsisSize\"></span>");
 }]);
 
 angular.module("localized/localized-textarea-template.html", []).run(["$templateCache", function($templateCache) {
@@ -11564,7 +11639,7 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
   $templateCache.put("search/views/search-result-panel-template.html",
     "<div>\n" +
     "  <ng-include include-replace ng-repeat=\"tab in searchTabsOrder\"\n" +
-    "    src=\"'search/views/search-result-' + tab + '-template.html'\"></ng-include>\n" +
+    "              src=\"getUrlTemplate(tab)\"></ng-include>\n" +
     "</div>\n" +
     "");
 }]);

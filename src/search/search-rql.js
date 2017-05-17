@@ -894,24 +894,23 @@ angular.module('obiba.mica.search')
       }
     };
 
+    /**
+     * Adds a sort criteria on given fields
+     *
+     * @param targetQuery
+     * @param sort field name or an array of field names
+     */
     this.addSort = function (targetQuery, sort) {
-      var found = targetQuery.args.filter(function (arg) {
+      var sortQuery = targetQuery.args.filter(function (arg) {
         return arg.name === RQL_NODE.SORT;
       }).pop();
 
-      if (!found) {
-        var sortQuery = new RqlQuery('sort');
-
-        if (Array.isArray(sort)) {
-          sort.forEach(function (s) {
-            sortQuery.args.push(s);
-          });
-        } else {
-          sortQuery.args.push(sort);
-        }
-
+      if (!sortQuery) {
+        sortQuery = new RqlQuery('sort');
         targetQuery.args.push(sortQuery);
       }
+
+      sortQuery.args = Array.isArray(sort) ? sort : [sort];
     };
 
     /**
@@ -1393,6 +1392,19 @@ angular.module('obiba.mica.search')
         return parsedQuery.serializeArgs(parsedQuery.args);
       };
 
+      this.getTargetQuerySort = function (type, query) {
+        var target = typeToTarget(type);
+        var targetQuery = findTargetQuery(target, query);
+        var sort = null;
+        if (targetQuery) {
+          sort = targetQuery.args.filter(function (arg) {
+            return arg.name === RQL_NODE.SORT;
+          }).pop();
+        }
+
+        return sort;
+      };
+
       this.prepareSearchQuery = function (type, query, pagination, lang, sort) {
         var rqlQuery = angular.copy(query);
         var target = typeToTarget(type);
@@ -1411,7 +1423,11 @@ angular.module('obiba.mica.search')
           RqlQueryUtils.addSort(targetQuery, sort);
         }
 
-        return new RqlQuery().serializeArgs(rqlQuery.args);
+        return rqlQuery;
+      };
+
+      this.prepareSearchQueryAndSerialize = function (type, query, pagination, lang, sort) {
+        return new RqlQuery().serializeArgs(self.prepareSearchQuery(type, query, pagination, lang, sort).args);
       };
 
       /**

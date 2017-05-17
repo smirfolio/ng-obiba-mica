@@ -172,12 +172,14 @@ angular.module('obiba.mica.search')
     'TaxonomyResource',
     'RqlQueryService',
     'LocalizedValues',
+    'ngObibaMicaSearchTemplateUrl',
     function ($log,
               PageUrlService,
               ngObibaMicaSearch,
               TaxonomyResource,
               RqlQueryService,
-              LocalizedValues) {
+              LocalizedValues,
+              ngObibaMicaSearchTemplateUrl) {
     return {
       restrict: 'EA',
       replace: true,
@@ -187,7 +189,7 @@ angular.module('obiba.mica.search')
         loading: '=',
         onUpdateCriteria: '='
       },
-      templateUrl: 'search/views/list/studies-search-result-table-template.html',
+      templateUrl: ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchStudiesResultTable'),
       link: function(scope) {
         scope.taxonomy = {};
         scope.designs = {};

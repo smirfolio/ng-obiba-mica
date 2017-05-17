@@ -18,6 +18,7 @@ angular.module('obiba.mica.localized')
       scope: {
         value: '=',
         lang: '=',
+        ellipsisSize: '=',
         keyLang: '@',
         keyValue: '@'
       },

@@ -30,6 +30,10 @@ angular.module('obiba.mica.search', [
     $provide.provider('ngObibaMicaSearchTemplateUrl', new NgObibaMicaTemplateUrlFactory().create(
       {
         search: {header: null, footer: null},
+        searchStudiesResultTable: {template: null},
+        searchResultList: {template: null},
+        searchResultCoverage: {template: null},
+        searchResultGraphics: {template: null},
         classifications: {header: null, footer: null}
       }
     ));
