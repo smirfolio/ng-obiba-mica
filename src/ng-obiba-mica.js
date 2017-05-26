@@ -72,6 +72,12 @@ function NgObibaMicaUrlProvider() {
 
 /* exported NgObibaMicaTemplateUrlFactory */
 function NgObibaMicaTemplateUrlFactory() {
+  var templates = {
+    'searchStudiesResultTable' :'search/views/list/studies-search-result-table-template.html',
+    'searchResultList' :'search/views/search-result-list-template.html',
+    'searchResultCoverage' :'search/views/search-result-coverage-template.html',
+    'searchResultGraphics' :'search/views/search-result-graphics-template.html'
+  };
   var factory = {registry: null};
 
   function TemplateUrlProvider(registry) {
@@ -92,7 +98,22 @@ function NgObibaMicaTemplateUrlFactory() {
 
       return null;
     };
+
+    this.getTemplateUrl = function (key) {
+      if (key in urlRegistry) {
+        return urlRegistry[key].template?urlRegistry[key].template:templates[key];
+      }
+
+      return null;
+    };
   }
+
+
+  factory.setTemplateUrl = function (key, url) {
+    if (key in this.registry) {
+      this.registry[key].template = url;
+    }
+  };
 
   factory.setHeaderUrl = function (key, url) {
     if (key in this.registry) {
