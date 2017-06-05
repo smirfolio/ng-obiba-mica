@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-05-29
+ * Date: 2017-05-31
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -4446,6 +4446,7 @@ angular.module('obiba.mica.search')
     'SearchContext',
     'CoverageGroupByService',
     'TaxonomyUtils',
+    'LocaleStringUtils',
     function ($scope,
               $rootScope,
               $timeout,
@@ -4469,7 +4470,8 @@ angular.module('obiba.mica.search')
               RqlQueryUtils,
               SearchContext,
               CoverageGroupByService,
-              TaxonomyUtils) {
+              TaxonomyUtils,
+              LocaleStringUtils) {
 
       $scope.options = ngObibaMicaSearch.getOptions();
       var cookiesSearchHelp = 'micaHideSearchHelpText';
@@ -5026,7 +5028,7 @@ angular.module('obiba.mica.search')
                 query: query,
                 total: total,
                 size: size,
-                message: 'Showing ' + size + ' / ' + total,
+                message: LocaleStringUtils.translate('search.showing', [size, total]),
                 status: 'has-warning'
               };
               results.push({score: -1, item: note});
