@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-05-30
+ * Date: 2017-06-09
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -4291,9 +4291,11 @@ function ClassificationPanelController($rootScope,
 
   var groupTaxonomies = function (taxonomies, target) {
     var res = taxonomies.reduce(function (res, t) {
-      t.vocabularies = TaxonomyUtils.visibleVocabularies(t.vocabularies);
-      res[t.name] = t;
-      return res;
+      if(target){
+        t.vocabularies = TaxonomyUtils.visibleVocabularies(t.vocabularies);
+        res[t.name] = t;
+        return res;
+      }
     }, {});
 
     return $scope.metaTaxonomy.$promise.then(function (metaTaxonomy) {
@@ -4586,9 +4588,13 @@ angular.module('obiba.mica.search')
         }
 
         $scope.metaTaxonomy.$promise.then(function (metaTaxonomy) {
+          var tabOrderTodisplay = [];
           $scope.targetTabsOrder.forEach(function (target) {
             var targetVocabulary = metaTaxonomy.vocabularies.filter(function (vocabulary) {
-              return vocabulary.name === target;
+              if(vocabulary.name === target){
+                tabOrderTodisplay.push(target);
+                return true;
+              }
             }).pop();
             if (targetVocabulary && targetVocabulary.terms) {
               targetVocabulary.terms.forEach(function (term) {
@@ -4621,6 +4627,7 @@ angular.module('obiba.mica.search')
               });
             }
           });
+          $scope.targetTabsOrder = tabOrderTodisplay;
         });
 
       }
@@ -5538,7 +5545,9 @@ angular.module('obiba.mica.search')
       $scope.$watch('facetedTaxonomies', function(facetedTaxonomies) {
         if(facetedTaxonomies) {
           $scope.targets = $scope.options.targetTabsOrder.filter(function (t) {
-            return facetedTaxonomies[t].length;
+            if(facetedTaxonomies[t]){
+              return facetedTaxonomies[t].length;
+            }
           });
           
           $scope.target = $scope.targets[0];
