@@ -1320,6 +1320,28 @@ angular.module('obiba.mica.search')
         refreshQuery();
       });
 
+      //@TODO Need some work to better build the text search query using an match-multifield (match(stringQuery,field1,field2,..)
+      // it may be an Rql part out of facet match string query
+      $rootScope.$on('ngObibaMicaSearch.searchChange', function (event, searchFilter) {
+        var test = ['objectives', 'name'];
+        var item;
+        RqlQueryService.getTaxonomyByTarget($scope.target).then(function (taxonomies) {
+          var taxonomy = taxonomies[0];
+          var vocabularies = [];
+          if (taxonomy.vocabularies) {
+            vocabularies = taxonomy.vocabularies.filter(function (vocabulary) {
+              return test.indexOf(vocabulary.name) > -1;
+            });
+          }
+          vocabularies.forEach(function (vocabulary) {
+            item = RqlQueryService.createCriteriaItem($scope.target, taxonomy, vocabulary, null, $scope.lang);
+            item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
+            RqlQueryUtils.updateMatchQuery(item.rqlQuery, searchFilter);
+            selectCriteria(item, null, true);
+          });
+        });
+      });
+
       function init() {
         $scope.lang = $translate.use();
         SearchContext.setLocale($scope.lang);
