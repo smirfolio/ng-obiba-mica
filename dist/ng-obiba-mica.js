@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-06-09
+ * Date: 2017-06-23
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -3582,7 +3582,7 @@ angular.module('obiba.mica.search')
           if (bucketArg === BUCKET_TYPES.NETWORK || bucketArg === BUCKET_TYPES.DATASCHEMA) {
             variableType.args.push('Dataschema');
           } else {
-            variableType.args.push('Study');
+            variableType.args.push('Collection');
           }
           var andVariableType = new RqlQuery('and');
           andVariableType.args.push(variableType);
@@ -3884,7 +3884,8 @@ angular.module('obiba.mica.search')
     };
 
     this.datasetPage = function(id, type) {
-      var dsType = (type.toLowerCase() === 'study' ? 'study' : 'harmonization') + '-dataset';
+      console.log(type);
+      var dsType = (type.toLowerCase() === 'collection' ? 'collection' : 'harmonization') + '-dataset';
       var result = id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('DatasetPage'), {':type': urlEncode(dsType), ':dataset': urlEncode(id)}) : '';
       return result;
     };
@@ -6210,7 +6211,7 @@ angular.module('obiba.mica.search')
           case BUCKET_TYPES.DATASCHEMA:
             return PageUrlService.datasetPage(id, 'harmonization');
           case BUCKET_TYPES.DATASET:
-            return PageUrlService.datasetPage(id, 'study');
+            return PageUrlService.datasetPage(id, 'collection');
         }
 
         return '';
@@ -11144,7 +11145,7 @@ angular.module("search/views/list/datasets-search-result-table-template.html", [
     "            <localized ng-if=\"optionsCols.showDatasetsAcronymColumn\" value=\"summary.name\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showDatasetsTypeColumn\">\n" +
-    "            <localized value=\"classNames[(summary.variableType === 'Study' ? 'Study' : 'Harmonization') + 'Dataset']\" lang=\"lang\"></localized>\n" +
+    "            <localized value=\"classNames[(summary.variableType === 'Collection' ? 'Study' : 'Harmonization') + 'Dataset']\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showDatasetsNetworkColumn\">\n" +
     "            <a href ng-click=\"updateCriteria(summary.id, 'networks')\" ng-if=\"summary['obiba.mica.CountStatsDto.datasetCountStats'].networks\"><localized-number value=\"summary['obiba.mica.CountStatsDto.datasetCountStats'].networks\"></localized-number></a>\n" +

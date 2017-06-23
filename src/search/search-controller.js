@@ -2174,7 +2174,7 @@ angular.module('obiba.mica.search')
           case BUCKET_TYPES.DATASCHEMA:
             return PageUrlService.datasetPage(id, 'harmonization');
           case BUCKET_TYPES.DATASET:
-            return PageUrlService.datasetPage(id, 'study');
+            return PageUrlService.datasetPage(id, 'collection');
         }
 
         return '';
