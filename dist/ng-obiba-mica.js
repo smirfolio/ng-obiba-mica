@@ -44,8 +44,8 @@ function NgObibaMicaUrlProvider() {
     'JoinQueryCoverageDownloadResource': 'ws/variables/_coverage_download?query=:query',
     'VariablePage': '',
     'NetworkPage': '#/network/:network',
-    'StudyPage': '#/study/:study',
-    'StudyPopulationsPage': '#/study/:study',
+    'StudyPage': '#/:type/:study',
+    'StudyPopulationsPage': '#/:type/:study',
     'DatasetPage': '#/:type/:dataset',
     'BaseUrl': '/',
     'FileBrowserFileResource': 'ws/file/:path/',
@@ -3871,12 +3871,14 @@ angular.module('obiba.mica.search')
 
   .service('PageUrlService', ['ngObibaMicaUrl', 'StringUtils', 'urlEncode', function(ngObibaMicaUrl, StringUtils, urlEncode) {
 
-    this.studyPage = function(id) {
-      return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyPage'), {':study': urlEncode(id)}) : '';
+    this.studyPage = function(id, type) {
+      var sType = (type.toLowerCase() === 'collection' ? 'collection' : 'harmonization') + '-study';
+      return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyPage'), {':type': urlEncode(sType), ':study': urlEncode(id)}) : '';
     };
 
-    this.studyPopulationPage = function(id, populationId) {
-      return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyPopulationsPage'), {':study': urlEncode(id), ':population': urlEncode(populationId)}) : '';
+    this.studyPopulationPage = function(id, type, populationId) {
+      var sType = (type.toLowerCase() === 'collection' ? 'collection' : 'harmonization') + '-study';
+      return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyPopulationsPage'), {':type': urlEncode(sType), ':study': urlEncode(id), ':population': urlEncode(populationId)}) : '';
     };
 
     this.networkPage = function(id) {
@@ -6204,7 +6206,7 @@ angular.module('obiba.mica.search')
         switch (bucket) {
           case BUCKET_TYPES.STUDY:
           case BUCKET_TYPES.DCE:
-            return PageUrlService.studyPage(id);
+            return PageUrlService.studyPage(id, 'collection');
           case BUCKET_TYPES.NETWORK:
             return PageUrlService.networkPage(id);
           case BUCKET_TYPES.DATASCHEMA:
@@ -6335,7 +6337,7 @@ angular.module('obiba.mica.search')
             appendMinMax(id,row.start || currentYearMonth, row.end || currentYearMonth);
             cols.ids[row.value].push({
               id: id,
-              url: PageUrlService.studyPage(id),
+              url: PageUrlService.studyPage(id, 'collection'),
               title: titles[0],
               description: descriptions[0],
               rowSpan: rowSpan
@@ -6346,7 +6348,7 @@ angular.module('obiba.mica.search')
             rowSpan = appendRowSpan(id);
             cols.ids[row.value].push({
               id: id,
-              url: PageUrlService.studyPopulationPage(ids[0], ids[1]),
+              url: PageUrlService.studyPopulationPage(ids[0], 'collection', ids[1]),
               title: titles[1],
               description: descriptions[1],
               rowSpan: rowSpan
@@ -6361,7 +6363,7 @@ angular.module('obiba.mica.search')
               current: currentYearMonth,
               end: row.end,
               progressClass: odd ? 'info' : 'warning',
-              url: PageUrlService.studyPopulationPage(ids[0], ids[1]),
+              url: PageUrlService.studyPopulationPage(ids[0], 'collection', ids[1]),
               rowSpan: 1
             });
           } else {
@@ -11358,7 +11360,7 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "        <tbody test-ref=\"search-results\">\n" +
     "        <tr ng-repeat=\"summary in summaries\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "          <td>\n" +
-    "            <a ng-href=\"{{PageUrlService.studyPage(summary.id)}}\">\n" +
+    "            <a ng-href=\"{{PageUrlService.studyPage(summary.id, 'collection')}}\">\n" +
     "              <localized value=\"summary.acronym\" lang=\"lang\" test-ref=\"acronym\"></localized>\n" +
     "            </a>\n" +
     "          </td>\n" +
@@ -11459,7 +11461,7 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
     "            {{'search.variable.' + summary.variableType.toLowerCase() | translate}}\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showVariablesStudiesColumn\">\n" +
-    "            <a ng-if=\"summary.studyId\" ng-href=\"{{PageUrlService.studyPage(summary.studyId)}}\">\n" +
+    "            <a ng-if=\"summary.studyId\" ng-href=\"{{PageUrlService.studyPage(summary.studyId, 'collection')}}\">\n" +
     "              <localized value=\"summary.studyAcronym\" lang=\"lang\"></localized>\n" +
     "            </a>\n" +
     "            <a ng-if=\"summary.networkId\" ng-href=\"{{PageUrlService.networkPage(summary.networkId)}}\">\n" +
