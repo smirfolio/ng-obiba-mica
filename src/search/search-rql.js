@@ -1479,7 +1479,7 @@ angular.module('obiba.mica.search')
           if (bucketArg === BUCKET_TYPES.NETWORK || bucketArg === BUCKET_TYPES.DATASCHEMA) {
             variableType.args.push('Dataschema');
           } else {
-            variableType.args.push('Study');
+            variableType.args.push('Collection');
           }
           var andVariableType = new RqlQuery('and');
           andVariableType.args.push(variableType);

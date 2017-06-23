@@ -123,7 +123,7 @@ angular.module('obiba.mica.search')
     };
 
     this.datasetPage = function(id, type) {
-      var dsType = (type.toLowerCase() === 'study' ? 'study' : 'harmonization') + '-dataset';
+      var dsType = (type.toLowerCase() === 'collection' ? 'collection' : 'harmonization') + '-dataset';
       var result = id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('DatasetPage'), {':type': urlEncode(dsType), ':dataset': urlEncode(id)}) : '';
       return result;
     };
