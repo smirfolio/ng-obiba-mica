@@ -47,7 +47,7 @@
         <tbody test-ref="search-results">
         <tr ng-repeat="summary in summaries" ng-init="lang = $parent.$parent.lang">
           <td>
-            <a ng-href="{{PageUrlService.studyPage(summary.id)}}">
+            <a ng-href="{{PageUrlService.studyPage(summary.id, 'collection')}}">
               <localized value="summary.acronym" lang="lang" test-ref="acronym"></localized>
             </a>
           </td>

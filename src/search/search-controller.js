@@ -2168,7 +2168,7 @@ angular.module('obiba.mica.search')
         switch (bucket) {
           case BUCKET_TYPES.STUDY:
           case BUCKET_TYPES.DCE:
-            return PageUrlService.studyPage(id);
+            return PageUrlService.studyPage(id, 'collection');
           case BUCKET_TYPES.NETWORK:
             return PageUrlService.networkPage(id);
           case BUCKET_TYPES.DATASCHEMA:
@@ -2299,7 +2299,7 @@ angular.module('obiba.mica.search')
             appendMinMax(id,row.start || currentYearMonth, row.end || currentYearMonth);
             cols.ids[row.value].push({
               id: id,
-              url: PageUrlService.studyPage(id),
+              url: PageUrlService.studyPage(id, 'collection'),
               title: titles[0],
               description: descriptions[0],
               rowSpan: rowSpan
@@ -2310,7 +2310,7 @@ angular.module('obiba.mica.search')
             rowSpan = appendRowSpan(id);
             cols.ids[row.value].push({
               id: id,
-              url: PageUrlService.studyPopulationPage(ids[0], ids[1]),
+              url: PageUrlService.studyPopulationPage(ids[0], 'collection', ids[1]),
               title: titles[1],
               description: descriptions[1],
               rowSpan: rowSpan
@@ -2325,7 +2325,7 @@ angular.module('obiba.mica.search')
               current: currentYearMonth,
               end: row.end,
               progressClass: odd ? 'info' : 'warning',
-              url: PageUrlService.studyPopulationPage(ids[0], ids[1]),
+              url: PageUrlService.studyPopulationPage(ids[0], 'collection', ids[1]),
               rowSpan: 1
             });
           } else {

@@ -110,12 +110,14 @@ angular.module('obiba.mica.search')
 
   .service('PageUrlService', ['ngObibaMicaUrl', 'StringUtils', 'urlEncode', function(ngObibaMicaUrl, StringUtils, urlEncode) {
 
-    this.studyPage = function(id) {
-      return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyPage'), {':study': urlEncode(id)}) : '';
+    this.studyPage = function(id, type) {
+      var sType = (type.toLowerCase() === 'collection' ? 'collection' : 'harmonization') + '-study';
+      return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyPage'), {':type': urlEncode(sType), ':study': urlEncode(id)}) : '';
     };
 
-    this.studyPopulationPage = function(id, populationId) {
-      return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyPopulationsPage'), {':study': urlEncode(id), ':population': urlEncode(populationId)}) : '';
+    this.studyPopulationPage = function(id, type, populationId) {
+      var sType = (type.toLowerCase() === 'collection' ? 'collection' : 'harmonization') + '-study';
+      return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyPopulationsPage'), {':type': urlEncode(sType), ':study': urlEncode(id), ':population': urlEncode(populationId)}) : '';
     };
 
     this.networkPage = function(id) {
