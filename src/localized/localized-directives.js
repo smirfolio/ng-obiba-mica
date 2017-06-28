@@ -19,6 +19,7 @@ angular.module('obiba.mica.localized')
         value: '=',
         lang: '=',
         ellipsisSize: '=',
+        markdownIt: '=',
         keyLang: '@',
         keyValue: '@'
       },

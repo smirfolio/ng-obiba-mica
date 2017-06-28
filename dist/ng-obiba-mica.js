@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-06-26
+ * Date: 2017-06-28
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8062,6 +8062,7 @@ angular.module('obiba.mica.localized')
         value: '=',
         lang: '=',
         ellipsisSize: '=',
+        markdownIt: '=',
         keyLang: '@',
         keyValue: '@'
       },
@@ -9982,7 +9983,8 @@ angular.module("localized/localized-template.html", []).run(["$templateCache", f
     "  ~ You should have received a copy of the GNU General Public License\n" +
     "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
     "  -->\n" +
-    "<span>{{LocalizedValues.for(value,lang,keyLang,keyValue)}}</span>");
+    "\n" +
+    "<span ng-bind-html=\"LocalizedValues.for(value,lang,keyLang,keyValue)  | markdown:markdownIt | ellipsis:ellipsisSize\"></span>");
 }]);
 
 angular.module("localized/localized-textarea-template.html", []).run(["$templateCache", function($templateCache) {
