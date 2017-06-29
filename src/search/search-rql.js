@@ -1278,6 +1278,23 @@ angular.module('obiba.mica.search')
         }
       };
 
+      this.getTaxonomyByTarget = function(target) {
+        var deferred = $q.defer();
+        var taxonomy = taxonomiesCache[target];
+        if (taxonomy) {
+          deferred.resolve(taxonomy);
+        } else {
+          TaxonomiesResource.get({
+            target: target
+          }).$promise.then(function (response) {
+            taxonomiesCache[target] = response;
+            deferred.resolve(response);
+          });
+        }
+
+        return deferred.promise;
+      };
+
       /**
        * Builders registry
        *
@@ -1293,16 +1310,9 @@ angular.module('obiba.mica.search')
           deferred.resolve({root: builder.getRootItem(), map: builder.getLeafItemMap()});
         }
 
-        if (taxonomiesCache[target]) {
+        self.getTaxonomyByTarget(target).then(function(){
           build(rootRql, rootItem);
-        } else {
-          TaxonomiesResource.get({
-            target: target
-          }).$promise.then(function (response) {
-            taxonomiesCache[target] = response;
-            build(rootRql, rootItem);
-          });
-        }
+        });
 
         return deferred.promise;
       };
