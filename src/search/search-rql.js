@@ -1526,7 +1526,7 @@ angular.module('obiba.mica.search')
           } else if (filterBy === 'harmonization') {
             studyClassName.args.push('HarmonizationStudy');
           }
-          if (study.args.length>0) {
+          if (study.args.length>0 && study.args[0].name !== 'limit') {
             var andStudyClassName = new RqlQuery('and');
             andStudyClassName.args.push(studyClassName);
             andStudyClassName.args.push(study.args[0]);
@@ -1556,7 +1556,7 @@ angular.module('obiba.mica.search')
           } else if (filterBy === 'harmonization') {
             datasetClassName.args.push('HarmonizationDataset');
           }
-          if (dataset.args.length>0) {
+          if (dataset.args.length>0 && dataset.args[0].name !== 'limit') {
             var andDatasetClassName = new RqlQuery('and');
             andDatasetClassName.args.push(datasetClassName);
             andDatasetClassName.args.push(dataset.args[0]);
