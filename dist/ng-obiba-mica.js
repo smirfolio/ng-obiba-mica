@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-06-28
+ * Date: 2017-06-29
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -2133,9 +2133,15 @@ var QUERY_TARGETS = {
 var BUCKET_TYPES = {
   NETWORK: 'network',
   STUDY: 'study',
+  STUDY_COLLECTION: 'study-collection',
+  STUDY_HARMONIZATION: 'study-harmonization',
   DCE: 'dce',
-  DATASCHEMA: 'dataschema',
-  DATASET: 'dataset'
+  DCE_COLLECTION: 'dce-collection',
+  DCE_HARMONIZATION: 'dce-harmonization',
+  DATASET: 'dataset',
+  DATASET_COLLECTION: 'dataset-collection',
+  DATASET_HARMONIZATION: 'dataset-harmonization',
+  DATASCHEMA: 'dataschema'
 };
 
 /* exported RQL_NODE */
@@ -3545,7 +3551,11 @@ angular.module('obiba.mica.search')
         var aggregate = new RqlQuery('aggregate');
         var bucketField;
 
-        switch (bucketArg) {
+        var parts = bucketArg.split('-');
+        var groupBy = parts[0];
+        var filterBy = parts.length > 1 ? parts[1] : undefined;
+
+        switch (groupBy) {
           case BUCKET_TYPES.NETWORK:
             bucketField = 'networkId';
             break;
@@ -3565,6 +3575,7 @@ angular.module('obiba.mica.search')
         bucket.args.push(bucketField);
         aggregate.args.push(bucket);
 
+        // variable RQL
         var variable;
         parsedQuery.args.forEach(function (arg) {
           if (!variable && arg.name === 'variable') {
@@ -3579,10 +3590,16 @@ angular.module('obiba.mica.search')
         if (variable.args.length > 0 && variable.args[0].name !== 'limit') {
           var variableType = new RqlQuery('in');
           variableType.args.push('Mica_variable.variableType');
-          if (bucketArg === BUCKET_TYPES.NETWORK || bucketArg === BUCKET_TYPES.DATASCHEMA) {
-            variableType.args.push('Dataschema');
-          } else {
+          if (filterBy === undefined) {
+            if (bucketArg === BUCKET_TYPES.NETWORK || bucketArg === BUCKET_TYPES.DATASCHEMA) {
+              variableType.args.push('Dataschema');
+            } else {
+              variableType.args.push(['Collection','Dataschema']);
+            }
+          } else if (filterBy === 'collection') {
             variableType.args.push('Collection');
+          } else if (filterBy === 'harmonization') {
+            variableType.args.push('Dataschema');
           }
           var andVariableType = new RqlQuery('and');
           andVariableType.args.push(variableType);
@@ -3591,6 +3608,67 @@ angular.module('obiba.mica.search')
         }
 
         variable.args.push(aggregate);
+
+        // study RQL
+        if (filterBy !== undefined && (groupBy === BUCKET_TYPES.STUDY || groupBy === BUCKET_TYPES.DCE)) {
+          // filter by className
+          var study;
+          parsedQuery.args.forEach(function (arg) {
+            if (!study && arg.name === 'study') {
+              study = arg;
+            }
+          });
+          if (!study) {
+            study = new RqlQuery('study');
+            parsedQuery.args.push(study);
+          }
+          var studyClassName = new RqlQuery('in');
+          studyClassName.args.push('Mica_study.className');
+          if (filterBy === 'collection') {
+            studyClassName.args.push('Study');
+          } else if (filterBy === 'harmonization') {
+            studyClassName.args.push('HarmonizationStudy');
+          }
+          if (study.args.length>0) {
+            var andStudyClassName = new RqlQuery('and');
+            andStudyClassName.args.push(studyClassName);
+            andStudyClassName.args.push(study.args[0]);
+            study.args[0] = andStudyClassName;
+          } else {
+            study.args.push(studyClassName);
+          }
+        }
+
+        // dataset RQL
+        if (filterBy !== undefined && (groupBy === BUCKET_TYPES.DATASET || groupBy === BUCKET_TYPES.DATASCHEMA)) {
+          // filter by className
+          var dataset;
+          parsedQuery.args.forEach(function (arg) {
+            if (!dataset && arg.name === 'dataset') {
+              dataset = arg;
+            }
+          });
+          if (!dataset) {
+            dataset = new RqlQuery('dataset');
+            parsedQuery.args.push(dataset);
+          }
+          var datasetClassName = new RqlQuery('in');
+          datasetClassName.args.push('Mica_dataset.className');
+          if (filterBy === 'collection') {
+            datasetClassName.args.push('StudyDataset');
+          } else if (filterBy === 'harmonization') {
+            datasetClassName.args.push('HarmonizationDataset');
+          }
+          if (dataset.args.length>0) {
+            var andDatasetClassName = new RqlQuery('and');
+            andDatasetClassName.args.push(datasetClassName);
+            andDatasetClassName.args.push(dataset.args[0]);
+            dataset.args[0] = datasetClassName;
+          } else {
+            dataset.args.push(datasetClassName);
+          }
+        }
+
         return parsedQuery.serializeArgs(parsedQuery.args);
       };
 
@@ -3941,17 +4019,15 @@ angular.module('obiba.mica.search')
       },
 
       canShowDce: function(bucket) {
-        return (bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE) &&
-          groupByOptions.study && groupByOptions.dce;
+        return (bucket.startsWith('study') || bucket.startsWith('dce')) && groupByOptions.study && groupByOptions.dce;
       },
 
       canShowDataset: function() {
         return groupByOptions.dataset || groupByOptions.dataschema;
       },
 
-      canShowDatasetStudyDataschema: function(bucket) {
-        return (bucket=== BUCKET_TYPES.DATASET || bucket === BUCKET_TYPES.DATASCHEMA) &&
-          groupByOptions.dataset && groupByOptions.dataschema;
+      canShowVariableTypeFilter: function(bucket) {
+        return (bucket !== BUCKET_TYPES.NETWORK) && (groupByOptions.dataset || groupByOptions.study || groupByOptions.dce) && groupByOptions.dataschema;
       },
 
       canShowNetwork: function() {
@@ -3975,17 +4051,18 @@ angular.module('obiba.mica.search')
       },
 
       datasetBucket: function() {
-        return groupByOptions.dataset ? BUCKET_TYPES.DATASET : BUCKET_TYPES.DATASCHEMA;
+        return groupByOptions.dataset ? BUCKET_TYPES.DATASET : BUCKET_TYPES.DATASET_HARMONIZATION;
       },
 
       canGroupBy: function(bucket) {
-        return groupByOptions.hasOwnProperty(bucket) && groupByOptions[bucket];
+        var groupBy = bucket.split('-')[0];
+        return groupByOptions.hasOwnProperty(groupBy) && groupByOptions[groupBy];
       },
 
       defaultBucket: function() {
         return groupByOptions.study ? BUCKET_TYPES.STUDY :
           (groupByOptions.dce ? BUCKET_TYPES.DCE : groupByOptions.dataset ? BUCKET_TYPES.DATASET :
-            (groupByOptions.dataschema ? BUCKET_TYPES.DATASCHEMA :
+            (groupByOptions.dataschema ? BUCKET_TYPES.DATASET_HARMONIZATION :
               (groupByOptions.network ? BUCKET_TYPES.NETWORK : '')));
       }
 
@@ -4695,7 +4772,7 @@ angular.module('obiba.mica.search')
 
       function validateBucket(bucket) {
         if (bucket && !BUCKET_TYPES[bucket.toUpperCase()]) {
-          throw new Error('Invalid bucket: ' + bucket);
+          //throw new Error('Invalid bucket: ' + bucket);
         }
       }
 
@@ -6061,8 +6138,9 @@ angular.module('obiba.mica.search')
       };
       $scope.groupByOptions = CoverageGroupByService;
       $scope.bucketSelection = {
-        dceBucketSelected: $scope.bucket === BUCKET_TYPES.DCE,
-        datasetBucketSelected: $scope.bucket !== BUCKET_TYPES.DATASCHEMA
+        dceBucketSelected: $scope.bucket.startsWith('dce'),
+        variableTypeCollectionSelected: $scope.bucket === BUCKET_TYPES.DATASET || $scope.bucket === BUCKET_TYPES.DATASET_COLLECTION,
+        variableTypeDataschemaSelected: $scope.bucket === BUCKET_TYPES.DATASCHEMA || $scope.bucket === BUCKET_TYPES.DATASET || $scope.bucket === BUCKET_TYPES.DATASET_HARMONIZATION
       };
 
       function decorateVocabularyHeaders(headers, vocabularyHeaders) {
@@ -6103,30 +6181,52 @@ angular.module('obiba.mica.search')
 
         if (val) {
           $scope.selectBucket(BUCKET_TYPES.DCE);
-        } else if ($scope.bucket === BUCKET_TYPES.DCE) {
+        } else if ($scope.bucket.startsWith('dce')) {
           $scope.selectBucket(BUCKET_TYPES.STUDY);
         }
       });
 
-      $scope.$watch('bucketSelection.datasetBucketSelected', function (val, old) {
+      $scope.$watch('bucketSelection.variableTypeCollectionSelected', function (val, old) {
         if (val === old) {
           return;
         }
 
+        var groupBy = $scope.bucket.split('-')[0];
         if (val) {
-          $scope.selectBucket(BUCKET_TYPES.DATASET);
-        } else if ($scope.bucket === BUCKET_TYPES.DATASET) {
-          $scope.selectBucket(BUCKET_TYPES.DATASCHEMA);
+          if ($scope.bucketSelection.variableTypeDataschemaSelected) {
+            $scope.selectBucket(groupBy);
+          } else {
+            $scope.selectBucket(groupBy + '-collection');
+          }
+        } else if ($scope.bucketSelection.variableTypeDataschemaSelected) {
+          $scope.selectBucket(groupBy + '-harmonization');
+        } else {
+          $scope.selectBucket(groupBy);
+        }
+      });
+
+      $scope.$watch('bucketSelection.variableTypeDataschemaSelected', function (val, old) {
+        if (val === old) {
+          return;
+        }
+
+        var groupBy = $scope.bucket.split('-')[0];
+        if (val) {
+          if ($scope.bucketSelection.variableTypeCollectionSelected) {
+            $scope.selectBucket(groupBy);
+          } else {
+            $scope.selectBucket(groupBy + '-harmonization');
+          }
+        } else if ($scope.bucketSelection.variableTypeCollectionSelected) {
+          $scope.selectBucket(groupBy + '-collection');
+        } else {
+          $scope.selectBucket(groupBy);
         }
       });
 
       $scope.selectBucket = function (bucket) {
         if (bucket === BUCKET_TYPES.STUDY && $scope.bucketSelection.dceBucketSelected) {
           bucket = BUCKET_TYPES.DCE;
-        }
-
-        if (bucket === BUCKET_TYPES.DATASET && !$scope.bucketSelection.datasetBucketSelected) {
-          bucket = BUCKET_TYPES.DATASCHEMA;
         }
 
         $scope.bucket = bucket;
@@ -6205,13 +6305,20 @@ angular.module('obiba.mica.search')
       function getBucketUrl(bucket, id) {
         switch (bucket) {
           case BUCKET_TYPES.STUDY:
+          case BUCKET_TYPES.STUDY_COLLECTION:
           case BUCKET_TYPES.DCE:
+          case BUCKET_TYPES.DCE_COLLECTION:
             return PageUrlService.studyPage(id, 'collection');
+          case BUCKET_TYPES.STUDY_HARMONIZATION:
+          case BUCKET_TYPES.DCE_HARMONIZATION:
+            return PageUrlService.studyPage(id, 'harmonization');
           case BUCKET_TYPES.NETWORK:
             return PageUrlService.networkPage(id);
           case BUCKET_TYPES.DATASCHEMA:
+          case BUCKET_TYPES.DATASET_HARMONIZATION:
             return PageUrlService.datasetPage(id, 'harmonization');
           case BUCKET_TYPES.DATASET:
+          case BUCKET_TYPES.DATASET_COLLECTION:
             return PageUrlService.datasetPage(id, 'collection');
         }
 
@@ -6219,7 +6326,7 @@ angular.module('obiba.mica.search')
       }
 
       function updateFilterCriteriaInternal(selected, fullCoverage) {
-        var vocabulary = $scope.bucket === BUCKET_TYPES.DCE ? 'dceIds' : 'id';
+        var vocabulary = $scope.bucket.startsWith('dce') ? 'dceIds' : 'id';
         $q.all(selected.map(function (r) {
           return RqlQueryService.createCriteriaItem(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary, r.value);
         })).then(function (items) {
@@ -6242,7 +6349,7 @@ angular.module('obiba.mica.search')
 
       function splitIds() {
         var cols = {
-          colSpan: $scope.bucket === BUCKET_TYPES.DCE ? 3 : 1,
+          colSpan: $scope.bucket.startsWith('dce') ? 3 : 1,
           ids: {}
         };
 
@@ -6318,7 +6425,7 @@ angular.module('obiba.mica.search')
         var groupId;
         $scope.result.rows.forEach(function (row) {
           cols.ids[row.value] = [];
-          if ($scope.bucket === BUCKET_TYPES.DCE) {
+          if ($scope.bucket.startsWith('dce')) {
             var ids = row.value.split(':');
             var titles = row.title.split(':');
             var descriptions = row.description.split(':');
@@ -6387,7 +6494,7 @@ angular.module('obiba.mica.search')
         });
 
         // adjust the rowspans and the progress
-        if ($scope.bucket === BUCKET_TYPES.DCE) {
+        if ($scope.bucket.startsWith('dce')) {
           $scope.result.rows.forEach(function (row) {
             if (cols.ids[row.value][0].rowSpan > 0) {
               cols.ids[row.value][0].rowSpan = rowSpans[cols.ids[row.value][0].id];
@@ -6449,21 +6556,22 @@ angular.module('obiba.mica.search')
       });
 
       $scope.updateCriteria = function (id, term, idx, type) { //
-        var vocabulary = $scope.bucket === BUCKET_TYPES.DCE ? 'dceIds' : 'id';
+        var vocabulary = $scope.bucket.startsWith('dce') ? 'dceIds' : 'id';
         var criteria = {varItem: RqlQueryService.createCriteriaItem(QUERY_TARGETS.VARIABLE, term.taxonomyName, term.vocabularyName, term.entity.name)};
 
         // if id is null, it is a click on the total count for the term
         if (id) {
           // This extra query is to enforce a narrow down based on the dataset type which affects counts
-          if ($scope.bucket === BUCKET_TYPES.STUDY || $scope.bucket === BUCKET_TYPES.DCE) {
+          if ($scope.bucket.endsWith('collection')) {
             criteria.bucketItem = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'StudyDataset');
-          } else if ($scope.bucket === BUCKET_TYPES.NETWORK) {
+          } else if ($scope.bucket === BUCKET_TYPES.NETWORK || $scope.bucket.endsWith('harmonization')) {
             criteria.bucketItem = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'HarmonizationDataset');
           }
-          criteria.item = RqlQueryService.createCriteriaItem(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary, id);
-        } else if ($scope.bucket === BUCKET_TYPES.STUDY || $scope.bucket === BUCKET_TYPES.DCE || $scope.bucket === BUCKET_TYPES.DATASET) {
+          var groupBy = $scope.bucket.split('-')[0];
+          criteria.item = RqlQueryService.createCriteriaItem(targetMap[groupBy], 'Mica_' + targetMap[groupBy], vocabulary, id);
+        } else if ($scope.bucket.endsWith('collection')) {
           criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'StudyDataset');
-        } else if ($scope.bucket === BUCKET_TYPES.NETWORK || $scope.bucket === BUCKET_TYPES.DATASCHEMA) {
+        } else if ($scope.bucket === BUCKET_TYPES.NETWORK || $scope.bucket.endsWith('harmonization')) {
           criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'HarmonizationDataset');
         }
 
@@ -9983,7 +10091,6 @@ angular.module("localized/localized-template.html", []).run(["$templateCache", f
     "  ~ You should have received a copy of the GNU General Public License\n" +
     "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
     "  -->\n" +
-    "\n" +
     "<span ng-bind-html=\"LocalizedValues.for(value,lang,keyLang,keyValue)  | markdown:markdownIt | ellipsis:ellipsisSize\"></span>");
 }]);
 
@@ -10660,14 +10767,14 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "  <div ng-if=\"hasVariableTarget()\">\n" +
     "    <ul class=\"nav nav-pills pull-left\">\n" +
     "      <li ng-if=\"groupByOptions.canShowStudy()\"\n" +
-    "        ng-class=\"{'active': bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE}\">\n" +
+    "        ng-class=\"{'active': bucket.startsWith('study') || bucket.startsWith('dce')}\">\n" +
     "        <a href ng-click=\"selectBucket(groupByOptions.studyBucket())\" translate>{{groupByOptions.studyTitle()}}</a>\n" +
     "      </li>\n" +
     "      <li ng-if=\"groupByOptions.canShowDataset()\"\n" +
-    "        ng-class=\"{'active': bucket === BUCKET_TYPES.DATASET || bucket === BUCKET_TYPES.DATASCHEMA}\">\n" +
+    "        ng-class=\"{'active': bucket.startsWith('dataset')}\">\n" +
     "        <a href ng-click=\"selectBucket(groupByOptions.datasetBucket())\" translate>{{groupByOptions.datasetTitle()}}</a>\n" +
     "      </li>\n" +
-    "      <li ng-if=\"groupByOptions.canShowNetwork()\" ng-class=\"{'active': bucket === BUCKET_TYPES.NETWORK}\">\n" +
+    "      <li ng-if=\"groupByOptions.canShowNetwork()\" ng-class=\"{'active': bucket.startsWith('network')}\">\n" +
     "        <a href ng-click=\"selectBucket(BUCKET_TYPES.NETWORK)\" translate>search.coverage-buckets.network</a>\n" +
     "      </li>\n" +
     "    </ul>\n" +
@@ -10690,21 +10797,21 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "\n" +
     "    <div class=\"clearfix\"></div>\n" +
     "\n" +
-    "    <div class=\"voffset2\" ng-if=\"groupByOptions.canShowDce(bucket)\">\n" +
+    "    <div class=\"voffset2 pull-right\" ng-if=\"groupByOptions.canShowDce(bucket)\">\n" +
     "      <label class=\"checkbox-inline\">\n" +
     "        <input type=\"checkbox\" ng-model=\"bucketSelection.dceBucketSelected\">\n" +
     "        <span translate>search.coverage-buckets.dce</span>\n" +
     "      </label>\n" +
     "    </div>\n" +
     "\n" +
-    "    <div class=\"voffset2\" ng-if=\"groupByOptions.canShowDatasetStudyDataschema(bucket)\">\n" +
-    "      <label class=\"radio-inline\">\n" +
-    "        <input type=\"radio\" ng-model=\"bucketSelection.datasetBucketSelected\" ng-value=\"true\">\n" +
-    "        <span translate>search.coverage-buckets.dataset</span>\n" +
+    "    <div class=\"voffset2\" ng-if=\"groupByOptions.canShowVariableTypeFilter(bucket)\">\n" +
+    "      <label class=\"checkbox-inline\">\n" +
+    "        <input type=\"checkbox\" ng-model=\"bucketSelection.variableTypeCollectionSelected\">\n" +
+    "        <span translate>search.coverage-buckets.collection</span>\n" +
     "      </label>\n" +
-    "      <label class=\"radio-inline\">\n" +
-    "        <input type=\"radio\" ng-model=\"bucketSelection.datasetBucketSelected\" ng-value=\"false\">\n" +
-    "        <span translate>search.coverage-buckets.dataschema</span>\n" +
+    "      <label class=\"checkbox-inline\">\n" +
+    "        <input type=\"checkbox\" ng-model=\"bucketSelection.variableTypeDataschemaSelected\">\n" +
+    "        <span translate>search.coverage-buckets.harmonization</span>\n" +
     "      </label>\n" +
     "    </div>\n" +
     "  </div>\n" +
@@ -10733,7 +10840,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "            </ul>\n" +
     "          </div>\n" +
     "        </th>\n" +
-    "        <th rowspan=\"{{bucket === BUCKET_TYPES.DCE ? 1 : 2}}\" colspan=\"{{table.cols.colSpan}}\" translate>\n" +
+    "        <th rowspan=\"{{bucket.startsWith('dce') ? 1 : 2}}\" colspan=\"{{table.cols.colSpan}}\" translate>\n" +
     "          {{'search.coverage-buckets.' + bucket}}\n" +
     "        </th>\n" +
     "        <th ng-repeat=\"header in table.vocabularyHeaders\" colspan=\"{{header.termsCount}}\">\n" +
@@ -10750,9 +10857,9 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "        </th>\n" +
     "      </tr>\n" +
     "      <tr>\n" +
-    "        <th ng-if=\"bucket === BUCKET_TYPES.DCE\" translate>search.coverage-dce-cols.study</th>\n" +
-    "        <th ng-if=\"bucket === BUCKET_TYPES.DCE\" translate>search.coverage-dce-cols.population</th>\n" +
-    "        <th ng-if=\"bucket === BUCKET_TYPES.DCE\" translate>search.coverage-dce-cols.dce</th>\n" +
+    "        <th ng-if=\"bucket.startsWith('dce')\" translate>search.coverage-dce-cols.study</th>\n" +
+    "        <th ng-if=\"bucket.startsWith('dce')\" translate>search.coverage-dce-cols.population</th>\n" +
+    "        <th ng-if=\"bucket.startsWith('dce')\" translate>search.coverage-dce-cols.dce</th>\n" +
     "        <th ng-repeat=\"header in table.termHeaders\">\n" +
     "          <span\n" +
     "            uib-popover=\"{{header.entity.descriptions[0].value}}\"\n" +
@@ -10778,7 +10885,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "            popover-title=\"{{col.title}}\"\n" +
     "            popover-placement=\"bottom\"\n" +
     "            popover-trigger=\"'mouseenter'\">{{col.title}}</a>\n" +
-    "          <div style=\"text-align: center\" ng-if=\"col.start && bucket === BUCKET_TYPES.DCE\">\n" +
+    "          <div style=\"text-align: center\" ng-if=\"col.start && bucket.startsWith('dce')\">\n" +
     "            <div>\n" +
     "              <small class=\"help-block no-margin\">\n" +
     "                {{col.start}} {{'to' | translate}} {{col.end ? col.end : '...'}}\n" +
@@ -11353,9 +11460,9 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "          <th class=\"text-nowrap\"  title=\"{{datasourceTitles.others.title}}\" ng-if=\"optionsCols.showStudiesOtherColumn\">\n" +
     "            <i class=\"fa fa-plus-square-o\"></i>\n" +
     "          </th>\n" +
-    "          <th translate ng-if=\"optionsCols.showStudiesStudyDatasetsColumn\">search.study.label</th>\n" +
-    "          <th translate ng-if=\"optionsCols.showStudiesHarmonizationDatasetsColumn\">search.harmonization</th>\n" +
-    "          <th translate ng-if=\"optionsCols.showStudiesStudyVariablesColumn\">search.variable.study</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showStudiesStudyDatasetsColumn\">search.dataset.collection</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showStudiesHarmonizationDatasetsColumn\">search.dataset.harmonization</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showStudiesStudyVariablesColumn\">search.variable.collection</th>\n" +
     "          <th translate ng-if=\"optionsCols.showStudiesDataschemaVariablesColumn\">search.variable.dataschema</th>\n" +
     "        </tr>\n" +
     "        </thead>\n" +

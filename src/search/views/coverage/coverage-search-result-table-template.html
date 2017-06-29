@@ -3,14 +3,14 @@
   <div ng-if="hasVariableTarget()">
     <ul class="nav nav-pills pull-left">
       <li ng-if="groupByOptions.canShowStudy()"
-        ng-class="{'active': bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE}">
+        ng-class="{'active': bucket.startsWith('study') || bucket.startsWith('dce')}">
         <a href ng-click="selectBucket(groupByOptions.studyBucket())" translate>{{groupByOptions.studyTitle()}}</a>
       </li>
       <li ng-if="groupByOptions.canShowDataset()"
-        ng-class="{'active': bucket === BUCKET_TYPES.DATASET || bucket === BUCKET_TYPES.DATASCHEMA}">
+        ng-class="{'active': bucket.startsWith('dataset')}">
         <a href ng-click="selectBucket(groupByOptions.datasetBucket())" translate>{{groupByOptions.datasetTitle()}}</a>
       </li>
-      <li ng-if="groupByOptions.canShowNetwork()" ng-class="{'active': bucket === BUCKET_TYPES.NETWORK}">
+      <li ng-if="groupByOptions.canShowNetwork()" ng-class="{'active': bucket.startsWith('network')}">
         <a href ng-click="selectBucket(BUCKET_TYPES.NETWORK)" translate>search.coverage-buckets.network</a>
       </li>
     </ul>
@@ -33,21 +33,21 @@
 
     <div class="clearfix"></div>
 
-    <div class="voffset2" ng-if="groupByOptions.canShowDce(bucket)">
+    <div class="voffset2 pull-right" ng-if="groupByOptions.canShowDce(bucket)">
       <label class="checkbox-inline">
         <input type="checkbox" ng-model="bucketSelection.dceBucketSelected">
         <span translate>search.coverage-buckets.dce</span>
       </label>
     </div>
 
-    <div class="voffset2" ng-if="groupByOptions.canShowDatasetStudyDataschema(bucket)">
-      <label class="radio-inline">
-        <input type="radio" ng-model="bucketSelection.datasetBucketSelected" ng-value="true">
-        <span translate>search.coverage-buckets.dataset</span>
+    <div class="voffset2" ng-if="groupByOptions.canShowVariableTypeFilter(bucket)">
+      <label class="checkbox-inline">
+        <input type="checkbox" ng-model="bucketSelection.variableTypeCollectionSelected">
+        <span translate>search.coverage-buckets.collection</span>
       </label>
-      <label class="radio-inline">
-        <input type="radio" ng-model="bucketSelection.datasetBucketSelected" ng-value="false">
-        <span translate>search.coverage-buckets.dataschema</span>
+      <label class="checkbox-inline">
+        <input type="checkbox" ng-model="bucketSelection.variableTypeDataschemaSelected">
+        <span translate>search.coverage-buckets.harmonization</span>
       </label>
     </div>
   </div>
@@ -76,7 +76,7 @@
             </ul>
           </div>
         </th>
-        <th rowspan="{{bucket === BUCKET_TYPES.DCE ? 1 : 2}}" colspan="{{table.cols.colSpan}}" translate>
+        <th rowspan="{{bucket.startsWith('dce') ? 1 : 2}}" colspan="{{table.cols.colSpan}}" translate>
           {{'search.coverage-buckets.' + bucket}}
         </th>
         <th ng-repeat="header in table.vocabularyHeaders" colspan="{{header.termsCount}}">
@@ -93,9 +93,9 @@
         </th>
       </tr>
       <tr>
-        <th ng-if="bucket === BUCKET_TYPES.DCE" translate>search.coverage-dce-cols.study</th>
-        <th ng-if="bucket === BUCKET_TYPES.DCE" translate>search.coverage-dce-cols.population</th>
-        <th ng-if="bucket === BUCKET_TYPES.DCE" translate>search.coverage-dce-cols.dce</th>
+        <th ng-if="bucket.startsWith('dce')" translate>search.coverage-dce-cols.study</th>
+        <th ng-if="bucket.startsWith('dce')" translate>search.coverage-dce-cols.population</th>
+        <th ng-if="bucket.startsWith('dce')" translate>search.coverage-dce-cols.dce</th>
         <th ng-repeat="header in table.termHeaders">
           <span
             uib-popover="{{header.entity.descriptions[0].value}}"
@@ -121,7 +121,7 @@
             popover-title="{{col.title}}"
             popover-placement="bottom"
             popover-trigger="'mouseenter'">{{col.title}}</a>
-          <div style="text-align: center" ng-if="col.start && bucket === BUCKET_TYPES.DCE">
+          <div style="text-align: center" ng-if="col.start && bucket.startsWith('dce')">
             <div>
               <small class="help-block no-margin">
                 {{col.start}} {{'to' | translate}} {{col.end ? col.end : '...'}}
