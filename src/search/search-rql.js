@@ -30,9 +30,15 @@ var QUERY_TARGETS = {
 var BUCKET_TYPES = {
   NETWORK: 'network',
   STUDY: 'study',
+  STUDY_COLLECTION: 'study-collection',
+  STUDY_HARMONIZATION: 'study-harmonization',
   DCE: 'dce',
-  DATASCHEMA: 'dataschema',
-  DATASET: 'dataset'
+  DCE_COLLECTION: 'dce-collection',
+  DCE_HARMONIZATION: 'dce-harmonization',
+  DATASET: 'dataset',
+  DATASET_COLLECTION: 'dataset-collection',
+  DATASET_HARMONIZATION: 'dataset-harmonization',
+  DATASCHEMA: 'dataschema'
 };
 
 /* exported RQL_NODE */
@@ -1442,7 +1448,11 @@ angular.module('obiba.mica.search')
         var aggregate = new RqlQuery('aggregate');
         var bucketField;
 
-        switch (bucketArg) {
+        var parts = bucketArg.split('-');
+        var groupBy = parts[0];
+        var filterBy = parts.length > 1 ? parts[1] : undefined;
+
+        switch (groupBy) {
           case BUCKET_TYPES.NETWORK:
             bucketField = 'networkId';
             break;
@@ -1462,6 +1472,7 @@ angular.module('obiba.mica.search')
         bucket.args.push(bucketField);
         aggregate.args.push(bucket);
 
+        // variable RQL
         var variable;
         parsedQuery.args.forEach(function (arg) {
           if (!variable && arg.name === 'variable') {
@@ -1476,10 +1487,16 @@ angular.module('obiba.mica.search')
         if (variable.args.length > 0 && variable.args[0].name !== 'limit') {
           var variableType = new RqlQuery('in');
           variableType.args.push('Mica_variable.variableType');
-          if (bucketArg === BUCKET_TYPES.NETWORK || bucketArg === BUCKET_TYPES.DATASCHEMA) {
-            variableType.args.push('Dataschema');
-          } else {
+          if (filterBy === undefined) {
+            if (bucketArg === BUCKET_TYPES.NETWORK || bucketArg === BUCKET_TYPES.DATASCHEMA) {
+              variableType.args.push('Dataschema');
+            } else {
+              variableType.args.push(['Collection','Dataschema']);
+            }
+          } else if (filterBy === 'collection') {
             variableType.args.push('Collection');
+          } else if (filterBy === 'harmonization') {
+            variableType.args.push('Dataschema');
           }
           var andVariableType = new RqlQuery('and');
           andVariableType.args.push(variableType);
@@ -1488,6 +1505,67 @@ angular.module('obiba.mica.search')
         }
 
         variable.args.push(aggregate);
+
+        // study RQL
+        if (filterBy !== undefined && (groupBy === BUCKET_TYPES.STUDY || groupBy === BUCKET_TYPES.DCE)) {
+          // filter by className
+          var study;
+          parsedQuery.args.forEach(function (arg) {
+            if (!study && arg.name === 'study') {
+              study = arg;
+            }
+          });
+          if (!study) {
+            study = new RqlQuery('study');
+            parsedQuery.args.push(study);
+          }
+          var studyClassName = new RqlQuery('in');
+          studyClassName.args.push('Mica_study.className');
+          if (filterBy === 'collection') {
+            studyClassName.args.push('Study');
+          } else if (filterBy === 'harmonization') {
+            studyClassName.args.push('HarmonizationStudy');
+          }
+          if (study.args.length>0) {
+            var andStudyClassName = new RqlQuery('and');
+            andStudyClassName.args.push(studyClassName);
+            andStudyClassName.args.push(study.args[0]);
+            study.args[0] = andStudyClassName;
+          } else {
+            study.args.push(studyClassName);
+          }
+        }
+
+        // dataset RQL
+        if (filterBy !== undefined && (groupBy === BUCKET_TYPES.DATASET || groupBy === BUCKET_TYPES.DATASCHEMA)) {
+          // filter by className
+          var dataset;
+          parsedQuery.args.forEach(function (arg) {
+            if (!dataset && arg.name === 'dataset') {
+              dataset = arg;
+            }
+          });
+          if (!dataset) {
+            dataset = new RqlQuery('dataset');
+            parsedQuery.args.push(dataset);
+          }
+          var datasetClassName = new RqlQuery('in');
+          datasetClassName.args.push('Mica_dataset.className');
+          if (filterBy === 'collection') {
+            datasetClassName.args.push('StudyDataset');
+          } else if (filterBy === 'harmonization') {
+            datasetClassName.args.push('HarmonizationDataset');
+          }
+          if (dataset.args.length>0) {
+            var andDatasetClassName = new RqlQuery('and');
+            andDatasetClassName.args.push(datasetClassName);
+            andDatasetClassName.args.push(dataset.args[0]);
+            dataset.args[0] = datasetClassName;
+          } else {
+            dataset.args.push(datasetClassName);
+          }
+        }
+
         return parsedQuery.serializeArgs(parsedQuery.args);
       };
 

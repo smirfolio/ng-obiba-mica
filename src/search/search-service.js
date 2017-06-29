@@ -180,17 +180,15 @@ angular.module('obiba.mica.search')
       },
 
       canShowDce: function(bucket) {
-        return (bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE) &&
-          groupByOptions.study && groupByOptions.dce;
+        return (bucket.startsWith('study') || bucket.startsWith('dce')) && groupByOptions.study && groupByOptions.dce;
       },
 
       canShowDataset: function() {
         return groupByOptions.dataset || groupByOptions.dataschema;
       },
 
-      canShowDatasetStudyDataschema: function(bucket) {
-        return (bucket=== BUCKET_TYPES.DATASET || bucket === BUCKET_TYPES.DATASCHEMA) &&
-          groupByOptions.dataset && groupByOptions.dataschema;
+      canShowVariableTypeFilter: function(bucket) {
+        return (bucket !== BUCKET_TYPES.NETWORK) && (groupByOptions.dataset || groupByOptions.study || groupByOptions.dce) && groupByOptions.dataschema;
       },
 
       canShowNetwork: function() {
@@ -214,17 +212,18 @@ angular.module('obiba.mica.search')
       },
 
       datasetBucket: function() {
-        return groupByOptions.dataset ? BUCKET_TYPES.DATASET : BUCKET_TYPES.DATASCHEMA;
+        return groupByOptions.dataset ? BUCKET_TYPES.DATASET : BUCKET_TYPES.DATASET_HARMONIZATION;
       },
 
       canGroupBy: function(bucket) {
-        return groupByOptions.hasOwnProperty(bucket) && groupByOptions[bucket];
+        var groupBy = bucket.split('-')[0];
+        return groupByOptions.hasOwnProperty(groupBy) && groupByOptions[groupBy];
       },
 
       defaultBucket: function() {
         return groupByOptions.study ? BUCKET_TYPES.STUDY :
           (groupByOptions.dce ? BUCKET_TYPES.DCE : groupByOptions.dataset ? BUCKET_TYPES.DATASET :
-            (groupByOptions.dataschema ? BUCKET_TYPES.DATASCHEMA :
+            (groupByOptions.dataschema ? BUCKET_TYPES.DATASET_HARMONIZATION :
               (groupByOptions.network ? BUCKET_TYPES.NETWORK : '')));
       }
 
