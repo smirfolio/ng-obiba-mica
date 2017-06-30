@@ -9,7 +9,7 @@
           <th translate>name</th>
           <th translate>search.variable.label</th>
           <th translate ng-if="optionsCols.showVariablesTypeColumn">type</th>
-          <th translate ng-if="optionsCols.showVariablesStudiesColumn">search.variable.studyNetwork</th>
+          <th translate ng-if="optionsCols.showVariablesStudiesColumn">search.study.label</th>
           <th translate ng-if="optionsCols.showVariablesDatasetsColumn">search.dataset.label</th>
         </tr>
         </thead>
@@ -28,7 +28,7 @@
             {{'search.variable.' + summary.variableType.toLowerCase() | translate}}
           </td>
           <td ng-if="optionsCols.showVariablesStudiesColumn">
-            <a ng-if="summary.studyId" ng-href="{{PageUrlService.studyPage(summary.studyId, 'collection')}}">
+            <a ng-if="summary.studyId" ng-href="{{PageUrlService.studyPage(summary.studyId, summary.variableType == 'Dataschema' ? 'harmonization' : 'collection')}}">
               <localized value="summary.studyAcronym" lang="lang"></localized>
             </a>
             <a ng-if="summary.networkId" ng-href="{{PageUrlService.networkPage(summary.networkId)}}">
