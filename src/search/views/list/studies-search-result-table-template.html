@@ -55,7 +55,7 @@
             <localized value="summary.name" lang="lang"></localized>
           </td>
           <td ng-if="optionsCols.showStudiesDesignColumn">
-            <localized ng-repeat="d in summary.designs" value="designs[d]" lang="lang"></localized>
+            {{'study_taxonomy.vocabulary.methods-design.term.' + summary.design + '.title' | translate}}
           </td>
           <td ng-if="optionsCols.showStudiesQuestionnaireColumn">
             <i class="fa fa-check" ng-if="hasDatasource(summary.dataSources, 'questionnaires')"></i><span

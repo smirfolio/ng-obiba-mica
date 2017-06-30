@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-06-29
+ * Date: 2017-06-30
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -11335,7 +11335,7 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
     "        <tr>\n" +
     "          <th translate ng-if=\"optionsCols.showNetworksStudyDatasetColumn\">search.study.label</th>\n" +
     "          <th translate ng-if=\"optionsCols.showNetworksHarmonizationDatasetColumn\">search.harmonization</th>\n" +
-    "          <th translate ng-if=\"optionsCols.showNetworksStudyVariablesColumn\">search.variable.study</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showNetworksStudyVariablesColumn\">search.variable.collection</th>\n" +
     "          <th translate ng-if=\"optionsCols.showNetworksDataschemaVariablesColumn\">search.variable.dataschema</th>\n" +
     "        </tr>\n" +
     "        </thead>\n" +
@@ -11509,7 +11509,7 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "            <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showStudiesDesignColumn\">\n" +
-    "            <localized ng-repeat=\"d in summary.designs\" value=\"designs[d]\" lang=\"lang\"></localized>\n" +
+    "            {{'study_taxonomy.vocabulary.methods-design.term.' + summary.design + '.title' | translate}}\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showStudiesQuestionnaireColumn\">\n" +
     "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'questionnaires')\"></i><span\n" +
@@ -11583,7 +11583,7 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
     "          <th translate>name</th>\n" +
     "          <th translate>search.variable.label</th>\n" +
     "          <th translate ng-if=\"optionsCols.showVariablesTypeColumn\">type</th>\n" +
-    "          <th translate ng-if=\"optionsCols.showVariablesStudiesColumn\">search.variable.studyNetwork</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showVariablesStudiesColumn\">search.study.label</th>\n" +
     "          <th translate ng-if=\"optionsCols.showVariablesDatasetsColumn\">search.dataset.label</th>\n" +
     "        </tr>\n" +
     "        </thead>\n" +
@@ -11602,7 +11602,7 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
     "            {{'search.variable.' + summary.variableType.toLowerCase() | translate}}\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showVariablesStudiesColumn\">\n" +
-    "            <a ng-if=\"summary.studyId\" ng-href=\"{{PageUrlService.studyPage(summary.studyId, 'collection')}}\">\n" +
+    "            <a ng-if=\"summary.studyId\" ng-href=\"{{PageUrlService.studyPage(summary.studyId, summary.variableType == 'Dataschema' ? 'harmonization' : 'collection')}}\">\n" +
     "              <localized value=\"summary.studyAcronym\" lang=\"lang\"></localized>\n" +
     "            </a>\n" +
     "            <a ng-if=\"summary.networkId\" ng-href=\"{{PageUrlService.networkPage(summary.networkId)}}\">\n" +
