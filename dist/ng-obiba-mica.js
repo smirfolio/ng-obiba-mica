@@ -3673,7 +3673,7 @@ angular.module('obiba.mica.search')
             var andDatasetClassName = new RqlQuery('and');
             andDatasetClassName.args.push(datasetClassName);
             andDatasetClassName.args.push(dataset.args[0]);
-            dataset.args[0] = datasetClassName;
+            dataset.args[0] = andDatasetClassName;
           } else {
             dataset.args.push(datasetClassName);
           }
