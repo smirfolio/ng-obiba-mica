@@ -10,9 +10,9 @@
         ng-class="{'active': bucket.startsWith('dataset')}">
         <a href ng-click="selectBucket(groupByOptions.datasetBucket())" translate>{{groupByOptions.datasetTitle()}}</a>
       </li>
-      <li ng-if="groupByOptions.canShowNetwork()" ng-class="{'active': bucket.startsWith('network')}">
+      <!--li ng-if="groupByOptions.canShowNetwork()" ng-class="{'active': bucket.startsWith('network')}">
         <a href ng-click="selectBucket(BUCKET_TYPES.NETWORK)" translate>search.coverage-buckets.network</a>
-      </li>
+      </li-->
     </ul>
 
     <div class="pull-right">

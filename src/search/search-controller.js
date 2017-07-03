@@ -2044,10 +2044,13 @@ angular.module('obiba.mica.search')
         $scope.showMissing = value;
       };
       $scope.groupByOptions = CoverageGroupByService;
+      var isBucketIn = function (element) {
+        return $scope.bucket === element;
+      };
       $scope.bucketSelection = {
         dceBucketSelected: $scope.bucket.startsWith('dce'),
-        variableTypeCollectionSelected: $scope.bucket === BUCKET_TYPES.DATASET || $scope.bucket === BUCKET_TYPES.DATASET_COLLECTION,
-        variableTypeDataschemaSelected: $scope.bucket === BUCKET_TYPES.DATASCHEMA || $scope.bucket === BUCKET_TYPES.DATASET || $scope.bucket === BUCKET_TYPES.DATASET_HARMONIZATION
+        variableTypeCollectionSelected: [ BUCKET_TYPES.STUDY, BUCKET_TYPES.STUDY_COLLECTION, BUCKET_TYPES.DCE, BUCKET_TYPES.DCE_COLLECTION, BUCKET_TYPES.DATASET, BUCKET_TYPES.DATASET_COLLECTION].some(isBucketIn),
+        variableTypeDataschemaSelected: [ BUCKET_TYPES.STUDY, BUCKET_TYPES.STUDY_HARMONIZATION, BUCKET_TYPES.DCE, BUCKET_TYPES.DCE_HARMONIZATION, BUCKET_TYPES.DATASCHEMA, BUCKET_TYPES.DATASET, BUCKET_TYPES.DATASET_HARMONIZATION].some(isBucketIn)
       };
 
       function decorateVocabularyHeaders(headers, vocabularyHeaders) {
@@ -2136,6 +2139,13 @@ angular.module('obiba.mica.search')
           bucket = BUCKET_TYPES.DCE;
         }
 
+        if (bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE || bucket === BUCKET_TYPES.DATASET) {
+          if ($scope.bucketSelection.variableTypeCollectionSelected && !$scope.bucketSelection.variableTypeDataschemaSelected) {
+            bucket = bucket + '-collection';
+          } else if (!$scope.bucketSelection.variableTypeCollectionSelected && $scope.bucketSelection.variableTypeDataschemaSelected) {
+            bucket = bucket + '-harmonization';
+          }
+        }
         $scope.bucket = bucket;
         $scope.$parent.onBucketChanged(bucket);
       };
