@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-06-30
+ * Date: 2017-07-03
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -1907,7 +1907,7 @@ angular.module('obiba.mica.search', [
         datasetTaxonomiesOrder: [],
         networkTaxonomiesOrder: [],
         hideNavigate: [],
-        hideSearch: ['studyIds', 'dceIds', 'datasetId', 'networkId', 'studyId'],
+        hideSearch: ['studyId', 'dceId', 'datasetId', 'networkId'],
         variables: {
           showSearchTab: true,
           variablesColumn: {
@@ -2185,7 +2185,7 @@ var SORT_FIELDS = {
   ACRONYM: 'acronym',
   NAME: 'name',
   CONTAINER_ID: 'containerId',
-  POPULATION_IDS: 'populationIds',
+  POPULATION_ID: 'populationId',
   EARLIER_START: 'earliestStart',
   DATASET_ID: 'datasetId',
   INDEX: 'index',
@@ -3570,10 +3570,10 @@ angular.module('obiba.mica.search')
             bucketField = 'networkId';
             break;
           case BUCKET_TYPES.STUDY:
-            bucketField = 'studyIds';
+            bucketField = 'studyId';
             break;
           case BUCKET_TYPES.DCE:
-            bucketField = 'dceIds';
+            bucketField = 'dceId';
             break;
           case BUCKET_TYPES.DATASCHEMA:
           case BUCKET_TYPES.DATASET:
@@ -4894,7 +4894,7 @@ angular.module('obiba.mica.search')
           sort = $scope.search.type === QUERY_TYPES.VARIABLES ? SORT_FIELDS.NAME : SORT_FIELDS.ACRONYM;
 
           if ($scope.search.type === QUERY_TYPES.VARIABLES) {
-            sort = [SORT_FIELDS.CONTAINER_ID, SORT_FIELDS.POPULATION_IDS, SORT_FIELDS.EARLIER_START, SORT_FIELDS.DATASET_ID, SORT_FIELDS.INDEX, SORT_FIELDS.NAME];
+            sort = [SORT_FIELDS.CONTAINER_ID, SORT_FIELDS.POPULATION_ID, SORT_FIELDS.EARLIER_START, SORT_FIELDS.DATASET_ID, SORT_FIELDS.INDEX, SORT_FIELDS.NAME];
           } else if ($scope.search.type === QUERY_TYPES.DATASETS) {
             sort = [SORT_FIELDS.STUDY_TABLE.STUDY_ID, SORT_FIELDS.STUDY_TABLE.POPULATION_ID, SORT_FIELDS.START, SORT_FIELDS.ACRONYM];
           }
@@ -11509,7 +11509,7 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "            <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showStudiesDesignColumn\">\n" +
-    "            {{'study_taxonomy.vocabulary.methods-design.term.' + summary.design + '.title' | translate}}\n" +
+    "            {{ summary.design === undefined ? '-' : 'study_taxonomy.vocabulary.methods-design.term.' + summary.design + '.title' | translate}}\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showStudiesQuestionnaireColumn\">\n" +
     "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'questionnaires')\"></i><span\n" +
