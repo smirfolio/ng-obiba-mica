@@ -55,7 +55,7 @@ angular.module('obiba.mica.search', [
         datasetTaxonomiesOrder: [],
         networkTaxonomiesOrder: [],
         hideNavigate: [],
-        hideSearch: ['studyIds', 'dceIds', 'datasetId', 'networkId', 'studyId'],
+        hideSearch: ['studyId', 'dceId', 'datasetId', 'networkId'],
         variables: {
           showSearchTab: true,
           variablesColumn: {

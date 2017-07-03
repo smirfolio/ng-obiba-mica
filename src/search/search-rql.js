@@ -82,7 +82,7 @@ var SORT_FIELDS = {
   ACRONYM: 'acronym',
   NAME: 'name',
   CONTAINER_ID: 'containerId',
-  POPULATION_IDS: 'populationIds',
+  POPULATION_ID: 'populationId',
   EARLIER_START: 'earliestStart',
   DATASET_ID: 'datasetId',
   INDEX: 'index',
@@ -1467,10 +1467,10 @@ angular.module('obiba.mica.search')
             bucketField = 'networkId';
             break;
           case BUCKET_TYPES.STUDY:
-            bucketField = 'studyIds';
+            bucketField = 'studyId';
             break;
           case BUCKET_TYPES.DCE:
-            bucketField = 'dceIds';
+            bucketField = 'dceId';
             break;
           case BUCKET_TYPES.DATASCHEMA:
           case BUCKET_TYPES.DATASET:
