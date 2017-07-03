@@ -116,7 +116,8 @@
           <input type="checkbox" ng-model="row.selected">
         </td>
         <td ng-repeat="col in table.cols.ids[row.value]">
-          <a ng-if="col.rowSpan > 0" href="{{col.url ? col.url : ''}}"
+          <span ng-if="col.id === '-'">-</span>
+          <a ng-if="col.rowSpan > 0 && col.id !== '-'" href="{{col.url ? col.url : ''}}"
             uib-popover-html="col.description === col.title ? null : col.description"
             popover-title="{{col.title}}"
             popover-placement="bottom"

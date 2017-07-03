@@ -1046,7 +1046,7 @@ angular.module('obiba.mica.search')
           var existingItem = RqlQueryService.findCriteriaItemFromTree(item, $scope.search.criteria);
           var growlMsgKey;
 
-          if (existingItem && id.indexOf('dceIds') !== -1 && fullCoverage) {
+          if (existingItem && id.indexOf('dceId') !== -1 && fullCoverage) {
             removeCriteriaItem(existingItem);
             growlMsgKey = 'search.criterion.updated';
             RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item, logicalOp);
@@ -2233,7 +2233,7 @@ angular.module('obiba.mica.search')
       }
 
       function updateFilterCriteriaInternal(selected, fullCoverage) {
-        var vocabulary = $scope.bucket.startsWith('dce') ? 'dceIds' : 'id';
+        var vocabulary = $scope.bucket.startsWith('dce') ? 'dceId' : 'id';
         $q.all(selected.map(function (r) {
           return RqlQueryService.createCriteriaItem(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary, r.value);
         })).then(function (items) {
@@ -2334,6 +2334,7 @@ angular.module('obiba.mica.search')
           cols.ids[row.value] = [];
           if ($scope.bucket.startsWith('dce')) {
             var ids = row.value.split(':');
+            var isHarmo = ids[2] === '.';
             var titles = row.title.split(':');
             var descriptions = row.description.split(':');
             var rowSpan;
@@ -2351,7 +2352,7 @@ angular.module('obiba.mica.search')
             appendMinMax(id,row.start || currentYearMonth, row.end || currentYearMonth);
             cols.ids[row.value].push({
               id: id,
-              url: PageUrlService.studyPage(id, 'collection'),
+              url: PageUrlService.studyPage(id, isHarmo ? 'harmonization' : 'collection'),
               title: titles[0],
               description: descriptions[0],
               rowSpan: rowSpan
@@ -2362,7 +2363,7 @@ angular.module('obiba.mica.search')
             rowSpan = appendRowSpan(id);
             cols.ids[row.value].push({
               id: id,
-              url: PageUrlService.studyPopulationPage(ids[0], 'collection', ids[1]),
+              url: PageUrlService.studyPopulationPage(ids[0], isHarmo ? 'harmonization' : 'collection', ids[1]),
               title: titles[1],
               description: descriptions[1],
               rowSpan: rowSpan
@@ -2370,20 +2371,27 @@ angular.module('obiba.mica.search')
 
             // dce
             cols.ids[row.value].push({
-              id: row.value,
+              id: isHarmo ? '-' : row.value,
               title: titles[2],
               description: descriptions[2],
               start: row.start,
               current: currentYearMonth,
               end: row.end,
               progressClass: odd ? 'info' : 'warning',
-              url: PageUrlService.studyPopulationPage(ids[0], 'collection', ids[1]),
+              url: PageUrlService.studyPopulationPage(ids[0], isHarmo ? 'harmonization' : 'collection', ids[1]),
               rowSpan: 1
             });
           } else {
+            var parts = $scope.bucket.split('-');
+            var itemBucket = parts[0];
+            if (row.className.toLowerCase().startsWith('harmonization')) {
+              itemBucket = itemBucket + '-harmonization';
+            } else {
+              itemBucket = itemBucket + '-collection';
+            }
             cols.ids[row.value].push({
               id: row.value,
-              url: getBucketUrl($scope.bucket, row.value),
+              url: getBucketUrl(itemBucket, row.value),
               title: row.title,
               description: row.description,
               min: row.start,
@@ -2463,19 +2471,19 @@ angular.module('obiba.mica.search')
       });
 
       $scope.updateCriteria = function (id, term, idx, type) { //
-        var vocabulary = $scope.bucket.startsWith('dce') ? 'dceIds' : 'id';
+        var vocabulary = $scope.bucket.startsWith('dce') ? 'dceId' : 'id';
         var criteria = {varItem: RqlQueryService.createCriteriaItem(QUERY_TARGETS.VARIABLE, term.taxonomyName, term.vocabularyName, term.entity.name)};
 
         // if id is null, it is a click on the total count for the term
         if (id) {
-          // This extra query is to enforce a narrow down based on the dataset type which affects counts
-          if ($scope.bucket.endsWith('collection')) {
-            criteria.bucketItem = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'StudyDataset');
-          } else if ($scope.bucket === BUCKET_TYPES.NETWORK || $scope.bucket.endsWith('harmonization')) {
-            criteria.bucketItem = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'HarmonizationDataset');
-          }
           var groupBy = $scope.bucket.split('-')[0];
-          criteria.item = RqlQueryService.createCriteriaItem(targetMap[groupBy], 'Mica_' + targetMap[groupBy], vocabulary, id);
+          if (groupBy === 'dce' && id.endsWith(':.')) {
+            groupBy = 'study';
+            var studyId = id.split(':')[0];
+            criteria.item = RqlQueryService.createCriteriaItem(targetMap[groupBy], 'Mica_' + targetMap[groupBy], 'id', studyId);
+          } else {
+            criteria.item = RqlQueryService.createCriteriaItem(targetMap[groupBy], 'Mica_' + targetMap[groupBy], vocabulary, id);
+          }
         } else if ($scope.bucket.endsWith('collection')) {
           criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'StudyDataset');
         } else if ($scope.bucket === BUCKET_TYPES.NETWORK || $scope.bucket.endsWith('harmonization')) {

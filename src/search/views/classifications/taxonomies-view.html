@@ -164,9 +164,9 @@
                   </div>
                   <p ng-repeat="label in taxonomies.term.description" ng-if="label.locale === lang">
                     <span class="help-block" ng-bind-html="label.text | dceDescription"
-                          ng-if="taxonomies.vocabulary.name === 'dceIds'"></span>
+                          ng-if="taxonomies.vocabulary.name === 'dceId'"></span>
                     <span class="help-block" ng-bind-html="label.text"
-                          ng-if="taxonomies.vocabulary.name !== 'dceIds'"></span>
+                          ng-if="taxonomies.vocabulary.name !== 'dceId'"></span>
                   </p>
                 </div>
                 <div ng-if="!taxonomies.term && taxonomies.vocabulary" translate>search.vocabulary-nav-help</div>
