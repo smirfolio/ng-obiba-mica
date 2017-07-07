@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-07-03
+ * Date: 2017-07-07
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -11520,7 +11520,7 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "        <tbody test-ref=\"search-results\">\n" +
     "        <tr ng-repeat=\"summary in summaries\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "          <td>\n" +
-    "            <a ng-href=\"{{PageUrlService.studyPage(summary.id, 'collection')}}\">\n" +
+    "            <a ng-href=\"{{PageUrlService.studyPage(summary.id, summary.studyResourcePath === 'harmonization-study' ? 'harmonization' : 'collection')}}\">\n" +
     "              <localized value=\"summary.acronym\" lang=\"lang\" test-ref=\"acronym\"></localized>\n" +
     "            </a>\n" +
     "          </td>\n" +
