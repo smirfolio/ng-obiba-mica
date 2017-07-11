@@ -30,14 +30,14 @@ var QUERY_TARGETS = {
 var BUCKET_TYPES = {
   NETWORK: 'network',
   STUDY: 'study',
-  STUDY_COLLECTION: 'study-collection',
+  STUDY_INDIVIDUAL: 'study-individual',
   STUDY_HARMONIZATION: 'study-harmonization',
   DCE: 'dce',
-  DCE_COLLECTION: 'dce-collection',
+  DCE_INDIVIDUAL: 'dce-individual',
   DCE_HARMONIZATION: 'dce-harmonization',
   DATASET: 'dataset',
-  DATASET_COLLECTION: 'dataset-collection',
-  DATASET_HARMONIZATION: 'dataset-harmonization',
+  DATASET_COLLECTED: 'dataset-collected',
+  DATASET_HARMONIZED: 'dataset-harmonized',
   DATASCHEMA: 'dataschema'
 };
 
@@ -1503,9 +1503,9 @@ angular.module('obiba.mica.search')
             } else {
               variableType.args.push(['Collected','Dataschema']);
             }
-          } else if (filterBy === 'collection') {
+          } else if (['individual', 'collected'].indexOf(filterBy) > -1) {
             variableType.args.push('Collected');
-          } else if (filterBy === 'harmonization') {
+          } else if (['harmonization', 'harmonized'].indexOf(filterBy) > -1) {
             variableType.args.push('Dataschema');
           }
           var andVariableType = new RqlQuery('and');
@@ -1531,7 +1531,7 @@ angular.module('obiba.mica.search')
           }
           var studyClassName = new RqlQuery('in');
           studyClassName.args.push('Mica_study.className');
-          if (filterBy === 'collection') {
+          if (filterBy === 'individual') {
             studyClassName.args.push('Study');
           } else if (filterBy === 'harmonization') {
             studyClassName.args.push('HarmonizationStudy');
@@ -1561,9 +1561,9 @@ angular.module('obiba.mica.search')
           }
           var datasetClassName = new RqlQuery('in');
           datasetClassName.args.push('Mica_dataset.className');
-          if (filterBy === 'collection') {
+          if (filterBy === 'collected') {
             datasetClassName.args.push('StudyDataset');
-          } else if (filterBy === 'harmonization') {
+          } else if (filterBy === 'harmonized') {
             datasetClassName.args.push('HarmonizationDataset');
           }
           if (dataset.args.length>0 && dataset.args[0].name !== 'limit') {

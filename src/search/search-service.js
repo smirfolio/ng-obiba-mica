@@ -111,12 +111,12 @@ angular.module('obiba.mica.search')
   .service('PageUrlService', ['ngObibaMicaUrl', 'StringUtils', 'urlEncode', function(ngObibaMicaUrl, StringUtils, urlEncode) {
 
     this.studyPage = function(id, type) {
-      var sType = (type.toLowerCase() === 'collection' ? 'collection' : 'harmonization') + '-study';
+      var sType = (type.toLowerCase() === 'individual' ? 'individual' : 'harmonization') + '-study';
       return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyPage'), {':type': urlEncode(sType), ':study': urlEncode(id)}) : '';
     };
 
     this.studyPopulationPage = function(id, type, populationId) {
-      var sType = (type.toLowerCase() === 'collection' ? 'collection' : 'harmonization') + '-study';
+      var sType = (type.toLowerCase() === 'individual' ? 'individual' : 'harmonization') + '-study';
       return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyPopulationsPage'), {':type': urlEncode(sType), ':study': urlEncode(id), ':population': urlEncode(populationId)}) : '';
     };
 
@@ -125,7 +125,7 @@ angular.module('obiba.mica.search')
     };
 
     this.datasetPage = function(id, type) {
-      var dsType = (type.toLowerCase() === 'collected' ? 'collected' : 'harmonization') + '-dataset';
+      var dsType = (type.toLowerCase() === 'collected' ? 'collected' : 'harmonized') + '-dataset';
       var result = id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('DatasetPage'), {':type': urlEncode(dsType), ':dataset': urlEncode(id)}) : '';
       return result;
     };
@@ -212,7 +212,7 @@ angular.module('obiba.mica.search')
       },
 
       datasetBucket: function() {
-        return groupByOptions.dataset ? BUCKET_TYPES.DATASET : BUCKET_TYPES.DATASET_HARMONIZATION;
+        return groupByOptions.dataset ? BUCKET_TYPES.DATASET : BUCKET_TYPES.DATASET_HARMONIZED;
       },
 
       canGroupBy: function(bucket) {
@@ -223,7 +223,7 @@ angular.module('obiba.mica.search')
       defaultBucket: function() {
         return groupByOptions.study ? BUCKET_TYPES.STUDY :
           (groupByOptions.dce ? BUCKET_TYPES.DCE : groupByOptions.dataset ? BUCKET_TYPES.DATASET :
-            (groupByOptions.dataschema ? BUCKET_TYPES.DATASET_HARMONIZATION :
+            (groupByOptions.dataschema ? BUCKET_TYPES.DATASET_HARMONIZED :
               (groupByOptions.network ? BUCKET_TYPES.NETWORK : '')));
       }
 

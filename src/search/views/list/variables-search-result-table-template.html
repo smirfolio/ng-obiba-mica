@@ -28,7 +28,7 @@
             {{'search.variable.' + summary.variableType.toLowerCase() | translate}}
           </td>
           <td ng-if="optionsCols.showVariablesStudiesColumn">
-            <a ng-if="summary.studyId" ng-href="{{PageUrlService.studyPage(summary.studyId, summary.variableType == 'Dataschema' ? 'harmonization' : 'collection')}}">
+            <a ng-if="summary.studyId" ng-href="{{PageUrlService.studyPage(summary.studyId, summary.variableType == 'Dataschema' ? 'harmonization' : 'individual')}}">
               <localized value="summary.studyAcronym" lang="lang"></localized>
             </a>
             <a ng-if="summary.networkId" ng-href="{{PageUrlService.networkPage(summary.networkId)}}">
