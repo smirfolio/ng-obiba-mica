@@ -1501,10 +1501,10 @@ angular.module('obiba.mica.search')
             if (bucketArg === BUCKET_TYPES.NETWORK || bucketArg === BUCKET_TYPES.DATASCHEMA) {
               variableType.args.push('Dataschema');
             } else {
-              variableType.args.push(['Collection','Dataschema']);
+              variableType.args.push(['Collected','Dataschema']);
             }
           } else if (filterBy === 'collection') {
-            variableType.args.push('Collection');
+            variableType.args.push('Collected');
           } else if (filterBy === 'harmonization') {
             variableType.args.push('Dataschema');
           }

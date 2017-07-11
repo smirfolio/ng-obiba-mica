@@ -2236,7 +2236,7 @@ angular.module('obiba.mica.search')
             return PageUrlService.datasetPage(id, 'harmonization');
           case BUCKET_TYPES.DATASET:
           case BUCKET_TYPES.DATASET_COLLECTION:
-            return PageUrlService.datasetPage(id, 'collection');
+            return PageUrlService.datasetPage(id, 'collected');
         }
 
         return '';
@@ -2494,7 +2494,7 @@ angular.module('obiba.mica.search')
           } else {
             criteria.item = RqlQueryService.createCriteriaItem(targetMap[groupBy], 'Mica_' + targetMap[groupBy], vocabulary, id);
           }
-        } else if ($scope.bucket.endsWith('collection')) {
+        } else if ($scope.bucket.endsWith('collected')) {
           criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'StudyDataset');
         } else if ($scope.bucket === BUCKET_TYPES.NETWORK || $scope.bucket.endsWith('harmonization')) {
           criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'HarmonizationDataset');
