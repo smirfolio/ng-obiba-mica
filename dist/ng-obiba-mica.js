@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-07-07
+ * Date: 2017-07-11
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -3604,10 +3604,10 @@ angular.module('obiba.mica.search')
             if (bucketArg === BUCKET_TYPES.NETWORK || bucketArg === BUCKET_TYPES.DATASCHEMA) {
               variableType.args.push('Dataschema');
             } else {
-              variableType.args.push(['Collection','Dataschema']);
+              variableType.args.push(['Collected','Dataschema']);
             }
           } else if (filterBy === 'collection') {
-            variableType.args.push('Collection');
+            variableType.args.push('Collected');
           } else if (filterBy === 'harmonization') {
             variableType.args.push('Dataschema');
           }
@@ -3974,7 +3974,7 @@ angular.module('obiba.mica.search')
     };
 
     this.datasetPage = function(id, type) {
-      var dsType = (type.toLowerCase() === 'collection' ? 'collection' : 'harmonization') + '-dataset';
+      var dsType = (type.toLowerCase() === 'collected' ? 'collected' : 'harmonization') + '-dataset';
       var result = id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('DatasetPage'), {':type': urlEncode(dsType), ':dataset': urlEncode(id)}) : '';
       return result;
     };
@@ -6361,7 +6361,7 @@ angular.module('obiba.mica.search')
             return PageUrlService.datasetPage(id, 'harmonization');
           case BUCKET_TYPES.DATASET:
           case BUCKET_TYPES.DATASET_COLLECTION:
-            return PageUrlService.datasetPage(id, 'collection');
+            return PageUrlService.datasetPage(id, 'collected');
         }
 
         return '';
@@ -6619,7 +6619,7 @@ angular.module('obiba.mica.search')
           } else {
             criteria.item = RqlQueryService.createCriteriaItem(targetMap[groupBy], 'Mica_' + targetMap[groupBy], vocabulary, id);
           }
-        } else if ($scope.bucket.endsWith('collection')) {
+        } else if ($scope.bucket.endsWith('collected')) {
           criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'StudyDataset');
         } else if ($scope.bucket === BUCKET_TYPES.NETWORK || $scope.bucket.endsWith('harmonization')) {
           criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'HarmonizationDataset');
@@ -11306,7 +11306,7 @@ angular.module("search/views/list/datasets-search-result-table-template.html", [
     "            <localized ng-if=\"optionsCols.showDatasetsAcronymColumn\" value=\"summary.name\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showDatasetsTypeColumn\">\n" +
-    "            <localized value=\"classNames[(summary.variableType === 'Collection' ? 'Study' : 'Harmonization') + 'Dataset']\" lang=\"lang\"></localized>\n" +
+    "            <localized value=\"classNames[(summary.variableType === 'Collected' ? 'Collected' : 'Harmonization') + 'Dataset']\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showDatasetsNetworkColumn\">\n" +
     "            <a href ng-click=\"updateCriteria(summary.id, 'networks')\" ng-if=\"summary['obiba.mica.CountStatsDto.datasetCountStats'].networks\"><localized-number value=\"summary['obiba.mica.CountStatsDto.datasetCountStats'].networks\"></localized-number></a>\n" +
@@ -11354,7 +11354,7 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
     "        <tr>\n" +
     "          <th translate ng-if=\"optionsCols.showNetworksStudyDatasetColumn\">search.study.label</th>\n" +
     "          <th translate ng-if=\"optionsCols.showNetworksHarmonizationDatasetColumn\">search.harmonization</th>\n" +
-    "          <th translate ng-if=\"optionsCols.showNetworksStudyVariablesColumn\">search.variable.collection</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showNetworksStudyVariablesColumn\">search.variable.collected</th>\n" +
     "          <th translate ng-if=\"optionsCols.showNetworksDataschemaVariablesColumn\">search.variable.dataschema</th>\n" +
     "        </tr>\n" +
     "        </thead>\n" +
@@ -11511,9 +11511,9 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "          <th class=\"text-nowrap\"  title=\"{{datasourceTitles.others.title}}\" ng-if=\"optionsCols.showStudiesOtherColumn\">\n" +
     "            <i class=\"fa fa-plus-square-o\"></i>\n" +
     "          </th>\n" +
-    "          <th translate ng-if=\"optionsCols.showStudiesStudyDatasetsColumn\">search.dataset.collection</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showStudiesStudyDatasetsColumn\">search.dataset.collected</th>\n" +
     "          <th translate ng-if=\"optionsCols.showStudiesHarmonizationDatasetsColumn\">search.dataset.harmonization</th>\n" +
-    "          <th translate ng-if=\"optionsCols.showStudiesStudyVariablesColumn\">search.variable.collection</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showStudiesStudyVariablesColumn\">search.variable.collected</th>\n" +
     "          <th translate ng-if=\"optionsCols.showStudiesDataschemaVariablesColumn\">search.variable.dataschema</th>\n" +
     "        </tr>\n" +
     "        </thead>\n" +
