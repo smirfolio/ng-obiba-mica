@@ -2133,14 +2133,14 @@ var QUERY_TARGETS = {
 var BUCKET_TYPES = {
   NETWORK: 'network',
   STUDY: 'study',
-  STUDY_COLLECTION: 'study-collection',
+  STUDY_INDIVIDUAL: 'study-individual',
   STUDY_HARMONIZATION: 'study-harmonization',
   DCE: 'dce',
-  DCE_COLLECTION: 'dce-collection',
+  DCE_INDIVIDUAL: 'dce-individual',
   DCE_HARMONIZATION: 'dce-harmonization',
   DATASET: 'dataset',
-  DATASET_COLLECTION: 'dataset-collection',
-  DATASET_HARMONIZATION: 'dataset-harmonization',
+  DATASET_COLLECTED: 'dataset-collected',
+  DATASET_HARMONIZED: 'dataset-harmonized',
   DATASCHEMA: 'dataschema'
 };
 
@@ -3606,9 +3606,9 @@ angular.module('obiba.mica.search')
             } else {
               variableType.args.push(['Collected','Dataschema']);
             }
-          } else if (filterBy === 'collection') {
+          } else if (['individual', 'collected'].indexOf(filterBy) > -1) {
             variableType.args.push('Collected');
-          } else if (filterBy === 'harmonization') {
+          } else if (['harmonization', 'harmonized'].indexOf(filterBy) > -1) {
             variableType.args.push('Dataschema');
           }
           var andVariableType = new RqlQuery('and');
@@ -3634,7 +3634,7 @@ angular.module('obiba.mica.search')
           }
           var studyClassName = new RqlQuery('in');
           studyClassName.args.push('Mica_study.className');
-          if (filterBy === 'collection') {
+          if (filterBy === 'individual') {
             studyClassName.args.push('Study');
           } else if (filterBy === 'harmonization') {
             studyClassName.args.push('HarmonizationStudy');
@@ -3664,9 +3664,9 @@ angular.module('obiba.mica.search')
           }
           var datasetClassName = new RqlQuery('in');
           datasetClassName.args.push('Mica_dataset.className');
-          if (filterBy === 'collection') {
+          if (filterBy === 'collected') {
             datasetClassName.args.push('StudyDataset');
-          } else if (filterBy === 'harmonization') {
+          } else if (filterBy === 'harmonized') {
             datasetClassName.args.push('HarmonizationDataset');
           }
           if (dataset.args.length>0 && dataset.args[0].name !== 'limit') {
@@ -3960,12 +3960,12 @@ angular.module('obiba.mica.search')
   .service('PageUrlService', ['ngObibaMicaUrl', 'StringUtils', 'urlEncode', function(ngObibaMicaUrl, StringUtils, urlEncode) {
 
     this.studyPage = function(id, type) {
-      var sType = (type.toLowerCase() === 'collection' ? 'collection' : 'harmonization') + '-study';
+      var sType = (type.toLowerCase() === 'individual' ? 'individual' : 'harmonization') + '-study';
       return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyPage'), {':type': urlEncode(sType), ':study': urlEncode(id)}) : '';
     };
 
     this.studyPopulationPage = function(id, type, populationId) {
-      var sType = (type.toLowerCase() === 'collection' ? 'collection' : 'harmonization') + '-study';
+      var sType = (type.toLowerCase() === 'individual' ? 'individual' : 'harmonization') + '-study';
       return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyPopulationsPage'), {':type': urlEncode(sType), ':study': urlEncode(id), ':population': urlEncode(populationId)}) : '';
     };
 
@@ -3974,7 +3974,7 @@ angular.module('obiba.mica.search')
     };
 
     this.datasetPage = function(id, type) {
-      var dsType = (type.toLowerCase() === 'collected' ? 'collected' : 'harmonization') + '-dataset';
+      var dsType = (type.toLowerCase() === 'collected' ? 'collected' : 'harmonized') + '-dataset';
       var result = id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('DatasetPage'), {':type': urlEncode(dsType), ':dataset': urlEncode(id)}) : '';
       return result;
     };
@@ -4061,7 +4061,7 @@ angular.module('obiba.mica.search')
       },
 
       datasetBucket: function() {
-        return groupByOptions.dataset ? BUCKET_TYPES.DATASET : BUCKET_TYPES.DATASET_HARMONIZATION;
+        return groupByOptions.dataset ? BUCKET_TYPES.DATASET : BUCKET_TYPES.DATASET_HARMONIZED;
       },
 
       canGroupBy: function(bucket) {
@@ -4072,7 +4072,7 @@ angular.module('obiba.mica.search')
       defaultBucket: function() {
         return groupByOptions.study ? BUCKET_TYPES.STUDY :
           (groupByOptions.dce ? BUCKET_TYPES.DCE : groupByOptions.dataset ? BUCKET_TYPES.DATASET :
-            (groupByOptions.dataschema ? BUCKET_TYPES.DATASET_HARMONIZATION :
+            (groupByOptions.dataschema ? BUCKET_TYPES.DATASET_HARMONIZED :
               (groupByOptions.network ? BUCKET_TYPES.NETWORK : '')));
       }
 
@@ -6174,8 +6174,8 @@ angular.module('obiba.mica.search')
       };
       $scope.bucketSelection = {
         dceBucketSelected: $scope.bucket.startsWith('dce'),
-        variableTypeCollectionSelected: [ BUCKET_TYPES.STUDY, BUCKET_TYPES.STUDY_COLLECTION, BUCKET_TYPES.DCE, BUCKET_TYPES.DCE_COLLECTION, BUCKET_TYPES.DATASET, BUCKET_TYPES.DATASET_COLLECTION].some(isBucketIn),
-        variableTypeDataschemaSelected: [ BUCKET_TYPES.STUDY, BUCKET_TYPES.STUDY_HARMONIZATION, BUCKET_TYPES.DCE, BUCKET_TYPES.DCE_HARMONIZATION, BUCKET_TYPES.DATASCHEMA, BUCKET_TYPES.DATASET, BUCKET_TYPES.DATASET_HARMONIZATION].some(isBucketIn)
+        variableTypeCollectionSelected: [ BUCKET_TYPES.STUDY, BUCKET_TYPES.STUDY_INDIVIDUAL, BUCKET_TYPES.DCE, BUCKET_TYPES.DCE_INDIVIDUAL, BUCKET_TYPES.DATASET, BUCKET_TYPES.DATASET_COLLECTED].some(isBucketIn),
+        variableTypeDataschemaSelected: [ BUCKET_TYPES.STUDY, BUCKET_TYPES.STUDY_HARMONIZATION, BUCKET_TYPES.DCE, BUCKET_TYPES.DCE_HARMONIZATION, BUCKET_TYPES.DATASCHEMA, BUCKET_TYPES.DATASET, BUCKET_TYPES.DATASET_HARMONIZED].some(isBucketIn)
       };
 
       function decorateVocabularyHeaders(headers, vocabularyHeaders) {
@@ -6221,54 +6221,47 @@ angular.module('obiba.mica.search')
         }
       });
 
-      $scope.$watch('bucketSelection.variableTypeCollectionSelected', function (val, old) {
+      function updateBucket (val, old) {
         if (val === old) {
           return;
         }
 
         var groupBy = $scope.bucket.split('-')[0];
+        var isStudy = 'study' === groupBy;
+
         if (val) {
           if ($scope.bucketSelection.variableTypeDataschemaSelected) {
             $scope.selectBucket(groupBy);
           } else {
-            $scope.selectBucket(groupBy + '-collection');
+            $scope.selectBucket(groupBy + '-' + (isStudy ? 'individual' : 'collected'));
           }
         } else if ($scope.bucketSelection.variableTypeDataschemaSelected) {
-          $scope.selectBucket(groupBy + '-harmonization');
+          $scope.selectBucket(groupBy + '-' + (isStudy ? 'harmonization' : 'harmonized'));
         } else {
           $scope.selectBucket(groupBy);
         }
-      });
+      }
 
-      $scope.$watch('bucketSelection.variableTypeDataschemaSelected', function (val, old) {
-        if (val === old) {
-          return;
-        }
-
-        var groupBy = $scope.bucket.split('-')[0];
-        if (val) {
-          if ($scope.bucketSelection.variableTypeCollectionSelected) {
-            $scope.selectBucket(groupBy);
-          } else {
-            $scope.selectBucket(groupBy + '-harmonization');
-          }
-        } else if ($scope.bucketSelection.variableTypeCollectionSelected) {
-          $scope.selectBucket(groupBy + '-collection');
-        } else {
-          $scope.selectBucket(groupBy);
-        }
-      });
+      $scope.$watch('bucketSelection.variableTypeCollectionSelected', updateBucket);
+      $scope.$watch('bucketSelection.variableTypeDataschemaSelected', updateBucket);
 
       $scope.selectBucket = function (bucket) {
         if (bucket === BUCKET_TYPES.STUDY && $scope.bucketSelection.dceBucketSelected) {
           bucket = BUCKET_TYPES.DCE;
         }
 
-        if (bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE || bucket === BUCKET_TYPES.DATASET) {
+        if (bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE) {
           if ($scope.bucketSelection.variableTypeCollectionSelected && !$scope.bucketSelection.variableTypeDataschemaSelected) {
-            bucket = bucket + '-collection';
+            bucket = bucket + '-individual';
           } else if (!$scope.bucketSelection.variableTypeCollectionSelected && $scope.bucketSelection.variableTypeDataschemaSelected) {
             bucket = bucket + '-harmonization';
+          }
+        }
+        else if (bucket === BUCKET_TYPES.DATASET) {
+          if ($scope.bucketSelection.variableTypeCollectionSelected && !$scope.bucketSelection.variableTypeDataschemaSelected) {
+            bucket = bucket + '-collected';
+          } else if (!$scope.bucketSelection.variableTypeCollectionSelected && $scope.bucketSelection.variableTypeDataschemaSelected) {
+            bucket = bucket + '-harmonized';
           }
         }
         $scope.bucket = bucket;
@@ -6347,20 +6340,20 @@ angular.module('obiba.mica.search')
       function getBucketUrl(bucket, id) {
         switch (bucket) {
           case BUCKET_TYPES.STUDY:
-          case BUCKET_TYPES.STUDY_COLLECTION:
+          case BUCKET_TYPES.STUDY_INDIVIDUAL:
           case BUCKET_TYPES.DCE:
-          case BUCKET_TYPES.DCE_COLLECTION:
-            return PageUrlService.studyPage(id, 'collection');
+          case BUCKET_TYPES.DCE_INDIVIDUAL:
+            return PageUrlService.studyPage(id, 'individual');
           case BUCKET_TYPES.STUDY_HARMONIZATION:
           case BUCKET_TYPES.DCE_HARMONIZATION:
             return PageUrlService.studyPage(id, 'harmonization');
           case BUCKET_TYPES.NETWORK:
             return PageUrlService.networkPage(id);
           case BUCKET_TYPES.DATASCHEMA:
-          case BUCKET_TYPES.DATASET_HARMONIZATION:
-            return PageUrlService.datasetPage(id, 'harmonization');
+          case BUCKET_TYPES.DATASET_HARMONIZED:
+            return PageUrlService.datasetPage(id, 'harmonized');
           case BUCKET_TYPES.DATASET:
-          case BUCKET_TYPES.DATASET_COLLECTION:
+          case BUCKET_TYPES.DATASET_COLLECTED:
             return PageUrlService.datasetPage(id, 'collected');
         }
 
@@ -6487,7 +6480,7 @@ angular.module('obiba.mica.search')
             appendMinMax(id,row.start || currentYearMonth, row.end || currentYearMonth);
             cols.ids[row.value].push({
               id: id,
-              url: PageUrlService.studyPage(id, isHarmo ? 'harmonization' : 'collection'),
+              url: PageUrlService.studyPage(id, isHarmo ? 'harmonization' : 'individual'),
               title: titles[0],
               description: descriptions[0],
               rowSpan: rowSpan
@@ -6498,7 +6491,7 @@ angular.module('obiba.mica.search')
             rowSpan = appendRowSpan(id);
             cols.ids[row.value].push({
               id: id,
-              url: PageUrlService.studyPopulationPage(ids[0], isHarmo ? 'harmonization' : 'collection', ids[1]),
+              url: PageUrlService.studyPopulationPage(ids[0], isHarmo ? 'harmonization' : 'individual', ids[1]),
               title: titles[1],
               description: descriptions[1],
               rowSpan: rowSpan
@@ -6513,7 +6506,7 @@ angular.module('obiba.mica.search')
               current: currentYearMonth,
               end: row.end,
               progressClass: odd ? 'info' : 'warning',
-              url: PageUrlService.studyPopulationPage(ids[0], isHarmo ? 'harmonization' : 'collection', ids[1]),
+              url: PageUrlService.studyPopulationPage(ids[0], isHarmo ? 'harmonization' : 'individual', ids[1]),
               rowSpan: 1
             });
           } else {
@@ -11520,7 +11513,7 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "        <tbody test-ref=\"search-results\">\n" +
     "        <tr ng-repeat=\"summary in summaries\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "          <td>\n" +
-    "            <a ng-href=\"{{PageUrlService.studyPage(summary.id, summary.studyResourcePath === 'harmonization-study' ? 'harmonization' : 'collection')}}\">\n" +
+    "            <a ng-href=\"{{PageUrlService.studyPage(summary.id, summary.studyResourcePath === 'harmonization-study' ? 'harmonization' : 'individual')}}\">\n" +
     "              <localized value=\"summary.acronym\" lang=\"lang\" test-ref=\"acronym\"></localized>\n" +
     "            </a>\n" +
     "          </td>\n" +
@@ -11621,7 +11614,7 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
     "            {{'search.variable.' + summary.variableType.toLowerCase() | translate}}\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showVariablesStudiesColumn\">\n" +
-    "            <a ng-if=\"summary.studyId\" ng-href=\"{{PageUrlService.studyPage(summary.studyId, summary.variableType == 'Dataschema' ? 'harmonization' : 'collection')}}\">\n" +
+    "            <a ng-if=\"summary.studyId\" ng-href=\"{{PageUrlService.studyPage(summary.studyId, summary.variableType == 'Dataschema' ? 'harmonization' : 'individual')}}\">\n" +
     "              <localized value=\"summary.studyAcronym\" lang=\"lang\"></localized>\n" +
     "            </a>\n" +
     "            <a ng-if=\"summary.networkId\" ng-href=\"{{PageUrlService.networkPage(summary.networkId)}}\">\n" +

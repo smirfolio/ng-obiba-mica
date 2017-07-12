@@ -2049,8 +2049,8 @@ angular.module('obiba.mica.search')
       };
       $scope.bucketSelection = {
         dceBucketSelected: $scope.bucket.startsWith('dce'),
-        variableTypeCollectionSelected: [ BUCKET_TYPES.STUDY, BUCKET_TYPES.STUDY_COLLECTION, BUCKET_TYPES.DCE, BUCKET_TYPES.DCE_COLLECTION, BUCKET_TYPES.DATASET, BUCKET_TYPES.DATASET_COLLECTION].some(isBucketIn),
-        variableTypeDataschemaSelected: [ BUCKET_TYPES.STUDY, BUCKET_TYPES.STUDY_HARMONIZATION, BUCKET_TYPES.DCE, BUCKET_TYPES.DCE_HARMONIZATION, BUCKET_TYPES.DATASCHEMA, BUCKET_TYPES.DATASET, BUCKET_TYPES.DATASET_HARMONIZATION].some(isBucketIn)
+        variableTypeCollectionSelected: [ BUCKET_TYPES.STUDY, BUCKET_TYPES.STUDY_INDIVIDUAL, BUCKET_TYPES.DCE, BUCKET_TYPES.DCE_INDIVIDUAL, BUCKET_TYPES.DATASET, BUCKET_TYPES.DATASET_COLLECTED].some(isBucketIn),
+        variableTypeDataschemaSelected: [ BUCKET_TYPES.STUDY, BUCKET_TYPES.STUDY_HARMONIZATION, BUCKET_TYPES.DCE, BUCKET_TYPES.DCE_HARMONIZATION, BUCKET_TYPES.DATASCHEMA, BUCKET_TYPES.DATASET, BUCKET_TYPES.DATASET_HARMONIZED].some(isBucketIn)
       };
 
       function decorateVocabularyHeaders(headers, vocabularyHeaders) {
@@ -2096,54 +2096,47 @@ angular.module('obiba.mica.search')
         }
       });
 
-      $scope.$watch('bucketSelection.variableTypeCollectionSelected', function (val, old) {
+      function updateBucket (val, old) {
         if (val === old) {
           return;
         }
 
         var groupBy = $scope.bucket.split('-')[0];
+        var isStudy = 'study' === groupBy;
+
         if (val) {
           if ($scope.bucketSelection.variableTypeDataschemaSelected) {
             $scope.selectBucket(groupBy);
           } else {
-            $scope.selectBucket(groupBy + '-collection');
+            $scope.selectBucket(groupBy + '-' + (isStudy ? 'individual' : 'collected'));
           }
         } else if ($scope.bucketSelection.variableTypeDataschemaSelected) {
-          $scope.selectBucket(groupBy + '-harmonization');
+          $scope.selectBucket(groupBy + '-' + (isStudy ? 'harmonization' : 'harmonized'));
         } else {
           $scope.selectBucket(groupBy);
         }
-      });
+      }
 
-      $scope.$watch('bucketSelection.variableTypeDataschemaSelected', function (val, old) {
-        if (val === old) {
-          return;
-        }
-
-        var groupBy = $scope.bucket.split('-')[0];
-        if (val) {
-          if ($scope.bucketSelection.variableTypeCollectionSelected) {
-            $scope.selectBucket(groupBy);
-          } else {
-            $scope.selectBucket(groupBy + '-harmonization');
-          }
-        } else if ($scope.bucketSelection.variableTypeCollectionSelected) {
-          $scope.selectBucket(groupBy + '-collection');
-        } else {
-          $scope.selectBucket(groupBy);
-        }
-      });
+      $scope.$watch('bucketSelection.variableTypeCollectionSelected', updateBucket);
+      $scope.$watch('bucketSelection.variableTypeDataschemaSelected', updateBucket);
 
       $scope.selectBucket = function (bucket) {
         if (bucket === BUCKET_TYPES.STUDY && $scope.bucketSelection.dceBucketSelected) {
           bucket = BUCKET_TYPES.DCE;
         }
 
-        if (bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE || bucket === BUCKET_TYPES.DATASET) {
+        if (bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE) {
           if ($scope.bucketSelection.variableTypeCollectionSelected && !$scope.bucketSelection.variableTypeDataschemaSelected) {
-            bucket = bucket + '-collection';
+            bucket = bucket + '-individual';
           } else if (!$scope.bucketSelection.variableTypeCollectionSelected && $scope.bucketSelection.variableTypeDataschemaSelected) {
             bucket = bucket + '-harmonization';
+          }
+        }
+        else if (bucket === BUCKET_TYPES.DATASET) {
+          if ($scope.bucketSelection.variableTypeCollectionSelected && !$scope.bucketSelection.variableTypeDataschemaSelected) {
+            bucket = bucket + '-collected';
+          } else if (!$scope.bucketSelection.variableTypeCollectionSelected && $scope.bucketSelection.variableTypeDataschemaSelected) {
+            bucket = bucket + '-harmonized';
           }
         }
         $scope.bucket = bucket;
@@ -2222,20 +2215,20 @@ angular.module('obiba.mica.search')
       function getBucketUrl(bucket, id) {
         switch (bucket) {
           case BUCKET_TYPES.STUDY:
-          case BUCKET_TYPES.STUDY_COLLECTION:
+          case BUCKET_TYPES.STUDY_INDIVIDUAL:
           case BUCKET_TYPES.DCE:
-          case BUCKET_TYPES.DCE_COLLECTION:
-            return PageUrlService.studyPage(id, 'collection');
+          case BUCKET_TYPES.DCE_INDIVIDUAL:
+            return PageUrlService.studyPage(id, 'individual');
           case BUCKET_TYPES.STUDY_HARMONIZATION:
           case BUCKET_TYPES.DCE_HARMONIZATION:
             return PageUrlService.studyPage(id, 'harmonization');
           case BUCKET_TYPES.NETWORK:
             return PageUrlService.networkPage(id);
           case BUCKET_TYPES.DATASCHEMA:
-          case BUCKET_TYPES.DATASET_HARMONIZATION:
-            return PageUrlService.datasetPage(id, 'harmonization');
+          case BUCKET_TYPES.DATASET_HARMONIZED:
+            return PageUrlService.datasetPage(id, 'harmonized');
           case BUCKET_TYPES.DATASET:
-          case BUCKET_TYPES.DATASET_COLLECTION:
+          case BUCKET_TYPES.DATASET_COLLECTED:
             return PageUrlService.datasetPage(id, 'collected');
         }
 
@@ -2362,7 +2355,7 @@ angular.module('obiba.mica.search')
             appendMinMax(id,row.start || currentYearMonth, row.end || currentYearMonth);
             cols.ids[row.value].push({
               id: id,
-              url: PageUrlService.studyPage(id, isHarmo ? 'harmonization' : 'collection'),
+              url: PageUrlService.studyPage(id, isHarmo ? 'harmonization' : 'individual'),
               title: titles[0],
               description: descriptions[0],
               rowSpan: rowSpan
@@ -2373,7 +2366,7 @@ angular.module('obiba.mica.search')
             rowSpan = appendRowSpan(id);
             cols.ids[row.value].push({
               id: id,
-              url: PageUrlService.studyPopulationPage(ids[0], isHarmo ? 'harmonization' : 'collection', ids[1]),
+              url: PageUrlService.studyPopulationPage(ids[0], isHarmo ? 'harmonization' : 'individual', ids[1]),
               title: titles[1],
               description: descriptions[1],
               rowSpan: rowSpan
@@ -2388,7 +2381,7 @@ angular.module('obiba.mica.search')
               current: currentYearMonth,
               end: row.end,
               progressClass: odd ? 'info' : 'warning',
-              url: PageUrlService.studyPopulationPage(ids[0], isHarmo ? 'harmonization' : 'collection', ids[1]),
+              url: PageUrlService.studyPopulationPage(ids[0], isHarmo ? 'harmonization' : 'individual', ids[1]),
               rowSpan: 1
             });
           } else {
