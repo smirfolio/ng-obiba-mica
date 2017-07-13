@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-07-11
+ * Date: 2017-07-13
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -11299,7 +11299,7 @@ angular.module("search/views/list/datasets-search-result-table-template.html", [
     "            <localized ng-if=\"optionsCols.showDatasetsAcronymColumn\" value=\"summary.name\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showDatasetsTypeColumn\">\n" +
-    "            <localized value=\"classNames[(summary.variableType === 'Collected' ? 'Collected' : 'Harmonization') + 'Dataset']\" lang=\"lang\"></localized>\n" +
+    "            <localized value=\"classNames[(summary.variableType === 'Collected' ? 'Study' : 'Harmonization') + 'Dataset']\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showDatasetsNetworkColumn\">\n" +
     "            <a href ng-click=\"updateCriteria(summary.id, 'networks')\" ng-if=\"summary['obiba.mica.CountStatsDto.datasetCountStats'].networks\"><localized-number value=\"summary['obiba.mica.CountStatsDto.datasetCountStats'].networks\"></localized-number></a>\n" +
@@ -11505,7 +11505,7 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "            <i class=\"fa fa-plus-square-o\"></i>\n" +
     "          </th>\n" +
     "          <th translate ng-if=\"optionsCols.showStudiesStudyDatasetsColumn\">search.dataset.collected</th>\n" +
-    "          <th translate ng-if=\"optionsCols.showStudiesHarmonizationDatasetsColumn\">search.dataset.harmonization</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showStudiesHarmonizationDatasetsColumn\">search.dataset.harmonized</th>\n" +
     "          <th translate ng-if=\"optionsCols.showStudiesStudyVariablesColumn\">search.variable.collected</th>\n" +
     "          <th translate ng-if=\"optionsCols.showStudiesDataschemaVariablesColumn\">search.variable.dataschema</th>\n" +
     "        </tr>\n" +
