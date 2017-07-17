@@ -195,6 +195,14 @@ angular.module('obiba.mica.search')
         return groupByOptions.network;
       },
 
+      collectionCoverageTitle: function(bucket) {
+        return 'search.coverage-buckets.' + (bucket.startsWith('study') ? 'collection' : 'dataset-collection');
+      },
+
+      harmonizationCoverageTitle: function(bucket) {
+        return 'search.coverage-buckets.' + (bucket.startsWith('study') ? 'harmonization' : 'dataset-harmonization');
+      },
+
       studyTitle: function() {
         return groupByOptions.study ? 'search.coverage-buckets.study' : (groupByOptions.dce ? 'search.coverage-buckets.dce' : '');
       },

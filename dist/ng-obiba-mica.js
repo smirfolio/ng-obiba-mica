@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-07-13
+ * Date: 2017-07-17
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -4044,6 +4044,14 @@ angular.module('obiba.mica.search')
         return groupByOptions.network;
       },
 
+      collectionCoverageTitle: function(bucket) {
+        return 'search.coverage-buckets.' + (bucket.startsWith('study') ? 'collection' : 'dataset-collection');
+      },
+
+      harmonizationCoverageTitle: function(bucket) {
+        return 'search.coverage-buckets.' + (bucket.startsWith('study') ? 'harmonization' : 'dataset-harmonization');
+      },
+
       studyTitle: function() {
         return groupByOptions.study ? 'search.coverage-buckets.study' : (groupByOptions.dce ? 'search.coverage-buckets.dce' : '');
       },
@@ -6510,12 +6518,13 @@ angular.module('obiba.mica.search')
               rowSpan: 1
             });
           } else {
+            var isStudy = $scope.bucket.startsWith('study');
             var parts = $scope.bucket.split('-');
             var itemBucket = parts[0];
             if (row.className.toLowerCase().startsWith('harmonization')) {
-              itemBucket = itemBucket + '-harmonization';
+              itemBucket = itemBucket + (isStudy ? '-harmonization' : '-harmonized');
             } else {
-              itemBucket = itemBucket + '-collection';
+              itemBucket = itemBucket + (isStudy ? '-individual' : '-collected');
             }
             cols.ids[row.value].push({
               id: row.value,
@@ -10850,11 +10859,11 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "    <div class=\"voffset2\" ng-if=\"groupByOptions.canShowVariableTypeFilter(bucket)\">\n" +
     "      <label class=\"checkbox-inline\">\n" +
     "        <input type=\"checkbox\" ng-model=\"bucketSelection.variableTypeCollectionSelected\">\n" +
-    "        <span translate>search.coverage-buckets.collection</span>\n" +
+    "        <span translate>{{groupByOptions.collectionCoverageTitle(bucket)}}</span>\n" +
     "      </label>\n" +
     "      <label class=\"checkbox-inline\">\n" +
     "        <input type=\"checkbox\" ng-model=\"bucketSelection.variableTypeDataschemaSelected\">\n" +
-    "        <span translate>search.coverage-buckets.harmonization</span>\n" +
+    "        <span translate>{{groupByOptions.harmonizationCoverageTitle(bucket)}}</span>\n" +
     "      </label>\n" +
     "    </div>\n" +
     "  </div>\n" +

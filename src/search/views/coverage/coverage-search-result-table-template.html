@@ -43,11 +43,11 @@
     <div class="voffset2" ng-if="groupByOptions.canShowVariableTypeFilter(bucket)">
       <label class="checkbox-inline">
         <input type="checkbox" ng-model="bucketSelection.variableTypeCollectionSelected">
-        <span translate>search.coverage-buckets.collection</span>
+        <span translate>{{groupByOptions.collectionCoverageTitle(bucket)}}</span>
       </label>
       <label class="checkbox-inline">
         <input type="checkbox" ng-model="bucketSelection.variableTypeDataschemaSelected">
-        <span translate>search.coverage-buckets.harmonization</span>
+        <span translate>{{groupByOptions.harmonizationCoverageTitle(bucket)}}</span>
       </label>
     </div>
   </div>
