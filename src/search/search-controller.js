@@ -2385,12 +2385,13 @@ angular.module('obiba.mica.search')
               rowSpan: 1
             });
           } else {
+            var isStudy = $scope.bucket.startsWith('study');
             var parts = $scope.bucket.split('-');
             var itemBucket = parts[0];
             if (row.className.toLowerCase().startsWith('harmonization')) {
-              itemBucket = itemBucket + '-harmonization';
+              itemBucket = itemBucket + (isStudy ? '-harmonization' : '-harmonized');
             } else {
-              itemBucket = itemBucket + '-collection';
+              itemBucket = itemBucket + (isStudy ? '-individual' : '-collected');
             }
             cols.ids[row.value].push({
               id: row.value,
