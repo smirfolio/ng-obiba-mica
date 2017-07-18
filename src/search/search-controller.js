@@ -656,8 +656,8 @@ angular.module('obiba.mica.search')
       }
 
       function validateBucket(bucket) {
-        if (bucket && !BUCKET_TYPES[bucket.toUpperCase()]) {
-          //throw new Error('Invalid bucket: ' + bucket);
+        if (bucket && !BUCKET_TYPES[bucket.replace('-', '_').toUpperCase()]) {
+          throw new Error('Invalid bucket: ' + bucket);
         }
       }
 
@@ -2090,30 +2090,37 @@ angular.module('obiba.mica.search')
         }
 
         if (val) {
-          $scope.selectBucket(BUCKET_TYPES.DCE);
+          $scope.selectBucket($scope.groupByOptions.dceBucket());
         } else if ($scope.bucket.startsWith('dce')) {
-          $scope.selectBucket(BUCKET_TYPES.STUDY);
+          $scope.selectBucket($scope.groupByOptions.studyBucket());
         }
       });
 
       function updateBucket (val, old) {
+
         if (val === old) {
           return;
         }
 
         var groupBy = $scope.bucket.split('-')[0];
-        var isStudy = 'study' === groupBy;
+        var isStudyOrDce = 'study' === groupBy || 'dce' === groupBy;
 
-        if (val) {
-          if ($scope.bucketSelection.variableTypeDataschemaSelected) {
+        if ($scope.groupByOptions.canShowVariableTypeFilter(groupBy)) {
+          if ($scope.bucketSelection.variableTypeCollectionSelected && $scope.bucketSelection.variableTypeDataschemaSelected) {
             $scope.selectBucket(groupBy);
-          } else {
-            $scope.selectBucket(groupBy + '-' + (isStudy ? 'individual' : 'collected'));
+          } else if ($scope.bucketSelection.variableTypeCollectionSelected && !$scope.bucketSelection.variableTypeDataschemaSelected) {
+            $scope.selectBucket(groupBy + '-' + (isStudyOrDce ? 'individual' : 'collected'));
+          } else if (!$scope.bucketSelection.variableTypeCollectionSelected && $scope.bucketSelection.variableTypeDataschemaSelected) {
+            $scope.selectBucket(groupBy + '-' + (isStudyOrDce ? 'harmonization' : 'harmonized'));
           }
-        } else if ($scope.bucketSelection.variableTypeDataschemaSelected) {
-          $scope.selectBucket(groupBy + '-' + (isStudy ? 'harmonization' : 'harmonized'));
         } else {
-          $scope.selectBucket(groupBy);
+          if (BUCKET_TYPES.STUDY === groupBy) {
+            $scope.selectBucket($scope.groupByOptions.studyBucket());
+          } else if (BUCKET_TYPES.DATASET === groupBy) {
+            $scope.selectBucket($scope.groupByOptions.datasetBucket());
+          } else { // dce
+            $scope.selectBucket($scope.groupByOptions.dceBucket());
+          }
         }
       }
 
@@ -2121,24 +2128,6 @@ angular.module('obiba.mica.search')
       $scope.$watch('bucketSelection.variableTypeDataschemaSelected', updateBucket);
 
       $scope.selectBucket = function (bucket) {
-        if (bucket === BUCKET_TYPES.STUDY && $scope.bucketSelection.dceBucketSelected) {
-          bucket = BUCKET_TYPES.DCE;
-        }
-
-        if (bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE) {
-          if ($scope.bucketSelection.variableTypeCollectionSelected && !$scope.bucketSelection.variableTypeDataschemaSelected) {
-            bucket = bucket + '-individual';
-          } else if (!$scope.bucketSelection.variableTypeCollectionSelected && $scope.bucketSelection.variableTypeDataschemaSelected) {
-            bucket = bucket + '-harmonization';
-          }
-        }
-        else if (bucket === BUCKET_TYPES.DATASET) {
-          if ($scope.bucketSelection.variableTypeCollectionSelected && !$scope.bucketSelection.variableTypeDataschemaSelected) {
-            bucket = bucket + '-collected';
-          } else if (!$scope.bucketSelection.variableTypeCollectionSelected && $scope.bucketSelection.variableTypeDataschemaSelected) {
-            bucket = bucket + '-harmonized';
-          }
-        }
         $scope.bucket = bucket;
         $scope.$parent.onBucketChanged(bucket);
       };

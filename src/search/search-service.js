@@ -173,69 +173,133 @@ angular.module('obiba.mica.search')
   })
 
   .service('CoverageGroupByService', ['ngObibaMicaSearch', function(ngObibaMicaSearch) {
+    var self = this;
+
     var groupByOptions = ngObibaMicaSearch.getOptions().coverage.groupBy;
-    return {
-      canShowStudy: function() {
-        return groupByOptions.study || groupByOptions.dce;
-      },
+      this.canShowStudy = function() {
+        return groupByOptions.study || groupByOptions.harmonizationStudy || groupByOptions.dce;
+      };
 
-      canShowDce: function(bucket) {
+      this.canShowIndividualStudy = function (bucket) {
+        return bucket.indexOf('individual') > -1 && groupByOptions.study;
+      };
+
+      this.canShowHarmonizationStudy = function (bucket) {
+        return bucket.indexOf('harmonization') > -1 && groupByOptions.harmonizationStudy;
+      };
+
+      this.canShowDce = function(bucket) {
         return (bucket.startsWith('study') || bucket.startsWith('dce')) && groupByOptions.study && groupByOptions.dce;
-      },
+      };
 
-      canShowDataset: function() {
+      this.canShowDataset = function() {
         return groupByOptions.dataset || groupByOptions.dataschema;
-      },
+      };
 
-      canShowVariableTypeFilter: function(bucket) {
-        return (bucket !== BUCKET_TYPES.NETWORK) && (groupByOptions.dataset || groupByOptions.study || groupByOptions.dce) && groupByOptions.dataschema;
-      },
+      this.canShowVariableTypeFilter = function(bucket) {
+        var forStudy = bucket.indexOf('study') > -1 && (groupByOptions.study && groupByOptions.harmonizationStudy);
+        var forDataset = bucket.indexOf('dataset') > -1 && groupByOptions.dataset && groupByOptions.dataschema;
 
-      canShowNetwork: function() {
-        return groupByOptions.network;
-      },
+        return (bucket !== BUCKET_TYPES.NETWORK) && (forStudy || forDataset);
+      };
 
-      collectionCoverageTitle: function(bucket) {
-        return 'search.coverage-buckets.' + (bucket.startsWith('study') ? 'collection' : 'dataset-collection');
-      },
+      this.collectionCoverageTitle = function(bucket) {
+        return 'search.coverage-buckets.' + (bucket.startsWith('study') ? 'collection' : 'dataset-collected');
+      };
 
-      harmonizationCoverageTitle: function(bucket) {
-        return 'search.coverage-buckets.' + (bucket.startsWith('study') ? 'harmonization' : 'dataset-harmonization');
-      },
+      this.harmonizationCoverageTitle = function(bucket) {
+        return 'search.coverage-buckets.' + (bucket.startsWith('study') ? 'harmonization' : 'dataset-harmonized');
+      };
 
-      studyTitle: function() {
-        return groupByOptions.study ? 'search.coverage-buckets.study' : (groupByOptions.dce ? 'search.coverage-buckets.dce' : '');
-      },
+      this.studyTitle = function() {
+        if (groupByOptions.study) {
+          return 'search.coverage-buckets.study';
+        } else if (groupByOptions.harmonizationStudy) {
+          return 'search.coverage-buckets.study-harmonization';
+        } else if (groupByOptions.dce) {
+          return 'search.coverage-buckets.dce';
+        }
 
-      studyBucket: function() {
-        return groupByOptions.study ? BUCKET_TYPES.STUDY : BUCKET_TYPES.DCE;
-      },
+        return '';
+      };
 
-      datasetTitle: function() {
+      this.studyBucket = function() { // assuming can showStudy is true
+        if (groupByOptions.study && groupByOptions.harmonizationStudy) {
+          return BUCKET_TYPES.STUDY;
+        } else if (groupByOptions.study && !groupByOptions.harmonizationStudy) {
+          return BUCKET_TYPES.STUDY_INDIVIDUAL;
+        } else {
+          return BUCKET_TYPES.STUDY_HARMONIZATION;
+        }
+      };
+
+      this.dceBucket = function () { // assuming can showStudy is true
+        if (groupByOptions.study && groupByOptions.harmonizationStudy && groupByOptions.dce) {
+          return BUCKET_TYPES.DCE;
+        } else if (groupByOptions.study && !groupByOptions.harmonizationStudy && groupByOptions.dce) {
+          return BUCKET_TYPES.DCE_INDIVIDUAL;
+        } else if (!groupByOptions.study && groupByOptions.harmonizationStudy && groupByOptions.dce) {
+          return BUCKET_TYPES.DCE_HARMONIZATION;
+        } else { // if dce option is false go to study
+          return this.studyBucket();
+        }
+      };
+
+      this.datasetTitle = function() {
         return groupByOptions.dataset && groupByOptions.dataschema ?
           'search.coverage-buckets.datasetNav' :
           (groupByOptions.dataset ?
             'search.coverage-buckets.dataset' :
             (groupByOptions.dataschema ? 'search.coverage-buckets.dataschema' : ''));
-      },
+      };
 
-      datasetBucket: function() {
-        return groupByOptions.dataset ? BUCKET_TYPES.DATASET : BUCKET_TYPES.DATASET_HARMONIZED;
-      },
+      this.datasetBucket = function() {
+        if (groupByOptions.dataset && groupByOptions.dataschema) {
+          return BUCKET_TYPES.DATASET;
+        } else if (groupByOptions.dataset && !groupByOptions.dataschema) {
+          return BUCKET_TYPES.DATASET_COLLECTED;
+        } else {
+          return BUCKET_TYPES.DATASET_HARMONIZED;
+        }
+      };
 
-      canGroupBy: function(bucket) {
-        var groupBy = bucket.split('-')[0];
-        return groupByOptions.hasOwnProperty(groupBy) && groupByOptions[groupBy];
-      },
+      this.canGroupBy = function(bucket) {
+        var isAllowed = false;
 
-      defaultBucket: function() {
-        return groupByOptions.study ? BUCKET_TYPES.STUDY :
-          (groupByOptions.dce ? BUCKET_TYPES.DCE : groupByOptions.dataset ? BUCKET_TYPES.DATASET :
-            (groupByOptions.dataschema ? BUCKET_TYPES.DATASET_HARMONIZED :
-              (groupByOptions.network ? BUCKET_TYPES.NETWORK : '')));
-      }
+        switch (bucket) {
+          case BUCKET_TYPES.STUDY:
+          case BUCKET_TYPES.STUDY_INDIVIDUAL:
+            isAllowed = groupByOptions.study;
+            break;
+          case BUCKET_TYPES.STUDY_HARMONIZATION:
+            isAllowed = groupByOptions.harmonizationStudy;
+            break;
+          case BUCKET_TYPES.DCE:
+          case BUCKET_TYPES.DCE_INDIVIDUAL:
+            isAllowed = groupByOptions.dce;
+            break;
+          case BUCKET_TYPES.DATASET:
+          case BUCKET_TYPES.DATASET_COLLECTED:
+            isAllowed = groupByOptions.dataset;
+            break;
+          case BUCKET_TYPES.DATASCHEMA:
+          case BUCKET_TYPES.DATASET_HARMONIZED:
+            isAllowed = groupByOptions.dataschema;
+        }
+        return isAllowed;
+      };
 
-    };
+      this.defaultBucket = function() {
+        if (groupByOptions.study || groupByOptions.harmonizationStudy) {
+          return self.studyBucket();
+        } else if (groupByOptions.study && groupByOptions.dce) {
+          return self.dceBucket();
+        } else if (groupByOptions.dataset || groupByOptions.dataschema) {
+          return self.datasetBucket();
+        }
+
+        return '';
+      };
 
   }])
 
