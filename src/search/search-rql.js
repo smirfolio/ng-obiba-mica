@@ -1467,13 +1467,18 @@ angular.module('obiba.mica.search')
             bucketField = 'networkId';
             break;
           case BUCKET_TYPES.STUDY:
+          case BUCKET_TYPES.STUDY_INDIVIDUAL:
+          case BUCKET_TYPES.STUDY_HARMONIZATION:
             bucketField = 'studyId';
             break;
           case BUCKET_TYPES.DCE:
+          case BUCKET_TYPES.DCE_INDIVIDUAL:
             bucketField = 'dceId';
             break;
           case BUCKET_TYPES.DATASCHEMA:
           case BUCKET_TYPES.DATASET:
+          case BUCKET_TYPES.DATASET_COLLECTED:
+          case BUCKET_TYPES.DATASET_HARMONIZED:
             bucketField = 'datasetId';
             break;
         }
@@ -1498,7 +1503,7 @@ angular.module('obiba.mica.search')
           var variableType = new RqlQuery('in');
           variableType.args.push('Mica_variable.variableType');
           if (filterBy === undefined) {
-            if (bucketArg === BUCKET_TYPES.NETWORK || bucketArg === BUCKET_TYPES.DATASCHEMA) {
+            if (bucketArg === BUCKET_TYPES.DATASET_HARMONIZED || bucketArg === BUCKET_TYPES.DATASCHEMA) {
               variableType.args.push('Dataschema');
             } else {
               variableType.args.push(['Collected','Dataschema']);
@@ -1531,7 +1536,9 @@ angular.module('obiba.mica.search')
           }
           var studyClassName = new RqlQuery('in');
           studyClassName.args.push('Mica_study.className');
-          if (filterBy === 'individual') {
+          if (filterBy === undefined) {
+            studyClassName.args.push(['Study', 'HarmonizationStudy']);
+          } else if (filterBy === 'individual') {
             studyClassName.args.push('Study');
           } else if (filterBy === 'harmonization') {
             studyClassName.args.push('HarmonizationStudy');
@@ -1561,7 +1568,9 @@ angular.module('obiba.mica.search')
           }
           var datasetClassName = new RqlQuery('in');
           datasetClassName.args.push('Mica_dataset.className');
-          if (filterBy === 'collected') {
+          if (filterBy === undefined) {
+            datasetClassName.args.push(['StudyDataset', 'HarmonizationDataset']);
+          } else if (filterBy === 'collected') {
             datasetClassName.args.push('StudyDataset');
           } else if (filterBy === 'harmonized') {
             datasetClassName.args.push('HarmonizationDataset');

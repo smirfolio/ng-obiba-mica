@@ -112,7 +112,7 @@ angular.module('obiba.mica.search', [
             dce: true,
             dataset: true,
             dataschema: true,
-            network: true
+            harmonizationStudy: true
           }
         }
       };
@@ -137,6 +137,7 @@ angular.module('obiba.mica.search', [
 
       this.$get = ['$q', '$injector', function ngObibaMicaSearchFactory($q, $injector) {
         function normalizeOptions() {
+          options.coverage.groupBy.dce = options.coverage.groupBy.study && options.coverage.groupBy.dce;
           var canShowCoverage = Object.keys(options.coverage.groupBy).filter(function(canShow) {
               return options.coverage.groupBy[canShow];
             }).length > 0;
