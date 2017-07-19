@@ -4056,10 +4056,10 @@ angular.module('obiba.mica.search')
       };
 
       this.canShowVariableTypeFilter = function(bucket) {
-        var forStudy = bucket.indexOf('study') > -1 && (groupByOptions.study && groupByOptions.harmonizationStudy);
+        var forStudy = (bucket.indexOf('study') > -1 || bucket.indexOf('dce') > -1) && (groupByOptions.study && groupByOptions.harmonizationStudy);
         var forDataset = bucket.indexOf('dataset') > -1 && groupByOptions.dataset && groupByOptions.dataschema;
 
-        return (bucket !== BUCKET_TYPES.NETWORK) && (forStudy || forDataset);
+        return forStudy || forDataset;
       };
 
       this.collectionCoverageTitle = function(bucket) {
