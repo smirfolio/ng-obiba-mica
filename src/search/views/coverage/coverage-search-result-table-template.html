@@ -4,11 +4,11 @@
     <ul class="nav nav-pills pull-left">
       <li ng-if="groupByOptions.canShowStudy()"
         ng-class="{'active': bucket.startsWith('study') || bucket.startsWith('dce')}">
-        <a href ng-click="selectBucket(groupByOptions.studyBucket())" translate>{{groupByOptions.studyTitle()}}</a>
+        <a href ng-click="selectTab('study')" translate>{{groupByOptions.studyTitle()}}</a>
       </li>
       <li ng-if="groupByOptions.canShowDataset()"
         ng-class="{'active': bucket.startsWith('dataset')}">
-        <a href ng-click="selectBucket(groupByOptions.datasetBucket())" translate>{{groupByOptions.datasetTitle()}}</a>
+        <a href ng-click="selectTab('dataset')" translate>{{groupByOptions.datasetTitle()}}</a>
       </li>
     </ul>
 
@@ -37,13 +37,24 @@
       </label>
     </div>
 
-    <div class="voffset2" ng-if="groupByOptions.canShowVariableTypeFilter(bucket)">
+    <div class="voffset2" ng-if="groupByOptions.canShowVariableTypeFilter(bucket) && isStudyBucket()">
       <label class="checkbox-inline">
         <input type="checkbox" ng-model="bucketSelection.variableTypeCollectionSelected">
         <span translate>{{groupByOptions.collectionCoverageTitle(bucket)}}</span>
       </label>
       <label class="checkbox-inline">
         <input type="checkbox" ng-model="bucketSelection.variableTypeDataschemaSelected">
+        <span translate>{{groupByOptions.harmonizationCoverageTitle(bucket)}}</span>
+      </label>
+    </div>
+
+    <div class="voffset2" ng-if="groupByOptions.canShowVariableTypeFilter(bucket) && isDatasetBucket()">
+      <label class="checkbox-inline">
+        <input type="checkbox" ng-model="bucketSelection.dsVariableTypeCollectionSelected">
+        <span translate>{{groupByOptions.collectionCoverageTitle(bucket)}}</span>
+      </label>
+      <label class="checkbox-inline">
+        <input type="checkbox" ng-model="bucketSelection.dsVariableTypeDataschemaSelected">
         <span translate>{{groupByOptions.harmonizationCoverageTitle(bucket)}}</span>
       </label>
     </div>
