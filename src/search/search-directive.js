@@ -10,6 +10,9 @@
 
 'use strict';
 
+/* global QUERY_TYPES */
+/* global RQL_NODE */
+
 /* exported CRITERIA_ITEM_EVENT */
 var CRITERIA_ITEM_EVENT = {
   deleted: 'event:delete-criteria-item',
@@ -166,14 +169,14 @@ angular.module('obiba.mica.search')
     };
   }])
 
-  .directive('studiesResultTable', ['$log',
+  .directive('studiesResultTable', ['$log', '$q', '$location',
     'PageUrlService',
     'ngObibaMicaSearch',
     'TaxonomyResource',
     'RqlQueryService',
     'LocalizedValues',
     'ngObibaMicaSearchTemplateUrl',
-    function ($log,
+    function ($log, $q, $location,
               PageUrlService,
               ngObibaMicaSearch,
               TaxonomyResource,
@@ -191,9 +194,78 @@ angular.module('obiba.mica.search')
       },
       templateUrl: ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchStudiesResultTable'),
       link: function(scope) {
+        $q.all([
+          TaxonomyResource.get({target: 'study', taxonomy: 'Mica_study'}),
+          RqlQueryService.createCriteria(RqlQueryService.parseQuery($location.search().query), scope.lang)
+        ]).then(function (data) {
+          var taxonomy = data[0];
+          scope.taxonomy = taxonomy;
+          getDatasourceTitles();
+          if (taxonomy.vocabularies) {
+            scope.designs = taxonomy.vocabularies.filter(function (v) {
+              return v.name === 'methods-design';
+            })[0].terms.reduce(function (prev, t) {
+              prev[t.name] = t.title.map(function (t) {
+                return {lang: t.locale, value: t.text};
+              });
+              return prev;
+            }, {});
+          } else {
+            $log.warn('Taxonomy has no vocabularies');
+          }
+
+          setInitialStudyFilterSelections(data[1]);
+        });
+
         scope.taxonomy = {};
         scope.designs = {};
         scope.datasourceTitles = {};
+        scope.studyFilterSelection = {
+          get individual() {
+            return this._individual;
+          },
+          set individual(value) {
+            this._individual = value;
+            updateStudyClassNameFilter();
+          },
+          get harmonization() {
+            return this._harmonization;
+          },
+          set harmonization(value) {
+            this._harmonization = value;
+            updateStudyClassNameFilter();
+          }
+        };
+
+        scope.$on('$locationChangeSuccess', function () {
+          RqlQueryService.createCriteria(RqlQueryService.parseQuery($location.search().query), scope.lang).then(setInitialStudyFilterSelections);
+        });
+
+        function updateStudyClassNameFilter() {
+          var className;
+
+          if (scope.studyFilterSelection.individual && !scope.studyFilterSelection.harmonization) {
+            className = 'Study';
+          } else if (!scope.studyFilterSelection.individual && scope.studyFilterSelection.harmonization) {
+            className = 'HarmonizationStudy';
+          }
+
+          RqlQueryService.createCriteriaItem('study', 'Mica_study', 'className', className).then(function (item) {
+            scope.onUpdateCriteria(item, QUERY_TYPES.STUDIES);
+          });
+        }
+
+        function setInitialStudyFilterSelections(criteria) {
+          var foundCriteriaItem = RqlQueryService.findCriteriaItemFromTreeById('study', 'Mica_study.className', criteria.root);
+
+          if (!foundCriteriaItem || foundCriteriaItem.type === RQL_NODE.EXISTS) {
+            scope.studyFilterSelection._individual = true;
+            scope.studyFilterSelection._harmonization = true;
+          } else {
+            scope.studyFilterSelection._individual = (!foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('Study') > -1);
+            scope.studyFilterSelection._harmonization = (!foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1);
+          }
+        }
 
         function getDatasourceTitles() {
           if (Object.keys(scope.taxonomy).length < 1 ||
@@ -215,26 +287,6 @@ angular.module('obiba.mica.search')
 
         scope.$watch('lang', getDatasourceTitles);
 
-        TaxonomyResource.get({
-          target: 'study',
-          taxonomy: 'Mica_study'
-        }).$promise.then(function (taxonomy) {
-          scope.taxonomy = taxonomy;
-          getDatasourceTitles();
-          if (taxonomy.vocabularies) {
-            scope.designs = taxonomy.vocabularies.filter(function (v) {
-              return v.name === 'methods-design';
-            })[0].terms.reduce(function (prev, t) {
-              prev[t.name] = t.title.map(function (t) {
-                return {lang: t.locale, value: t.text};
-              });
-              return prev;
-            }, {});
-          } else {
-            $log.warn('Taxonomy has no vocabularies');
-          }
-        });
-
         scope.hasDatasource = function (datasources, id) {
           return datasources && datasources.indexOf(id) > -1;
         };
@@ -251,7 +303,7 @@ angular.module('obiba.mica.search')
           }
 
           var variableType;
-          if (type === 'DataschemaVariable' || type === 'StudyVariable') {
+          if (type === 'DataschemaVariable' || type === 'CollectedVariable') {
             variableType = type.replace('Variable', '');
             type = 'variables';
           }
