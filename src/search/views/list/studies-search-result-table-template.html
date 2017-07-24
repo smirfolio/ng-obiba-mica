@@ -2,15 +2,25 @@
   <div ng-if="loading" class="loading"></div>
   <div ng-show="!loading">
     <div class="voffset2">
-      <label class="checkbox-inline">
-        <input type="checkbox" ng-model="studyFilterSelection.individual">
-        <span>{{'search.coverage-buckets.collection' | translate}}</span>
-      </label>
 
-      <label class="checkbox-inline">
-        <input type="checkbox" ng-model="studyFilterSelection.harmonization">
-        <span>{{'search.coverage-buckets.harmonization' | translate}}</span>
-      </label>
+      <div class="btn-group dropdown" uib-dropdown>
+        <button type="button" class="btn btn-study dropdown-toggle" uib-dropdown-toggle>
+          <span translate>{{'global.' + (studyFilterSelection.selection === 'all' ? studyFilterSelection.selection + '-study-types' : studyFilterSelection.selection + '-study')}}</span>
+          </i><span class="caret"></span>
+        </button>
+
+        <ul class="dropdown-menu" role="menu" uib-dropdown-menu>
+          <li role="menuitem" ng-class="{'active': studyFilterSelection.selection === 'all'}">
+            <a translate ng-click="studyFilterSelection.selection = 'all'">global.all-study-types</a>
+          </li>
+          <li role="menuitem" ng-class="{'active': studyFilterSelection.selection === 'individual'}">
+            <a translate ng-click="studyFilterSelection.selection = 'individual'">global.individual-study</a>
+          </li>
+          <li role="menuitem" ng-class="{'active': studyFilterSelection.selection === 'harmonization'}">
+            <a translate ng-click="studyFilterSelection.selection = 'harmonization'">global.harmonization-study</a>
+          </li>
+        </ul>
+      </div>
     </div>
 
     <p class="help-block" ng-if="!summaries || !summaries.length" translate>search.study.noResults</p>
@@ -20,41 +30,41 @@
         <tr>
           <th rowspan="2" translate>acronym</th>
           <th rowspan="2" translate>name</th>
-          <th rowspan="2" translate ng-if="studyFilterSelection.individual && studyFilterSelection.harmonization">type</th>
-          <th rowspan="2" translate ng-if="optionsCols.showStudiesDesignColumn">search.study.design</th>
+          <th rowspan="2" translate ng-if="choseAll()">type</th>
+          <th rowspan="2" translate ng-if="optionsCols.showStudiesDesignColumn && choseIndividual()">search.study.design</th>
           <th translate
               ng-attr-colspan="{{optionsCols.showStudiesQuestionnaireColumn + optionsCols.showStudiesPmColumn + optionsCols.showStudiesBioColumn + optionsCols.showStudiesOtherColumn}}"
-              ng-if="(optionsCols.showStudiesQuestionnaireColumn || optionsCols.showStudiesPmColumn || optionsCols.showStudiesBioColumn || optionsCols.showStudiesOtherColumn) && studyFilterSelection.individual">
+              ng-if="(optionsCols.showStudiesQuestionnaireColumn || optionsCols.showStudiesPmColumn || optionsCols.showStudiesBioColumn || optionsCols.showStudiesOtherColumn) && choseIndividual()">
             search.study.dataSources
           </th>
-          <th rowspan="2" translate ng-if="optionsCols.showStudiesParticipantsColumn">search.study.participants</th>
+          <th rowspan="2" translate ng-if="optionsCols.showStudiesParticipantsColumn && choseIndividual()">search.study.participants</th>
           <th rowspan="2" translate ng-if="optionsCols.showStudiesNetworksColumn">networks</th>
           <th rowspan="2" translate ng-if="optionsCols.showStudiesVariablesColumn">variables</th>
           <th translate
               ng-attr-colspan="{{optionsCols.showStudiesStudyDatasetsColumn + optionsCols.showStudiesStudyVariablesColumn}}"
-              ng-if="studyFilterSelection.individual && (optionsCols.showStudiesStudyDatasetsColumn || optionsCols.showStudiesStudyVariablesColumn)">search.coverage-buckets.collection
+              ng-if="choseIndividual() && (optionsCols.showStudiesStudyDatasetsColumn || optionsCols.showStudiesStudyVariablesColumn)">search.coverage-buckets.collection
           </th>
           <th translate
               ng-attr-colspan="{{optionsCols.showStudiesHarmonizationDatasetsColumn + optionsCols.showStudiesDataschemaVariablesColumn}}"
-              ng-if="studyFilterSelection.harmonization && (optionsCols.showStudiesHarmonizationDatasetsColumn || optionsCols.showStudiesDataschemaVariablesColumn)">search.coverage-buckets.harmonization</th>
+              ng-if="choseHarmonization() && (optionsCols.showStudiesHarmonizationDatasetsColumn || optionsCols.showStudiesDataschemaVariablesColumn)">search.coverage-buckets.harmonization</th>
         </tr>
         <tr>
-          <th class="text-nowrap" title="{{datasourceTitles.questionnaires.title}}" ng-if="optionsCols.showStudiesQuestionnaireColumn && studyFilterSelection.individual">
+          <th class="text-nowrap" title="{{datasourceTitles.questionnaires.title}}" ng-if="optionsCols.showStudiesQuestionnaireColumn && choseIndividual()">
             <i class="fa fa-file-text-o"></i>
           </th>
-          <th class="text-nowrap" title="{{datasourceTitles.physical_measures.title}}" ng-if="optionsCols.showStudiesPmColumn && studyFilterSelection.individual">
+          <th class="text-nowrap" title="{{datasourceTitles.physical_measures.title}}" ng-if="optionsCols.showStudiesPmColumn && choseIndividual()">
             <i class="fa fa-stethoscope"></i>
           </th>
-          <th class="text-nowrap"  title="{{datasourceTitles.biological_samples.title}}" ng-if="optionsCols.showStudiesBioColumn && studyFilterSelection.individual">
+          <th class="text-nowrap"  title="{{datasourceTitles.biological_samples.title}}" ng-if="optionsCols.showStudiesBioColumn && choseIndividual()">
             <i class="fa fa-flask"></i>
           </th>
-          <th class="text-nowrap"  title="{{datasourceTitles.others.title}}" ng-if="optionsCols.showStudiesOtherColumn && studyFilterSelection.individual">
+          <th class="text-nowrap"  title="{{datasourceTitles.others.title}}" ng-if="optionsCols.showStudiesOtherColumn && choseIndividual()">
             <i class="fa fa-plus-square-o"></i>
           </th>
-          <th translate ng-if="optionsCols.showStudiesStudyDatasetsColumn && studyFilterSelection.individual">datasets</th>
-          <th translate ng-if="optionsCols.showStudiesStudyVariablesColumn && studyFilterSelection.individual">variables</th>
-          <th translate ng-if="optionsCols.showStudiesHarmonizationDatasetsColumn && studyFilterSelection.harmonization">datasets</th>
-          <th translate ng-if="optionsCols.showStudiesDataschemaVariablesColumn && studyFilterSelection.harmonization">variables</th>
+          <th translate ng-if="optionsCols.showStudiesStudyDatasetsColumn && choseIndividual()">datasets</th>
+          <th translate ng-if="optionsCols.showStudiesStudyVariablesColumn && choseIndividual()">variables</th>
+          <th translate ng-if="optionsCols.showStudiesHarmonizationDatasetsColumn && choseHarmonization()">datasets</th>
+          <th translate ng-if="optionsCols.showStudiesDataschemaVariablesColumn && choseHarmonization()">variables</th>
         </tr>
         </thead>
         <tbody test-ref="search-results">
@@ -67,27 +77,27 @@
           <td>
             <localized value="summary.name" lang="lang"></localized>
           </td>
-          <td ng-if="studyFilterSelection.individual && studyFilterSelection.harmonization">{{(summary.studyResourcePath === 'individual-study' ? 'search.study.individual' : 'search.study.harmonization') | translate}}</td>
-          <td ng-if="optionsCols.showStudiesDesignColumn">
+          <td ng-if="studyFilterSelection.selection === 'all'">{{(summary.studyResourcePath === 'individual-study' ? 'search.study.individual' : 'search.study.harmonization') | translate}}</td>
+          <td ng-if="optionsCols.showStudiesDesignColumn && choseIndividual()">
             {{ summary.design === undefined ? '-' : 'study_taxonomy.vocabulary.methods-design.term.' + summary.design + '.title' | translate}}
           </td>
-          <td ng-if="optionsCols.showStudiesQuestionnaireColumn && studyFilterSelection.individual">
+          <td ng-if="optionsCols.showStudiesQuestionnaireColumn && choseIndividual()">
             <i class="fa fa-check" ng-if="hasDatasource(summary.dataSources, 'questionnaires')"></i><span
               ng-if="!hasDatasource(summary.dataSources, 'questionnaires')">-</span>
           </td>
-          <td ng-if="optionsCols.showStudiesPmColumn && studyFilterSelection.individual">
+          <td ng-if="optionsCols.showStudiesPmColumn && choseIndividual()">
             <i class="fa fa-check" ng-if="hasDatasource(summary.dataSources, 'physical_measures')"></i><span
               ng-if="!hasDatasource(summary.dataSources, 'physical_measures')">-</span>
           </td>
-          <td ng-if="optionsCols.showStudiesBioColumn && studyFilterSelection.individual">
+          <td ng-if="optionsCols.showStudiesBioColumn && choseIndividual()">
             <i class="fa fa-check" ng-if="hasDatasource(summary.dataSources, 'biological_samples')"></i><span
               ng-if="!hasDatasource(summary.dataSources, 'biological_samples')">-</span>
           </td>
-          <td ng-if="optionsCols.showStudiesOtherColumn && studyFilterSelection.individual">
+          <td ng-if="optionsCols.showStudiesOtherColumn && choseIndividual()">
             <i class="fa fa-check" ng-if="hasDatasource(summary.dataSources, 'others')"></i><span
               ng-if="!hasDatasource(summary.dataSources, 'others')">-</span>
           </td>
-          <td ng-if="optionsCols.showStudiesParticipantsColumn">
+          <td ng-if="optionsCols.showStudiesParticipantsColumn && choseIndividual()">
             <span ng-if="summary.targetNumber.number">
               <localized-number value="summary.targetNumber.number"></localized-number>
             </span>
@@ -103,21 +113,21 @@
           <td ng-if="optionsCols.showStudiesVariablesColumn">
             <a href ng-click="updateCriteria(summary.id, 'variables')"><localized-number value="summary['obiba.mica.CountStatsDto.studyCountStats'].variables"></localized-number></a>
           </td>
-          <td ng-if="optionsCols.showStudiesStudyDatasetsColumn && studyFilterSelection.individual">
+          <td ng-if="optionsCols.showStudiesStudyDatasetsColumn && choseIndividual()">
             <a href ng-click="updateCriteria(summary.id, 'StudyDataset')"
                 ng-if="summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets"><localized-number value="summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets"></localized-number></a>
             <span ng-if="!summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets">-</span>
           </td>
-          <td ng-if="optionsCols.showStudiesStudyVariablesColumn && studyFilterSelection.individual">
+          <td ng-if="optionsCols.showStudiesStudyVariablesColumn && choseIndividual()">
             <a href ng-click="updateCriteria(summary.id, 'CollectedVariable')" ng-if="summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets"><localized-number value="summary['obiba.mica.CountStatsDto.studyCountStats'].studyVariables"></localized-number></a>
             <span ng-if="!summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets">-</span>
           </td>
-          <td ng-if="optionsCols.showStudiesHarmonizationDatasetsColumn && studyFilterSelection.harmonization">
+          <td ng-if="optionsCols.showStudiesHarmonizationDatasetsColumn && choseHarmonization()">
             <a href ng-click="updateCriteria(summary.id, 'HarmonizationDataset')"
                ng-if="summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets"><localized-number value="summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets"></localized-number></a>
             <span ng-if="!summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets">-</span>
           </td>
-          <td ng-if="optionsCols.showStudiesDataschemaVariablesColumn && studyFilterSelection.harmonization">
+          <td ng-if="optionsCols.showStudiesDataschemaVariablesColumn && choseHarmonization()">
             <a href ng-click="updateCriteria(summary.id, 'DataschemaVariable')" ng-if="summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets"><localized-number value="summary['obiba.mica.CountStatsDto.studyCountStats'].dataschemaVariables"></localized-number></a>
             <span ng-if="!summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets">-</span>
           </td>

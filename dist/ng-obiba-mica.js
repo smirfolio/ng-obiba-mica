@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-07-21
+ * Date: 2017-07-24
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -7206,6 +7206,12 @@ var CRITERIA_ITEM_EVENT = {
   refresh: 'event:refresh-criteria-item'
 };
 
+var STUDY_FILTER_CHOICES = {
+  ALL_STUDIES: 'all',
+  INDIVIDUAL_STUDIES: 'individual',
+  HARMONIZATION_STUDIES: 'harmonization'
+};
+
 angular.module('obiba.mica.search')
 
   .directive('taxonomyPanel', [function () {
@@ -7408,19 +7414,12 @@ angular.module('obiba.mica.search')
         scope.designs = {};
         scope.datasourceTitles = {};
         scope.studyFilterSelection = {
-          get individual() {
-            return this._individual;
+          get selection() {
+            return this._selection;
           },
-          set individual(value) {
-            this._individual = value;
-            updateStudyClassNameFilter();
-          },
-          get harmonization() {
-            return this._harmonization;
-          },
-          set harmonization(value) {
-            this._harmonization = value;
-            updateStudyClassNameFilter();
+          set selection(value) {
+            this._selection = value;
+            updateStudyClassNameFilter(value);
           }
         };
 
@@ -7428,13 +7427,19 @@ angular.module('obiba.mica.search')
           RqlQueryService.createCriteria(RqlQueryService.parseQuery($location.search().query), scope.lang).then(setInitialStudyFilterSelections);
         });
 
-        function updateStudyClassNameFilter() {
+        function updateStudyClassNameFilter(choice) {
           var className;
 
-          if (scope.studyFilterSelection.individual && !scope.studyFilterSelection.harmonization) {
-            className = 'Study';
-          } else if (!scope.studyFilterSelection.individual && scope.studyFilterSelection.harmonization) {
-            className = 'HarmonizationStudy';
+          switch (choice) {
+            case STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES:
+              className = 'Study';
+              break;
+            case STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES:
+              className = 'HarmonizationStudy';
+              break;
+            case STUDY_FILTER_CHOICES.ALL_STUDIES:
+              className = ['Study', 'HarmonizationStudy'];
+              break;
           }
 
           RqlQueryService.createCriteriaItem('study', 'Mica_study', 'className', className).then(function (item) {
@@ -7445,12 +7450,13 @@ angular.module('obiba.mica.search')
         function setInitialStudyFilterSelections(criteria) {
           var foundCriteriaItem = RqlQueryService.findCriteriaItemFromTreeById('study', 'Mica_study.className', criteria.root);
 
-          if (!foundCriteriaItem || foundCriteriaItem.type === RQL_NODE.EXISTS) {
-            scope.studyFilterSelection._individual = true;
-            scope.studyFilterSelection._harmonization = true;
+          if (!foundCriteriaItem || foundCriteriaItem.type === RQL_NODE.EXISTS || (foundCriteriaItem.selectedTerms.indexOf('Study') > -1 && foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1)) {
+            scope.studyFilterSelection._selection = 'all';
+          } else if (!foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('Study') > -1) {
+            scope.studyFilterSelection._selection = 'individual';
+          } else if (!foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1) {
+            scope.studyFilterSelection._selection = 'harmonization';
           } else {
-            scope.studyFilterSelection._individual = (!foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('Study') > -1);
-            scope.studyFilterSelection._harmonization = (!foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1);
           }
         }
 
@@ -7473,6 +7479,18 @@ angular.module('obiba.mica.search')
         }
 
         scope.$watch('lang', getDatasourceTitles);
+
+        scope.choseAll = function () {
+          return scope.studyFilterSelection.selection === STUDY_FILTER_CHOICES.ALL_STUDIES;
+        };
+
+        scope.choseIndividual = function () {
+          return scope.studyFilterSelection.selection === STUDY_FILTER_CHOICES.ALL_STUDIES || scope.studyFilterSelection.selection === STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES;
+        };
+
+        scope.choseHarmonization = function () {
+          return scope.studyFilterSelection.selection === STUDY_FILTER_CHOICES.ALL_STUDIES || scope.studyFilterSelection.selection === STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
+        };
 
         scope.hasDatasource = function (datasources, id) {
           return datasources && datasources.indexOf(id) > -1;
@@ -11760,15 +11778,25 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "  <div ng-show=\"!loading\">\n" +
     "    <div class=\"voffset2\">\n" +
-    "      <label class=\"checkbox-inline\">\n" +
-    "        <input type=\"checkbox\" ng-model=\"studyFilterSelection.individual\">\n" +
-    "        <span>{{'search.coverage-buckets.collection' | translate}}</span>\n" +
-    "      </label>\n" +
     "\n" +
-    "      <label class=\"checkbox-inline\">\n" +
-    "        <input type=\"checkbox\" ng-model=\"studyFilterSelection.harmonization\">\n" +
-    "        <span>{{'search.coverage-buckets.harmonization' | translate}}</span>\n" +
-    "      </label>\n" +
+    "      <div class=\"btn-group dropdown\" uib-dropdown>\n" +
+    "        <button type=\"button\" class=\"btn btn-study dropdown-toggle\" uib-dropdown-toggle>\n" +
+    "          <span translate>{{'global.' + (studyFilterSelection.selection === 'all' ? studyFilterSelection.selection + '-study-types' : studyFilterSelection.selection + '-study')}}</span>\n" +
+    "          </i><span class=\"caret\"></span>\n" +
+    "        </button>\n" +
+    "\n" +
+    "        <ul class=\"dropdown-menu\" role=\"menu\" uib-dropdown-menu>\n" +
+    "          <li role=\"menuitem\" ng-class=\"{'active': studyFilterSelection.selection === 'all'}\">\n" +
+    "            <a translate ng-click=\"studyFilterSelection.selection = 'all'\">global.all-study-types</a>\n" +
+    "          </li>\n" +
+    "          <li role=\"menuitem\" ng-class=\"{'active': studyFilterSelection.selection === 'individual'}\">\n" +
+    "            <a translate ng-click=\"studyFilterSelection.selection = 'individual'\">global.individual-study</a>\n" +
+    "          </li>\n" +
+    "          <li role=\"menuitem\" ng-class=\"{'active': studyFilterSelection.selection === 'harmonization'}\">\n" +
+    "            <a translate ng-click=\"studyFilterSelection.selection = 'harmonization'\">global.harmonization-study</a>\n" +
+    "          </li>\n" +
+    "        </ul>\n" +
+    "      </div>\n" +
     "    </div>\n" +
     "\n" +
     "    <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.study.noResults</p>\n" +
@@ -11778,41 +11806,41 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "        <tr>\n" +
     "          <th rowspan=\"2\" translate>acronym</th>\n" +
     "          <th rowspan=\"2\" translate>name</th>\n" +
-    "          <th rowspan=\"2\" translate ng-if=\"studyFilterSelection.individual && studyFilterSelection.harmonization\">type</th>\n" +
-    "          <th rowspan=\"2\" translate ng-if=\"optionsCols.showStudiesDesignColumn\">search.study.design</th>\n" +
+    "          <th rowspan=\"2\" translate ng-if=\"choseAll()\">type</th>\n" +
+    "          <th rowspan=\"2\" translate ng-if=\"optionsCols.showStudiesDesignColumn && choseIndividual()\">search.study.design</th>\n" +
     "          <th translate\n" +
     "              ng-attr-colspan=\"{{optionsCols.showStudiesQuestionnaireColumn + optionsCols.showStudiesPmColumn + optionsCols.showStudiesBioColumn + optionsCols.showStudiesOtherColumn}}\"\n" +
-    "              ng-if=\"(optionsCols.showStudiesQuestionnaireColumn || optionsCols.showStudiesPmColumn || optionsCols.showStudiesBioColumn || optionsCols.showStudiesOtherColumn) && studyFilterSelection.individual\">\n" +
+    "              ng-if=\"(optionsCols.showStudiesQuestionnaireColumn || optionsCols.showStudiesPmColumn || optionsCols.showStudiesBioColumn || optionsCols.showStudiesOtherColumn) && choseIndividual()\">\n" +
     "            search.study.dataSources\n" +
     "          </th>\n" +
-    "          <th rowspan=\"2\" translate ng-if=\"optionsCols.showStudiesParticipantsColumn\">search.study.participants</th>\n" +
+    "          <th rowspan=\"2\" translate ng-if=\"optionsCols.showStudiesParticipantsColumn && choseIndividual()\">search.study.participants</th>\n" +
     "          <th rowspan=\"2\" translate ng-if=\"optionsCols.showStudiesNetworksColumn\">networks</th>\n" +
     "          <th rowspan=\"2\" translate ng-if=\"optionsCols.showStudiesVariablesColumn\">variables</th>\n" +
     "          <th translate\n" +
     "              ng-attr-colspan=\"{{optionsCols.showStudiesStudyDatasetsColumn + optionsCols.showStudiesStudyVariablesColumn}}\"\n" +
-    "              ng-if=\"studyFilterSelection.individual && (optionsCols.showStudiesStudyDatasetsColumn || optionsCols.showStudiesStudyVariablesColumn)\">search.coverage-buckets.collection\n" +
+    "              ng-if=\"choseIndividual() && (optionsCols.showStudiesStudyDatasetsColumn || optionsCols.showStudiesStudyVariablesColumn)\">search.coverage-buckets.collection\n" +
     "          </th>\n" +
     "          <th translate\n" +
     "              ng-attr-colspan=\"{{optionsCols.showStudiesHarmonizationDatasetsColumn + optionsCols.showStudiesDataschemaVariablesColumn}}\"\n" +
-    "              ng-if=\"studyFilterSelection.harmonization && (optionsCols.showStudiesHarmonizationDatasetsColumn || optionsCols.showStudiesDataschemaVariablesColumn)\">search.coverage-buckets.harmonization</th>\n" +
+    "              ng-if=\"choseHarmonization() && (optionsCols.showStudiesHarmonizationDatasetsColumn || optionsCols.showStudiesDataschemaVariablesColumn)\">search.coverage-buckets.harmonization</th>\n" +
     "        </tr>\n" +
     "        <tr>\n" +
-    "          <th class=\"text-nowrap\" title=\"{{datasourceTitles.questionnaires.title}}\" ng-if=\"optionsCols.showStudiesQuestionnaireColumn && studyFilterSelection.individual\">\n" +
+    "          <th class=\"text-nowrap\" title=\"{{datasourceTitles.questionnaires.title}}\" ng-if=\"optionsCols.showStudiesQuestionnaireColumn && choseIndividual()\">\n" +
     "            <i class=\"fa fa-file-text-o\"></i>\n" +
     "          </th>\n" +
-    "          <th class=\"text-nowrap\" title=\"{{datasourceTitles.physical_measures.title}}\" ng-if=\"optionsCols.showStudiesPmColumn && studyFilterSelection.individual\">\n" +
+    "          <th class=\"text-nowrap\" title=\"{{datasourceTitles.physical_measures.title}}\" ng-if=\"optionsCols.showStudiesPmColumn && choseIndividual()\">\n" +
     "            <i class=\"fa fa-stethoscope\"></i>\n" +
     "          </th>\n" +
-    "          <th class=\"text-nowrap\"  title=\"{{datasourceTitles.biological_samples.title}}\" ng-if=\"optionsCols.showStudiesBioColumn && studyFilterSelection.individual\">\n" +
+    "          <th class=\"text-nowrap\"  title=\"{{datasourceTitles.biological_samples.title}}\" ng-if=\"optionsCols.showStudiesBioColumn && choseIndividual()\">\n" +
     "            <i class=\"fa fa-flask\"></i>\n" +
     "          </th>\n" +
-    "          <th class=\"text-nowrap\"  title=\"{{datasourceTitles.others.title}}\" ng-if=\"optionsCols.showStudiesOtherColumn && studyFilterSelection.individual\">\n" +
+    "          <th class=\"text-nowrap\"  title=\"{{datasourceTitles.others.title}}\" ng-if=\"optionsCols.showStudiesOtherColumn && choseIndividual()\">\n" +
     "            <i class=\"fa fa-plus-square-o\"></i>\n" +
     "          </th>\n" +
-    "          <th translate ng-if=\"optionsCols.showStudiesStudyDatasetsColumn && studyFilterSelection.individual\">datasets</th>\n" +
-    "          <th translate ng-if=\"optionsCols.showStudiesStudyVariablesColumn && studyFilterSelection.individual\">variables</th>\n" +
-    "          <th translate ng-if=\"optionsCols.showStudiesHarmonizationDatasetsColumn && studyFilterSelection.harmonization\">datasets</th>\n" +
-    "          <th translate ng-if=\"optionsCols.showStudiesDataschemaVariablesColumn && studyFilterSelection.harmonization\">variables</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showStudiesStudyDatasetsColumn && choseIndividual()\">datasets</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showStudiesStudyVariablesColumn && choseIndividual()\">variables</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showStudiesHarmonizationDatasetsColumn && choseHarmonization()\">datasets</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showStudiesDataschemaVariablesColumn && choseHarmonization()\">variables</th>\n" +
     "        </tr>\n" +
     "        </thead>\n" +
     "        <tbody test-ref=\"search-results\">\n" +
@@ -11825,27 +11853,27 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "          <td>\n" +
     "            <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"studyFilterSelection.individual && studyFilterSelection.harmonization\">{{(summary.studyResourcePath === 'individual-study' ? 'search.study.individual' : 'search.study.harmonization') | translate}}</td>\n" +
-    "          <td ng-if=\"optionsCols.showStudiesDesignColumn\">\n" +
+    "          <td ng-if=\"studyFilterSelection.selection === 'all'\">{{(summary.studyResourcePath === 'individual-study' ? 'search.study.individual' : 'search.study.harmonization') | translate}}</td>\n" +
+    "          <td ng-if=\"optionsCols.showStudiesDesignColumn && choseIndividual()\">\n" +
     "            {{ summary.design === undefined ? '-' : 'study_taxonomy.vocabulary.methods-design.term.' + summary.design + '.title' | translate}}\n" +
     "          </td>\n" +
-    "          <td ng-if=\"optionsCols.showStudiesQuestionnaireColumn && studyFilterSelection.individual\">\n" +
+    "          <td ng-if=\"optionsCols.showStudiesQuestionnaireColumn && choseIndividual()\">\n" +
     "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'questionnaires')\"></i><span\n" +
     "              ng-if=\"!hasDatasource(summary.dataSources, 'questionnaires')\">-</span>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"optionsCols.showStudiesPmColumn && studyFilterSelection.individual\">\n" +
+    "          <td ng-if=\"optionsCols.showStudiesPmColumn && choseIndividual()\">\n" +
     "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'physical_measures')\"></i><span\n" +
     "              ng-if=\"!hasDatasource(summary.dataSources, 'physical_measures')\">-</span>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"optionsCols.showStudiesBioColumn && studyFilterSelection.individual\">\n" +
+    "          <td ng-if=\"optionsCols.showStudiesBioColumn && choseIndividual()\">\n" +
     "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'biological_samples')\"></i><span\n" +
     "              ng-if=\"!hasDatasource(summary.dataSources, 'biological_samples')\">-</span>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"optionsCols.showStudiesOtherColumn && studyFilterSelection.individual\">\n" +
+    "          <td ng-if=\"optionsCols.showStudiesOtherColumn && choseIndividual()\">\n" +
     "            <i class=\"fa fa-check\" ng-if=\"hasDatasource(summary.dataSources, 'others')\"></i><span\n" +
     "              ng-if=\"!hasDatasource(summary.dataSources, 'others')\">-</span>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"optionsCols.showStudiesParticipantsColumn\">\n" +
+    "          <td ng-if=\"optionsCols.showStudiesParticipantsColumn && choseIndividual()\">\n" +
     "            <span ng-if=\"summary.targetNumber.number\">\n" +
     "              <localized-number value=\"summary.targetNumber.number\"></localized-number>\n" +
     "            </span>\n" +
@@ -11861,21 +11889,21 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "          <td ng-if=\"optionsCols.showStudiesVariablesColumn\">\n" +
     "            <a href ng-click=\"updateCriteria(summary.id, 'variables')\"><localized-number value=\"summary['obiba.mica.CountStatsDto.studyCountStats'].variables\"></localized-number></a>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"optionsCols.showStudiesStudyDatasetsColumn && studyFilterSelection.individual\">\n" +
+    "          <td ng-if=\"optionsCols.showStudiesStudyDatasetsColumn && choseIndividual()\">\n" +
     "            <a href ng-click=\"updateCriteria(summary.id, 'StudyDataset')\"\n" +
     "                ng-if=\"summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets\"><localized-number value=\"summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets\"></localized-number></a>\n" +
     "            <span ng-if=\"!summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets\">-</span>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"optionsCols.showStudiesStudyVariablesColumn && studyFilterSelection.individual\">\n" +
+    "          <td ng-if=\"optionsCols.showStudiesStudyVariablesColumn && choseIndividual()\">\n" +
     "            <a href ng-click=\"updateCriteria(summary.id, 'CollectedVariable')\" ng-if=\"summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets\"><localized-number value=\"summary['obiba.mica.CountStatsDto.studyCountStats'].studyVariables\"></localized-number></a>\n" +
     "            <span ng-if=\"!summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets\">-</span>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"optionsCols.showStudiesHarmonizationDatasetsColumn && studyFilterSelection.harmonization\">\n" +
+    "          <td ng-if=\"optionsCols.showStudiesHarmonizationDatasetsColumn && choseHarmonization()\">\n" +
     "            <a href ng-click=\"updateCriteria(summary.id, 'HarmonizationDataset')\"\n" +
     "               ng-if=\"summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets\"><localized-number value=\"summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets\"></localized-number></a>\n" +
     "            <span ng-if=\"!summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets\">-</span>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"optionsCols.showStudiesDataschemaVariablesColumn && studyFilterSelection.harmonization\">\n" +
+    "          <td ng-if=\"optionsCols.showStudiesDataschemaVariablesColumn && choseHarmonization()\">\n" +
     "            <a href ng-click=\"updateCriteria(summary.id, 'DataschemaVariable')\" ng-if=\"summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets\"><localized-number value=\"summary['obiba.mica.CountStatsDto.studyCountStats'].dataschemaVariables\"></localized-number></a>\n" +
     "            <span ng-if=\"!summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets\">-</span>\n" +
     "          </td>\n" +
