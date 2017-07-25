@@ -2633,9 +2633,13 @@ angular.module('obiba.mica.search')
           } else {
             criteria.item = RqlQueryService.createCriteriaItem(targetMap[groupBy], 'Mica_' + targetMap[groupBy], vocabulary, id);
           }
+        } else if ($scope.bucket.endsWith('individual')) {
+          criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.STUDY, 'Mica_' + QUERY_TARGETS.STUDY, 'className', 'Study');
+        } else if ($scope.bucket.endsWith('harmonization')) {
+          criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.STUDY, 'Mica_' + QUERY_TARGETS.STUDY, 'className', 'HarmonizationStudy');
         } else if ($scope.bucket.endsWith('collected')) {
           criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'StudyDataset');
-        } else if ($scope.bucket === BUCKET_TYPES.NETWORK || $scope.bucket.endsWith('harmonization')) {
+        } else if ($scope.bucket.endsWith('harmonized')) {
           criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'HarmonizationDataset');
         }
 
