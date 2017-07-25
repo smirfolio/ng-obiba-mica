@@ -5,19 +5,19 @@
 
       <div class="btn-group dropdown" uib-dropdown>
         <button type="button" class="btn btn-study dropdown-toggle" uib-dropdown-toggle>
-          <span translate>{{'global.' + (studyFilterSelection.selection === 'all' ? studyFilterSelection.selection + '-study-types' : studyFilterSelection.selection + '-study')}}</span>
+          <span translate>{{(studyFilterSelection.selection === 'all' ? studyFilterSelection.selection : 'search.study.' + studyFilterSelection.selection)}}</span>
           </i><span class="caret"></span>
         </button>
 
         <ul class="dropdown-menu" role="menu" uib-dropdown-menu>
           <li role="menuitem" ng-class="{'active': studyFilterSelection.selection === 'all'}">
-            <a translate ng-click="studyFilterSelection.selection = 'all'">global.all-study-types</a>
+            <a translate ng-click="studyFilterSelection.selection = 'all'">all</a>
           </li>
           <li role="menuitem" ng-class="{'active': studyFilterSelection.selection === 'individual'}">
-            <a translate ng-click="studyFilterSelection.selection = 'individual'">global.individual-study</a>
+            <a translate ng-click="studyFilterSelection.selection = 'individual'">search.study.individual</a>
           </li>
           <li role="menuitem" ng-class="{'active': studyFilterSelection.selection === 'harmonization'}">
-            <a translate ng-click="studyFilterSelection.selection = 'harmonization'">global.harmonization-study</a>
+            <a translate ng-click="studyFilterSelection.selection = 'harmonization'">search.study.harmonization</a>
           </li>
         </ul>
       </div>

@@ -11800,19 +11800,19 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "\n" +
     "      <div class=\"btn-group dropdown\" uib-dropdown>\n" +
     "        <button type=\"button\" class=\"btn btn-study dropdown-toggle\" uib-dropdown-toggle>\n" +
-    "          <span translate>{{'global.' + (studyFilterSelection.selection === 'all' ? studyFilterSelection.selection + '-study-types' : studyFilterSelection.selection + '-study')}}</span>\n" +
+    "          <span translate>{{(studyFilterSelection.selection === 'all' ? studyFilterSelection.selection : 'search.study.' + studyFilterSelection.selection)}}</span>\n" +
     "          </i><span class=\"caret\"></span>\n" +
     "        </button>\n" +
     "\n" +
     "        <ul class=\"dropdown-menu\" role=\"menu\" uib-dropdown-menu>\n" +
     "          <li role=\"menuitem\" ng-class=\"{'active': studyFilterSelection.selection === 'all'}\">\n" +
-    "            <a translate ng-click=\"studyFilterSelection.selection = 'all'\">global.all-study-types</a>\n" +
+    "            <a translate ng-click=\"studyFilterSelection.selection = 'all'\">all</a>\n" +
     "          </li>\n" +
     "          <li role=\"menuitem\" ng-class=\"{'active': studyFilterSelection.selection === 'individual'}\">\n" +
-    "            <a translate ng-click=\"studyFilterSelection.selection = 'individual'\">global.individual-study</a>\n" +
+    "            <a translate ng-click=\"studyFilterSelection.selection = 'individual'\">search.study.individual</a>\n" +
     "          </li>\n" +
     "          <li role=\"menuitem\" ng-class=\"{'active': studyFilterSelection.selection === 'harmonization'}\">\n" +
-    "            <a translate ng-click=\"studyFilterSelection.selection = 'harmonization'\">global.harmonization-study</a>\n" +
+    "            <a translate ng-click=\"studyFilterSelection.selection = 'harmonization'\">search.study.harmonization</a>\n" +
     "          </li>\n" +
     "        </ul>\n" +
     "      </div>\n" +
