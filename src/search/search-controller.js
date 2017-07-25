@@ -21,6 +21,14 @@
 /* global typeToTarget */
 /* global SORT_FIELDS */
 
+var BUCKET_SELECTION_FILTER = {
+  ALL_BUCKET: 'all',
+  INDIVIDUAL_BUCKET: 'individual',
+  HARMONIZATION_BUCKET: 'harmonization',
+  COLLECTED_BUCKET: 'collected',
+  HARMONIZED_BUCKET: 'harmonized'
+};
+
 /**
  * State shared between Criterion DropDown and its content directives
  *
@@ -1117,8 +1125,15 @@ angular.module('obiba.mica.search')
       var onDisplayChanged = function (display) {
         if (display) {
           validateDisplay(display);
+
           var search = $location.search();
           search.display = display;
+          if (display === DISPLAY_TYPES.COVERAGE) {
+            if (search.hasOwnProperty('bucket')) {
+              delete search.bucket;
+            }
+          }
+
           $location.search(search);
         }
       };
@@ -2066,8 +2081,13 @@ angular.module('obiba.mica.search')
       }
 
       function dceUpdateBucket(val) {
-        var canShowIndividual = $scope.groupByOptions.canShowIndividualStudy('individual') && $scope.bucketSelection.variableTypeCollectionSelected;
-        var canShowHarmonization = $scope.groupByOptions.canShowHarmonizationStudy('harmonization') && $scope.bucketSelection.variableTypeDataschemaSelected;
+        var canShowIndividual = $scope.groupByOptions.canShowIndividualStudy('individual') &&
+            ($scope.bucketSelection.studySelection === BUCKET_SELECTION_FILTER.INDIVIDUAL_BUCKET ||
+                $scope.bucketSelection.studySelection === BUCKET_SELECTION_FILTER.ALL_BUCKET);
+
+        var canShowHarmonization = $scope.groupByOptions.canShowHarmonizationStudy('harmonization') &&
+            ($scope.bucketSelection.studySelection === BUCKET_SELECTION_FILTER.HARMONIZATION_BUCKET ||
+                $scope.bucketSelection.studySelection === BUCKET_SELECTION_FILTER.ALL_BUCKET);
 
         if (val) {
           if (canShowIndividual && !canShowHarmonization) {
@@ -2088,7 +2108,7 @@ angular.module('obiba.mica.search')
         }
       }
 
-      function onDceUPdateBucket(val, old) {
+      function onDceUpdateBucket(val, old) {
         if (val === old) {
           return;
         }
@@ -2103,58 +2123,40 @@ angular.module('obiba.mica.search')
 
         switch (bucket) {
           case BUCKET_TYPES.STUDY:
-            if ($scope.bucketSelection.variableTypeCollectionSelected ===
-              $scope.bucketSelection.variableTypeCollectionSelected) {
-
-              $scope.bucketSelection.variableTypeCollectionSelected = true;
-              $scope.bucketSelection.variableTypeDataschemaSelected = true;
-              $scope.bucketSelection.dceBucketSelected = false;
-            }
+            $scope.bucketSelection.studySelection = BUCKET_SELECTION_FILTER.ALL_BUCKET;
             break;
           case BUCKET_TYPES.STUDY_INDIVIDUAL:
-            $scope.bucketSelection.variableTypeCollectionSelected = true;
-            $scope.bucketSelection.variableTypeDataschemaSelected = false;
             $scope.bucketSelection.dceBucketSelected = false;
+            $scope.bucketSelection.studySelection = BUCKET_SELECTION_FILTER.INDIVIDUAL_BUCKET;
             break;
           case BUCKET_TYPES.STUDY_HARMONIZATION:
-            $scope.bucketSelection.variableTypeCollectionSelected = false;
-            $scope.bucketSelection.variableTypeDataschemaSelected = true;
             $scope.bucketSelection.dceBucketSelected = false;
+            $scope.bucketSelection.studySelection = BUCKET_SELECTION_FILTER.HARMONIZATION_BUCKET;
             break;
 
           case BUCKET_TYPES.DATASET:
-            $scope.bucketSelection.dsVariableTypeCollectionSelected = true;
-            $scope.bucketSelection.dsVariableTypeDataschemaSelected = true;
+            $scope.bucketSelection.datasetSelection = BUCKET_SELECTION_FILTER.ALL_BUCKET;
             break;
           case BUCKET_TYPES.DATASET_COLLECTED:
-            $scope.bucketSelection.dsVariableTypeCollectionSelected = true;
-            $scope.bucketSelection.dsVariableTypeDataschemaSelected = false;
+            $scope.bucketSelection.datasetSelection = BUCKET_SELECTION_FILTER.COLLECTED_BUCKET;
             break;
           case BUCKET_TYPES.DATASCHEMA:
           case BUCKET_TYPES.DATASET_HARMONIZED:
-            if ($scope.bucketSelection.dsVariableTypeCollectionSelected ===
-              $scope.bucketSelection.dsVariableTypeCollectionSelected) {
-
-              $scope.bucketSelection.dsVariableTypeCollectionSelected = false;
-              $scope.bucketSelection.dsVariableTypeDataschemaSelected = true;
-            }
+            $scope.bucketSelection.datasetSelection = BUCKET_SELECTION_FILTER.HARMONIZED_BUCKET;
             break;
 
           case BUCKET_TYPES.DCE:
-            $scope.bucketSelection.variableTypeCollectionSelected = true;
-            $scope.bucketSelection.variableTypeDataschemaSelected = true;
             $scope.bucketSelection.dceBucketSelected = true;
+            $scope.bucketSelection.studySelection = BUCKET_SELECTION_FILTER.ALL_BUCKET;
             break;
           case BUCKET_TYPES.DCE_INDIVIDUAL:
-            $scope.bucketSelection.variableTypeCollectionSelected = true;
-            $scope.bucketSelection.variableTypeDataschemaSelected = false;
             $scope.bucketSelection.dceBucketSelected = true;
+            $scope.bucketSelection.studySelection = BUCKET_SELECTION_FILTER.INDIVIDUAL_BUCKET;
             break;
 
           case BUCKET_TYPES.DCE_HARMONIZATION:
-            $scope.bucketSelection.variableTypeCollectionSelected = false;
-            $scope.bucketSelection.variableTypeDataschemaSelected = true;
             $scope.bucketSelection.dceBucketSelected = true;
+            $scope.bucketSelection.studySelection = BUCKET_SELECTION_FILTER.HARMONIZATION_BUCKET;
             break;
         }
       }
@@ -2178,11 +2180,11 @@ angular.module('obiba.mica.search')
 
       function updateBucket (groupBy) {
         if ($scope.groupByOptions.canShowVariableTypeFilter(groupBy)) {
-          if ($scope.bucketSelection.variableTypeCollectionSelected && $scope.bucketSelection.variableTypeDataschemaSelected) {
+          if ($scope.bucketSelection.studySelection === BUCKET_SELECTION_FILTER.ALL_BUCKET) {
             $scope.selectBucket(groupBy);
-          } else if ($scope.bucketSelection.variableTypeCollectionSelected && !$scope.bucketSelection.variableTypeDataschemaSelected) {
+          } else if ($scope.bucketSelection.studySelection === BUCKET_SELECTION_FILTER.INDIVIDUAL_BUCKET) {
             $scope.selectBucket(groupBy + '-' + 'individual');
-          } else if (!$scope.bucketSelection.variableTypeCollectionSelected && $scope.bucketSelection.variableTypeDataschemaSelected) {
+          } else if ($scope.bucketSelection.studySelection === BUCKET_SELECTION_FILTER.HARMONIZATION_BUCKET) {
             $scope.selectBucket(groupBy + '-' + 'harmonization');
           }
         } else {
@@ -2196,31 +2198,16 @@ angular.module('obiba.mica.search')
 
       function dsUpdateBucket (groupBy) {
         if ($scope.groupByOptions.canShowVariableTypeFilter(groupBy)) {
-          if ($scope.bucketSelection.dsVariableTypeCollectionSelected && $scope.bucketSelection.dsVariableTypeDataschemaSelected) {
+          if ($scope.bucketSelection.datasetSelection === BUCKET_SELECTION_FILTER.ALL_BUCKET) {
             $scope.selectBucket(groupBy);
-          } else if ($scope.bucketSelection.dsVariableTypeCollectionSelected && !$scope.bucketSelection.dsVariableTypeDataschemaSelected) {
+          } else if ($scope.bucketSelection.datasetSelection === BUCKET_SELECTION_FILTER.COLLECTED_BUCKET) {
             $scope.selectBucket(groupBy + '-' + 'collected');
-          } else if (!$scope.bucketSelection.dsVariableTypeCollectionSelected && $scope.bucketSelection.dsVariableTypeDataschemaSelected) {
+          } else if ($scope.bucketSelection.datasetSelection === BUCKET_SELECTION_FILTER.HARMONIZED_BUCKET) {
             $scope.selectBucket(groupBy + '-' + 'harmonized');
           }
         } else if (BUCKET_TYPES.DATASET === groupBy) {
           $scope.selectBucket($scope.groupByOptions.datasetBucket());
         }
-      }
-
-      function onUpdateBucket (val, old) {
-        if (val === old) {
-          return;
-        }
-
-        updateBucket($scope.bucket.split('-')[0]);
-      }
-
-      function onDsUpdateBucket(val, old) {
-        if (val === old) {
-          return;
-        }
-        dsUpdateBucket($scope.bucket.split('-')[0]);
       }
 
       function isStudyBucket() {
@@ -2232,6 +2219,9 @@ angular.module('obiba.mica.search')
       }
 
       function selectTab(tab) {
+        $scope.bucketSelection.studySelection = BUCKET_SELECTION_FILTER.ALL_BUCKET;
+        $scope.bucketSelection.datasetSelection = BUCKET_SELECTION_FILTER.ALL_BUCKET;
+
         if (tab === BUCKET_TYPES.STUDY) {
           updateBucket($scope.bucketSelection.dceBucketSelected ? BUCKET_TYPES.DCE : BUCKET_TYPES.STUDY);
         } else if (tab === BUCKET_TYPES.DATASET) {
@@ -2501,20 +2491,29 @@ angular.module('obiba.mica.search')
 
         $scope.groupByOptions = CoverageGroupByService;
         $scope.bucketSelection = {
-          dceBucketSelected: false,
-          variableTypeCollectionSelected: true,
-          variableTypeDataschemaSelected: true,
-          dsVariableTypeCollectionSelected: true,
-          dsVariableTypeDataschemaSelected: true
+          get studySelection() {
+            return this._studySelection;
+          },
+          set studySelection(value) {
+            this._studySelection = value;
+            updateBucket($scope.bucket.split('-')[0]);
+          },
+          get datasetSelection() {
+            return this._datasetSelection;
+          },
+          set datasetSelection(value) {
+            this._datasetSelection = value;
+            dsUpdateBucket($scope.bucket.split('-')[0]);
+          },
+          dceBucketSelected: false
         };
+
+        $scope.bucketSelection._studySelection = BUCKET_SELECTION_FILTER.ALL_BUCKET;
+        $scope.bucketSelection._datasetSelection = BUCKET_SELECTION_FILTER.ALL_BUCKET;
 
         onLocationChange();
 
-        $scope.$watch('bucketSelection.variableTypeCollectionSelected', onUpdateBucket);
-        $scope.$watch('bucketSelection.variableTypeDataschemaSelected', onUpdateBucket);
-        $scope.$watch('bucketSelection.dceBucketSelected', onDceUPdateBucket);
-        $scope.$watch('bucketSelection.dsVariableTypeCollectionSelected', onDsUpdateBucket);
-        $scope.$watch('bucketSelection.dsVariableTypeDataschemaSelected', onDsUpdateBucket);
+        $scope.$watch('bucketSelection.dceBucketSelected', onDceUpdateBucket);
       }
 
       $scope.isStudyBucket = isStudyBucket;
