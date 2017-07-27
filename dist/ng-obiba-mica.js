@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-07-25
+ * Date: 2017-07-27
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -6326,6 +6326,8 @@ angular.module('obiba.mica.search')
 
       function updateBucketSelection(bucket) {
         if (!angular.isDefined(bucket)) {
+          $scope.bucketSelection._studySelection = BUCKET_SELECTION_FILTER.ALL_BUCKET;
+          $scope.bucketSelection._datasetSelection = BUCKET_SELECTION_FILTER.ALL_BUCKET;
           return;
         }
 
@@ -6677,7 +6679,6 @@ angular.module('obiba.mica.search')
           return item;
         }, null);
       }
-
 
       function init() {
         targetMap[BUCKET_TYPES.NETWORK] = QUERY_TARGETS.NETWORK;
