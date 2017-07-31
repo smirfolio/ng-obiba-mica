@@ -37,45 +37,11 @@
       </label>
     </div>
 
-    <div class="voffset2" ng-if="groupByOptions.canShowVariableTypeFilter(bucket) && isStudyBucket()">
-      <div class="btn-group dropdown" uib-dropdown>
-        <button type="button" class="btn btn-study dropdown-toggle" uib-dropdown-toggle>
-          <span translate>{{bucketSelection.studySelection === 'all' ? bucketSelection.studySelection : 'search.coverage-buckets.' + bucketSelection.studySelection}}</span>
-          </i><span class="caret"></span>
-        </button>
-
-        <ul class="dropdown-menu" role="menu" uib-dropdown-menu>
-          <li role="menuitem" ng-class="{'active': bucketSelection.studySelection === 'all'}">
-            <a translate ng-click="bucketSelection.studySelection = 'all'">all</a>
-          </li>
-          <li role="menuitem" ng-class="{'active': bucketSelection.studySelection === 'individual'}">
-            <a translate ng-click="bucketSelection.studySelection = 'individual'">search.coverage-buckets.individual</a>
-          </li>
-          <li role="menuitem" ng-class="{'active': bucketSelection.studySelection === 'harmonization'}">
-            <a translate ng-click="bucketSelection.studySelection = 'harmonization'">search.coverage-buckets.harmonization</a>
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="voffset2" ng-if="groupByOptions.canShowVariableTypeFilter(bucket) && isDatasetBucket()">
-      <div class="btn-group dropdown" uib-dropdown>
-        <button type="button" class="btn btn-dataset dropdown-toggle" uib-dropdown-toggle>
-          <span translate>{{bucketSelection.datasetSelection === 'all' ? bucketSelection.datasetSelection : 'search.coverage-buckets.dataset-' + bucketSelection.datasetSelection}}</span>
-          </i><span class="caret"></span>
-        </button>
-
-        <ul class="dropdown-menu" role="menu" uib-dropdown-menu>
-          <li role="menuitem" ng-class="{'active': bucketSelection.datasetSelection === 'all'}">
-            <a translate ng-click="bucketSelection.datasetSelection = 'all'">all</a>
-          </li>
-          <li role="menuitem" ng-class="{'active': bucketSelection.datasetSelection === 'collected'}">
-            <a translate ng-click="bucketSelection.datasetSelection = 'collected'">search.coverage-buckets.dataset-collected</a>
-          </li>
-          <li role="menuitem" ng-class="{'active': bucketSelection.datasetSelection === 'harmonized'}">
-            <a translate ng-click="bucketSelection.datasetSelection = 'harmonized'">search.coverage-buckets.dataset-harmonized</a>
-          </li>
-        </ul>
+    <div class="voffset2">
+      <div class="btn btn-group" style="padding: 0">
+        <label class="btn btn-sm btn-study" ng-model="bucketSelection.studySelection" uib-btn-radio="'all'" translate>all</label>
+        <label class="btn btn-sm btn-study" ng-model="bucketSelection.studySelection" uib-btn-radio="'individual'" translate>search.coverage-buckets.individual</label>
+        <label class="btn btn-sm btn-study" ng-model="bucketSelection.studySelection" uib-btn-radio="'harmonization'" translate>search.coverage-buckets.harmonization</label>
       </div>
     </div>
   </div>
@@ -186,8 +152,4 @@
       </tfoot>
     </table>
   </div>
-
-  <!--<pre>-->
-  <!--{{table.cols | json}}-->
-  <!--</pre>-->
 </div>

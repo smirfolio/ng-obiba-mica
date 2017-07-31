@@ -10,19 +10,13 @@
 
 'use strict';
 
-/* global QUERY_TYPES */
 /* global RQL_NODE */
+/* global STUDY_FILTER_CHOICES */
 
 /* exported CRITERIA_ITEM_EVENT */
 var CRITERIA_ITEM_EVENT = {
   deleted: 'event:delete-criteria-item',
   refresh: 'event:refresh-criteria-item'
-};
-
-var STUDY_FILTER_CHOICES = {
-  ALL_STUDIES: 'all',
-  INDIVIDUAL_STUDIES: 'individual',
-  HARMONIZATION_STUDIES: 'harmonization'
 };
 
 angular.module('obiba.mica.search')
@@ -182,13 +176,15 @@ angular.module('obiba.mica.search')
     'RqlQueryService',
     'LocalizedValues',
     'ngObibaMicaSearchTemplateUrl',
+    'StudyFilterShortcutService',
     function ($log, $q, $location,
               PageUrlService,
               ngObibaMicaSearch,
               TaxonomyResource,
               RqlQueryService,
               LocalizedValues,
-              ngObibaMicaSearchTemplateUrl) {
+              ngObibaMicaSearchTemplateUrl,
+              StudyFilterShortcutService) {
     return {
       restrict: 'EA',
       replace: true,
@@ -241,35 +237,18 @@ angular.module('obiba.mica.search')
         });
 
         function updateStudyClassNameFilter(choice) {
-          var className;
-
-          switch (choice) {
-            case STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES:
-              className = 'Study';
-              break;
-            case STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES:
-              className = 'HarmonizationStudy';
-              break;
-            case STUDY_FILTER_CHOICES.ALL_STUDIES:
-              className = ['Study', 'HarmonizationStudy'];
-              break;
-          }
-
-          RqlQueryService.createCriteriaItem('study', 'Mica_study', 'className', className).then(function (item) {
-            scope.onUpdateCriteria(item, QUERY_TYPES.STUDIES);
-          });
+          StudyFilterShortcutService.filter(choice, scope.lang);
         }
 
         function setInitialStudyFilterSelections(criteria) {
           var foundCriteriaItem = RqlQueryService.findCriteriaItemFromTreeById('study', 'Mica_study.className', criteria.root);
 
           if (!foundCriteriaItem || foundCriteriaItem.type === RQL_NODE.EXISTS || (foundCriteriaItem.selectedTerms.indexOf('Study') > -1 && foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1)) {
-            scope.studyFilterSelection._selection = 'all';
+            scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.ALL_STUDIES;
           } else if (!foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('Study') > -1) {
-            scope.studyFilterSelection._selection = 'individual';
+            scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES;
           } else if (!foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1) {
-            scope.studyFilterSelection._selection = 'harmonization';
-          } else {
+            scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
           }
         }
 

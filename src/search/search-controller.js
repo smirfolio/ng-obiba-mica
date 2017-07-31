@@ -20,14 +20,7 @@
 /* global targetToType */
 /* global typeToTarget */
 /* global SORT_FIELDS */
-
-var BUCKET_SELECTION_FILTER = {
-  ALL_BUCKET: 'all',
-  INDIVIDUAL_BUCKET: 'individual',
-  HARMONIZATION_BUCKET: 'harmonization',
-  COLLECTED_BUCKET: 'collected',
-  HARMONIZED_BUCKET: 'harmonized'
-};
+/* global STUDY_FILTER_CHOICES */
 
 /**
  * State shared between Criterion DropDown and its content directives
@@ -872,10 +865,12 @@ angular.module('obiba.mica.search')
         return value ? value.text : key;
       };
 
-      $rootScope.$on('$translateChangeSuccess', function () {
-        $scope.lang = $translate.use();
-        SearchContext.setLocale($scope.lang);
-        executeSearchQuery();
+      $rootScope.$on('$translateChangeSuccess', function (event, value) {
+        if (value.language !== SearchContext.currentLocale()) {
+          $scope.lang = $translate.use();
+          SearchContext.setLocale($scope.lang);
+          executeSearchQuery();
+        }
       });
 
       var showTaxonomy = function (target, name) {
@@ -1128,12 +1123,6 @@ angular.module('obiba.mica.search')
 
           var search = $location.search();
           search.display = display;
-          if (display === DISPLAY_TYPES.COVERAGE) {
-            if (search.hasOwnProperty('bucket')) {
-              delete search.bucket;
-            }
-          }
-
           $location.search(search);
         }
       };
@@ -2046,8 +2035,21 @@ angular.module('obiba.mica.search')
     'RqlQueryUtils',
     'RqlQueryService',
     'CoverageGroupByService',
-    function ($scope, $location, $q, PageUrlService, RqlQueryUtils, RqlQueryService, CoverageGroupByService) {
+    'StudyFilterShortcutService',
+    function ($scope, $location, $q, PageUrlService, RqlQueryUtils, RqlQueryService, CoverageGroupByService, StudyFilterShortcutService) {
       var targetMap = {}, vocabulariesTermsMap = {};
+
+      targetMap[BUCKET_TYPES.NETWORK] = QUERY_TARGETS.NETWORK;
+      targetMap[BUCKET_TYPES.STUDY] = QUERY_TARGETS.STUDY;
+      targetMap[BUCKET_TYPES.STUDY_INDIVIDUAL] = QUERY_TARGETS.STUDY;
+      targetMap[BUCKET_TYPES.STUDY_HARMONIZATION] = QUERY_TARGETS.STUDY;
+      targetMap[BUCKET_TYPES.DCE] = QUERY_TARGETS.VARIABLE;
+      targetMap[BUCKET_TYPES.DCE_INDIVIDUAL] = QUERY_TARGETS.VARIABLE;
+      targetMap[BUCKET_TYPES.DCE_HARMONIZATION] = QUERY_TARGETS.VARIABLE;
+      targetMap[BUCKET_TYPES.DATASCHEMA] = QUERY_TARGETS.DATASET;
+      targetMap[BUCKET_TYPES.DATASET] = QUERY_TARGETS.DATASET;
+      targetMap[BUCKET_TYPES.DATASET_COLLECTED] = QUERY_TARGETS.DATASET;
+      targetMap[BUCKET_TYPES.DATASET_HARMONIZED] = QUERY_TARGETS.DATASET;
 
       function decorateVocabularyHeaders(headers, vocabularyHeaders) {
         var count = 0, i = 0;
@@ -2081,30 +2083,10 @@ angular.module('obiba.mica.search')
       }
 
       function dceUpdateBucket(val) {
-        var canShowIndividual = $scope.groupByOptions.canShowIndividualStudy('individual') &&
-            ($scope.bucketSelection.studySelection === BUCKET_SELECTION_FILTER.INDIVIDUAL_BUCKET ||
-                $scope.bucketSelection.studySelection === BUCKET_SELECTION_FILTER.ALL_BUCKET);
-
-        var canShowHarmonization = $scope.groupByOptions.canShowHarmonizationStudy('harmonization') &&
-            ($scope.bucketSelection.studySelection === BUCKET_SELECTION_FILTER.HARMONIZATION_BUCKET ||
-                $scope.bucketSelection.studySelection === BUCKET_SELECTION_FILTER.ALL_BUCKET);
-
         if (val) {
-          if (canShowIndividual && !canShowHarmonization) {
-            $scope.selectBucket(BUCKET_TYPES.DCE_INDIVIDUAL);
-          } else if (!canShowIndividual && canShowHarmonization) {
-            $scope.selectBucket(BUCKET_TYPES.DCE_HARMONIZATION);
-          } else {
-            $scope.selectBucket(BUCKET_TYPES.DCE);
-          }
+          $scope.selectBucket(BUCKET_TYPES.DCE);
         } else if ($scope.bucket.startsWith('dce')) {
-          if (canShowIndividual && !canShowHarmonization) {
-            $scope.selectBucket(BUCKET_TYPES.STUDY_INDIVIDUAL);
-          } else if (!canShowIndividual && canShowHarmonization) {
-            $scope.selectBucket(BUCKET_TYPES.STUDY_HARMONIZATION);
-          } else {
-            $scope.selectBucket(BUCKET_TYPES.STUDY);
-          }
+          $scope.selectBucket(BUCKET_TYPES.STUDY);
         }
       }
 
@@ -2116,53 +2098,6 @@ angular.module('obiba.mica.search')
         dceUpdateBucket(val);
       }
 
-      function updateBucketSelection(bucket) {
-        if (!angular.isDefined(bucket)) {
-          $scope.bucketSelection._studySelection = BUCKET_SELECTION_FILTER.ALL_BUCKET;
-          $scope.bucketSelection._datasetSelection = BUCKET_SELECTION_FILTER.ALL_BUCKET;
-          return;
-        }
-
-        switch (bucket) {
-          case BUCKET_TYPES.STUDY:
-            $scope.bucketSelection.studySelection = BUCKET_SELECTION_FILTER.ALL_BUCKET;
-            break;
-          case BUCKET_TYPES.STUDY_INDIVIDUAL:
-            $scope.bucketSelection.dceBucketSelected = false;
-            $scope.bucketSelection.studySelection = BUCKET_SELECTION_FILTER.INDIVIDUAL_BUCKET;
-            break;
-          case BUCKET_TYPES.STUDY_HARMONIZATION:
-            $scope.bucketSelection.dceBucketSelected = false;
-            $scope.bucketSelection.studySelection = BUCKET_SELECTION_FILTER.HARMONIZATION_BUCKET;
-            break;
-
-          case BUCKET_TYPES.DATASET:
-            $scope.bucketSelection.datasetSelection = BUCKET_SELECTION_FILTER.ALL_BUCKET;
-            break;
-          case BUCKET_TYPES.DATASET_COLLECTED:
-            $scope.bucketSelection.datasetSelection = BUCKET_SELECTION_FILTER.COLLECTED_BUCKET;
-            break;
-          case BUCKET_TYPES.DATASCHEMA:
-          case BUCKET_TYPES.DATASET_HARMONIZED:
-            $scope.bucketSelection.datasetSelection = BUCKET_SELECTION_FILTER.HARMONIZED_BUCKET;
-            break;
-
-          case BUCKET_TYPES.DCE:
-            $scope.bucketSelection.dceBucketSelected = true;
-            $scope.bucketSelection.studySelection = BUCKET_SELECTION_FILTER.ALL_BUCKET;
-            break;
-          case BUCKET_TYPES.DCE_INDIVIDUAL:
-            $scope.bucketSelection.dceBucketSelected = true;
-            $scope.bucketSelection.studySelection = BUCKET_SELECTION_FILTER.INDIVIDUAL_BUCKET;
-            break;
-
-          case BUCKET_TYPES.DCE_HARMONIZATION:
-            $scope.bucketSelection.dceBucketSelected = true;
-            $scope.bucketSelection.studySelection = BUCKET_SELECTION_FILTER.HARMONIZATION_BUCKET;
-            break;
-        }
-      }
-
       function validateBucket(bucket) {
         if (bucket &&
           (!BUCKET_TYPES[bucket.replace('-', '_').toUpperCase()] || !CoverageGroupByService.canGroupBy(bucket))) {
@@ -2171,45 +2106,38 @@ angular.module('obiba.mica.search')
         }
       }
 
+      function setInitialFilter() {
+        RqlQueryService.createCriteria(RqlQueryService.parseQuery($location.search().query), $scope.lang).then(function (criteria) {
+          var foundCriteriaItem = RqlQueryService.findCriteriaItemFromTreeById(QUERY_TARGETS.STUDY, 'Mica_study.className', criteria.root);
+
+          if (!foundCriteriaItem || foundCriteriaItem.type === RQL_NODE.EXISTS || (foundCriteriaItem.selectedTerms.indexOf('Study') > -1 && foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1)) {
+            $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.ALL_STUDIES;
+          } else if (!foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('Study') > -1) {
+            $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES;
+          } else if (!foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1) {
+            $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
+          }
+        });
+      }
+
       function onLocationChange() {
         var search = $location.search();
         if (search.display && search.display === DISPLAY_TYPES.COVERAGE) {
           validateBucket(search.bucket);
-          search = $location.search();
-          updateBucketSelection(search.bucket);
+          setInitialFilter();
         }
       }
 
       function updateBucket (groupBy) {
         if ($scope.groupByOptions.canShowVariableTypeFilter(groupBy)) {
-          if ($scope.bucketSelection.studySelection === BUCKET_SELECTION_FILTER.ALL_BUCKET) {
-            $scope.selectBucket(groupBy);
-          } else if ($scope.bucketSelection.studySelection === BUCKET_SELECTION_FILTER.INDIVIDUAL_BUCKET) {
-            $scope.selectBucket(groupBy + '-' + 'individual');
-          } else if ($scope.bucketSelection.studySelection === BUCKET_SELECTION_FILTER.HARMONIZATION_BUCKET) {
-            $scope.selectBucket(groupBy + '-' + 'harmonization');
-          }
-        } else {
-          if (BUCKET_TYPES.STUDY === groupBy) {
-            $scope.selectBucket($scope.groupByOptions.studyBucket());
-          } else { // dce
-            $scope.selectBucket($scope.groupByOptions.dceBucket());
-          }
+          $scope.selectBucket(groupBy);
+        } else if (BUCKET_TYPES.STUDY !== groupBy) {
+            $scope.selectBucket(BUCKET_TYPES.DCE);
         }
       }
 
       function dsUpdateBucket (groupBy) {
-        if ($scope.groupByOptions.canShowVariableTypeFilter(groupBy)) {
-          if ($scope.bucketSelection.datasetSelection === BUCKET_SELECTION_FILTER.ALL_BUCKET) {
-            $scope.selectBucket(groupBy);
-          } else if ($scope.bucketSelection.datasetSelection === BUCKET_SELECTION_FILTER.COLLECTED_BUCKET) {
-            $scope.selectBucket(groupBy + '-' + 'collected');
-          } else if ($scope.bucketSelection.datasetSelection === BUCKET_SELECTION_FILTER.HARMONIZED_BUCKET) {
-            $scope.selectBucket(groupBy + '-' + 'harmonized');
-          }
-        } else if (BUCKET_TYPES.DATASET === groupBy) {
-          $scope.selectBucket($scope.groupByOptions.datasetBucket());
-        }
+        $scope.selectBucket(groupBy);
       }
 
       function isStudyBucket() {
@@ -2221,9 +2149,6 @@ angular.module('obiba.mica.search')
       }
 
       function selectTab(tab) {
-        $scope.bucketSelection.studySelection = BUCKET_SELECTION_FILTER.ALL_BUCKET;
-        $scope.bucketSelection.datasetSelection = BUCKET_SELECTION_FILTER.ALL_BUCKET;
-
         if (tab === BUCKET_TYPES.STUDY) {
           updateBucket($scope.bucketSelection.dceBucketSelected ? BUCKET_TYPES.DCE : BUCKET_TYPES.STUDY);
         } else if (tab === BUCKET_TYPES.DATASET) {
@@ -2404,14 +2329,8 @@ angular.module('obiba.mica.search')
               rowSpan: 1
             });
           } else {
-            var isStudy = $scope.bucket.startsWith('study');
             var parts = $scope.bucket.split('-');
             var itemBucket = parts[0];
-            if (row.className.toLowerCase().startsWith('harmonization')) {
-              itemBucket = itemBucket + (isStudy ? '-harmonization' : '-harmonized');
-            } else {
-              itemBucket = itemBucket + (isStudy ? '-individual' : '-collected');
-            }
             cols.ids[row.value].push({
               id: row.value,
               url: getBucketUrl(itemBucket, row.value),
@@ -2472,58 +2391,45 @@ angular.module('obiba.mica.search')
         }, null);
       }
 
+      function updateStudyClassNameFilter(choice) {
+        StudyFilterShortcutService.filter(choice, $scope.lang);
+      }
+
       function init() {
-        targetMap[BUCKET_TYPES.NETWORK] = QUERY_TARGETS.NETWORK;
-        targetMap[BUCKET_TYPES.STUDY] = QUERY_TARGETS.STUDY;
-        targetMap[BUCKET_TYPES.STUDY_INDIVIDUAL] = QUERY_TARGETS.STUDY;
-        targetMap[BUCKET_TYPES.STUDY_HARMONIZATION] = QUERY_TARGETS.STUDY;
-        targetMap[BUCKET_TYPES.DCE] = QUERY_TARGETS.VARIABLE;
-        targetMap[BUCKET_TYPES.DCE_INDIVIDUAL] = QUERY_TARGETS.VARIABLE;
-        targetMap[BUCKET_TYPES.DCE_HARMONIZATION] = QUERY_TARGETS.VARIABLE;
-        targetMap[BUCKET_TYPES.DATASCHEMA] = QUERY_TARGETS.DATASET;
-        targetMap[BUCKET_TYPES.DATASET] = QUERY_TARGETS.DATASET;
-        targetMap[BUCKET_TYPES.DATASET_COLLECTED] = QUERY_TARGETS.DATASET;
-        targetMap[BUCKET_TYPES.DATASET_HARMONIZED] = QUERY_TARGETS.DATASET;
-
-        $scope.showMissing = true;
-        $scope.toggleMissing = function (value) {
-          $scope.showMissing = value;
-        };
-
-        $scope.groupByOptions = CoverageGroupByService;
-        $scope.bucketSelection = {
-          get studySelection() {
-            return this._studySelection;
-          },
-          set studySelection(value) {
-            this._studySelection = value;
-            updateBucket($scope.bucket.split('-')[0]);
-          },
-          get datasetSelection() {
-            return this._datasetSelection;
-          },
-          set datasetSelection(value) {
-            this._datasetSelection = value;
-            dsUpdateBucket($scope.bucket.split('-')[0]);
-          },
-          dceBucketSelected: false
-        };
-
-        $scope.bucketSelection._studySelection = BUCKET_SELECTION_FILTER.ALL_BUCKET;
-        $scope.bucketSelection._datasetSelection = BUCKET_SELECTION_FILTER.ALL_BUCKET;
-
         onLocationChange();
-
         $scope.$watch('bucketSelection.dceBucketSelected', onDceUpdateBucket);
       }
 
+      $scope.showMissing = true;
+      $scope.toggleMissing = function (value) {
+        $scope.showMissing = value;
+      };
+
+      $scope.groupByOptions = CoverageGroupByService;
+      $scope.bucketSelection = {
+        get studySelection() {
+          return this._studySelection;
+        },
+        set studySelection(value) {
+          this._studySelection = value;
+
+          if (!$scope.bucket || ($scope.bucket && ($scope.bucket.indexOf(BUCKET_TYPES.STUDY) > -1 || $scope.bucket.indexOf(BUCKET_TYPES.DCE) > -1))) {
+            updateBucket($scope.bucket.split('-')[0]);
+          } else if ($scope.bucket && $scope.bucket.indexOf(BUCKET_TYPES.DATASET) > -1) {
+            dsUpdateBucket($scope.bucket.split('-')[0]);
+          }
+
+          updateStudyClassNameFilter(value);
+        },
+        dceBucketSelected: false
+      };
+
       $scope.isStudyBucket = isStudyBucket;
       $scope.isDatasetBucket = isDatasetBucket;
-      $scope.updateBucket = updateBucket;
-      $scope.dsUpdateBucket = dsUpdateBucket;
       $scope.selectTab = selectTab;
 
       $scope.selectBucket = function (bucket) {
+
         $scope.bucket = bucket;
         $scope.$parent.onBucketChanged(bucket);
       };
@@ -2597,7 +2503,6 @@ angular.module('obiba.mica.search')
           });
         }
       };
-
 
       $scope.BUCKET_TYPES = BUCKET_TYPES;
 

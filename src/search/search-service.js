@@ -13,6 +13,13 @@
 /* global BUCKET_TYPES */
 /* global RQL_NODE */
 
+/* exported STUDY_FILTER_CHOICES */
+var STUDY_FILTER_CHOICES = {
+  ALL_STUDIES: 'all',
+  INDIVIDUAL_STUDIES: 'individual',
+  HARMONIZATION_STUDIES: 'harmonization'
+};
+
 /**
  * Module services and factories
  */
@@ -96,6 +103,55 @@ angular.module('obiba.mica.search')
       });
     }])
 
+  .service('StudyFilterShortcutService', ['$q', '$location', 'RqlQueryService',
+    function ($q, $location, RqlQueryService) {
+      this.filter = function (choice, lang) {
+        var parsedQuery = RqlQueryService.parseQuery($location.search().query);
+
+        RqlQueryService.createCriteria(RqlQueryService.parseQuery($location.search().query), lang).then(function (criteria) {
+          var study;
+          var foundCriteriaItem = RqlQueryService.findCriteriaItemFromTreeById('study', 'Mica_study.className', criteria.root);
+
+          if (!foundCriteriaItem) {
+            study = new RqlQuery('study');
+            parsedQuery.args.push(study);
+          } else {
+            study = parsedQuery.args.filter(function (arg) {
+              return arg.name === 'study';
+            })[0];
+            study.args = [];
+          }
+
+          var studyClassName = new RqlQuery('in');
+          studyClassName.args.push('Mica_study.className');
+
+          switch (choice) {
+            case STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES:
+              studyClassName.args.push('Study');
+              break;
+            case STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES:
+              studyClassName.args.push('HarmonizationStudy');
+              break;
+            case STUDY_FILTER_CHOICES.ALL_STUDIES:
+              studyClassName.args.push(['Study', 'HarmonizationStudy']);
+              break;
+          }
+
+          if (study.args.length > 0 && study.args[0].name !== 'limit') {
+            var andStudyClassName = new RqlQuery('and');
+            andStudyClassName.args.push(studyClassName);
+            andStudyClassName.args.push(study.args[0]);
+            study.args[0] = andStudyClassName;
+          } else {
+            study.args.push(studyClassName);
+          }
+
+          $location.search('query', parsedQuery.serializeArgs(parsedQuery.args));
+        });
+      };
+    }
+  ])
+
   .service('SearchContext', function() {
     var selectedLocale = null;
 
@@ -177,90 +233,46 @@ angular.module('obiba.mica.search')
 
     var groupByOptions = ngObibaMicaSearch.getOptions().coverage.groupBy;
     this.canShowStudy = function() {
-      return groupByOptions.study || groupByOptions.harmonizationStudy || groupByOptions.dce;
-    };
-
-    this.canShowIndividualStudy = function (bucket) {
-      return bucket.indexOf('individual') > -1 && groupByOptions.study;
-    };
-
-    this.canShowHarmonizationStudy = function (bucket) {
-      return bucket.indexOf('harmonization') > -1 && groupByOptions.harmonizationStudy;
+      return groupByOptions.study || groupByOptions.dce;
     };
 
     this.canShowDce = function(bucket) {
-      return (bucket.startsWith('study') || bucket.startsWith('dce')) && groupByOptions.study && groupByOptions.dce;
+      return (bucket.indexOf('study') > -1 || bucket.indexOf('dce') > -1) && groupByOptions.study && groupByOptions.dce;
     };
 
     this.canShowDataset = function() {
-      return groupByOptions.dataset || groupByOptions.dataschema;
+      return groupByOptions.dataset;
     };
 
     this.canShowVariableTypeFilter = function(bucket) {
-      var forStudy = (bucket.indexOf('study') > -1 || bucket.indexOf('dce') > -1) && (groupByOptions.study && groupByOptions.harmonizationStudy);
-      var forDataset = bucket.indexOf('dataset') > -1 && groupByOptions.dataset && groupByOptions.dataschema;
+      var forStudy = (bucket.indexOf('study') > -1 || bucket.indexOf('dce') > -1) && (groupByOptions.study);
+      var forDataset = bucket.indexOf('dataset') > -1 && groupByOptions.dataset;
 
       return forStudy || forDataset;
     };
 
-    this.collectionCoverageTitle = function(bucket) {
-      return 'search.coverage-buckets.' + (bucket.startsWith('study') ? 'collection' : 'dataset-collected');
-    };
-
-    this.harmonizationCoverageTitle = function(bucket) {
-      return 'search.coverage-buckets.' + (bucket.startsWith('study') ? 'harmonization' : 'dataset-harmonized');
-    };
-
     this.studyTitle = function() {
-      if (groupByOptions.study) {
-        return 'search.coverage-buckets.study';
-      } else if (groupByOptions.harmonizationStudy) {
-        return 'search.coverage-buckets.study-harmonization';
-      } else if (groupByOptions.dce) {
-        return 'search.coverage-buckets.dce';
-      }
-
-      return '';
+      return 'search.coverage-buckets.study';
     };
 
-    this.studyBucket = function() { // assuming can showStudy is true
-      if (groupByOptions.study && groupByOptions.harmonizationStudy) {
-        return BUCKET_TYPES.STUDY;
-      } else if (groupByOptions.study && !groupByOptions.harmonizationStudy) {
-        return BUCKET_TYPES.STUDY_INDIVIDUAL;
-      } else {
-        return BUCKET_TYPES.STUDY_HARMONIZATION;
-      }
+    this.studyBucket = function() {
+      return BUCKET_TYPES.STUDY;
     };
 
-    this.dceBucket = function () { // assuming can showStudy is true
-      if (groupByOptions.study && groupByOptions.harmonizationStudy && groupByOptions.dce) {
+    this.dceBucket = function () {
+      if (groupByOptions.study && groupByOptions.dce) {
         return BUCKET_TYPES.DCE;
-      } else if (groupByOptions.study && !groupByOptions.harmonizationStudy && groupByOptions.dce) {
-        return BUCKET_TYPES.DCE_INDIVIDUAL;
-      } else if (!groupByOptions.study && groupByOptions.harmonizationStudy && groupByOptions.dce) {
-        return BUCKET_TYPES.DCE_HARMONIZATION;
-      } else { // if dce option is false go to study
+      } else {
         return this.studyBucket();
       }
     };
 
     this.datasetTitle = function() {
-      return groupByOptions.dataset && groupByOptions.dataschema ?
-        'search.coverage-buckets.datasetNav' :
-        (groupByOptions.dataset ?
-          'search.coverage-buckets.dataset' :
-          (groupByOptions.dataschema ? 'search.coverage-buckets.dataschema' : ''));
+      return 'search.coverage-buckets.dataset';
     };
 
     this.datasetBucket = function() {
-      if (groupByOptions.dataset && groupByOptions.dataschema) {
-        return BUCKET_TYPES.DATASET;
-      } else if (groupByOptions.dataset && !groupByOptions.dataschema) {
-        return BUCKET_TYPES.DATASET_COLLECTED;
-      } else {
-        return BUCKET_TYPES.DATASET_HARMONIZED;
-      }
+      return BUCKET_TYPES.DATASET;
     };
 
     this.canGroupBy = function(bucket) {
@@ -269,10 +281,8 @@ angular.module('obiba.mica.search')
       switch (bucket) {
         case BUCKET_TYPES.STUDY:
         case BUCKET_TYPES.STUDY_INDIVIDUAL:
-          isAllowed = groupByOptions.study;
-          break;
         case BUCKET_TYPES.STUDY_HARMONIZATION:
-          isAllowed = groupByOptions.harmonizationStudy;
+          isAllowed = groupByOptions.study;
           break;
         case BUCKET_TYPES.DCE:
         case BUCKET_TYPES.DCE_INDIVIDUAL:
@@ -281,21 +291,19 @@ angular.module('obiba.mica.search')
           break;
         case BUCKET_TYPES.DATASET:
         case BUCKET_TYPES.DATASET_COLLECTED:
-          isAllowed = groupByOptions.dataset;
-          break;
         case BUCKET_TYPES.DATASCHEMA:
         case BUCKET_TYPES.DATASET_HARMONIZED:
-          isAllowed = groupByOptions.dataschema;
+          isAllowed = groupByOptions.dataset;
       }
       return isAllowed;
     };
 
     this.defaultBucket = function() {
-      if (groupByOptions.study || groupByOptions.harmonizationStudy) {
-        return self.studyBucket();
-      } else if (groupByOptions.study && groupByOptions.dce) {
+      if (groupByOptions.study && groupByOptions.dce) {
         return self.dceBucket();
-      } else if (groupByOptions.dataset || groupByOptions.dataschema) {
+      } else if (groupByOptions.study) {
+        return self.studyBucket();
+      } else if (groupByOptions.dataset) {
         return self.datasetBucket();
       }
 
