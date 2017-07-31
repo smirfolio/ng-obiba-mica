@@ -110,9 +110,7 @@ angular.module('obiba.mica.search', [
           groupBy: {
             study: true,
             dce: true,
-            dataset: true,
-            dataschema: true,
-            harmonizationStudy: true
+            dataset: true
           }
         }
       };

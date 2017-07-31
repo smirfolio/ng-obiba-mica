@@ -10,19 +10,12 @@
 
 'use strict';
 
-/* global QUERY_TYPES */
-/* global RQL_NODE */
+/* global STUDY_FILTER_CHOICES */
 
 /* exported CRITERIA_ITEM_EVENT */
 var CRITERIA_ITEM_EVENT = {
   deleted: 'event:delete-criteria-item',
   refresh: 'event:refresh-criteria-item'
-};
-
-var STUDY_FILTER_CHOICES = {
-  ALL_STUDIES: 'all',
-  INDIVIDUAL_STUDIES: 'individual',
-  HARMONIZATION_STUDIES: 'harmonization'
 };
 
 angular.module('obiba.mica.search')
@@ -175,6 +168,50 @@ angular.module('obiba.mica.search')
     };
   }])
 
+  .directive('studyFilterShortcut', ['$location', '$translate', 'RqlQueryService', 'StudyFilterShortcutService',
+    function ($location, $translate, RqlQueryService, StudyFilterShortcutService) {
+      return {
+        restrict: 'EA',
+        replace: true,
+        scope: {},
+        templateUrl: 'search/views/search-study-filter-template.html',
+        link: function (scope) {
+          scope.studyFilterSelection = {
+            get selection() {
+              return this._selection;
+            },
+            set selection(value) {
+              this._selection = value;
+              updateStudyClassNameFilter(value);
+            }
+          };
+
+          function updateStudyClassNameFilter(choice) {
+            StudyFilterShortcutService.filter(choice, $translate.use());
+          }
+
+          function setChoice() {
+            StudyFilterShortcutService.getStudyClassNameChoices().then(function (result) {
+              if (result.choseAll()) {
+                scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.ALL_STUDIES;
+              } else if (result.choseIndividual()) {
+                scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES;
+              } else if (result.choseHarmonization()) {
+                scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
+              }
+            });
+          }
+
+          scope.$on('$locationChangeSuccess', function () {
+            setChoice();
+          });
+
+          setChoice();
+        }
+      };
+    }]
+  )
+
   .directive('studiesResultTable', ['$log', '$q', '$location',
     'PageUrlService',
     'ngObibaMicaSearch',
@@ -182,13 +219,15 @@ angular.module('obiba.mica.search')
     'RqlQueryService',
     'LocalizedValues',
     'ngObibaMicaSearchTemplateUrl',
+    'StudyFilterShortcutService',
     function ($log, $q, $location,
               PageUrlService,
               ngObibaMicaSearch,
               TaxonomyResource,
               RqlQueryService,
               LocalizedValues,
-              ngObibaMicaSearchTemplateUrl) {
+              ngObibaMicaSearchTemplateUrl,
+              StudyFilterShortcutService) {
     return {
       restrict: 'EA',
       replace: true,
@@ -201,8 +240,7 @@ angular.module('obiba.mica.search')
       templateUrl: ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchStudiesResultTable'),
       link: function(scope) {
         $q.all([
-          TaxonomyResource.get({target: 'study', taxonomy: 'Mica_study'}),
-          RqlQueryService.createCriteria(RqlQueryService.parseQuery($location.search().query), scope.lang)
+          TaxonomyResource.get({target: 'study', taxonomy: 'Mica_study'})
         ]).then(function (data) {
           var taxonomy = data[0];
           scope.taxonomy = taxonomy;
@@ -220,7 +258,7 @@ angular.module('obiba.mica.search')
             $log.warn('Taxonomy has no vocabularies');
           }
 
-          setInitialStudyFilterSelections(data[1]);
+          setInitialStudyFilterSelection();
         });
 
         scope.taxonomy = {};
@@ -237,40 +275,17 @@ angular.module('obiba.mica.search')
         };
 
         scope.$on('$locationChangeSuccess', function () {
-          RqlQueryService.createCriteria(RqlQueryService.parseQuery($location.search().query), scope.lang).then(setInitialStudyFilterSelections);
+          setInitialStudyFilterSelection();
         });
 
         function updateStudyClassNameFilter(choice) {
-          var className;
-
-          switch (choice) {
-            case STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES:
-              className = 'Study';
-              break;
-            case STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES:
-              className = 'HarmonizationStudy';
-              break;
-            case STUDY_FILTER_CHOICES.ALL_STUDIES:
-              className = ['Study', 'HarmonizationStudy'];
-              break;
-          }
-
-          RqlQueryService.createCriteriaItem('study', 'Mica_study', 'className', className).then(function (item) {
-            scope.onUpdateCriteria(item, QUERY_TYPES.STUDIES);
-          });
+          StudyFilterShortcutService.filter(choice, scope.lang);
         }
 
-        function setInitialStudyFilterSelections(criteria) {
-          var foundCriteriaItem = RqlQueryService.findCriteriaItemFromTreeById('study', 'Mica_study.className', criteria.root);
-
-          if (!foundCriteriaItem || foundCriteriaItem.type === RQL_NODE.EXISTS || (foundCriteriaItem.selectedTerms.indexOf('Study') > -1 && foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1)) {
-            scope.studyFilterSelection._selection = 'all';
-          } else if (!foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('Study') > -1) {
-            scope.studyFilterSelection._selection = 'individual';
-          } else if (!foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1) {
-            scope.studyFilterSelection._selection = 'harmonization';
-          } else {
-          }
+        function setInitialStudyFilterSelection() {
+          StudyFilterShortcutService.getStudyClassNameChoices().then(function (result) {
+            angular.extend(scope, result); // adds choseAll, choseIndividual and choseHarmonization functions
+          });
         }
 
         function getDatasourceTitles() {
@@ -292,18 +307,6 @@ angular.module('obiba.mica.search')
         }
 
         scope.$watch('lang', getDatasourceTitles);
-
-        scope.choseAll = function () {
-          return scope.studyFilterSelection.selection === STUDY_FILTER_CHOICES.ALL_STUDIES;
-        };
-
-        scope.choseIndividual = function () {
-          return scope.studyFilterSelection.selection === STUDY_FILTER_CHOICES.ALL_STUDIES || scope.studyFilterSelection.selection === STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES;
-        };
-
-        scope.choseHarmonization = function () {
-          return scope.studyFilterSelection.selection === STUDY_FILTER_CHOICES.ALL_STUDIES || scope.studyFilterSelection.selection === STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
-        };
 
         scope.hasDatasource = function (datasources, id) {
           return datasources && datasources.indexOf(id) > -1;
