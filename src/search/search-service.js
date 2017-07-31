@@ -103,8 +103,8 @@ angular.module('obiba.mica.search')
       });
     }])
 
-  .service('StudyFilterShortcutService', ['$q', '$location', 'RqlQueryService',
-    function ($q, $location, RqlQueryService) {
+  .service('StudyFilterShortcutService', ['$q', '$location', '$translate', 'RqlQueryService',
+    function ($q, $location, $translate, RqlQueryService) {
       this.filter = function (choice, lang) {
         var parsedQuery = RqlQueryService.parseQuery($location.search().query);
 
@@ -147,6 +147,24 @@ angular.module('obiba.mica.search')
           }
 
           $location.search('query', parsedQuery.serializeArgs(parsedQuery.args));
+        });
+      };
+
+      this.getStudyClassNameChoices = function () {
+        return RqlQueryService.createCriteria(RqlQueryService.parseQuery($location.search().query), $translate.use()).then(function (criteria) {
+          var foundCriteriaItem = RqlQueryService.findCriteriaItemFromTreeById('study', 'Mica_study.className', criteria.root);
+
+          return {
+            choseAll: function () {
+              return !foundCriteriaItem || foundCriteriaItem.type === RQL_NODE.EXISTS || (foundCriteriaItem.selectedTerms.indexOf('Study') > -1 && foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1);
+            },
+            choseIndividual: function () {
+              return !foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('Study') > -1;
+            },
+            choseHarmonization: function () {
+              return !foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1;
+            }
+          };
         });
       };
     }

@@ -2107,14 +2107,12 @@ angular.module('obiba.mica.search')
       }
 
       function setInitialFilter() {
-        RqlQueryService.createCriteria(RqlQueryService.parseQuery($location.search().query), $scope.lang).then(function (criteria) {
-          var foundCriteriaItem = RqlQueryService.findCriteriaItemFromTreeById(QUERY_TARGETS.STUDY, 'Mica_study.className', criteria.root);
-
-          if (!foundCriteriaItem || foundCriteriaItem.type === RQL_NODE.EXISTS || (foundCriteriaItem.selectedTerms.indexOf('Study') > -1 && foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1)) {
+        StudyFilterShortcutService.getStudyClassNameChoices().then(function (result) {
+          if (result.choseAll()) {
             $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.ALL_STUDIES;
-          } else if (!foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('Study') > -1) {
+          } else if (result.choseIndividual()) {
             $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES;
-          } else if (!foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1) {
+          } else if (result.choseHarmonization()) {
             $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
           }
         });
@@ -2421,7 +2419,7 @@ angular.module('obiba.mica.search')
 
           updateStudyClassNameFilter(value);
         },
-        dceBucketSelected: false
+        dceBucketSelected: $location.search().bucket === BUCKET_TYPES.DCE
       };
 
       $scope.isStudyBucket = isStudyBucket;

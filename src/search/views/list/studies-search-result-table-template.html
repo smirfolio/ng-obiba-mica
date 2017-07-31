@@ -1,14 +1,7 @@
 <div>
   <div ng-if="loading" class="loading"></div>
   <div ng-show="!loading">
-    <div class="voffset2">
-
-      <div class="btn btn-group" style="padding: 0">
-        <label class="btn btn-sm btn-study" ng-model="studyFilterSelection.selection" uib-btn-radio="'all'" translate>all</label>
-        <label class="btn btn-sm btn-study" ng-model="studyFilterSelection.selection" uib-btn-radio="'individual'" translate>search.coverage-buckets.individual</label>
-        <label class="btn btn-sm btn-study" ng-model="studyFilterSelection.selection" uib-btn-radio="'harmonization'" translate>search.coverage-buckets.harmonization</label>
-      </div>
-    </div>
+    <div study-filter-shortcut></div>
 
     <p class="help-block" ng-if="!summaries || !summaries.length" translate>search.study.noResults</p>
     <div class="table-responsive" ng-if="summaries && summaries.length">
@@ -64,7 +57,7 @@
           <td>
             <localized value="summary.name" lang="lang"></localized>
           </td>
-          <td ng-if="studyFilterSelection.selection === 'all'">{{(summary.studyResourcePath === 'individual-study' ? 'search.study.individual' : 'search.study.harmonization') | translate}}</td>
+          <td ng-if="choseAll()">{{(summary.studyResourcePath === 'individual-study' ? 'search.study.individual' : 'search.study.harmonization') | translate}}</td>
           <td ng-if="optionsCols.showStudiesDesignColumn && choseIndividual()">
             {{ summary.design === undefined ? '-' : 'study_taxonomy.vocabulary.methods-design.term.' + summary.design + '.title' | translate}}
           </td>

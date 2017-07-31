@@ -3896,8 +3896,8 @@ angular.module('obiba.mica.search')
       });
     }])
 
-  .service('StudyFilterShortcutService', ['$q', '$location', 'RqlQueryService',
-    function ($q, $location, RqlQueryService) {
+  .service('StudyFilterShortcutService', ['$q', '$location', '$translate', 'RqlQueryService',
+    function ($q, $location, $translate, RqlQueryService) {
       this.filter = function (choice, lang) {
         var parsedQuery = RqlQueryService.parseQuery($location.search().query);
 
@@ -3940,6 +3940,24 @@ angular.module('obiba.mica.search')
           }
 
           $location.search('query', parsedQuery.serializeArgs(parsedQuery.args));
+        });
+      };
+
+      this.getStudyClassNameChoices = function () {
+        return RqlQueryService.createCriteria(RqlQueryService.parseQuery($location.search().query), $translate.use()).then(function (criteria) {
+          var foundCriteriaItem = RqlQueryService.findCriteriaItemFromTreeById('study', 'Mica_study.className', criteria.root);
+
+          return {
+            choseAll: function () {
+              return !foundCriteriaItem || foundCriteriaItem.type === RQL_NODE.EXISTS || (foundCriteriaItem.selectedTerms.indexOf('Study') > -1 && foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1);
+            },
+            choseIndividual: function () {
+              return !foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('Study') > -1;
+            },
+            choseHarmonization: function () {
+              return !foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1;
+            }
+          };
         });
       };
     }
@@ -6257,14 +6275,12 @@ angular.module('obiba.mica.search')
       }
 
       function setInitialFilter() {
-        RqlQueryService.createCriteria(RqlQueryService.parseQuery($location.search().query), $scope.lang).then(function (criteria) {
-          var foundCriteriaItem = RqlQueryService.findCriteriaItemFromTreeById(QUERY_TARGETS.STUDY, 'Mica_study.className', criteria.root);
-
-          if (!foundCriteriaItem || foundCriteriaItem.type === RQL_NODE.EXISTS || (foundCriteriaItem.selectedTerms.indexOf('Study') > -1 && foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1)) {
+        StudyFilterShortcutService.getStudyClassNameChoices().then(function (result) {
+          if (result.choseAll()) {
             $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.ALL_STUDIES;
-          } else if (!foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('Study') > -1) {
+          } else if (result.choseIndividual()) {
             $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES;
-          } else if (!foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1) {
+          } else if (result.choseHarmonization()) {
             $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
           }
         });
@@ -6571,7 +6587,7 @@ angular.module('obiba.mica.search')
 
           updateStudyClassNameFilter(value);
         },
-        dceBucketSelected: false
+        dceBucketSelected: $location.search().bucket === BUCKET_TYPES.DCE
       };
 
       $scope.isStudyBucket = isStudyBucket;
@@ -7048,7 +7064,6 @@ angular.module('obiba.mica.search')
 
 'use strict';
 
-/* global RQL_NODE */
 /* global STUDY_FILTER_CHOICES */
 
 /* exported CRITERIA_ITEM_EVENT */
@@ -7207,6 +7222,50 @@ angular.module('obiba.mica.search')
     };
   }])
 
+  .directive('studyFilterShortcut', ['$location', '$translate', 'RqlQueryService', 'StudyFilterShortcutService',
+    function ($location, $translate, RqlQueryService, StudyFilterShortcutService) {
+      return {
+        restrict: 'EA',
+        replace: true,
+        scope: {},
+        templateUrl: 'search/views/search-study-filter-template.html',
+        link: function (scope) {
+          scope.studyFilterSelection = {
+            get selection() {
+              return this._selection;
+            },
+            set selection(value) {
+              this._selection = value;
+              updateStudyClassNameFilter(value);
+            }
+          };
+
+          function updateStudyClassNameFilter(choice) {
+            StudyFilterShortcutService.filter(choice, $translate.use());
+          }
+
+          function setChoice() {
+            StudyFilterShortcutService.getStudyClassNameChoices().then(function (result) {
+              if (result.choseAll()) {
+                scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.ALL_STUDIES;
+              } else if (result.choseIndividual()) {
+                scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES;
+              } else if (result.choseHarmonization()) {
+                scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
+              }
+            });
+          }
+
+          scope.$on('$locationChangeSuccess', function () {
+            setChoice();
+          });
+
+          setChoice();
+        }
+      };
+    }]
+  )
+
   .directive('studiesResultTable', ['$log', '$q', '$location',
     'PageUrlService',
     'ngObibaMicaSearch',
@@ -7235,8 +7294,7 @@ angular.module('obiba.mica.search')
       templateUrl: ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchStudiesResultTable'),
       link: function(scope) {
         $q.all([
-          TaxonomyResource.get({target: 'study', taxonomy: 'Mica_study'}),
-          RqlQueryService.createCriteria(RqlQueryService.parseQuery($location.search().query), scope.lang)
+          TaxonomyResource.get({target: 'study', taxonomy: 'Mica_study'})
         ]).then(function (data) {
           var taxonomy = data[0];
           scope.taxonomy = taxonomy;
@@ -7254,7 +7312,7 @@ angular.module('obiba.mica.search')
             $log.warn('Taxonomy has no vocabularies');
           }
 
-          setInitialStudyFilterSelections(data[1]);
+          setInitialStudyFilterSelection();
         });
 
         scope.taxonomy = {};
@@ -7271,23 +7329,17 @@ angular.module('obiba.mica.search')
         };
 
         scope.$on('$locationChangeSuccess', function () {
-          RqlQueryService.createCriteria(RqlQueryService.parseQuery($location.search().query), scope.lang).then(setInitialStudyFilterSelections);
+          setInitialStudyFilterSelection();
         });
 
         function updateStudyClassNameFilter(choice) {
           StudyFilterShortcutService.filter(choice, scope.lang);
         }
 
-        function setInitialStudyFilterSelections(criteria) {
-          var foundCriteriaItem = RqlQueryService.findCriteriaItemFromTreeById('study', 'Mica_study.className', criteria.root);
-
-          if (!foundCriteriaItem || foundCriteriaItem.type === RQL_NODE.EXISTS || (foundCriteriaItem.selectedTerms.indexOf('Study') > -1 && foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1)) {
-            scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.ALL_STUDIES;
-          } else if (!foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('Study') > -1) {
-            scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES;
-          } else if (!foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1) {
-            scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
-          }
+        function setInitialStudyFilterSelection() {
+          StudyFilterShortcutService.getStudyClassNameChoices().then(function (result) {
+            angular.extend(scope, result); // adds choseAll, choseIndividual and choseHarmonization functions
+          });
         }
 
         function getDatasourceTitles() {
@@ -7309,18 +7361,6 @@ angular.module('obiba.mica.search')
         }
 
         scope.$watch('lang', getDatasourceTitles);
-
-        scope.choseAll = function () {
-          return scope.studyFilterSelection.selection === STUDY_FILTER_CHOICES.ALL_STUDIES;
-        };
-
-        scope.choseIndividual = function () {
-          return scope.studyFilterSelection.selection === STUDY_FILTER_CHOICES.ALL_STUDIES || scope.studyFilterSelection.selection === STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES;
-        };
-
-        scope.choseHarmonization = function () {
-          return scope.studyFilterSelection.selection === STUDY_FILTER_CHOICES.ALL_STUDIES || scope.studyFilterSelection.selection === STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
-        };
 
         scope.hasDatasource = function (datasources, id) {
           return datasources && datasources.indexOf(id) > -1;
@@ -9200,7 +9240,7 @@ angular.module('obiba.mica.fileBrowser')
       }
     };
   }]);
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-facets-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-facets-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search-study-filter-template.html', 'search/views/search.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/views/data-access-request-documents-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-documents-view.html",
@@ -11391,6 +11431,8 @@ angular.module("search/views/list/datasets-search-result-table-template.html", [
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "  <div ng-show=\"!loading\">\n" +
+    "    <div study-filter-shortcut></div>\n" +
+    "\n" +
     "    <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.dataset.noResults</p>\n" +
     "    <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
     "      <table class=\"table table-bordered table-striped\" ng-init=\"lang = $parent.$parent.lang\">\n" +
@@ -11447,6 +11489,8 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "  <div ng-show=\"!loading\">\n" +
+    "    <div study-filter-shortcut></div>\n" +
+    "\n" +
     "    <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.network.noResults</p>\n" +
     "    <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
     "      <table class=\"table table-bordered table-striped\" ng-init=\"lang = $parent.$parent.lang\">\n" +
@@ -11589,14 +11633,7 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "  <div ng-show=\"!loading\">\n" +
-    "    <div class=\"voffset2\">\n" +
-    "\n" +
-    "      <div class=\"btn btn-group\" style=\"padding: 0\">\n" +
-    "        <label class=\"btn btn-sm btn-study\" ng-model=\"studyFilterSelection.selection\" uib-btn-radio=\"'all'\" translate>all</label>\n" +
-    "        <label class=\"btn btn-sm btn-study\" ng-model=\"studyFilterSelection.selection\" uib-btn-radio=\"'individual'\" translate>search.coverage-buckets.individual</label>\n" +
-    "        <label class=\"btn btn-sm btn-study\" ng-model=\"studyFilterSelection.selection\" uib-btn-radio=\"'harmonization'\" translate>search.coverage-buckets.harmonization</label>\n" +
-    "      </div>\n" +
-    "    </div>\n" +
+    "    <div study-filter-shortcut></div>\n" +
     "\n" +
     "    <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.study.noResults</p>\n" +
     "    <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
@@ -11652,7 +11689,7 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "          <td>\n" +
     "            <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
     "          </td>\n" +
-    "          <td ng-if=\"studyFilterSelection.selection === 'all'\">{{(summary.studyResourcePath === 'individual-study' ? 'search.study.individual' : 'search.study.harmonization') | translate}}</td>\n" +
+    "          <td ng-if=\"choseAll()\">{{(summary.studyResourcePath === 'individual-study' ? 'search.study.individual' : 'search.study.harmonization') | translate}}</td>\n" +
     "          <td ng-if=\"optionsCols.showStudiesDesignColumn && choseIndividual()\">\n" +
     "            {{ summary.design === undefined ? '-' : 'study_taxonomy.vocabulary.methods-design.term.' + summary.design + '.title' | translate}}\n" +
     "          </td>\n" +
@@ -11720,6 +11757,8 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "  <div ng-show=\"!loading\">\n" +
+    "    <div study-filter-shortcut></div>\n" +
+    "\n" +
     "    <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.variable.noResults</p>\n" +
     "    <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
     "      <table class=\"table table-bordered table-striped\" ng-init=\"lang = $parent.$parent.lang\">\n" +
@@ -11941,6 +11980,17 @@ angular.module("search/views/search-result-panel-template.html", []).run(["$temp
     "              src=\"getUrlTemplate(tab)\"></ng-include>\n" +
     "</div>\n" +
     "");
+}]);
+
+angular.module("search/views/search-study-filter-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/search-study-filter-template.html",
+    "<div class=\"voffset2\">\n" +
+    "  <div class=\"btn btn-group\" style=\"padding: 0\">\n" +
+    "    <label class=\"btn btn-sm btn-study\" ng-model=\"studyFilterSelection.selection\" uib-btn-radio=\"'all'\" translate>all</label>\n" +
+    "    <label class=\"btn btn-sm btn-study\" ng-model=\"studyFilterSelection.selection\" uib-btn-radio=\"'individual'\" translate>search.coverage-buckets.individual</label>\n" +
+    "    <label class=\"btn btn-sm btn-study\" ng-model=\"studyFilterSelection.selection\" uib-btn-radio=\"'harmonization'\" translate>search.coverage-buckets.harmonization</label>\n" +
+    "  </div>\n" +
+    "</div>");
 }]);
 
 angular.module("search/views/search.html", []).run(["$templateCache", function($templateCache) {
