@@ -6811,6 +6811,10 @@ angular.module('obiba.mica.search')
               $filter,
               $scope, D3GeoConfig, D3ChartConfig) {
 
+      $scope.hasChartObjects = function () {
+        return $scope.chartObjects && Object.keys($scope.chartObjects).length > 0;
+      };
+
       var setChartObject = function (vocabulary, dtoObject, header, title, options, isTable) {
 
         return GraphicChartsUtils.getArrayByAggregation(vocabulary, dtoObject)
@@ -11390,6 +11394,7 @@ angular.module("search/views/graphics/graphics-search-result-template.html", [])
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
+    "  <p class=\"help-block\" ng-if=\"!loading && !noResults && !hasChartObjects()\" translate>search.no-graphic-result</p>\n" +
     "  <p class=\"help-block\" ng-if=\"!loading && noResults\" translate>search.no-results</p>\n" +
     "\n" +
     "  <div ng-repeat=\"chart in chartObjects\" class=\"panel panel-default\">\n" +

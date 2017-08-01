@@ -2645,6 +2645,10 @@ angular.module('obiba.mica.search')
               $filter,
               $scope, D3GeoConfig, D3ChartConfig) {
 
+      $scope.hasChartObjects = function () {
+        return $scope.chartObjects && Object.keys($scope.chartObjects).length > 0;
+      };
+
       var setChartObject = function (vocabulary, dtoObject, header, title, options, isTable) {
 
         return GraphicChartsUtils.getArrayByAggregation(vocabulary, dtoObject)
