@@ -84,6 +84,7 @@
             <span translate ng-if="summary.targetNumber.noLimit">
               numberOfParticipants.no-limit
             </span>
+            <span ng-if="!summary.targetNumber.number && !summary.targetNumber.noLimit">-</span>
           </td>
           <td ng-if="optionsCols.showStudiesNetworksColumn">
             <a href ng-click="updateCriteria(summary.id, 'networks')"

@@ -11727,6 +11727,7 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "            <span translate ng-if=\"summary.targetNumber.noLimit\">\n" +
     "              numberOfParticipants.no-limit\n" +
     "            </span>\n" +
+    "            <span ng-if=\"!summary.targetNumber.number && !summary.targetNumber.noLimit\">-</span>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showStudiesNetworksColumn\">\n" +
     "            <a href ng-click=\"updateCriteria(summary.id, 'networks')\"\n" +
