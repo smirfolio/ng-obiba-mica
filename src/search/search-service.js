@@ -317,9 +317,7 @@ angular.module('obiba.mica.search')
     };
 
     this.defaultBucket = function() {
-      if (groupByOptions.study && groupByOptions.dce) {
-        return self.dceBucket();
-      } else if (groupByOptions.study) {
+      if (groupByOptions.study) {
         return self.studyBucket();
       } else if (groupByOptions.dataset) {
         return self.datasetBucket();

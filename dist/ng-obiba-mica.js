@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-07-31
+ * Date: 2017-08-02
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -4110,9 +4110,7 @@ angular.module('obiba.mica.search')
     };
 
     this.defaultBucket = function() {
-      if (groupByOptions.study && groupByOptions.dce) {
-        return self.dceBucket();
-      } else if (groupByOptions.study) {
+      if (groupByOptions.study) {
         return self.studyBucket();
       } else if (groupByOptions.dataset) {
         return self.datasetBucket();
@@ -4825,8 +4823,9 @@ angular.module('obiba.mica.search')
       }
 
       function validateBucket(bucket) {
-        if (bucket && !BUCKET_TYPES[bucket.replace('-', '_').toUpperCase()]) {
-          throw new Error('Invalid bucket: ' + bucket);
+        if (bucket &&
+            (!BUCKET_TYPES[bucket.replace('-', '_').toUpperCase()] || !CoverageGroupByService.canGroupBy(bucket))) {
+          throw new Error('Invalid bucket ' + bucket);
         }
       }
 
@@ -5473,7 +5472,13 @@ angular.module('obiba.mica.search')
         initSearchTabs();
 
         if (newLocation !== oldLocation) {
-          executeSearchQuery();
+          try {
+            validateBucket($location.search().bucket);
+            executeSearchQuery();
+          } catch (error) {
+            var defaultBucket = CoverageGroupByService.defaultBucket();
+            $location.search('bucket', defaultBucket).replace();
+          }
         }
       });
 
@@ -6266,14 +6271,6 @@ angular.module('obiba.mica.search')
         dceUpdateBucket(val);
       }
 
-      function validateBucket(bucket) {
-        if (bucket &&
-          (!BUCKET_TYPES[bucket.replace('-', '_').toUpperCase()] || !CoverageGroupByService.canGroupBy(bucket))) {
-          var defaultBucket = CoverageGroupByService.defaultBucket();
-          $location.search('bucket', defaultBucket ? defaultBucket : null) ;
-        }
-      }
-
       function setInitialFilter() {
         StudyFilterShortcutService.getStudyClassNameChoices().then(function (result) {
           if (result.choseAll()) {
@@ -6284,12 +6281,17 @@ angular.module('obiba.mica.search')
             $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
           }
         });
+
+        var bucket = $location.search().bucket;
+        if (bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE) {
+          $scope.bucketSelection._dceBucketSelected = bucket === BUCKET_TYPES.DCE; // don't trigger the watch callback
+        }
       }
 
       function onLocationChange() {
         var search = $location.search();
         if (search.display && search.display === DISPLAY_TYPES.COVERAGE) {
-          validateBucket(search.bucket);
+          $scope.bucket = search.bucket ? search.bucket : CoverageGroupByService.defaultBucket();
           setInitialFilter();
         }
       }
@@ -6298,7 +6300,7 @@ angular.module('obiba.mica.search')
         if ($scope.groupByOptions.canShowVariableTypeFilter(groupBy)) {
           $scope.selectBucket(groupBy);
         } else if (BUCKET_TYPES.STUDY !== groupBy) {
-            $scope.selectBucket(BUCKET_TYPES.DCE);
+          $scope.selectBucket(BUCKET_TYPES.DCE);
         }
       }
 
@@ -6563,7 +6565,6 @@ angular.module('obiba.mica.search')
 
       function init() {
         onLocationChange();
-        $scope.$watch('bucketSelection.dceBucketSelected', onDceUpdateBucket);
       }
 
       $scope.showMissing = true;
@@ -6587,7 +6588,15 @@ angular.module('obiba.mica.search')
 
           updateStudyClassNameFilter(value);
         },
-        dceBucketSelected: $location.search().bucket === BUCKET_TYPES.DCE
+        get dceBucketSelected() {
+          return this._dceBucketSelected;
+        },
+        set dceBucketSelected(value) {
+          var oldValue = this._dceBucketSelected;
+          this._dceBucketSelected = value;
+
+          onDceUpdateBucket(value, oldValue);
+        }
       };
 
       $scope.isStudyBucket = isStudyBucket;
@@ -6804,6 +6813,10 @@ angular.module('obiba.mica.search')
               RqlQueryService,
               $filter,
               $scope, D3GeoConfig, D3ChartConfig) {
+
+      $scope.hasChartObjects = function () {
+        return $scope.chartObjects && Object.keys($scope.chartObjects).length > 0;
+      };
 
       var setChartObject = function (vocabulary, dtoObject, header, title, options, isTable) {
 
@@ -11384,6 +11397,7 @@ angular.module("search/views/graphics/graphics-search-result-template.html", [])
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
+    "  <p class=\"help-block\" ng-if=\"!loading && !noResults && !hasChartObjects()\" translate>search.no-graphic-result</p>\n" +
     "  <p class=\"help-block\" ng-if=\"!loading && noResults\" translate>search.no-results</p>\n" +
     "\n" +
     "  <div ng-repeat=\"chart in chartObjects\" class=\"panel panel-default\">\n" +
@@ -11716,6 +11730,7 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "            <span translate ng-if=\"summary.targetNumber.noLimit\">\n" +
     "              numberOfParticipants.no-limit\n" +
     "            </span>\n" +
+    "            <span ng-if=\"!summary.targetNumber.number && !summary.targetNumber.noLimit\">-</span>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showStudiesNetworksColumn\">\n" +
     "            <a href ng-click=\"updateCriteria(summary.id, 'networks')\"\n" +
