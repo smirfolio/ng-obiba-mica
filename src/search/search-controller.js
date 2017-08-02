@@ -2116,7 +2116,10 @@ angular.module('obiba.mica.search')
           }
         });
 
-        $scope.bucketSelection._dceBucketSelected = $location.search().bucket === BUCKET_TYPES.DCE; // don't trigger the watch callback
+        var bucket = $location.search().bucket;
+        if (bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE) {
+          $scope.bucketSelection._dceBucketSelected = bucket === BUCKET_TYPES.DCE; // don't trigger the watch callback
+        }
       }
 
       function onLocationChange() {
