@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-08-01
+ * Date: 2017-08-02
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -6288,7 +6288,7 @@ angular.module('obiba.mica.search')
       function onLocationChange() {
         var search = $location.search();
         if (search.display && search.display === DISPLAY_TYPES.COVERAGE) {
-          $scope.bucket = search.bucket;
+          $scope.bucket = search.bucket ? search.bucket : CoverageGroupByService.defaultBucket();
           setInitialFilter();
         }
       }

@@ -2122,7 +2122,7 @@ angular.module('obiba.mica.search')
       function onLocationChange() {
         var search = $location.search();
         if (search.display && search.display === DISPLAY_TYPES.COVERAGE) {
-          $scope.bucket = search.bucket;
+          $scope.bucket = search.bucket ? search.bucket : CoverageGroupByService.defaultBucket();
           setInitialFilter();
         }
       }
