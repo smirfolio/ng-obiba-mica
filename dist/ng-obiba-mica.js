@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-08-02
+ * Date: 2017-08-04
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -6449,7 +6449,7 @@ angular.module('obiba.mica.search')
           cols.ids[row.value] = [];
           if ($scope.bucket.startsWith('dce')) {
             var ids = row.value.split(':');
-            var isHarmo = ids[2] === '.';
+            var isHarmo = row.className.indexOf('Harmonization') > -1; // would work for both HarmonizationDataset and HarmonizationStudy
             var titles = row.title.split(':');
             var descriptions = row.description.split(':');
             var rowSpan;
@@ -6499,6 +6499,12 @@ angular.module('obiba.mica.search')
           } else {
             var parts = $scope.bucket.split('-');
             var itemBucket = parts[0];
+            if (itemBucket === BUCKET_TYPES.DATASET) {
+              itemBucket = itemBucket + (row.className.indexOf('Harmonization') > -1 ? '-harmonized' : '-collected');
+            } else {
+              itemBucket = itemBucket + (row.className.indexOf('Harmonization') > -1 ? '-harmonization' : '-individual');
+            }
+
             cols.ids[row.value].push({
               id: row.value,
               url: getBucketUrl(itemBucket, row.value),
