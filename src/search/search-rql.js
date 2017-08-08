@@ -1045,15 +1045,16 @@ angular.module('obiba.mica.search')
         return null;
       }
 
-      this.findCriteriaItemFromTreeById = findCriteriaItemFromTreeById;
-      this.findCriteriaItemFromTree = findCriteriaItemFromTree;
-      this.findTargetCriteria = findTargetCriteria;
-
       function findTargetQuery(target, query) {
         return query.args.filter(function (arg) {
           return arg.name === target;
         }).pop();
       }
+
+      this.findCriteriaItemFromTreeById = findCriteriaItemFromTreeById;
+      this.findCriteriaItemFromTree = findCriteriaItemFromTree;
+      this.findTargetCriteria = findTargetCriteria;
+      this.findTargetQuery = findTargetQuery;
 
       function isLeafCriteria(item) {
         switch (item.type) {

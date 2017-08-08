@@ -12,6 +12,7 @@
 
 /* global BUCKET_TYPES */
 /* global RQL_NODE */
+/* global QUERY_TARGETS */
 
 /* exported STUDY_FILTER_CHOICES */
 var STUDY_FILTER_CHOICES = {
@@ -106,44 +107,42 @@ angular.module('obiba.mica.search')
   .service('StudyFilterShortcutService', ['$q', '$location', '$translate', 'RqlQueryService',
     function ($q, $location, $translate, RqlQueryService) {
       this.filter = function (choice, lang) {
-        var parsedQuery = RqlQueryService.parseQuery($location.search().query);
-
         RqlQueryService.createCriteria(RqlQueryService.parseQuery($location.search().query), lang).then(function (criteria) {
-          var study;
-          var foundCriteriaItem = RqlQueryService.findCriteriaItemFromTreeById('study', 'Mica_study.className', criteria.root);
+          var parsedQuery = criteria.root.rqlQuery;
+          var studyClassNameQuery;
+          var studyClassNameItem = RqlQueryService.findCriteriaItemFromTreeById('study', 'Mica_study.className', criteria.root);
 
-          if (!foundCriteriaItem) {
-            study = new RqlQuery('study');
-            parsedQuery.args.push(study);
+          if (studyClassNameItem) {
+            studyClassNameQuery = studyClassNameItem.rqlQuery;
           } else {
-            study = parsedQuery.args.filter(function (arg) {
-              return arg.name === 'study';
-            })[0];
-            study.args = [];
+            studyClassNameQuery = new RqlQuery('in');
           }
 
-          var studyClassName = new RqlQuery('in');
-          studyClassName.args.push('Mica_study.className');
+          studyClassNameQuery.args = ['Mica_study.className'];
 
           switch (choice) {
             case STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES:
-              studyClassName.args.push('Study');
+              studyClassNameQuery.args.push('Study');
               break;
             case STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES:
-              studyClassName.args.push('HarmonizationStudy');
+              studyClassNameQuery.args.push('HarmonizationStudy');
               break;
             case STUDY_FILTER_CHOICES.ALL_STUDIES:
-              studyClassName.args.push(['Study', 'HarmonizationStudy']);
+              studyClassNameQuery.args.push(['Study', 'HarmonizationStudy']);
               break;
           }
 
-          if (study.args.length > 0 && study.args[0].name !== 'limit') {
+          if (!studyClassNameItem) {
+            var study = RqlQueryService.findTargetQuery(QUERY_TARGETS.STUDY, parsedQuery);
+            if (!study) {
+              study = new RqlQuery(QUERY_TARGETS.STUDY);
+              parsedQuery.args.push(study);
+            }
+
             var andStudyClassName = new RqlQuery('and');
-            andStudyClassName.args.push(studyClassName);
             andStudyClassName.args.push(study.args[0]);
-            study.args[0] = andStudyClassName;
-          } else {
-            study.args.push(studyClassName);
+            andStudyClassName.args.push(studyClassNameQuery);
+            study.args = [andStudyClassName];
           }
 
           $location.search('query', parsedQuery.serializeArgs(parsedQuery.args));
