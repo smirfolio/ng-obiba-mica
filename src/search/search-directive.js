@@ -173,7 +173,6 @@ angular.module('obiba.mica.search')
       return {
         restrict: 'EA',
         replace: true,
-        scope: {},
         templateUrl: 'search/views/search-study-filter-template.html',
         link: function (scope) {
           scope.studyFilterSelection = {
