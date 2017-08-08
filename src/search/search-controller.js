@@ -2703,7 +2703,7 @@ angular.module('obiba.mica.search')
           setChartObject('populations-model-selectionCriteria-countriesIso',
             result.studyResultDto,
             [$filter('translate')(charOptions.geoChartOptions.header[0]), $filter('translate')(charOptions.geoChartOptions.header[1])],
-            $filter('translate')(charOptions.geoChartOptions.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
+            $filter('translate')(charOptions.geoChartOptions.title) + ' (N=' + result.studyResultDto.totalHits + ')',
             charOptions.geoChartOptions.options).then(function(geoStudies) {
               if (geoStudies) {
                 var chartObject = {
@@ -2719,7 +2719,7 @@ angular.module('obiba.mica.search')
                       entries: geoStudies.entries,
                       d3Config: new D3GeoConfig()
                           .withData(geoStudies.entries)
-                          .withTitle($filter('translate')(charOptions.geoChartOptions.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
+                          .withTitle($filter('translate')(charOptions.geoChartOptions.title) + ' (N=' + result.studyResultDto.totalHits + ')')
                     }
                   }
                 };
@@ -2735,12 +2735,12 @@ angular.module('obiba.mica.search')
             [$filter('translate')(charOptions.studiesDesigns.header[0]),
               $filter('translate')(charOptions.studiesDesigns.header[1])
               ],
-            $filter('translate')(charOptions.studiesDesigns.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
+            $filter('translate')(charOptions.studiesDesigns.title) + ' (N=' + result.studyResultDto.totalHits + ')',
             charOptions.studiesDesigns.options).then(function(methodDesignStudies) {
               if (methodDesignStudies) {
                 var d3Config = new D3ChartConfig(methodDesignStudies.vocabulary)
                     .withType('multiBarHorizontalChart')
-                    .withTitle($filter('translate')(charOptions.studiesDesigns.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
+                    .withTitle($filter('translate')(charOptions.studiesDesigns.title) + ' (N=' + result.studyResultDto.totalHits + ')')
                     .withData(angular.copy(methodDesignStudies.entries), false, $filter('translate')('graphics.nbr-studies'));
                 d3Config.options.chart.showLegend = false;
                 d3Config.options.chart.color = charOptions.numberParticipants.options.colors;
@@ -2769,7 +2769,7 @@ angular.module('obiba.mica.search')
               $filter('translate')(charOptions.studiesDesigns.header[1]),
               $filter('translate')(charOptions.studiesDesigns.header[2])
             ],
-            $filter('translate')(charOptions.studiesDesigns.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
+            $filter('translate')(charOptions.studiesDesigns.title) + ' (N=' + result.studyResultDto.totalHits + ')',
             charOptions.studiesDesigns.options, true).then(function(methodDesignStudies) {
             if (methodDesignStudies) {
               var chartObject = {
@@ -2791,12 +2791,12 @@ angular.module('obiba.mica.search')
           setChartObject('model-numberOfParticipants-participant-number-range',
             result.studyResultDto,
             [$filter('translate')(charOptions.numberParticipants.header[0]), $filter('translate')(charOptions.numberParticipants.header[1])],
-            $filter('translate')(charOptions.numberParticipants.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
+            $filter('translate')(charOptions.numberParticipants.title) + ' (N=' + result.studyResultDto.totalHits + ')',
             charOptions.numberParticipants.options).then(function(numberParticipant) {
               if (numberParticipant) {
                 var chartConfig = new D3ChartConfig(numberParticipant.vocabulary)
                   .withType('pieChart')
-                  .withTitle($filter('translate')(charOptions.numberParticipants.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
+                  .withTitle($filter('translate')(charOptions.numberParticipants.title) + ' (N=' + result.studyResultDto.totalHits + ')')
                   .withData(angular.copy(numberParticipant.entries), true);
                 chartConfig.options.chart.legendPosition = 'right';
                 chartConfig.options.chart.color = charOptions.numberParticipants.options.colors;
@@ -2823,12 +2823,12 @@ angular.module('obiba.mica.search')
           setChartObject('populations-dataCollectionEvents-model-bioSamples',
             result.studyResultDto,
             [$filter('translate')(charOptions.biologicalSamples.header[0]), $filter('translate')(charOptions.biologicalSamples.header[1])],
-            $filter('translate')(charOptions.biologicalSamples.title) + ' (N = ' + result.studyResultDto.totalHits + ')',
+            $filter('translate')(charOptions.biologicalSamples.title) + ' (N=' + result.studyResultDto.totalHits + ')',
             charOptions.biologicalSamples.options).then(function(bioSamplesStudies) {
               if (bioSamplesStudies) {
                 var d3Config = new D3ChartConfig(bioSamplesStudies.vocabulary)
                     .withType('multiBarHorizontalChart')
-                    .withTitle($filter('translate')(charOptions.biologicalSamples.title) + ' (N = ' + result.studyResultDto.totalHits + ')')
+                    .withTitle($filter('translate')(charOptions.biologicalSamples.title) + ' (N=' + result.studyResultDto.totalHits + ')')
                     .withData(angular.copy(bioSamplesStudies.entries), false, $filter('translate')('graphics.nbr-studies'));
                 d3Config.options.chart.showLegend = false;
                 d3Config.options.chart.color = charOptions.numberParticipants.options.colors;
