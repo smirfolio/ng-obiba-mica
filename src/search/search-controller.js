@@ -201,11 +201,17 @@ function BaseTaxonomiesController($rootScope,
 /**
  * TaxonomiesPanelController
  *
+ * @param $rootScope
  * @param $scope
+ * @param $translate
  * @param $location
  * @param TaxonomyResource
  * @param TaxonomiesResource
  * @param ngObibaMicaSearch
+ * @param RqlQueryUtils
+ * @param $cacheFactory
+ * @param AlertService
+ * @param ServerErrorUtils
  * @constructor
  */
 function TaxonomiesPanelController($rootScope,
@@ -216,7 +222,9 @@ function TaxonomiesPanelController($rootScope,
                                    TaxonomiesResource,
                                    ngObibaMicaSearch,
                                    RqlQueryUtils,
-                                   $cacheFactory) {
+                                   $cacheFactory,
+                                   AlertService,
+                                   ServerErrorUtils) {
   BaseTaxonomiesController.call(this,
     $rootScope,
     $scope,
@@ -237,6 +245,15 @@ function TaxonomiesPanelController($rootScope,
       $scope.taxonomies.vocabulary = null;
       $scope.taxonomies.term = null;
       $scope.taxonomies.search.active = false;
+    }, function onError(response) {
+      $scope.taxonomies.search.active = false;
+
+      AlertService.alert({
+        id: 'SearchController',
+        type: 'danger',
+        msg: ServerErrorUtils.buildMessage(response),
+        delay: 5000
+      });
     });
   }
 
@@ -266,11 +283,16 @@ function TaxonomiesPanelController($rootScope,
 /**
  * ClassificationPanelController
  * 
+ * @param $rootScope
  * @param $scope
+ * @param $translate
  * @param $location
  * @param TaxonomyResource
  * @param TaxonomiesResource
  * @param ngObibaMicaSearch
+ * @param RqlQueryUtils
+ * @param $cacheFactory
+ * @param TaxonomyUtils
  * @constructor
  */
 function ClassificationPanelController($rootScope,
@@ -1568,6 +1590,8 @@ angular.module('obiba.mica.search')
     'ngObibaMicaSearch',
     'RqlQueryUtils',
     '$cacheFactory',
+    'AlertService',
+    'ServerErrorUtils',
     TaxonomiesPanelController])
 
   .controller('ClassificationPanelController', ['$rootScope',
