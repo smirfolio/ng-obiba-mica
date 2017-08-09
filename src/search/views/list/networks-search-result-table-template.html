@@ -58,7 +58,7 @@
             <a href ng-click="updateCriteria(summary.id, 'variables')"><localized-number value="summary['obiba.mica.CountStatsDto.networkCountStats'].variables"></localized-number></a>
           </td>
           <td ng-if="optionsCols.showNetworksStudyVariablesColumn">
-            <a href ng-click="updateCriteria(summary.id, 'StudyVariable')" ng-if="summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets"><localized-number value="summary['obiba.mica.CountStatsDto.networkCountStats'].studyVariables"></localized-number></a>
+            <a href ng-click="updateCriteria(summary.id, 'CollectedVariable')" ng-if="summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets"><localized-number value="summary['obiba.mica.CountStatsDto.networkCountStats'].studyVariables"></localized-number></a>
             <span ng-if="!summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets">-</span>
           </td>
           <td ng-if="optionsCols.showNetworksDataschemaVariablesColumn">

@@ -91,7 +91,7 @@ angular.module('obiba.mica.search')
             }
 
             var variableType;
-            if (type === 'DataschemaVariable' || type === 'StudyVariable') {
+            if (type === 'DataschemaVariable' || type === 'CollectedVariable') {
               variableType = type.replace('Variable', '');
               type = 'variables';
             }
