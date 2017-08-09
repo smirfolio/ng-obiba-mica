@@ -3933,13 +3933,17 @@ angular.module('obiba.mica.search')
               parsedQuery.args.push(study);
             }
 
-            var andStudyClassName = new RqlQuery('and');
-            andStudyClassName.args.push(study.args[0]);
-            andStudyClassName.args.push(studyClassNameQuery);
-            study.args = [andStudyClassName];
+            if (study.args.length > 0) {
+              var andStudyClassName = new RqlQuery('and');
+              study.args.forEach(function (arg) { andStudyClassName.args.push(arg); });
+              andStudyClassName.args.push(studyClassNameQuery);
+              study.args = [andStudyClassName];
+            } else {
+              study.args = [studyClassNameQuery];
+            }
           }
 
-          $location.search('query', parsedQuery.serializeArgs(parsedQuery.args));
+          $location.search('query', new RqlQuery().serializeArgs(parsedQuery.args));
         });
       };
 
@@ -6473,7 +6477,7 @@ angular.module('obiba.mica.search')
           cols.ids[row.value] = [];
           if ($scope.bucket.startsWith('dce')) {
             var ids = row.value.split(':');
-            var isHarmo = row.className.indexOf('Harmonization') > -1; // would work for both HarmonizationDataset and HarmonizationStudy
+            var isHarmo = row.className.indexOf('Harmonization') > -1 || ids[2] === '.'; // would work for both HarmonizationDataset and HarmonizationStudy
             var titles = row.title.split(':');
             var descriptions = row.description.split(':');
             var rowSpan;
