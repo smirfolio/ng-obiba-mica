@@ -6477,7 +6477,7 @@ angular.module('obiba.mica.search')
           cols.ids[row.value] = [];
           if ($scope.bucket.startsWith('dce')) {
             var ids = row.value.split(':');
-            var isHarmo = row.className.indexOf('Harmonization') > -1; // would work for both HarmonizationDataset and HarmonizationStudy
+            var isHarmo = row.className.indexOf('Harmonization') > -1 || ids[2] === '.'; // would work for both HarmonizationDataset and HarmonizationStudy
             var titles = row.title.split(':');
             var descriptions = row.description.split(':');
             var rowSpan;
