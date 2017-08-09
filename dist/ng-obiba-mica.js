@@ -7188,7 +7188,7 @@ angular.module('obiba.mica.search')
             }
 
             var variableType;
-            if (type === 'DataschemaVariable' || type === 'StudyVariable') {
+            if (type === 'DataschemaVariable' || type === 'CollectedVariable') {
               variableType = type.replace('Variable', '');
               type = 'variables';
             }
@@ -11589,7 +11589,7 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
     "            <a href ng-click=\"updateCriteria(summary.id, 'variables')\"><localized-number value=\"summary['obiba.mica.CountStatsDto.networkCountStats'].variables\"></localized-number></a>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showNetworksStudyVariablesColumn\">\n" +
-    "            <a href ng-click=\"updateCriteria(summary.id, 'StudyVariable')\" ng-if=\"summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets\"><localized-number value=\"summary['obiba.mica.CountStatsDto.networkCountStats'].studyVariables\"></localized-number></a>\n" +
+    "            <a href ng-click=\"updateCriteria(summary.id, 'CollectedVariable')\" ng-if=\"summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets\"><localized-number value=\"summary['obiba.mica.CountStatsDto.networkCountStats'].studyVariables\"></localized-number></a>\n" +
     "            <span ng-if=\"!summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets\">-</span>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showNetworksDataschemaVariablesColumn\">\n" +
