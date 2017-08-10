@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-08-09
+ * Date: 2017-08-10
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -7184,7 +7184,7 @@ angular.module('obiba.mica.search')
           scope.optionsCols = scope.options.networksColumn;
           scope.PageUrlService = PageUrlService;
 
-          scope.updateCriteria = function (id, type) {
+          scope.updateCriteria = function (id, type, destinationType) {
             var datasetClassName;
             if (type === 'HarmonizationDataset' || type === 'StudyDataset') {
               datasetClassName = type;
@@ -7196,6 +7196,8 @@ angular.module('obiba.mica.search')
               variableType = type.replace('Variable', '');
               type = 'variables';
             }
+
+            type = destinationType ? destinationType : type;
 
             RqlQueryService.createCriteriaItem('network', 'Mica_network', 'id', id).then(function (item) {
               if(datasetClassName) {
@@ -11593,11 +11595,11 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
     "            <a href ng-click=\"updateCriteria(summary.id, 'variables')\"><localized-number value=\"summary['obiba.mica.CountStatsDto.networkCountStats'].variables\"></localized-number></a>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showNetworksStudyVariablesColumn\">\n" +
-    "            <a href ng-click=\"updateCriteria(summary.id, 'CollectedVariable')\" ng-if=\"summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets\"><localized-number value=\"summary['obiba.mica.CountStatsDto.networkCountStats'].studyVariables\"></localized-number></a>\n" +
+    "            <a href ng-click=\"updateCriteria(summary.id, 'StudyDataset', 'variables')\" ng-if=\"summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets\"><localized-number value=\"summary['obiba.mica.CountStatsDto.networkCountStats'].studyVariables\"></localized-number></a>\n" +
     "            <span ng-if=\"!summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets\">-</span>\n" +
     "          </td>\n" +
     "          <td ng-if=\"optionsCols.showNetworksDataschemaVariablesColumn\">\n" +
-    "            <a href ng-click=\"updateCriteria(summary.id, 'DataschemaVariable')\" ng-if=\"summary['obiba.mica.CountStatsDto.networkCountStats'].harmonizationDatasets\"><localized-number value=\"summary['obiba.mica.CountStatsDto.networkCountStats'].dataschemaVariables\"></localized-number></a>\n" +
+    "            <a href ng-click=\"updateCriteria(summary.id, 'HarmonizationDataset', 'variables')\" ng-if=\"summary['obiba.mica.CountStatsDto.networkCountStats'].harmonizationDatasets\"><localized-number value=\"summary['obiba.mica.CountStatsDto.networkCountStats'].dataschemaVariables\"></localized-number></a>\n" +
     "            <span ng-if=\"!summary['obiba.mica.CountStatsDto.networkCountStats'].harmonizationDatasets\">-</span>\n" +
     "          </td>\n" +
     "        </tr>\n" +

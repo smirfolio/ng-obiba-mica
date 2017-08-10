@@ -83,7 +83,7 @@ angular.module('obiba.mica.search')
           scope.optionsCols = scope.options.networksColumn;
           scope.PageUrlService = PageUrlService;
 
-          scope.updateCriteria = function (id, type) {
+          scope.updateCriteria = function (id, type, destinationType) {
             var datasetClassName;
             if (type === 'HarmonizationDataset' || type === 'StudyDataset') {
               datasetClassName = type;
@@ -95,6 +95,8 @@ angular.module('obiba.mica.search')
               variableType = type.replace('Variable', '');
               type = 'variables';
             }
+
+            type = destinationType ? destinationType : type;
 
             RqlQueryService.createCriteriaItem('network', 'Mica_network', 'id', id).then(function (item) {
               if(datasetClassName) {
