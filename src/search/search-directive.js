@@ -83,11 +83,17 @@ angular.module('obiba.mica.search')
           scope.optionsCols = scope.options.networksColumn;
           scope.PageUrlService = PageUrlService;
 
-          scope.updateCriteria = function (id, type) {
+          scope.updateCriteria = function (id, type, destinationType) {
             var datasetClassName;
             if (type === 'HarmonizationDataset' || type === 'StudyDataset') {
               datasetClassName = type;
               type = 'datasets';
+            }
+
+            var stuydClassName;
+            if (type === 'HarmonizationStudy' || type === 'Study') {
+              stuydClassName = type;
+              type = 'studies';
             }
 
             var variableType;
@@ -96,11 +102,18 @@ angular.module('obiba.mica.search')
               type = 'variables';
             }
 
+            type = destinationType ? destinationType : type;
+
             RqlQueryService.createCriteriaItem('network', 'Mica_network', 'id', id).then(function (item) {
               if(datasetClassName) {
                 RqlQueryService.createCriteriaItem('dataset', 'Mica_dataset', 'className', datasetClassName).then(function(datasetItem) {
                   scope.onUpdateCriteria(item, type);
                   scope.onUpdateCriteria(datasetItem, type);
+                });
+              } else if(stuydClassName) {
+                RqlQueryService.createCriteriaItem('study', 'Mica_study', 'className', stuydClassName).then(function(studyItem) {
+                  scope.onUpdateCriteria(item, type);
+                  scope.onUpdateCriteria(studyItem, type);
                 });
               } else if (variableType) {
                 RqlQueryService.createCriteriaItem('variable', 'Mica_variable', 'variableType', variableType).then(function (variableItem) {
@@ -315,11 +328,17 @@ angular.module('obiba.mica.search')
         scope.optionsCols = scope.options.studiesColumn;
         scope.PageUrlService = PageUrlService;
 
-        scope.updateCriteria = function (id, type) {
+        scope.updateCriteria = function (id, type, destinationType) {
           var datasetClassName;
           if (type === 'HarmonizationDataset' || type === 'StudyDataset') {
             datasetClassName = type;
             type = 'datasets';
+          }
+
+          var stuydClassName;
+          if (type === 'HarmonizationStudy' || type === 'Study') {
+            stuydClassName = type;
+            type = 'studies';
           }
 
           var variableType;
@@ -328,11 +347,18 @@ angular.module('obiba.mica.search')
             type = 'variables';
           }
 
+          type = destinationType ? destinationType : type;
+
           RqlQueryService.createCriteriaItem('study', 'Mica_study', 'id', id).then(function(item) {
             if(datasetClassName) {
               RqlQueryService.createCriteriaItem('dataset', 'Mica_dataset', 'className', datasetClassName).then(function (datasetItem) {
                 scope.onUpdateCriteria(item, type);
                 scope.onUpdateCriteria(datasetItem, type);
+              });
+            } else if(stuydClassName) {
+              RqlQueryService.createCriteriaItem('study', 'Mica_study', 'className', stuydClassName).then(function(studyItem) {
+                scope.onUpdateCriteria(item, type);
+                scope.onUpdateCriteria(studyItem, type);
               });
             } else if (variableType) {
               RqlQueryService.createCriteriaItem('variable', 'Mica_variable', 'variableType', variableType).then(function (variableItem) {
