@@ -2138,6 +2138,8 @@ angular.module('obiba.mica.search')
           } else if (result.choseHarmonization()) {
             $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
           }
+
+          angular.extend($scope, result);
         });
 
         var bucket = $location.search().bucket;
