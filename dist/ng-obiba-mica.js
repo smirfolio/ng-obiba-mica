@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-08-11
+ * Date: 2017-08-14
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -6308,6 +6308,8 @@ angular.module('obiba.mica.search')
           } else if (result.choseHarmonization()) {
             $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
           }
+
+          angular.extend($scope, result);
         });
 
         var bucket = $location.search().bucket;
@@ -11157,8 +11159,8 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "      </tr>\n" +
     "      <tr>\n" +
     "        <th ng-if=\"bucket.startsWith('dce')\" translate>search.coverage-dce-cols.study</th>\n" +
-    "        <th ng-if=\"bucket.startsWith('dce')\" translate>search.coverage-dce-cols.population</th>\n" +
-    "        <th ng-if=\"bucket.startsWith('dce')\" translate>search.coverage-dce-cols.dce</th>\n" +
+    "        <th ng-if=\"bucket.startsWith('dce')\" colspan=\"{{choseHarmonization() && !choseAll() ? 2 : 1}}\" translate>search.coverage-dce-cols.population</th>\n" +
+    "        <th ng-if=\"bucket.startsWith('dce')\" ng-hide=\"choseHarmonization() && !choseAll()\" translate>search.coverage-dce-cols.dce</th>\n" +
     "        <th ng-repeat=\"header in table.termHeaders\">\n" +
     "          <span\n" +
     "            uib-popover=\"{{header.entity.descriptions[0].value}}\"\n" +
@@ -11178,7 +11180,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "        <td style=\"text-align: center\">\n" +
     "          <input type=\"checkbox\" ng-model=\"row.selected\">\n" +
     "        </td>\n" +
-    "        <td ng-repeat=\"col in table.cols.ids[row.value]\">\n" +
+    "        <td ng-repeat=\"col in table.cols.ids[row.value]\" colspan=\"{{$middle && (choseHarmonization() && !choseAll()) ? 2 : 1}}\" ng-hide=\"col.id === '-' && (choseHarmonization() && !choseAll())\">\n" +
     "          <span ng-if=\"col.id === '-'\">-</span>\n" +
     "          <a ng-if=\"col.rowSpan > 0 && col.id !== '-'\" href=\"{{col.url ? col.url : ''}}\"\n" +
     "            uib-popover-html=\"col.description === col.title ? null : col.description\"\n" +
