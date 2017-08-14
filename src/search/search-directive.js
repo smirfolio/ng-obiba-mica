@@ -67,8 +67,8 @@ angular.module('obiba.mica.search')
     };
   }])
 
-  .directive('networksResultTable', ['PageUrlService', 'ngObibaMicaSearch', 'RqlQueryService',
-    function (PageUrlService, ngObibaMicaSearch, RqlQueryService) {
+  .directive('networksResultTable', ['PageUrlService', 'ngObibaMicaSearch', 'RqlQueryService', 'StudyFilterShortcutService',
+    function (PageUrlService, ngObibaMicaSearch, RqlQueryService, StudyFilterShortcutService) {
       return {
         restrict: 'EA',
         replace: true,
@@ -79,9 +79,25 @@ angular.module('obiba.mica.search')
         },
         templateUrl: 'search/views/list/networks-search-result-table-template.html',
         link: function(scope) {
+          function setInitialStudyFilterSelection() {
+            StudyFilterShortcutService.getStudyClassNameChoices().then(function (result) {
+              angular.extend(scope, result); // adds choseAll, choseIndividual and choseHarmonization functions
+
+              /* jshint bitwise: false */
+              scope.colSpans = {
+                datasets: (scope.optionsCols.showNetworksStudyDatasetColumn & scope.choseIndividual()) + (scope.optionsCols.showNetworksHarmonizationDatasetColumn & scope.choseHarmonization()),
+                variables: (scope.optionsCols.showNetworksStudyVariablesColumn & scope.choseIndividual()) + (scope.optionsCols.showNetworksDataschemaVariablesColumn & scope.choseHarmonization())
+              };
+            });
+          }
+
           scope.options = ngObibaMicaSearch.getOptions().networks;
           scope.optionsCols = scope.options.networksColumn;
           scope.PageUrlService = PageUrlService;
+
+          scope.$on('$locationChangeSuccess', function () {
+            setInitialStudyFilterSelection();
+          });
 
           scope.updateCriteria = function (id, type, destinationType) {
             var datasetClassName;
@@ -125,6 +141,8 @@ angular.module('obiba.mica.search')
               }
             });
           };
+
+          setInitialStudyFilterSelection();
         }
       };
   }])
