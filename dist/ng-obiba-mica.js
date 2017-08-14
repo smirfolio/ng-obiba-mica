@@ -11604,8 +11604,8 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
     "        </tr>\n" +
     "        </tr>\n" +
     "        <tr>\n" +
-    "          <th translate ng-if=\"optionsCols.showNetworksStudyDatasetColumn && choseIndividual()\">search.study.label</th>\n" +
-    "          <th translate ng-if=\"optionsCols.showNetworksHarmonizationDatasetColumn && choseHarmonization()\">search.harmonization</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showNetworksStudyDatasetColumn && choseIndividual()\">search.dataset.collected</th>\n" +
+    "          <th translate ng-if=\"optionsCols.showNetworksHarmonizationDatasetColumn && choseHarmonization()\">search.dataset.harmonized</th>\n" +
     "          <th translate ng-if=\"optionsCols.showNetworksStudyVariablesColumn && choseIndividual()\">search.variable.collected</th>\n" +
     "          <th translate ng-if=\"optionsCols.showNetworksDataschemaVariablesColumn && choseHarmonization()\">search.variable.dataschema</th>\n" +
     "        </tr>\n" +
