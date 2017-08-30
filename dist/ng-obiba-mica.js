@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-08-14
+ * Date: 2017-08-30
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -2184,15 +2184,18 @@ var SORT_FIELDS = {
   ACRONYM: 'acronym',
   NAME: 'name',
   CONTAINER_ID: 'containerId',
+  POPULATION_WEIGHT: 'populationWeight',
+  DATA_COLLECTION_EVENT_WEIGHT: 'dataCollectionEventWeight',
   POPULATION_ID: 'populationId',
   EARLIER_START: 'earliestStart',
   DATASET_ID: 'datasetId',
   INDEX: 'index',
   STUDY_TABLE: {
+    POPULATION_WEIGHT: 'studyTable.populationWeight',
+    DATA_COLLECTION_EVENT_WEIGHT: 'studyTable.dataCollectionEventWeight',
     STUDY_ID: 'studyTable.studyId',
     POPULATION_ID: 'studyTable.populationId'
-  },
-  START: 'start'
+  }
 };
 
 /* exported targetToType */
@@ -4963,9 +4966,9 @@ angular.module('obiba.mica.search')
             sort = $scope.search.type === QUERY_TYPES.VARIABLES ? SORT_FIELDS.NAME : SORT_FIELDS.ACRONYM;
 
             if ($scope.search.type === QUERY_TYPES.VARIABLES) {
-              sort = [SORT_FIELDS.CONTAINER_ID, SORT_FIELDS.POPULATION_ID, SORT_FIELDS.EARLIER_START, SORT_FIELDS.DATASET_ID, SORT_FIELDS.INDEX, SORT_FIELDS.NAME];
+              sort = [SORT_FIELDS.CONTAINER_ID, SORT_FIELDS.POPULATION_WEIGHT, SORT_FIELDS.DATA_COLLECTION_EVENT_WEIGHT, SORT_FIELDS.DATASET_ID, SORT_FIELDS.INDEX, SORT_FIELDS.NAME];
             } else if ($scope.search.type === QUERY_TYPES.DATASETS) {
-              sort = [SORT_FIELDS.STUDY_TABLE.STUDY_ID, SORT_FIELDS.STUDY_TABLE.POPULATION_ID, SORT_FIELDS.START, SORT_FIELDS.ACRONYM];
+              sort = [SORT_FIELDS.STUDY_TABLE.STUDY_ID, SORT_FIELDS.STUDY_TABLE.POPULATION_WEIGHT, SORT_FIELDS.STUDY_TABLE.DATA_COLLECTION_EVENT_WEIGHT, SORT_FIELDS.ACRONYM];
             }
           }
 

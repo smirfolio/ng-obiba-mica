@@ -82,15 +82,18 @@ var SORT_FIELDS = {
   ACRONYM: 'acronym',
   NAME: 'name',
   CONTAINER_ID: 'containerId',
+  POPULATION_WEIGHT: 'populationWeight',
+  DATA_COLLECTION_EVENT_WEIGHT: 'dataCollectionEventWeight',
   POPULATION_ID: 'populationId',
   EARLIER_START: 'earliestStart',
   DATASET_ID: 'datasetId',
   INDEX: 'index',
   STUDY_TABLE: {
+    POPULATION_WEIGHT: 'studyTable.populationWeight',
+    DATA_COLLECTION_EVENT_WEIGHT: 'studyTable.dataCollectionEventWeight',
     STUDY_ID: 'studyTable.studyId',
     POPULATION_ID: 'studyTable.populationId'
-  },
-  START: 'start'
+  }
 };
 
 /* exported targetToType */
