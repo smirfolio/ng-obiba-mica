@@ -85,7 +85,6 @@ var SORT_FIELDS = {
   POPULATION_WEIGHT: 'populationWeight',
   DATA_COLLECTION_EVENT_WEIGHT: 'dataCollectionEventWeight',
   POPULATION_ID: 'populationId',
-  EARLIER_START: 'earliestStart',
   DATASET_ID: 'datasetId',
   INDEX: 'index',
   STUDY_TABLE: {

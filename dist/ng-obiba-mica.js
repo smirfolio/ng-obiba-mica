@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-08-30
+ * Date: 2017-08-31
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -2187,7 +2187,6 @@ var SORT_FIELDS = {
   POPULATION_WEIGHT: 'populationWeight',
   DATA_COLLECTION_EVENT_WEIGHT: 'dataCollectionEventWeight',
   POPULATION_ID: 'populationId',
-  EARLIER_START: 'earliestStart',
   DATASET_ID: 'datasetId',
   INDEX: 'index',
   STUDY_TABLE: {
