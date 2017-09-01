@@ -804,6 +804,7 @@ angular.module('obiba.mica.search')
 
         var localizedQuery =
           RqlQueryService.prepareSearchQueryAndSerialize(
+            $scope.search.display,
             $scope.search.type,
             $scope.search.rqlQuery,
             $scope.search.pagination,
@@ -1344,6 +1345,7 @@ angular.module('obiba.mica.search')
       
       $rootScope.$on('ngObibaMicaSearch.sortChange', function(obj, sort) {
         $scope.search.rqlQuery = RqlQueryService.prepareSearchQuery(
+          $scope.search.display,
           $scope.search.type,
           $scope.search.rqlQuery,
           $scope.search.pagination,

@@ -10,6 +10,8 @@
 
 'use strict';
 
+/* global DISPLAY_TYPES */
+
 /* exported QUERY_TYPES */
 var QUERY_TYPES = {
   NETWORKS: 'networks',
@@ -61,6 +63,7 @@ var RQL_NODE = {
   LOCALE: 'locale',
   AGGREGATE: 'aggregate',
   BUCKET: 'bucket',
+  FIELDS: 'fields',
 
   /* leaf criteria nodes */
   CONTAINS: 'contains',
@@ -616,6 +619,12 @@ angular.module('obiba.mica.search')
       return query;
     };
 
+    this.fields = function (fields) {
+      var query = new RqlQuery(RQL_NODE.FIELDS);
+      query.args.push(fields  );
+      return query;
+    };
+
     this.limit = function (from, size) {
       var query = new RqlQuery(RQL_NODE.LIMIT);
       query.args.push(from);
@@ -889,6 +898,20 @@ angular.module('obiba.mica.search')
       }
     };
 
+    this.addFields = function (targetQuery, fieldsQuery) {
+      if (targetQuery && targetQuery.args) {
+        var found = targetQuery.args.filter(function (arg) {
+          return arg.name === RQL_NODE.FIELDS;
+        }).pop();
+
+        if (found) {
+          found.args = fieldsQuery.args;
+        } else {
+          targetQuery.args.push(fieldsQuery);
+        }
+      }
+    };
+
     this.addLimit = function (targetQuery, limitQuery) {
       if (targetQuery && targetQuery.args) {
         var found = targetQuery.args.filter(function (arg) {
@@ -1052,6 +1075,61 @@ angular.module('obiba.mica.search')
         return query.args.filter(function (arg) {
           return arg.name === target;
         }).pop();
+      }
+
+      function getSourceFields(context, target) {
+        switch (context) {
+          case DISPLAY_TYPES.LIST:
+            switch (target) {
+              case QUERY_TARGETS.STUDY:
+                return RqlQueryUtils.fields(
+                  [
+                    'acronym.*',
+                    'name.*',
+                    'model.methods.design',
+                    'populations.dataCollectionEvents.model.dataSources',
+                    'model.numberOfParticipants.participant'
+                  ]);
+
+              case QUERY_TARGETS.VARIABLE:
+                return RqlQueryUtils.fields(
+                  [
+                    'attributes.label.*',
+                    'variableType',
+                    'datasetId',
+                    'datasetAcronym'
+                  ]);
+
+              case QUERY_TARGETS.DATASET:
+                return RqlQueryUtils.fields(
+                  [
+                    'acronym.*',
+                    'name.*',
+                    'variableType',
+                    'studyTable.studyId',
+                    'studyTable.project',
+                    'studyTable.table',
+                    'studyTable.populationId',
+                    'studyTable.dataCollectionEventId',
+                    'harmonizationTable.studyId',
+                    'harmonizationTable.project',
+                    'harmonizationTable.table',
+                    'harmonizationTable.populationId'
+
+                  ]);
+
+              case QUERY_TARGETS.NETWORK:
+                return RqlQueryUtils.fields(
+                  [
+                    'acronym.*',
+                    'name.*',
+                    'studyIds'
+                  ]);
+            }
+            break;
+        }
+
+        return null;
       }
 
       this.findCriteriaItemFromTreeById = findCriteriaItemFromTreeById;
@@ -1425,7 +1503,7 @@ angular.module('obiba.mica.search')
         return sort;
       };
 
-      this.prepareSearchQuery = function (type, query, pagination, lang, sort) {
+      this.prepareSearchQuery = function (context, type, query, pagination, lang, sort) {
         var rqlQuery = angular.copy(query);
         var target = typeToTarget(type);
         RqlQueryUtils.addLocaleQuery(rqlQuery, lang);
@@ -1438,7 +1516,12 @@ angular.module('obiba.mica.search')
 
         var limit = pagination[target] || {from: 0, size: 10};
         RqlQueryUtils.addLimit(targetQuery, RqlQueryUtils.limit(limit.from, limit.size));
-
+        
+        var fieldsQuery = getSourceFields(context, target);
+        if (fieldsQuery) {
+          RqlQueryUtils.addFields(targetQuery, fieldsQuery);
+        }
+        
         if (sort) {
           RqlQueryUtils.addSort(targetQuery, sort);
         }
@@ -1446,8 +1529,8 @@ angular.module('obiba.mica.search')
         return rqlQuery;
       };
 
-      this.prepareSearchQueryAndSerialize = function (type, query, pagination, lang, sort) {
-        return new RqlQuery().serializeArgs(self.prepareSearchQuery(type, query, pagination, lang, sort).args);
+      this.prepareSearchQueryAndSerialize = function (context, type, query, pagination, lang, sort) {
+        return new RqlQuery().serializeArgs(self.prepareSearchQuery(context, type, query, pagination, lang, sort).args);
       };
 
       /**
