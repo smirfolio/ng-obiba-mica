@@ -40,6 +40,8 @@ function NgObibaMicaUrlProvider() {
     'VocabularyResource': 'ws/taxonomy/:taxonomy/vocabulary/:vocabulary/_filter',
     'JoinQuerySearchResource': 'ws/:type/_rql?query=:query',
     'JoinQuerySearchCsvResource': 'ws/:type/_rql_csv?query=:query',
+    'JoinQuerySearchCsvReportResource': 'ws/:type/_report?query=:query',
+    'JoinQuerySearchCsvReportByNetworkResource': 'ws/:type/_report_by_network?networkId=:networkId&locale=:locale',
     'JoinQueryCoverageResource': 'ws/variables/_coverage?query=:query',
     'JoinQueryCoverageDownloadResource': 'ws/variables/_coverage_download?query=:query',
     'VariablePage': '',
@@ -6019,6 +6021,23 @@ angular.module('obiba.mica.search')
         var queryWithoutLimit = new RqlQuery().serializeArgs(parsedQuery.args);
 
         return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', queryWithoutLimit);
+      };
+
+      $scope.getStudySpecificReportUrl = function () {
+
+          if ($scope.query === null) {
+              return $scope.query;
+          }
+
+          var parsedQuery = RqlQueryService.parseQuery($scope.query);
+          var target = typeToTarget($scope.type);
+          var targetQuery = parsedQuery.args.filter(function (query) {
+              return query.name === target;
+          }).pop();
+          RqlQueryUtils.addLimit(targetQuery, RqlQueryUtils.limit(0, 100000));
+          var queryWithoutLimit = new RqlQuery().serializeArgs(parsedQuery.args);
+
+          return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvReportResource').replace(':type', $scope.type).replace(':query', queryWithoutLimit);
       };
 
       $scope.$watchCollection('result', function () {
@@ -12120,6 +12139,9 @@ angular.module("search/views/search-result-list-template.html", []).run(["$templ
     "        </li>\n" +
     "    </ul>\n" +
     "    <div class=\"pull-right voffset2\">\n" +
+    "        <a target=\"_self\" ng-if=\"type=='studies'\" download class=\"btn btn-info\" ng-href=\"{{getStudySpecificReportUrl()}}\">\n" +
+    "            <i class=\"fa fa-download\"></i> {{'report' | translate}}\n" +
+    "        </a>\n" +
     "        <a target=\"_self\" download class=\"btn btn-info\" ng-href=\"{{getReportUrl()}}\">\n" +
     "            <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
     "        </a>\n" +
