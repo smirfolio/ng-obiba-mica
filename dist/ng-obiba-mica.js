@@ -11192,8 +11192,11 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "            popover-trigger=\"'mouseenter'\">{{col.title}}</a>\n" +
     "          <div style=\"text-align: center\" ng-if=\"col.start && bucket.startsWith('dce')\">\n" +
     "            <div>\n" +
-    "              <small class=\"help-block no-margin\">\n" +
-    "                {{col.start}} {{'to' | translate}} {{col.end ? col.end : '...'}}\n" +
+    "              <small class=\"help-block no-margin\" ng-if=\"col.end\">\n" +
+    "                {{col.start}} {{'to' | translate}} {{col.end}}\n" +
+    "              </small>\n" +
+    "              <small class=\"help-block no-margin\" ng-if=\"!col.end\">\n" +
+    "                {{col.start}} - {{'search.coverage-end-date-ongoing' | translate}}\n" +
     "              </small>\n" +
     "            </div>\n" +
     "            <div class=\"progress no-margin\">\n" +
