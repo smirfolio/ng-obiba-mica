@@ -118,8 +118,11 @@
             popover-trigger="'mouseenter'">{{col.title}}</a>
           <div style="text-align: center" ng-if="col.start && bucket.startsWith('dce')">
             <div>
-              <small class="help-block no-margin">
-                {{col.start}} {{'to' | translate}} {{col.end ? col.end : '...'}}
+              <small class="help-block no-margin" ng-if="col.end">
+                {{col.start}} {{'to' | translate}} {{col.end}}
+              </small>
+              <small class="help-block no-margin" ng-if="!col.end">
+                {{col.start}} - {{'search.coverage-end-date-ongoing' | translate}}
               </small>
             </div>
             <div class="progress no-margin">

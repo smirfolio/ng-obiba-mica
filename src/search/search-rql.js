@@ -86,6 +86,7 @@ var SORT_FIELDS = {
   DATA_COLLECTION_EVENT_WEIGHT: 'dataCollectionEventWeight',
   POPULATION_ID: 'populationId',
   DATASET_ID: 'datasetId',
+  VARIABLE_TYPE: 'variableType',
   INDEX: 'index',
   STUDY_TABLE: {
     POPULATION_WEIGHT: 'studyTable.populationWeight',

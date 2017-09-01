@@ -2188,6 +2188,7 @@ var SORT_FIELDS = {
   DATA_COLLECTION_EVENT_WEIGHT: 'dataCollectionEventWeight',
   POPULATION_ID: 'populationId',
   DATASET_ID: 'datasetId',
+  VARIABLE_TYPE: 'variableType',
   INDEX: 'index',
   STUDY_TABLE: {
     POPULATION_WEIGHT: 'studyTable.populationWeight',
@@ -4965,7 +4966,7 @@ angular.module('obiba.mica.search')
             sort = $scope.search.type === QUERY_TYPES.VARIABLES ? SORT_FIELDS.NAME : SORT_FIELDS.ACRONYM;
 
             if ($scope.search.type === QUERY_TYPES.VARIABLES) {
-              sort = [SORT_FIELDS.CONTAINER_ID, SORT_FIELDS.POPULATION_WEIGHT, SORT_FIELDS.DATA_COLLECTION_EVENT_WEIGHT, SORT_FIELDS.DATASET_ID, SORT_FIELDS.INDEX, SORT_FIELDS.NAME];
+              sort = [SORT_FIELDS.VARIABLE_TYPE, SORT_FIELDS.CONTAINER_ID, SORT_FIELDS.POPULATION_WEIGHT, SORT_FIELDS.DATA_COLLECTION_EVENT_WEIGHT, SORT_FIELDS.DATASET_ID, SORT_FIELDS.INDEX, SORT_FIELDS.NAME];
             } else if ($scope.search.type === QUERY_TYPES.DATASETS) {
               sort = [SORT_FIELDS.STUDY_TABLE.STUDY_ID, SORT_FIELDS.STUDY_TABLE.POPULATION_WEIGHT, SORT_FIELDS.STUDY_TABLE.DATA_COLLECTION_EVENT_WEIGHT, SORT_FIELDS.ACRONYM];
             }
@@ -11191,8 +11192,11 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "            popover-trigger=\"'mouseenter'\">{{col.title}}</a>\n" +
     "          <div style=\"text-align: center\" ng-if=\"col.start && bucket.startsWith('dce')\">\n" +
     "            <div>\n" +
-    "              <small class=\"help-block no-margin\">\n" +
-    "                {{col.start}} {{'to' | translate}} {{col.end ? col.end : '...'}}\n" +
+    "              <small class=\"help-block no-margin\" ng-if=\"col.end\">\n" +
+    "                {{col.start}} {{'to' | translate}} {{col.end}}\n" +
+    "              </small>\n" +
+    "              <small class=\"help-block no-margin\" ng-if=\"!col.end\">\n" +
+    "                {{col.start}} - {{'search.coverage-end-date-ongoing' | translate}}\n" +
     "              </small>\n" +
     "            </div>\n" +
     "            <div class=\"progress no-margin\">\n" +
