@@ -11300,7 +11300,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "                {{col.start}} {{'to' | translate}} {{col.end}}\n" +
     "              </small>\n" +
     "              <small class=\"help-block no-margin\" ng-if=\"!col.end\">\n" +
-    "                {{col.start}} - {{'search.coverage-end-date-ongoing' | translate}}\n" +
+    "                {{col.start}}, {{'search.coverage-end-date-ongoing' | translate}}\n" +
     "              </small>\n" +
     "            </div>\n" +
     "            <div class=\"progress no-margin\">\n" +
