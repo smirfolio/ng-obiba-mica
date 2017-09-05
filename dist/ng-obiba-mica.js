@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-09-01
+ * Date: 2017-09-05
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -11281,7 +11281,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "                {{col.start}} {{'to' | translate}} {{col.end}}\n" +
     "              </small>\n" +
     "              <small class=\"help-block no-margin\" ng-if=\"!col.end\">\n" +
-    "                {{col.start}} - {{'search.coverage-end-date-ongoing' | translate}}\n" +
+    "                {{col.start}}, {{'search.coverage-end-date-ongoing' | translate}}\n" +
     "              </small>\n" +
     "            </div>\n" +
     "            <div class=\"progress no-margin\">\n" +
