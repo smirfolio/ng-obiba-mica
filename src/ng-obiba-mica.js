@@ -33,6 +33,8 @@ function NgObibaMicaUrlProvider() {
     'VocabularyResource': 'ws/taxonomy/:taxonomy/vocabulary/:vocabulary/_filter',
     'JoinQuerySearchResource': 'ws/:type/_rql?query=:query',
     'JoinQuerySearchCsvResource': 'ws/:type/_rql_csv?query=:query',
+    'JoinQuerySearchCsvReportResource': 'ws/:type/_report?query=:query',
+    'JoinQuerySearchCsvReportByNetworkResource': 'ws/:type/_report_by_network?networkId=:networkId&locale=:locale',
     'JoinQueryCoverageResource': 'ws/variables/_coverage?query=:query',
     'JoinQueryCoverageDownloadResource': 'ws/variables/_coverage_download?query=:query',
     'VariablePage': '',

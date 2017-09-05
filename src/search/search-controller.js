@@ -1765,6 +1765,23 @@ angular.module('obiba.mica.search')
         return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', queryWithoutLimit);
       };
 
+      $scope.getStudySpecificReportUrl = function () {
+
+          if ($scope.query === null) {
+              return $scope.query;
+          }
+
+          var parsedQuery = RqlQueryService.parseQuery($scope.query);
+          var target = typeToTarget($scope.type);
+          var targetQuery = parsedQuery.args.filter(function (query) {
+              return query.name === target;
+          }).pop();
+          RqlQueryUtils.addLimit(targetQuery, RqlQueryUtils.limit(0, 100000));
+          var queryWithoutLimit = new RqlQuery().serializeArgs(parsedQuery.args);
+
+          return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvReportResource').replace(':type', $scope.type).replace(':query', queryWithoutLimit);
+      };
+
       $scope.$watchCollection('result', function () {
         if ($scope.result.list) {
           $scope.activeTarget[QUERY_TYPES.VARIABLES].totalHits = $scope.result.list.variableResultDto.totalHits;

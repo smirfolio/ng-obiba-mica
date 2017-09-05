@@ -26,6 +26,9 @@
         </li>
     </ul>
     <div class="pull-right voffset2">
+        <a target="_self" ng-if="type=='studies'" download class="btn btn-info" ng-href="{{getStudySpecificReportUrl()}}">
+            <i class="fa fa-download"></i> {{'report-group.study.button-name' | translate}}
+        </a>
         <a target="_self" download class="btn btn-info" ng-href="{{getReportUrl()}}">
             <i class="fa fa-download"></i> {{'download' | translate}}
         </a>
