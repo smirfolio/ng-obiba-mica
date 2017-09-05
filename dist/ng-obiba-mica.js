@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-09-01
+ * Date: 2017-09-05
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -12140,7 +12140,7 @@ angular.module("search/views/search-result-list-template.html", []).run(["$templ
     "    </ul>\n" +
     "    <div class=\"pull-right voffset2\">\n" +
     "        <a target=\"_self\" ng-if=\"type=='studies'\" download class=\"btn btn-info\" ng-href=\"{{getStudySpecificReportUrl()}}\">\n" +
-    "            <i class=\"fa fa-download\"></i> {{'report' | translate}}\n" +
+    "            <i class=\"fa fa-download\"></i> {{'report-group.study.button-name' | translate}}\n" +
     "        </a>\n" +
     "        <a target=\"_self\" download class=\"btn btn-info\" ng-href=\"{{getReportUrl()}}\">\n" +
     "            <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
