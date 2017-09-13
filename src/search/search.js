@@ -32,6 +32,7 @@ angular.module('obiba.mica.search', [
         search: {header: null, footer: null},
         searchStudiesResultTable: {template: null},
         searchNetworksResultTable: {template: null},
+        searchDatasetsResultTable: {template: null},
         searchResultList: {template: null},
         searchResultCoverage: {template: null},
         searchResultGraphics: {template: null},
@@ -76,7 +77,21 @@ angular.module('obiba.mica.search', [
             showDatasetsNetworkColumn: true,
             showDatasetsStudiesColumn: true,
             showDatasetsVariablesColumn: true
-          }
+          },
+          fields: [
+            'acronym.*',
+            'name.*',
+            'variableType',
+            'studyTable.studyId',
+            'studyTable.project',
+            'studyTable.table',
+            'studyTable.populationId',
+            'studyTable.dataCollectionEventId',
+            'harmonizationTable.studyId',
+            'harmonizationTable.project',
+            'harmonizationTable.table',
+            'harmonizationTable.populationId'
+          ]
         },
         studies: {
           showSearchTab: true,
@@ -144,6 +159,11 @@ angular.module('obiba.mica.search', [
         options.networkTaxonomiesOrder = value.networkTaxonomiesOrder || options.networkTaxonomiesOrder;
         options.hideNavigate = value.hideNavigate || options.hideNavigate;
         options.hideSearch = value.hideSearch || options.hideSearch;
+        //NOTICE: To be working on, better manner to set Documents fields options
+        options.studies.fields = value.studies.fields || options.studies.fields;
+        options.networks.fields = value.networks.fields ||  options.networks.fields;
+        options.datasets.fields = value.datasets.fields ||   options.datasets.fields;
+        options.studies.obibaListOptions = value.obibaListOptions.studies ||  null;
       };
 
       this.$get = ['$q', '$injector', function ngObibaMicaSearchFactory($q, $injector) {

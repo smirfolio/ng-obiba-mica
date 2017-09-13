@@ -1095,22 +1095,7 @@ angular.module('obiba.mica.search')
                   ]);
 
               case QUERY_TARGETS.DATASET:
-                return RqlQueryUtils.fields(
-                  [
-                    'acronym.*',
-                    'name.*',
-                    'variableType',
-                    'studyTable.studyId',
-                    'studyTable.project',
-                    'studyTable.table',
-                    'studyTable.populationId',
-                    'studyTable.dataCollectionEventId',
-                    'harmonizationTable.studyId',
-                    'harmonizationTable.project',
-                    'harmonizationTable.table',
-                    'harmonizationTable.populationId'
-
-                  ]);
+                return RqlQueryUtils.fields(searchOptions.datasets.fields);
 
               case QUERY_TARGETS.NETWORK:
                 return RqlQueryUtils.fields(searchOptions.networks.fields);

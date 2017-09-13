@@ -151,11 +151,14 @@ angular.module('obiba.mica.search')
     'PageUrlService',
     'ngObibaMicaSearch',
     'TaxonomyResource',
-    'RqlQueryService', function ($log,
-                                 PageUrlService,
-                                 ngObibaMicaSearch,
-                                 TaxonomyResource,
-                                 RqlQueryService) {
+    'RqlQueryService',
+    'ngObibaMicaSearchTemplateUrl',
+    function ($log,
+              PageUrlService,
+              ngObibaMicaSearch,
+              TaxonomyResource,
+              RqlQueryService,
+              ngObibaMicaSearchTemplateUrl) {
     return {
       restrict: 'EA',
       replace: true,
@@ -164,7 +167,7 @@ angular.module('obiba.mica.search')
         loading: '=',
         onUpdateCriteria: '='
       },
-      templateUrl: 'search/views/list/datasets-search-result-table-template.html',
+      templateUrl: ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchDatasetsResultTable'),
       link: function(scope) {
         scope.classNames = {};
         TaxonomyResource.get({
