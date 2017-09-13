@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-09-08
+ * Date: 2017-09-13
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -84,6 +84,7 @@ function NgObibaMicaTemplateUrlFactory() {
   var templates = {
     'searchStudiesResultTable' :'search/views/list/studies-search-result-table-template.html',
     'searchNetworksResultTable' :'search/views/list/networks-search-result-table-template.html',
+    'searchDatasetsResultTable' :'search/views/list/datasets-search-result-table-template.html',
     'searchResultList' :'search/views/search-result-list-template.html',
     'searchResultCoverage' :'search/views/search-result-coverage-template.html',
     'searchResultGraphics' :'search/views/search-result-graphics-template.html'
@@ -1887,6 +1888,7 @@ angular.module('obiba.mica.search', [
         search: {header: null, footer: null},
         searchStudiesResultTable: {template: null},
         searchNetworksResultTable: {template: null},
+        searchDatasetsResultTable: {template: null},
         searchResultList: {template: null},
         searchResultCoverage: {template: null},
         searchResultGraphics: {template: null},
@@ -1931,7 +1933,21 @@ angular.module('obiba.mica.search', [
             showDatasetsNetworkColumn: true,
             showDatasetsStudiesColumn: true,
             showDatasetsVariablesColumn: true
-          }
+          },
+          fields: [
+            'acronym.*',
+            'name.*',
+            'variableType',
+            'studyTable.studyId',
+            'studyTable.project',
+            'studyTable.table',
+            'studyTable.populationId',
+            'studyTable.dataCollectionEventId',
+            'harmonizationTable.studyId',
+            'harmonizationTable.project',
+            'harmonizationTable.table',
+            'harmonizationTable.populationId'
+          ]
         },
         studies: {
           showSearchTab: true,
@@ -1999,6 +2015,11 @@ angular.module('obiba.mica.search', [
         options.networkTaxonomiesOrder = value.networkTaxonomiesOrder || options.networkTaxonomiesOrder;
         options.hideNavigate = value.hideNavigate || options.hideNavigate;
         options.hideSearch = value.hideSearch || options.hideSearch;
+        //NOTICE: To be working on, better manner to set Documents fields options
+        options.studies.fields = value.studies.fields || options.studies.fields;
+        options.networks.fields = value.networks.fields ||  options.networks.fields;
+        options.datasets.fields = value.datasets.fields ||   options.datasets.fields;
+        options.studies.obibaListOptions = value.obibaListOptions.studies ||  null;
       };
 
       this.$get = ['$q', '$injector', function ngObibaMicaSearchFactory($q, $injector) {
@@ -3213,22 +3234,7 @@ angular.module('obiba.mica.search')
                   ]);
 
               case QUERY_TARGETS.DATASET:
-                return RqlQueryUtils.fields(
-                  [
-                    'acronym.*',
-                    'name.*',
-                    'variableType',
-                    'studyTable.studyId',
-                    'studyTable.project',
-                    'studyTable.table',
-                    'studyTable.populationId',
-                    'studyTable.dataCollectionEventId',
-                    'harmonizationTable.studyId',
-                    'harmonizationTable.project',
-                    'harmonizationTable.table',
-                    'harmonizationTable.populationId'
-
-                  ]);
+                return RqlQueryUtils.fields(searchOptions.datasets.fields);
 
               case QUERY_TARGETS.NETWORK:
                 return RqlQueryUtils.fields(searchOptions.networks.fields);
@@ -7374,11 +7380,14 @@ angular.module('obiba.mica.search')
     'PageUrlService',
     'ngObibaMicaSearch',
     'TaxonomyResource',
-    'RqlQueryService', function ($log,
-                                 PageUrlService,
-                                 ngObibaMicaSearch,
-                                 TaxonomyResource,
-                                 RqlQueryService) {
+    'RqlQueryService',
+    'ngObibaMicaSearchTemplateUrl',
+    function ($log,
+              PageUrlService,
+              ngObibaMicaSearch,
+              TaxonomyResource,
+              RqlQueryService,
+              ngObibaMicaSearchTemplateUrl) {
     return {
       restrict: 'EA',
       replace: true,
@@ -7387,7 +7396,7 @@ angular.module('obiba.mica.search')
         loading: '=',
         onUpdateCriteria: '='
       },
-      templateUrl: 'search/views/list/datasets-search-result-table-template.html',
+      templateUrl: ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchDatasetsResultTable'),
       link: function(scope) {
         scope.classNames = {};
         TaxonomyResource.get({
