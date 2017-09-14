@@ -159,11 +159,11 @@ angular.module('obiba.mica.search', [
         options.networkTaxonomiesOrder = value.networkTaxonomiesOrder || options.networkTaxonomiesOrder;
         options.hideNavigate = value.hideNavigate || options.hideNavigate;
         options.hideSearch = value.hideSearch || options.hideSearch;
-        //NOTICE: To be working on, better manner to set Documents fields options
-        options.studies.fields = value.studies.fields || options.studies.fields;
-        options.networks.fields = value.networks.fields ||  options.networks.fields;
-        options.datasets.fields = value.datasets.fields ||   options.datasets.fields;
-        options.studies.obibaListOptions = value.obibaListOptions.studies ||  null;
+        //TODO: Needs a better mechanism for setting options
+        options.studies.fields = value.studies && value.studies.fields || options.studies.fields;
+        options.networks.fields = value.networks && value.networks.fields || options.networks.fields;
+        options.datasets.fields = value.datasets && value.datasets.fields || options.datasets.fields;
+        options.studies.obibaListOptions = value.obibaListOptions && value.obibaListOptions.studies ||  null;
       };
 
       this.$get = ['$q', '$injector', function ngObibaMicaSearchFactory($q, $injector) {
