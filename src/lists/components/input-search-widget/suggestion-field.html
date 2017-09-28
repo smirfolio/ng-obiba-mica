@@ -1,0 +1,4 @@
+<input type="text" ng-model="model" ng-attr-placeholder="{{placeholderText | translate}}"
+       uib-typeahead="suggestion for suggestion in suggest($viewValue)"
+       typeahead-wait-ms="500" typeahead-on-select="select($item)"
+       class="form-control">
