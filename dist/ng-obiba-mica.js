@@ -53,7 +53,8 @@ function NgObibaMicaUrlProvider() {
     'FileBrowserFileResource': 'ws/file/:path/',
     'FileBrowserSearchResource': 'ws/files-search/:path',
     'FileBrowserDownloadUrl': 'ws/draft/file-dl/:path?inline=:inline',
-    'GraphicsSearchRootUrl': '#/search'
+    'GraphicsSearchRootUrl': '#/search',
+    'DocumentSuggestion': 'ws/:documentType/_suggest'
   };
 
   function UrlProvider(registry) {
@@ -4014,6 +4015,11 @@ angular.module('obiba.mica.search')
           errorHandler: true
         }
       });
+    }])
+
+  .factory('DocumentSuggestionResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+      return $resource(ngObibaMicaUrl.getUrl('DocumentSuggestion'));
     }])
 
   .service('StudyFilterShortcutService', ['$q', '$location', '$translate', 'RqlQueryService',
@@ -8082,25 +8088,53 @@ angular.module('obiba.mica.lists.search.widget',['obiba.mica.lists'])
   .controller('listSearchWidgetController', ['$scope', '$rootScope',
     function ($scope, $rootScope) {
       var emitter = $rootScope.$new();
-      $scope.onKeypress = function (ev) {
-        if(ev.keyCode === 13){
-          emitter.$emit('ngObibaMicaSearch.searchChange', $scope.searchFilter);
-        }
+
+      $scope.selectSuggestion = function (suggestion) {
+        emitter.$emit('ngObibaMicaSearch.searchChange', suggestion);
       };
-      $scope.search = function(){
+
+      $scope.search = function() {
         emitter.$emit('ngObibaMicaSearch.searchChange', $scope.searchFilter);
       };
     }])
   .directive('listSearchWidget', [function () {
     return {
       restrict: 'EA',
+      require: '^^suggestionField',
+      transclude: true,
+      replace: true,
       scope: {
-        searchItm: '='
+        target: '='
       },
       controller: 'listSearchWidgetController',
       templateUrl: 'lists/components/input-search-widget/input-search-widget-template.html'
     };
-  }]);
+  }])
+  .directive('suggestionField', ['DocumentSuggestionResource', '$translate',
+    function (DocumentSuggestionResource, $translate) {
+      return {
+        restrict: 'EA',
+        replace: true,
+        scope: {
+          target: '=',
+          model: '=',
+          placeholderText: '=',
+          select: '='
+        },
+        templateUrl: 'lists/components/input-search-widget/suggestion-field.html',
+        link: function (scope) {
+          scope.suggest = function (query) {
+            if (scope.target && query && query.length > 1) {
+              return DocumentSuggestionResource.query({locale: $translate.use(), documentType: scope.target, query: query})
+                  .$promise.then(function (response) { return Array.isArray(response) ? response : []; });
+            } else {
+              return [];
+            }
+          };
+        }
+      };
+    }]
+  );
 ;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
  *
@@ -9775,7 +9809,7 @@ angular.module('obiba.mica.fileBrowser')
       }
     };
   }]);
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/components/input-search-widget/input-search-widget-template.html', 'lists/components/sort-widget/sort-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/search-result-list-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-facets-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search-study-filter-template.html', 'search/views/search.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/components/input-search-widget/input-search-widget-template.html', 'lists/components/input-search-widget/suggestion-field.html', 'lists/components/sort-widget/sort-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/search-result-list-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-facets-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search-study-filter-template.html', 'search/views/search.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/views/data-access-request-documents-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-documents-view.html",
@@ -10779,15 +10813,11 @@ angular.module("lists/components/input-search-widget/input-search-widget-templat
     "    <div class=\"row\">\n" +
     "        <div class=\"col-md-10\">\n" +
     "            <div class=\"form-group \">\n" +
-    "                <input  class=\"form-control form-input\"  id=\"edit-search-filter\" name=\"search-filter\"\n" +
-    "                        ng-model=\"searchFilter\"\n" +
-    "                        ng-keyup=\"onKeypress($event)\"\n" +
-    "                        placeholder='{{\"search\" | translate}}...'>\n" +
-    "                </input>\n" +
+    "                <suggestion-field target=\"target\" model=\"searchFilter\" placeholder-text=\"'search'\" select=\"selectSuggestion\"></suggestion-field>\n" +
     "            </div>\n" +
     "        </div>\n" +
     "        <div class=\"col-md-2 \" ng-click=\"search()\">\n" +
-    "            <button class=\"btn btn-success  \">\n" +
+    "            <button class=\"btn btn-success col-md-12\">\n" +
     "                {{\"search\" | translate}}\n" +
     "                <i class=\"glyphicon glyphicon-search\"></i>\n" +
     "            </button>\n" +
@@ -10796,6 +10826,14 @@ angular.module("lists/components/input-search-widget/input-search-widget-templat
     "    </div>\n" +
     "</form>\n" +
     "");
+}]);
+
+angular.module("lists/components/input-search-widget/suggestion-field.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("lists/components/input-search-widget/suggestion-field.html",
+    "<input type=\"text\" ng-model=\"model\" ng-attr-placeholder=\"{{placeholderText | translate}}\"\n" +
+    "       uib-typeahead=\"suggestion for suggestion in suggest($viewValue)\"\n" +
+    "       typeahead-wait-ms=\"500\" typeahead-on-select=\"select($item)\"\n" +
+    "       class=\"form-control\">");
 }]);
 
 angular.module("lists/components/sort-widget/sort-widget-template.html", []).run(["$templateCache", function($templateCache) {
@@ -11175,44 +11213,46 @@ angular.module("lists/views/search-result-list-template.html", []).run(["$templa
     "  -->\n" +
     "\n" +
     "<div ng-show=\"options.obibaListOptions.searchForm\" class=\"list-search-widget\">\n" +
-    "    <div>\n" +
-    "    <list-search-widget></list-search-widget>\n" +
-    "    </div>\n" +
+    "  <div>\n" +
+    "    <list-search-widget target=\"type\"></list-search-widget>\n" +
+    "  </div>\n" +
     "</div>\n" +
     "<div ng-show=\"display === 'list'\" class=\"row \">\n" +
-    "    <div class=\"col-md-12\">\n" +
-    "    <div  ng-show=\"options.obibaListOptions.countCaption\" class=\"pull-left\" test-ref=\"search-counts\">\n" +
-    "        <span role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
+    "  <div class=\"col-md-12\">\n" +
+    "    <div ng-show=\"options.obibaListOptions.countCaption\" class=\"pull-left\" test-ref=\"search-counts\">\n" +
+    "      <span role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
     "            ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}\"\n" +
     "            ng-if=\"options[targetTypeMap[res]].showSearchTab\">\n" +
-    "            <a href style=\"cursor: default;\" ng-if=\"resultTabsOrder.length === 1\">\n" +
-    "                <div class=\"search-count \">\n" +
-    "                    {{totalHits = getTotalHits(res);\"\"}}\n" +
-    "                    {{singleLabel = res + \".label\";\"\"}}\n" +
-    "                    <span>\n" +
-    "                        {{totalHits | localizedNumber }}  {{totalHits>1?targetTypeMap[res]:singleLabel | translate}}\n" +
-    "                    </span>\n" +
-    "                </div>\n" +
-    "            </a>\n" +
-    "        </span>\n" +
+    "        <a href style=\"cursor: default;\" ng-if=\"resultTabsOrder.length === 1\">\n" +
+    "          <div class=\"search-count \">\n" +
+    "            {{totalHits = getTotalHits(res);\"\"}}\n" +
+    "            {{singleLabel = res + \".label\";\"\"}}\n" +
+    "            <span>\n" +
+    "                {{totalHits | localizedNumber }}  {{totalHits>1?targetTypeMap[res]:singleLabel | translate}}\n" +
+    "            </span>\n" +
+    "          </div>\n" +
+    "        </a>\n" +
+    "      </span>\n" +
     "    </div>\n" +
     "    <div class=\"pull-right\">\n" +
-    "                <list-sort-widget></list-sort-widget>\n" +
+    "      <list-sort-widget target=\"type\"></list-sort-widget>\n" +
     "    </div>\n" +
+    "  </div>\n" +
+    "  <div class=\"clearfix\"/>\n" +
+    "  <div class=\"tab-content col-md-12\">\n" +
+    "    <ng-include include-replace ng-repeat=\"res in resultTabsOrder\"\n" +
+    "                src=\"'search/views/search-result-list-' + res + '-template.html'\"></ng-include>\n" +
+    "  </div>\n" +
+    "  <div class=\"pull-right voffset2 \">\n" +
+    "    <div ng-repeat=\"res in resultTabsOrder\" ng-show=\"activeTarget[targetTypeMap[res]].active\" class=\"inline \"\n" +
+    "         test-ref=\"pager\">\n" +
+    "      <span search-result-pagination\n" +
+    "            target=\"activeTarget[targetTypeMap[res]].name\"\n" +
+    "            total-hits=\"activeTarget[targetTypeMap[res]].totalHits\"\n" +
+    "            on-change=\"onPaginate\">\n" +
+    "      </span>\n" +
     "    </div>\n" +
-    "    <div class=\"clearfix\"/>\n" +
-    "    <div class=\"tab-content col-md-12\">\n" +
-    "        <ng-include include-replace ng-repeat=\"res in resultTabsOrder\"\n" +
-    "                    src=\"'search/views/search-result-list-' + res + '-template.html'\"></ng-include>\n" +
-    "    </div>\n" +
-    "    <div class=\"pull-right voffset2 \">\n" +
-    "        <div ng-repeat=\"res in resultTabsOrder\" ng-show=\"activeTarget[targetTypeMap[res]].active\" class=\"inline \" test-ref=\"pager\">\n" +
-    "          <span search-result-pagination\n" +
-    "                target=\"activeTarget[targetTypeMap[res]].name\"\n" +
-    "                total-hits=\"activeTarget[targetTypeMap[res]].totalHits\"\n" +
-    "                on-change=\"onPaginate\"></span>\n" +
-    "        </div>\n" +
-    "    </div>\n" +
+    "  </div>\n" +
     "</div>\n" +
     "");
 }]);

@@ -104,6 +104,11 @@ angular.module('obiba.mica.search')
       });
     }])
 
+  .factory('DocumentSuggestionResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+      return $resource(ngObibaMicaUrl.getUrl('DocumentSuggestion'));
+    }])
+
   .service('StudyFilterShortcutService', ['$q', '$location', '$translate', 'RqlQueryService',
     function ($q, $location, $translate, RqlQueryService) {
       this.filter = function (choice, lang) {
