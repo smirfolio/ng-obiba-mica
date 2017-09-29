@@ -68,6 +68,10 @@ function SortWidgetOptionsProvider() {
     sortField: {
       options: [
         {
+          value: '_score',
+          label: 'relevance'
+        },
+        {
           value: 'name',
           label: 'name'
         },
@@ -76,7 +80,7 @@ function SortWidgetOptionsProvider() {
           label: 'acronym'
         }
       ],
-      default: 'name'
+      default: 'relevance'
     },
     orderField: {
       options: [
