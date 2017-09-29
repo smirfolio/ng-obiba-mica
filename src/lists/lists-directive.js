@@ -7,21 +7,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 'use strict';
 
-angular.module('obiba.mica.lists.search.widget',['obiba.mica.lists'])
-  .controller('listSearchWidgetController', ['$scope', '$rootScope',
-    function ($scope, $rootScope) {
-      var emitter = $rootScope.$new();
-
-      $scope.selectSuggestion = function (suggestion) {
-        emitter.$emit('ngObibaMicaSearch.searchChange', suggestion);
-      };
-
-      $scope.search = function() {
-        emitter.$emit('ngObibaMicaSearch.searchChange', $scope.searchFilter);
-      };
-    }])
+angular.module('obiba.mica.lists')
+  .directive('listSortWidget', [function () {
+    return {
+      restrict: 'EA',
+      controller: 'listSortWidgetController',
+      templateUrl: 'lists/views/sort-widget/sort-widget-template.html'
+    };
+  }])
   .directive('listSearchWidget', [function () {
     return {
       restrict: 'EA',
@@ -32,9 +28,10 @@ angular.module('obiba.mica.lists.search.widget',['obiba.mica.lists'])
         target: '='
       },
       controller: 'listSearchWidgetController',
-      templateUrl: 'lists/components/input-search-widget/input-search-widget-template.html'
+      templateUrl: 'lists/views/input-search-widget/input-search-widget-template.html'
     };
   }])
+
   .directive('suggestionField', ['DocumentSuggestionResource', '$translate',
     function (DocumentSuggestionResource, $translate) {
       return {
@@ -46,7 +43,7 @@ angular.module('obiba.mica.lists.search.widget',['obiba.mica.lists'])
           placeholderText: '=',
           select: '='
         },
-        templateUrl: 'lists/components/input-search-widget/suggestion-field.html',
+        templateUrl: 'lists/views/input-search-widget/suggestion-field.html',
         link: function (scope) {
           scope.suggest = function (query) {
             if (scope.target && query && query.length > 1) {
