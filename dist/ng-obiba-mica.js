@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-09-28
+ * Date: 2017-09-29
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8082,71 +8082,61 @@ angular.module('obiba.mica.search')
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 'use strict';
 
-angular.module('obiba.mica.lists.search.widget',['obiba.mica.lists'])
-  .controller('listSearchWidgetController', ['$scope', '$rootScope',
-    function ($scope, $rootScope) {
-      var emitter = $rootScope.$new();
-
-      $scope.selectSuggestion = function (suggestion) {
-        emitter.$emit('ngObibaMicaSearch.searchChange', suggestion);
-      };
-
-      $scope.search = function() {
-        emitter.$emit('ngObibaMicaSearch.searchChange', $scope.searchFilter);
-      };
-    }])
-  .directive('listSearchWidget', [function () {
-    return {
-      restrict: 'EA',
-      require: '^^suggestionField',
-      transclude: true,
-      replace: true,
-      scope: {
-        target: '='
+function NgObibaMicaListsOptionsFactory() {
+  var defaultOptions = {
+    listSearchOptions:{
+      network: {
+        fields: ['studyIds', 'acronym.*', 'name.*', 'description.*', 'logo']
       },
-      controller: 'listSearchWidgetController',
-      templateUrl: 'lists/components/input-search-widget/input-search-widget-template.html'
-    };
-  }])
-  .directive('suggestionField', ['DocumentSuggestionResource', '$translate',
-    function (DocumentSuggestionResource, $translate) {
-      return {
-        restrict: 'EA',
-        replace: true,
-        scope: {
-          target: '=',
-          model: '=',
-          placeholderText: '=',
-          select: '='
-        },
-        templateUrl: 'lists/components/input-search-widget/suggestion-field.html',
-        link: function (scope) {
-          scope.suggest = function (query) {
-            if (scope.target && query && query.length > 1) {
-              return DocumentSuggestionResource.query({locale: $translate.use(), documentType: scope.target, query: query})
-                  .$promise.then(function (response) { return Array.isArray(response) ? response : []; });
-            } else {
-              return [];
-            }
-          };
-        }
-      };
-    }]
-  );
-;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
- *
- * This program and the accompanying materials
- * are made available under the terms of the GNU Public License v3.0.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-'use strict';
+      study: {
+        fields: ['logo', 'objectives.*', 'acronym.*', 'name.*', 'model.methods.design', 'model.numberOfParticipants.participant']
+      },
+      dataset: {
+        fields: ['acronym.*', 'name.*', 'description.*', 'variableType',
+          'studyTable.studyId',
+          'studyTable.project',
+          'studyTable.table',
+          'studyTable.populationId',
+          'studyTable.dataCollectionEventId',
+          'harmonizationTable.studyId',
+          'harmonizationTable.project',
+          'harmonizationTable.table',
+          'harmonizationTable.populationId'
+        ]
+      }
+    },
+    listOptions: {
+      studyOptions: {
+              studiesCountCaption: true,
+              studiesSearchForm: true,
+              studiesSupplInfoDetails: true,
+              studiesTrimedDescrition: true
+      }
+    }
+  };
 
-/* global QUERY_TYPES */
+  function NgObibaMicaListsOptions() {
+    this.getOptions = function () {
+      return defaultOptions;
+    };
+  }
+
+  this.$get = function () {
+    return new NgObibaMicaListsOptions();
+  };
+
+  this.setOptions = function (value) {
+    Object.keys(value).forEach(function (option) {
+      if(option in defaultOptions){
+        defaultOptions[option] = value[option];
+      }
+    });
+  };
+
+}
 
 function SortWidgetOptionsProvider() {
   var defaultOptions = {
@@ -8207,36 +8197,58 @@ function SortWidgetOptionsProvider() {
   };
 }
 
-angular.module('obiba.mica.lists.sort.widget',['obiba.mica.lists'])
-  .controller('listSortWidgetController', ['$scope', '$rootScope', 'sortWidgetService',
-    function ($scope, $rootScope, sortWidgetService) {
-
-      var emitter = $rootScope.$new();
-      $scope.selectSort = sortWidgetService.getSortOptions();
-      $scope.selectOrder = sortWidgetService.getOrderOptions();
-      $scope.selectedSort =  $scope.selectSort.options[0].value;
-      $scope.selectedOrder = $scope.selectOrder.options[0].value;
-
-      var selectedOptions = sortWidgetService.getSortArg();
-      if (selectedOptions) {
-        $scope.selectedSort = selectedOptions.selectedSort ? selectedOptions.selectedSort.value : $scope.selectSort.options[0].value;
-        $scope.selectedOrder = selectedOptions.slectedOrder ? selectedOptions.slectedOrder.value : $scope.selectOrder.options[0].value;
-      }
-      $scope.radioCheked = function(){
-        var sortParam = {
-          sort: $scope.selectedSort,
-          order: $scope.selectedOrder
-        };
-        emitter.$emit('ngObibaMicaSearch.sortChange', sortParam);
-      };
-    }])
-  .directive('listSortWidget', [function () {
-    return {
-      restrict: 'EA',
-      controller: 'listSortWidgetController',
-      templateUrl: 'lists/components/sort-widget/sort-widget-template.html'
-    };
+angular.module('obiba.mica.lists', ['obiba.mica.search'])
+  .run()
+  .config(['$provide', function($provide){
+    $provide.provider('ngObibaMicaLists', NgObibaMicaListsOptionsFactory);
   }])
+  .config(['ngObibaMicaSearchTemplateUrlProvider',
+    function (ngObibaMicaSearchTemplateUrlProvider) {
+      ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchStudiesResultTable', 'lists/views/list/studies-search-result-table-template.html');
+      ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchNetworksResultTable', 'lists/views/list/networks-search-result-table-template.html');
+      ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchDatasetsResultTable', 'lists/views/list/datasets-search-result-table-template.html');
+      ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchResultList', 'lists/views/search-result-list-template.html');
+    }])
+  .config(['$provide', function($provide){
+      $provide.provider('sortWidgetOptions', SortWidgetOptionsProvider);
+    }])
+  .filter('getBaseUrl', function () {
+    return function (param) {
+      return '/mica/' + param;
+    };
+  })
+  .filter('doSearchQuery', function () {
+    return function (type, query) {
+      return '/mica/repository#/search?type=' + type + '&query=' + query + '&display=list';
+    };
+  })
+  .filter('getLabel', function () {
+    return function (SelectSort, valueSort) {
+      var result = null;
+      angular.forEach(SelectSort.options, function (value) {
+        if (value.value.indexOf(valueSort) !== -1) {
+          result = value.label;
+        }
+      });
+      return result;
+    };
+  });
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+/* global QUERY_TYPES */
+
+angular.module('obiba.mica.lists')
+
   .service('sortWidgetService', ['$filter', '$location', 'RqlQueryService', 'sortWidgetOptions', function ($filter, $location, RqlQueryService, sortWidgetOptions) {
     var newOptions = sortWidgetOptions.getOptions();
     var self = this;
@@ -8297,12 +8309,7 @@ angular.module('obiba.mica.lists.sort.widget',['obiba.mica.lists'])
       };
     };
 
-  }])
-.config(['$provide', function($provide){
-  $provide.provider('sortWidgetOptions', SortWidgetOptionsProvider);
-}])
-;
-;/*
+  }]);;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
@@ -8314,97 +8321,100 @@ angular.module('obiba.mica.lists.sort.widget',['obiba.mica.lists'])
 
 'use strict';
 
-function NgObibaMicaListsOptionsFactory() {
-  var defaultOptions = {
-    listSearchOptions:{
-      network: {
-        fields: ['studyIds', 'acronym.*', 'name.*', 'description.*', 'logo']
-      },
-      study: {
-        fields: ['logo', 'objectives.*', 'acronym.*', 'name.*', 'model.methods.design', 'model.numberOfParticipants.participant']
-      },
-      dataset: {
-        fields: ['acronym.*', 'name.*', 'description.*', 'variableType',
-          'studyTable.studyId',
-          'studyTable.project',
-          'studyTable.table',
-          'studyTable.populationId',
-          'studyTable.dataCollectionEventId',
-          'harmonizationTable.studyId',
-          'harmonizationTable.project',
-          'harmonizationTable.table',
-          'harmonizationTable.populationId'
-        ]
-      }
-    },
-    listOptions: {
-      studyOptions: {
-              studiesCountCaption: true,
-              studiesSearchForm: true,
-              studiesSupplInfoDetails: true,
-              studiesTrimedDescrition: true
-      }
-    }
-  };
+angular.module('obiba.mica.lists')
 
-  function NgObibaMicaListsOptions() {
-    this.getOptions = function () {
-      return defaultOptions;
-    };
-  }
+  .controller('listSearchWidgetController', ['$scope', '$rootScope',
+    function ($scope, $rootScope) {
+      var emitter = $rootScope.$new();
 
-  this.$get = function () {
-    return new NgObibaMicaListsOptions();
-  };
+      $scope.selectSuggestion = function (suggestion) {
+        emitter.$emit('ngObibaMicaSearch.searchChange', suggestion);
+      };
 
-  this.setOptions = function (value) {
-    Object.keys(value).forEach(function (option) {
-      if(option in defaultOptions){
-        defaultOptions[option] = value[option];
-      }
-    });
-  };
-
-}
-
-angular.module('obiba.mica.lists', [
-  'obiba.mica.lists.search.widget',
-  'obiba.mica.lists.sort.widget',
-  'obiba.mica.search'
-])
-   .run()
-  .config(['$provide', function($provide){
-    $provide.provider('ngObibaMicaLists', NgObibaMicaListsOptionsFactory);
-  }])
-  .config(['ngObibaMicaSearchTemplateUrlProvider',
-    function (ngObibaMicaSearchTemplateUrlProvider) {
-      ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchStudiesResultTable', 'lists/views/list/studies-search-result-table-template.html');
-      ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchNetworksResultTable', 'lists/views/list/networks-search-result-table-template.html');
-      ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchDatasetsResultTable', 'lists/views/list/datasets-search-result-table-template.html');
-      ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchResultList', 'lists/views/search-result-list-template.html');
+      $scope.search = function() {
+        emitter.$emit('ngObibaMicaSearch.searchChange', $scope.searchFilter);
+      };
     }])
-  .filter('getBaseUrl', function () {
-    return function (param) {
-      return '/mica/' + param;
+  .controller('listSortWidgetController', ['$scope', '$rootScope', 'sortWidgetService',
+    function ($scope, $rootScope, sortWidgetService) {
+
+      var emitter = $rootScope.$new();
+      $scope.selectSort = sortWidgetService.getSortOptions();
+      $scope.selectOrder = sortWidgetService.getOrderOptions();
+      $scope.selectedSort =  $scope.selectSort.options[0].value;
+      $scope.selectedOrder = $scope.selectOrder.options[0].value;
+
+      var selectedOptions = sortWidgetService.getSortArg();
+      if (selectedOptions) {
+        $scope.selectedSort = selectedOptions.selectedSort ? selectedOptions.selectedSort.value : $scope.selectSort.options[0].value;
+        $scope.selectedOrder = selectedOptions.slectedOrder ? selectedOptions.slectedOrder.value : $scope.selectOrder.options[0].value;
+      }
+      $scope.radioCheked = function(){
+        var sortParam = {
+          sort: $scope.selectedSort,
+          order: $scope.selectedOrder
+        };
+        emitter.$emit('ngObibaMicaSearch.sortChange', sortParam);
+      };
+    }]);;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+angular.module('obiba.mica.lists')
+  .directive('listSortWidget', [function () {
+    return {
+      restrict: 'EA',
+      controller: 'listSortWidgetController',
+      templateUrl: 'lists/views/sort-widget/sort-widget-template.html'
     };
-  }).filter('doSearchQuery', function () {
-    return function (type, query) {
-      return '/mica/repository#/search?type=' + type + '&query=' + query + '&display=list';
+  }])
+  .directive('listSearchWidget', [function () {
+    return {
+      restrict: 'EA',
+      require: '^^suggestionField',
+      transclude: true,
+      replace: true,
+      scope: {
+        target: '='
+      },
+      controller: 'listSearchWidgetController',
+      templateUrl: 'lists/views/input-search-widget/input-search-widget-template.html'
     };
-  })
-  .filter('getLabel', function () {
-    return function (SelectSort, valueSort) {
-      var result = null;
-      angular.forEach(SelectSort.options, function (value) {
-        if (value.value.indexOf(valueSort) !== -1) {
-          result = value.label;
+  }])
+
+  .directive('suggestionField', ['DocumentSuggestionResource', '$translate',
+    function (DocumentSuggestionResource, $translate) {
+      return {
+        restrict: 'EA',
+        replace: true,
+        scope: {
+          target: '=',
+          model: '=',
+          placeholderText: '=',
+          select: '='
+        },
+        templateUrl: 'lists/views/input-search-widget/suggestion-field.html',
+        link: function (scope) {
+          scope.suggest = function (query) {
+            if (scope.target && query && query.length > 1) {
+              return DocumentSuggestionResource.query({locale: $translate.use(), documentType: scope.target, query: query})
+                  .$promise.then(function (response) { return Array.isArray(response) ? response : []; });
+            } else {
+              return [];
+            }
+          };
         }
-      });
-      return result;
-    };
-  })
- ;
-;/*
+      };
+    }]
+  );;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
@@ -9809,7 +9819,7 @@ angular.module('obiba.mica.fileBrowser')
       }
     };
   }]);
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/components/input-search-widget/input-search-widget-template.html', 'lists/components/input-search-widget/suggestion-field.html', 'lists/components/sort-widget/sort-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/search-result-list-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-facets-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search-study-filter-template.html', 'search/views/search.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/input-search-widget/suggestion-field.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-facets-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search-study-filter-template.html', 'search/views/search.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/views/data-access-request-documents-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-documents-view.html",
@@ -10807,8 +10817,8 @@ angular.module("graphics/views/tables-directive.html", []).run(["$templateCache"
     "");
 }]);
 
-angular.module("lists/components/input-search-widget/input-search-widget-template.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("lists/components/input-search-widget/input-search-widget-template.html",
+angular.module("lists/views/input-search-widget/input-search-widget-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("lists/views/input-search-widget/input-search-widget-template.html",
     "<form>\n" +
     "    <div class=\"row\">\n" +
     "        <div class=\"col-md-10\">\n" +
@@ -10828,59 +10838,12 @@ angular.module("lists/components/input-search-widget/input-search-widget-templat
     "");
 }]);
 
-angular.module("lists/components/input-search-widget/suggestion-field.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("lists/components/input-search-widget/suggestion-field.html",
+angular.module("lists/views/input-search-widget/suggestion-field.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("lists/views/input-search-widget/suggestion-field.html",
     "<input type=\"text\" ng-model=\"model\" ng-attr-placeholder=\"{{placeholderText | translate}}\"\n" +
     "       uib-typeahead=\"suggestion for suggestion in suggest($viewValue)\"\n" +
     "       typeahead-wait-ms=\"500\" typeahead-on-select=\"select($item)\"\n" +
     "       class=\"form-control\">");
-}]);
-
-angular.module("lists/components/sort-widget/sort-widget-template.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("lists/components/sort-widget/sort-widget-template.html",
-    "<div class=\"sortwidget\">\n" +
-    "        <label for=\"search-sort\">{{\"global.sort-by\" | translate}}  {{selectSort | getLabel:selectedSort | translate}}</label>\n" +
-    "        <span class=\"btn-group dropdown\" >\n" +
-    "           <button id=\"SortOrder\"  type=\"button\" class=\"btn btn-primary dropdown-toggle\"\n" +
-    "                   data-toggle=\"dropdown\" >\n" +
-    "               <i ng-if=\"selectedOrder=='-'\"\n" +
-    "                  class=\"glyphicon glyphicon-sort-by-attributes-alt\"></i>\n" +
-    "               <i ng-if=\"selectedOrder==''\"\n" +
-    "                  class=\"glyphicon glyphicon-sort-by-attributes\"></i>\n" +
-    "           </button>\n" +
-    "           <span class=\"dropdown-menu\" role=\"menu\" uib-dropdown-menu aria-labelledby=\"SortOrder\">\n" +
-    "               <form class=\"form-inline\">\n" +
-    "                <span class=\"list-group\">\n" +
-    "                       <span class=\"list-group-item text-center\">\n" +
-    "                                <span ng-repeat=\"optionorder in selectOrder.options\">\n" +
-    "                                    <label>\n" +
-    "                                        <i ng-if=\"optionorder.value=='-'\"\n" +
-    "                                           class=\"fa fa-long-arrow-down\"></i>\n" +
-    "                                        <i ng-if=\"optionorder.value==''\"\n" +
-    "                                           class=\"fa fa-long-arrow-up\"></i>\n" +
-    "                                    </label>\n" +
-    "                                    <input type=\"radio\"\n" +
-    "                                           ng-model=\"$parent.selectedOrder\"\n" +
-    "                                           ng-value=\"optionorder.value\"\n" +
-    "                                           name=\"search-order\"\n" +
-    "                                           ng-change=\"radioCheked()\">\n" +
-    "                                </span>\n" +
-    "                       </span>\n" +
-    "                       <span class=\"list-group-item\"\n" +
-    "                             ng-repeat=\"option in selectSort.options\">\n" +
-    "                                <input type=\"radio\"\n" +
-    "                                       ng-model=\"$parent.selectedSort\"\n" +
-    "                                       ng-value=\"option.value\"\n" +
-    "                                       name=\"search-sort\"\n" +
-    "                                       ng-change=\"radioCheked()\">\n" +
-    "                                <label translate>{{option.label}}</label>\n" +
-    "                       </span>\n" +
-    "                </span>\n" +
-    "               </form>\n" +
-    "            </span>\n" +
-    "        </span>\n" +
-    "</div>\n" +
-    "");
 }]);
 
 angular.module("lists/views/list/datasets-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
@@ -11253,6 +11216,53 @@ angular.module("lists/views/search-result-list-template.html", []).run(["$templa
     "      </span>\n" +
     "    </div>\n" +
     "  </div>\n" +
+    "</div>\n" +
+    "");
+}]);
+
+angular.module("lists/views/sort-widget/sort-widget-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("lists/views/sort-widget/sort-widget-template.html",
+    "<div class=\"sortwidget\">\n" +
+    "        <label for=\"search-sort\">{{\"global.sort-by\" | translate}}  {{selectSort | getLabel:selectedSort | translate}}</label>\n" +
+    "        <span class=\"btn-group dropdown\" >\n" +
+    "           <button id=\"SortOrder\"  type=\"button\" class=\"btn btn-primary dropdown-toggle\"\n" +
+    "                   data-toggle=\"dropdown\" >\n" +
+    "               <i ng-if=\"selectedOrder=='-'\"\n" +
+    "                  class=\"glyphicon glyphicon-sort-by-attributes-alt\"></i>\n" +
+    "               <i ng-if=\"selectedOrder==''\"\n" +
+    "                  class=\"glyphicon glyphicon-sort-by-attributes\"></i>\n" +
+    "           </button>\n" +
+    "           <span class=\"dropdown-menu\" role=\"menu\" uib-dropdown-menu aria-labelledby=\"SortOrder\">\n" +
+    "               <form class=\"form-inline\">\n" +
+    "                <span class=\"list-group\">\n" +
+    "                       <span class=\"list-group-item text-center\">\n" +
+    "                                <span ng-repeat=\"optionorder in selectOrder.options\">\n" +
+    "                                    <label>\n" +
+    "                                        <i ng-if=\"optionorder.value=='-'\"\n" +
+    "                                           class=\"fa fa-long-arrow-down\"></i>\n" +
+    "                                        <i ng-if=\"optionorder.value==''\"\n" +
+    "                                           class=\"fa fa-long-arrow-up\"></i>\n" +
+    "                                    </label>\n" +
+    "                                    <input type=\"radio\"\n" +
+    "                                           ng-model=\"$parent.selectedOrder\"\n" +
+    "                                           ng-value=\"optionorder.value\"\n" +
+    "                                           name=\"search-order\"\n" +
+    "                                           ng-change=\"radioCheked()\">\n" +
+    "                                </span>\n" +
+    "                       </span>\n" +
+    "                       <span class=\"list-group-item\"\n" +
+    "                             ng-repeat=\"option in selectSort.options\">\n" +
+    "                                <input type=\"radio\"\n" +
+    "                                       ng-model=\"$parent.selectedSort\"\n" +
+    "                                       ng-value=\"option.value\"\n" +
+    "                                       name=\"search-sort\"\n" +
+    "                                       ng-change=\"radioCheked()\">\n" +
+    "                                <label translate>{{option.label}}</label>\n" +
+    "                       </span>\n" +
+    "                </span>\n" +
+    "               </form>\n" +
+    "            </span>\n" +
+    "        </span>\n" +
     "</div>\n" +
     "");
 }]);

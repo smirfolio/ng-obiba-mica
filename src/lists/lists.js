@@ -63,12 +63,67 @@ function NgObibaMicaListsOptionsFactory() {
 
 }
 
-angular.module('obiba.mica.lists', [
-  'obiba.mica.lists.search.widget',
-  'obiba.mica.lists.sort.widget',
-  'obiba.mica.search'
-])
-   .run()
+function SortWidgetOptionsProvider() {
+  var defaultOptions = {
+    sortField: {
+      options: [
+        {
+          value: 'name',
+          label: 'name'
+        },
+        {
+          value: 'acronym',
+          label: 'acronym'
+        }
+      ],
+      default: 'name'
+    },
+    orderField: {
+      options: [
+        {
+          value: '',
+          label: 'asc'
+        },
+        {
+          value: '-',
+          label: 'desc'
+        }
+      ],
+      default: ''
+    }
+  };
+
+  var self = this;
+
+  function SortWidgetOptions(defaultOptions){
+    var options = defaultOptions;
+    this.getOptions = function() {
+      return options;
+    };
+  }
+
+  this.getDefaultOptions = function(){
+    return self.defaultOptions;
+  };
+
+  this.$get = function () {
+    return new SortWidgetOptions(defaultOptions);
+  };
+
+  this.setOptions = function (value) {
+    Object.keys(value).forEach(function (optionKey) {
+      if(optionKey in defaultOptions){
+        if(value[optionKey].options){
+          defaultOptions[optionKey].options = defaultOptions[optionKey].options.concat(value[optionKey].options);
+          defaultOptions[optionKey].default = value[optionKey].default;
+        }
+      }
+    });
+  };
+}
+
+angular.module('obiba.mica.lists', ['obiba.mica.search'])
+  .run()
   .config(['$provide', function($provide){
     $provide.provider('ngObibaMicaLists', NgObibaMicaListsOptionsFactory);
   }])
@@ -79,11 +134,15 @@ angular.module('obiba.mica.lists', [
       ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchDatasetsResultTable', 'lists/views/list/datasets-search-result-table-template.html');
       ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchResultList', 'lists/views/search-result-list-template.html');
     }])
+  .config(['$provide', function($provide){
+      $provide.provider('sortWidgetOptions', SortWidgetOptionsProvider);
+    }])
   .filter('getBaseUrl', function () {
     return function (param) {
       return '/mica/' + param;
     };
-  }).filter('doSearchQuery', function () {
+  })
+  .filter('doSearchQuery', function () {
     return function (type, query) {
       return '/mica/repository#/search?type=' + type + '&query=' + query + '&display=list';
     };
@@ -98,5 +157,4 @@ angular.module('obiba.mica.lists', [
       });
       return result;
     };
-  })
- ;
+  });
