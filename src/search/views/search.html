@@ -64,7 +64,7 @@
                 </small>
               </a>
             </script>
-          <span class="input-group input-group-sm">
+          <span class="input-group input-group-sm seach-block-imput">
             <span class="input-group-btn" uib-dropdown>
               <button type="button" class="btn btn-primary" uib-dropdown-toggle>
                 {{'taxonomy.target.' + (documents.search.target ? documents.search.target : 'all')| translate}} <span
@@ -99,7 +99,7 @@
           <div class="{{hasFacetedTaxonomies ? '' : 'col-md-3'}}"></div>
           <div class="{{hasFacetedTaxonomies ? '' : 'col-md-6'}}">
             <small>
-              <ul class="nav nav-pills">
+              <ul class="nav nav-pills taxo-element">
                 <li ng-if="hasClassificationsTitle">
                   <label class="nav-label" translate>search.classifications-title</label>
                 </li>
@@ -111,7 +111,7 @@
                   <a href uib-dropdown-toggle>{{translateTaxonomyNav(t, 'title')}} <span class="caret"></span></a>
                 </li>
               </ul>
-              <ul uib-dropdown-menu>
+              <ul uib-dropdown-menu class="innerul">
                 <li ng-repeat="st in t.terms">
                   <a href ng-click="showTaxonomy(t.target, st.name)" title="{{translateTaxonomyNav(st, 'description')}}">{{translateTaxonomyNav(st, 'title')}}</a>
                 </li>

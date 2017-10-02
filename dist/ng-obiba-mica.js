@@ -11423,7 +11423,7 @@ angular.module("search/views/classifications.html", []).run(["$templateCache", f
     "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
     "  -->\n" +
     "\n" +
-    "<div>\n" +
+    "<div id=\"classification-browser-region\">\n" +
     "  <div ng-if=\"classificationsHeaderTemplateUrl\" ng-include=\"classificationsHeaderTemplateUrl\"></div>\n" +
     "\n" +
     "  <div class=\"container alert-fixed-position\">\n" +
@@ -11446,7 +11446,7 @@ angular.module("search/views/classifications.html", []).run(["$templateCache", f
     "  </ul>\n" +
     "\n" +
     "  <!-- Search criteria region -->\n" +
-    "  <div class=\"panel panel-default voffset2\" ng-if=\"search.criteria.children && search.criteria.children.length>0\">\n" +
+    "  <div id=\"search-criteria-region\" class=\"panel panel-default voffset2\" ng-if=\"search.criteria.children && search.criteria.children.length>0\">\n" +
     "    <div class=\"panel-body\">\n" +
     "      <table style=\"border:none\">\n" +
     "        <tbody>\n" +
@@ -11474,7 +11474,7 @@ angular.module("search/views/classifications.html", []).run(["$templateCache", f
     "  <!-- Classifications region -->\n" +
     "  <div class=\"{{tabs && tabs.length>1 ? 'tab-content voffset4' : ''}}\">\n" +
     "    <ul class=\"nav nav-pills voffset2\" role=\"tablist\" ng-if=\"targetTabsOrder.length > 1\">\n" +
-    "      <li ng-repeat=\"target in targetTabsOrder\" role=\"presentation\" ng-class=\"{ active: target === $parent.target }\"><a href role=\"tab\"\n" +
+    "      <li ng-repeat=\"target in targetTabsOrder\" role=\"presentation\" ng-class=\"{ active: target === $parent.target }\" class=\"{{target}}\"><a href role=\"tab\"\n" +
     "          ng-click=\"navigateToTarget(target)\">{{'taxonomy.target.' + target | translate}}</a></li>\n" +
     "    </ul>\n" +
     "\n" +
@@ -12997,7 +12997,7 @@ angular.module("search/views/search-result-list-template.html", []).run(["$templ
     "    <ul class=\"nav nav-pills pull-left voffset2\" test-ref=\"search-counts\">\n" +
     "        <li role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
     "            ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}\"\n" +
-    "            ng-if=\"options[targetTypeMap[res]].showSearchTab\">\n" +
+    "            ng-if=\"options[targetTypeMap[res]].showSearchTab\" class=\"{{targetTypeMap[res]}}\">\n" +
     "            <a href\n" +
     "               ng-click=\"selectTarget(targetTypeMap[res])\" ng-if=\"resultTabsOrder.length > 1\">\n" +
     "                {{targetTypeMap[res] | translate}}\n" +
@@ -13140,7 +13140,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "                </small>\n" +
     "              </a>\n" +
     "            </script>\n" +
-    "          <span class=\"input-group input-group-sm\">\n" +
+    "          <span class=\"input-group input-group-sm seach-block-imput\">\n" +
     "            <span class=\"input-group-btn\" uib-dropdown>\n" +
     "              <button type=\"button\" class=\"btn btn-primary\" uib-dropdown-toggle>\n" +
     "                {{'taxonomy.target.' + (documents.search.target ? documents.search.target : 'all')| translate}} <span\n" +
@@ -13175,7 +13175,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "          <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-3'}}\"></div>\n" +
     "          <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-6'}}\">\n" +
     "            <small>\n" +
-    "              <ul class=\"nav nav-pills\">\n" +
+    "              <ul class=\"nav nav-pills taxo-element\">\n" +
     "                <li ng-if=\"hasClassificationsTitle\">\n" +
     "                  <label class=\"nav-label\" translate>search.classifications-title</label>\n" +
     "                </li>\n" +
@@ -13187,7 +13187,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "                  <a href uib-dropdown-toggle>{{translateTaxonomyNav(t, 'title')}} <span class=\"caret\"></span></a>\n" +
     "                </li>\n" +
     "              </ul>\n" +
-    "              <ul uib-dropdown-menu>\n" +
+    "              <ul uib-dropdown-menu class=\"innerul\">\n" +
     "                <li ng-repeat=\"st in t.terms\">\n" +
     "                  <a href ng-click=\"showTaxonomy(t.target, st.name)\" title=\"{{translateTaxonomyNav(st, 'description')}}\">{{translateTaxonomyNav(st, 'title')}}</a>\n" +
     "                </li>\n" +

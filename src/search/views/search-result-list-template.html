@@ -12,7 +12,7 @@
     <ul class="nav nav-pills pull-left voffset2" test-ref="search-counts">
         <li role="presentation" ng-repeat="res in resultTabsOrder"
             ng-class="{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}"
-            ng-if="options[targetTypeMap[res]].showSearchTab">
+            ng-if="options[targetTypeMap[res]].showSearchTab" class="{{targetTypeMap[res]}}">
             <a href
                ng-click="selectTarget(targetTypeMap[res])" ng-if="resultTabsOrder.length > 1">
                 {{targetTypeMap[res] | translate}}
