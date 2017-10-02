@@ -338,7 +338,7 @@ angular.module('obiba.mica.search')
 
   .service('TaxonomyUtils', [ function() {
 
-    function visibleVocabulary(vocabulary) {
+    function isVocabularyVisible(vocabulary) {
       if (!vocabulary) {
         return false;
       }
@@ -350,12 +350,42 @@ angular.module('obiba.mica.search')
       return !hidden || hidden.value === 'false';
     }
 
-    function visibleVocabularies(vocabularies) {
-      return (vocabularies || []).filter(visibleVocabulary);
+    function isFacetVocabularyVisible(vocabulary) {
+      if (!vocabulary || !vocabulary.attributes) {
+        return false;
+      }
+
+      var result = vocabulary.attributes.filter(function(attribute) {
+        return ['hidden' ,'facet'].indexOf(attribute.key) > -1;
+      }).reduce(function(a, i) {
+        a[i.key] = i.value;
+        return a;
+      }, {});
+
+      return 'true' === result.facet && (!result.hidden || 'false' === result.hidden);
     }
 
-    this.visibleVocabulary = visibleVocabulary;
+    function findVocabularyAttributes(vocabulary, pattern) {
+      return (vocabulary.attributes || []).filter(function(attribute){
+        return attribute.key.search(pattern) > -1;
+      }).reduce(function(a, i) {
+        a[i.key] = i.value;
+        return a;
+      }, {});
+    }
+
+    function visibleVocabularies(vocabularies) {
+      return (vocabularies || []).filter(isVocabularyVisible);
+    }
+
+    function visibleFacetVocabularies(vocabularies) {
+      return (vocabularies || []).filter(isFacetVocabularyVisible);
+    }
+
+    this.isVisibleVocabulary = isVocabularyVisible;
+    this.findVocabularyAttributes = findVocabularyAttributes;
     this.visibleVocabularies = visibleVocabularies;
+    this.visibleFacetVocabularies = visibleFacetVocabularies;
 
     return this;
   }])
