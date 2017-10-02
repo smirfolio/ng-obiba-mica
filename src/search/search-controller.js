@@ -975,7 +975,7 @@ angular.module('obiba.mica.search')
           var taxonomy = bundle.taxonomy;
           if (taxonomy.vocabularies) {
             taxonomy.vocabularies.filter(function (vocabulary) {
-              return TaxonomyUtils.visibleVocabulary(vocabulary) && canSearch(vocabulary, $scope.options.hideSearch);
+              return TaxonomyUtils.isVisibleVocabulary(vocabulary) && canSearch(vocabulary, $scope.options.hideSearch);
             }).forEach(function (vocabulary) {
               if (vocabulary.terms) {
                 vocabulary.terms.filter(function (term) {
@@ -1614,13 +1614,16 @@ angular.module('obiba.mica.search')
     'TaxonomiesResource',
     'LocalizedValues',
     'ngObibaMicaSearch',
-    'RqlQueryUtils', function ($scope,
-                               $timeout,
-                               TaxonomyResource,
-                               TaxonomiesResource,
-                               LocalizedValues,
-                               ngObibaMicaSearch,
-                               RqlQueryUtils) {
+    'RqlQueryUtils',
+    'TaxonomyUtils',
+    function ($scope,
+      $timeout,
+      TaxonomyResource,
+      TaxonomiesResource,
+      LocalizedValues,
+      ngObibaMicaSearch,
+      RqlQueryUtils,
+      TaxonomyUtils) {
 
       $scope.options = ngObibaMicaSearch.getOptions();
       $scope.taxonomies = {};
@@ -1673,7 +1676,12 @@ angular.module('obiba.mica.search')
               return f.name === t.name;
             })[0];
           }).filter(function(t) { return t; }).map(function(t) {
+            t.vocabularies = TaxonomyUtils.visibleFacetVocabularies(t.vocabularies);
+
             t.vocabularies.map(function (v) {
+              var facetAttributes = TaxonomyUtils.findVocabularyAttributes(v, /^facet/i);
+              v.isOpen = 'true' === facetAttributes.facetExpanded;
+              v.position = parseInt(facetAttributes.facetPosition);
               v.limit = 10;
               v.isMatch = RqlQueryUtils.isMatchVocabulary(v);
               v.isNumeric = RqlQueryUtils.isNumericVocabulary(v);

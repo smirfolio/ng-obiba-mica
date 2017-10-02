@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-09-29
+ * Date: 2017-10-02
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -4251,7 +4251,7 @@ angular.module('obiba.mica.search')
 
   .service('TaxonomyUtils', [ function() {
 
-    function visibleVocabulary(vocabulary) {
+    function isVocabularyVisible(vocabulary) {
       if (!vocabulary) {
         return false;
       }
@@ -4263,12 +4263,42 @@ angular.module('obiba.mica.search')
       return !hidden || hidden.value === 'false';
     }
 
-    function visibleVocabularies(vocabularies) {
-      return (vocabularies || []).filter(visibleVocabulary);
+    function isFacetVocabularyVisible(vocabulary) {
+      if (!vocabulary || !vocabulary.attributes) {
+        return false;
+      }
+
+      var result = vocabulary.attributes.filter(function(attribute) {
+        return ['hidden' ,'facet'].indexOf(attribute.key) > -1;
+      }).reduce(function(a, i) {
+        a[i.key] = i.value;
+        return a;
+      }, {});
+
+      return 'true' === result.facet && (!result.hidden || 'false' === result.hidden);
     }
 
-    this.visibleVocabulary = visibleVocabulary;
+    function findVocabularyAttributes(vocabulary, pattern) {
+      return (vocabulary.attributes || []).filter(function(attribute){
+        return attribute.key.search(pattern) > -1;
+      }).reduce(function(a, i) {
+        a[i.key] = i.value;
+        return a;
+      }, {});
+    }
+
+    function visibleVocabularies(vocabularies) {
+      return (vocabularies || []).filter(isVocabularyVisible);
+    }
+
+    function visibleFacetVocabularies(vocabularies) {
+      return (vocabularies || []).filter(isFacetVocabularyVisible);
+    }
+
+    this.isVisibleVocabulary = isVocabularyVisible;
+    this.findVocabularyAttributes = findVocabularyAttributes;
     this.visibleVocabularies = visibleVocabularies;
+    this.visibleFacetVocabularies = visibleFacetVocabularies;
 
     return this;
   }])
@@ -5269,7 +5299,7 @@ angular.module('obiba.mica.search')
           var taxonomy = bundle.taxonomy;
           if (taxonomy.vocabularies) {
             taxonomy.vocabularies.filter(function (vocabulary) {
-              return TaxonomyUtils.visibleVocabulary(vocabulary) && canSearch(vocabulary, $scope.options.hideSearch);
+              return TaxonomyUtils.isVisibleVocabulary(vocabulary) && canSearch(vocabulary, $scope.options.hideSearch);
             }).forEach(function (vocabulary) {
               if (vocabulary.terms) {
                 vocabulary.terms.filter(function (term) {
@@ -5908,13 +5938,16 @@ angular.module('obiba.mica.search')
     'TaxonomiesResource',
     'LocalizedValues',
     'ngObibaMicaSearch',
-    'RqlQueryUtils', function ($scope,
-                               $timeout,
-                               TaxonomyResource,
-                               TaxonomiesResource,
-                               LocalizedValues,
-                               ngObibaMicaSearch,
-                               RqlQueryUtils) {
+    'RqlQueryUtils',
+    'TaxonomyUtils',
+    function ($scope,
+      $timeout,
+      TaxonomyResource,
+      TaxonomiesResource,
+      LocalizedValues,
+      ngObibaMicaSearch,
+      RqlQueryUtils,
+      TaxonomyUtils) {
 
       $scope.options = ngObibaMicaSearch.getOptions();
       $scope.taxonomies = {};
@@ -5967,7 +6000,12 @@ angular.module('obiba.mica.search')
               return f.name === t.name;
             })[0];
           }).filter(function(t) { return t; }).map(function(t) {
+            t.vocabularies = TaxonomyUtils.visibleFacetVocabularies(t.vocabularies);
+
             t.vocabularies.map(function (v) {
+              var facetAttributes = TaxonomyUtils.findVocabularyAttributes(v, /^facet/i);
+              v.isOpen = 'true' === facetAttributes.facetExpanded;
+              v.position = parseInt(facetAttributes.facetPosition);
               v.limit = 10;
               v.isMatch = RqlQueryUtils.isMatchVocabulary(v);
               v.isNumeric = RqlQueryUtils.isNumericVocabulary(v);
@@ -11612,7 +11650,7 @@ angular.module("search/views/classifications/taxonomies-facets-view.html", []).r
     "          </span>\n" +
     "      </uib-accordion-heading>\n" +
     "      <uib-accordion close-others=\"false\">\n" +
-    "        <div uib-accordion-group ng-repeat=\"vocabulary in taxonomy.vocabularies | visibleVocabularies\" is-open=\"vocabulary.isOpen\" is-disabled=\"false\" template-url=\"search/views/classifications/vocabulary-accordion-group.html\">\n" +
+    "        <div uib-accordion-group ng-repeat=\"vocabulary in taxonomy.vocabularies | orderBy:'position'\" is-open=\"vocabulary.isOpen\" is-disabled=\"false\" template-url=\"search/views/classifications/vocabulary-accordion-group.html\">\n" +
     "          <uib-accordion-heading>\n" +
     "            <span uib-popover=\"{{localize(vocabulary.description ? vocabulary.description : vocabulary.title)}}\"\n" +
     "                  popover-title=\"{{vocabulary.description ? localize(vocabulary.title) : null}}\"\n" +
