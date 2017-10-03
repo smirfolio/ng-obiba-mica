@@ -13074,7 +13074,7 @@ angular.module("search/views/search-result-list-variable-template.html", []).run
 
 angular.module("search/views/search-result-panel-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-panel-template.html",
-    "<div>\n" +
+    "<div class=\"search-result-tabs\">\n" +
     "  <ng-include include-replace ng-repeat=\"tab in searchTabsOrder\"\n" +
     "              src=\"getUrlTemplate(tab)\"></ng-include>\n" +
     "</div>\n" +
