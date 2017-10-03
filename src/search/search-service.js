@@ -401,9 +401,11 @@ angular.module('obiba.mica.search')
           template = angular.element('<criterion-dropdown criterion="item" query="query"></criterion-dropdown>');
         }
 
-        $compile(template)(scope, function(cloned){
-          element.replaceWith(cloned);
-        });
+        if (scope.item.rqlQuery.args) {
+          $compile(template)(scope, function(cloned){
+            element.replaceWith(cloned);
+          });
+        }
       }
     };
 
