@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-10-02
+ * Date: 2017-10-03
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -2562,33 +2562,43 @@ CriteriaBuilder.prototype.fieldToVocabulary = function (field) {
  */
 CriteriaBuilder.prototype.visitLeaf = function (node, parentItem) {
   var match = RQL_NODE.MATCH === node.name;
-  var field = node.args[match ? 1 : 0];
-  var values = node.args[match ? 0 : 1];
 
-  var searchInfo = this.fieldToVocabulary(field);
-  var item =
-    this.buildLeafItem(searchInfo.taxonomy,
-      searchInfo.vocabulary,
-      values instanceof Array ? values : [values],
-      node,
-      parentItem);
+  if (match && node.args.length === 1) {
+    var matchItem = new CriteriaItemBuilder()
+        .type(node.name)
+        .target(parentItem.parent.type)
+        .rqlQuery(node)
+        .parent(parentItem);
 
-  var current = this.leafItemMap[item.id];
-
-  if (current) {
-    if (current.isRepeatable()) {
-      current.addItem(item);
-    } else {
-      console.error('Non-repeatable criteria items must be unique,', current.id, 'will be overwritten.');
-      current = item;
-    }
+    parentItem.children.push(matchItem);
   } else {
-    current = item.vocabulary.repeatable ? new RepeatableCriteriaItem().addItem(item) : item;
+    var field = node.args[match ? 1 : 0];
+    var values = node.args[match ? 0 : 1];
+
+    var searchInfo = this.fieldToVocabulary(field);
+    var item =
+        this.buildLeafItem(searchInfo.taxonomy,
+            searchInfo.vocabulary,
+            values instanceof Array ? values : [values],
+            node,
+            parentItem);
+
+    var current = this.leafItemMap[item.id];
+
+    if (current) {
+      if (current.isRepeatable()) {
+        current.addItem(item);
+      } else {
+        console.error('Non-repeatable criteria items must be unique,', current.id, 'will be overwritten.');
+        current = item;
+      }
+    } else {
+      current = item.vocabulary.repeatable ? new RepeatableCriteriaItem().addItem(item) : item;
+    }
+
+    this.leafItemMap[item.id] = current;
+    parentItem.children.push(item);
   }
-
-  this.leafItemMap[item.id] = current;
-
-  parentItem.children.push(item);
 };
 
 /**
@@ -2916,8 +2926,11 @@ angular.module('obiba.mica.search')
           // added with a AND operator otherwise it is a OR
           if (!logicalOp && query.args && query.args.length > 0) {
             var targetTaxo = 'Mica_' + parentQuery.name;
-            var criteriaVocabulary = query.name === 'match' ? query.args[1] : query.args[0];
-            logicalOp = criteriaVocabulary.startsWith(targetTaxo + '.') ? RQL_NODE.AND : RQL_NODE.OR;
+
+            if (query.args.length > 1) {
+              var criteriaVocabulary = query.name === 'match' ? query.args[1] : query.args[0];
+              logicalOp = criteriaVocabulary.startsWith(targetTaxo + '.') ? RQL_NODE.AND : RQL_NODE.OR;
+            }
           }
           var orQuery = new RqlQuery(logicalOp || RQL_NODE.AND);
           orQuery.args.push(oldArg, query);
@@ -4314,9 +4327,11 @@ angular.module('obiba.mica.search')
           template = angular.element('<criterion-dropdown criterion="item" query="query"></criterion-dropdown>');
         }
 
-        $compile(template)(scope, function(cloned){
-          element.replaceWith(cloned);
-        });
+        if (scope.item.rqlQuery.args) {
+          $compile(template)(scope, function(cloned){
+            element.replaceWith(cloned);
+          });
+        }
       }
     };
 
@@ -5679,26 +5694,31 @@ angular.module('obiba.mica.search')
         refreshQuery();
       });
 
-      //@TODO Need some work to better build the text search query using an match-multifield (match(stringQuery,field1,field2,..)
+      //@TODO Need some work to better build the text search query using an match-multifield (match((text1,text2,..))
       // it may be an Rql part out of facet match string query
       $rootScope.$on('ngObibaMicaSearch.searchChange', function (event, searchFilter) {
-        var test = ['objectives', 'name'];
-        var item;
-        RqlQueryService.getTaxonomyByTarget($scope.target).then(function (taxonomies) {
-          var taxonomy = taxonomies[0];
-          var vocabularies = [];
-          if (taxonomy.vocabularies) {
-            vocabularies = taxonomy.vocabularies.filter(function (vocabulary) {
-              return test.indexOf(vocabulary.name) > -1;
-            });
-          }
-          vocabularies.forEach(function (vocabulary) {
-            item = RqlQueryService.createCriteriaItem($scope.target, taxonomy, vocabulary, null, $scope.lang);
-            item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
-            RqlQueryUtils.updateMatchQuery(item.rqlQuery, searchFilter);
-            selectCriteria(item, null, true);
-          });
-        });
+
+        var matchQuery = {
+          target: $scope.target,
+          rqlQuery: new RqlQuery(RQL_NODE.MATCH)
+        };
+        if (searchFilter.trim().length) {
+          var split = searchFilter.split(/[\\\/+\-&!?~*^"(){}\[\]]/);
+          matchQuery.rqlQuery.args.push(split.map(function (item) { return item.trim(); }));
+        } else {
+          matchQuery.rqlQuery.args.push(['*']);
+        }
+
+        var targetQuery = RqlQueryService.findTargetQuery($scope.target, $scope.search.rqlQuery);
+
+        var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
+        if (foundFulltextMatchQuery.length === 1) {
+          foundFulltextMatchQuery.pop().args = matchQuery.rqlQuery.args;
+        } else {
+          targetQuery.args.push(matchQuery.rqlQuery);
+        }
+
+        refreshQuery();
       });
 
       function init() {

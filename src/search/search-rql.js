@@ -411,33 +411,43 @@ CriteriaBuilder.prototype.fieldToVocabulary = function (field) {
  */
 CriteriaBuilder.prototype.visitLeaf = function (node, parentItem) {
   var match = RQL_NODE.MATCH === node.name;
-  var field = node.args[match ? 1 : 0];
-  var values = node.args[match ? 0 : 1];
 
-  var searchInfo = this.fieldToVocabulary(field);
-  var item =
-    this.buildLeafItem(searchInfo.taxonomy,
-      searchInfo.vocabulary,
-      values instanceof Array ? values : [values],
-      node,
-      parentItem);
+  if (match && node.args.length === 1) {
+    var matchItem = new CriteriaItemBuilder()
+        .type(node.name)
+        .target(parentItem.parent.type)
+        .rqlQuery(node)
+        .parent(parentItem);
 
-  var current = this.leafItemMap[item.id];
-
-  if (current) {
-    if (current.isRepeatable()) {
-      current.addItem(item);
-    } else {
-      console.error('Non-repeatable criteria items must be unique,', current.id, 'will be overwritten.');
-      current = item;
-    }
+    parentItem.children.push(matchItem);
   } else {
-    current = item.vocabulary.repeatable ? new RepeatableCriteriaItem().addItem(item) : item;
+    var field = node.args[match ? 1 : 0];
+    var values = node.args[match ? 0 : 1];
+
+    var searchInfo = this.fieldToVocabulary(field);
+    var item =
+        this.buildLeafItem(searchInfo.taxonomy,
+            searchInfo.vocabulary,
+            values instanceof Array ? values : [values],
+            node,
+            parentItem);
+
+    var current = this.leafItemMap[item.id];
+
+    if (current) {
+      if (current.isRepeatable()) {
+        current.addItem(item);
+      } else {
+        console.error('Non-repeatable criteria items must be unique,', current.id, 'will be overwritten.');
+        current = item;
+      }
+    } else {
+      current = item.vocabulary.repeatable ? new RepeatableCriteriaItem().addItem(item) : item;
+    }
+
+    this.leafItemMap[item.id] = current;
+    parentItem.children.push(item);
   }
-
-  this.leafItemMap[item.id] = current;
-
-  parentItem.children.push(item);
 };
 
 /**
@@ -765,8 +775,11 @@ angular.module('obiba.mica.search')
           // added with a AND operator otherwise it is a OR
           if (!logicalOp && query.args && query.args.length > 0) {
             var targetTaxo = 'Mica_' + parentQuery.name;
-            var criteriaVocabulary = query.name === 'match' ? query.args[1] : query.args[0];
-            logicalOp = criteriaVocabulary.startsWith(targetTaxo + '.') ? RQL_NODE.AND : RQL_NODE.OR;
+
+            if (query.args.length > 1) {
+              var criteriaVocabulary = query.name === 'match' ? query.args[1] : query.args[0];
+              logicalOp = criteriaVocabulary.startsWith(targetTaxo + '.') ? RQL_NODE.AND : RQL_NODE.OR;
+            }
           }
           var orQuery = new RqlQuery(logicalOp || RQL_NODE.AND);
           orQuery.args.push(oldArg, query);
