@@ -30,19 +30,27 @@ angular.module('obiba.mica.lists')
       var emitter = $rootScope.$new();
       $scope.selectSort = sortWidgetService.getSortOptions();
       $scope.selectOrder = sortWidgetService.getOrderOptions();
-      $scope.selectedSort =  $scope.selectSort.options[0].value;
-      $scope.selectedOrder = $scope.selectOrder.options[0].value;
+
+      $scope.selected = {
+        sort:  $scope.selectSort.options[0].value,
+        order: $scope.selectOrder.options[0].value
+      };
 
       var selectedOptions = sortWidgetService.getSortArg();
       if (selectedOptions) {
-        $scope.selectedSort = selectedOptions.selectedSort ? selectedOptions.selectedSort.value : $scope.selectSort.options[0].value;
-        $scope.selectedOrder = selectedOptions.slectedOrder ? selectedOptions.slectedOrder.value : $scope.selectOrder.options[0].value;
+        $scope.selected = {
+          sort:  selectedOptions.selectedSort ? selectedOptions.selectedSort.value : $scope.selectSort.options[0].value,
+          order: selectedOptions.slectedOrder ? selectedOptions.slectedOrder.value : $scope.selectOrder.options[0].value
+        };
       }
       $scope.radioCheked = function(){
         var sortParam = {
-          sort: $scope.selectedSort,
-          order: $scope.selectedOrder
+          sort: $scope.selected.sort,
+          order: $scope.selected.order
         };
+        if($scope.selected.sort === '_score'){
+          sortParam.order= '-';
+        }
         emitter.$emit('ngObibaMicaSearch.sortChange', sortParam);
       };
     }]);
