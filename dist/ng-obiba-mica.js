@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-10-04
+ * Date: 2017-10-05
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -10929,12 +10929,12 @@ angular.module("lists/views/input-search-widget/input-search-widget-template.htm
     "    <div class=\"row\">\n" +
     "        <div class=\"col-md-10\">\n" +
     "            <div class=\"form-group \">\n" +
-    "                <suggestion-field target=\"target\" model=\"searchFilter\" placeholder-text=\"'search'\" select=\"selectSuggestion\"></suggestion-field>\n" +
+    "                <suggestion-field target=\"target\" model=\"searchFilter\" placeholder-text=\"'global.search'\" select=\"selectSuggestion\"></suggestion-field>\n" +
     "            </div>\n" +
     "        </div>\n" +
     "        <div class=\"col-md-2 \" ng-click=\"search()\">\n" +
     "            <button class=\"btn btn-success col-md-12\">\n" +
-    "                {{\"search\" | translate}}\n" +
+    "                {{\"global.search\" | translate}}\n" +
     "                <i class=\"glyphicon glyphicon-search\"></i>\n" +
     "            </button>\n" +
     "<!--            <span class=\"btn btn-md search-help pull-right\">?</span>-->\n" +
