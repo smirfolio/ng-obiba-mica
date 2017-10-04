@@ -8430,32 +8430,28 @@ angular.module('obiba.mica.lists')
       var emitter = $rootScope.$new();
       $scope.selectSort = sortWidgetService.getSortOptions();
       $scope.selectOrder = sortWidgetService.getOrderOptions();
-      $scope.selectedSort =  $scope.selectSort.options[0].value;
-      $scope.selectedOrder = $scope.selectOrder.options[0].value;
+
+      $scope.selected = {
+        sort:  $scope.selectSort.options[0].value,
+        order: $scope.selectOrder.options[0].value
+      };
 
       var selectedOptions = sortWidgetService.getSortArg();
       if (selectedOptions) {
-        $scope.selectedSort = selectedOptions.selectedSort ? selectedOptions.selectedSort.value : $scope.selectSort.options[0].value;
-        $scope.selectedOrder = selectedOptions.slectedOrder ? selectedOptions.slectedOrder.value : $scope.selectOrder.options[0].value;
-      }
-      $scope.buttonClick = function () {
-        var sortParam ={
-          sort: '_score',
-          order: '-'
+        $scope.selected = {
+          sort:  selectedOptions.selectedSort ? selectedOptions.selectedSort.value : $scope.selectSort.options[0].value,
+          order: selectedOptions.slectedOrder ? selectedOptions.slectedOrder.value : $scope.selectOrder.options[0].value
         };
-        $scope.selectedSort = '_score';
-        $scope.selectedOrder= '-';
-        emitter.$emit('ngObibaMicaSearch.sortChange', sortParam);
-      };
-
+      }
       $scope.radioCheked = function(){
-        if($scope.selectedSort!=='_score'){
-          var sortParam ={
-            sort: $scope.selectedSort,
-            order: $scope.selectedOrder
-          };
-          emitter.$emit('ngObibaMicaSearch.sortChange', sortParam);
+        var sortParam = {
+          sort: $scope.selected.sort,
+          order: $scope.selected.order
+        };
+        if($scope.selected.sort === '_score'){
+          sortParam.order= '-';
         }
+        emitter.$emit('ngObibaMicaSearch.sortChange', sortParam);
       };
     }]);;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -11333,55 +11329,51 @@ angular.module("lists/views/search-result-list-template.html", []).run(["$templa
 angular.module("lists/views/sort-widget/sort-widget-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("lists/views/sort-widget/sort-widget-template.html",
     "<div class=\"sortwidget\">\n" +
-    "        <label for=\"search-sort\">{{\"global.sort-by\" | translate}}  {{selectSort | getLabel:selectedSort | translate}}</label>\n" +
+    "        <label for=\"search-sort\">{{\"global.sort-by\" | translate}}  {{selectSort | getLabel:selected.sort | translate}}</label>\n" +
     "        <span class=\"btn-group dropdown\" >\n" +
     "           <button id=\"SortOrder\"  type=\"button\" class=\"btn btn-primary dropdown-toggle\"\n" +
     "                   data-toggle=\"dropdown\" >\n" +
-    "               <i ng-if=\"selectedOrder=='-'\"\n" +
+    "               <i ng-if=\"selected.order=='-' || selected.sort===selectSort.options[0].value\"\n" +
     "                  class=\"glyphicon glyphicon-sort-by-attributes-alt\"></i>\n" +
-    "               <i ng-if=\"selectedOrder==''\"\n" +
+    "               <i ng-if=\"selected.order=='' && selected.sort!==selectSort.options[0].value\"\n" +
     "                  class=\"glyphicon glyphicon-sort-by-attributes\"></i>\n" +
     "           </button>\n" +
-    "           <span class=\"dropdown-menu\" role=\"menu\" uib-dropdown-menu aria-labelledby=\"SortOrder\">\n" +
+    "           <span class=\"dropdown-menu pull-right\" role=\"menu\" uib-dropdown-menu aria-labelledby=\"SortOrder\">\n" +
     "               <form class=\"form-inline\">\n" +
-    "                <span class=\"list-group\">\n" +
-    "                    <span class=\"list-group-item text-center\">\n" +
-    "                                <button\n" +
-    "                                       ng-model=\"selectedSort\"\n" +
-    "                                       ng-click=\"buttonClick(selectSort.options[0].value)\"\n" +
-    "                                       ng-class=\"{'active': selectedSort===selectSort.options[0].value}\"\n" +
-    "                                       class=\"btn btn-primary btn-xs\">\n" +
-    "                                    <span>{{\"global.sort-by\" | translate}}</span> {{selectSort.options[0].label | translate}}\n" +
-    "                                </button>\n" +
+    "                    <span class=\"list-group\">\n" +
+    "                        <table class=\"table table-hover\">\n" +
     "\n" +
-    "                       </span>\n" +
-    "                       <span class=\"list-group-item text-center\">\n" +
-    "                                <span ng-repeat=\"optionorder in selectOrder.options\">\n" +
-    "                                    <label ng-class=\"{'disabled': $parent.selectedSort===selectSort.options[0].value}\">\n" +
-    "                                        <i ng-if=\"optionorder.value=='-'\"\n" +
-    "                                           class=\"fa fa-long-arrow-down\"></i>\n" +
-    "                                        <i ng-if=\"optionorder.value==''\"\n" +
-    "                                           class=\"fa fa-long-arrow-up\"></i>\n" +
-    "                                    </label>\n" +
-    "                                    <input type=\"radio\"\n" +
-    "                                           ng-model=\"$parent.selectedOrder\"\n" +
-    "                                           ng-value=\"optionorder.value\"\n" +
-    "                                           name=\"search-order\"\n" +
-    "                                           ng-disabled=\"$parent.selectedSort===selectSort.options[0].value\"\n" +
-    "                                           ng-change=\"radioCheked()\">\n" +
-    "                                </span>\n" +
-    "                       </span>\n" +
-    "                       <span class=\"list-group-item\"\n" +
-    "                             ng-repeat=\"option in selectSort.options\" ng-show=\"$index !== 0\">\n" +
-    "                                <input\n" +
+    "                              <tr  ng-repeat=\"option in selectSort.options\">\n" +
+    "\n" +
+    "                               <td>\n" +
+    "                                   <input\n" +
     "                                       type=\"radio\"\n" +
-    "                                       ng-model=\"$parent.selectedSort\"\n" +
+    "                                       ng-model=\"selected.sort\"\n" +
     "                                       ng-value=\"option.value\"\n" +
     "                                       name=\"search-sort\"\n" +
     "                                       ng-change=\"radioCheked()\">\n" +
-    "                                <label  translate>{{option.label}}</label>\n" +
-    "                       </span>\n" +
-    "                </span>\n" +
+    "                                    <label  translate>{{option.label}}</label>\n" +
+    "                               </td>\n" +
+    "                               <td >\n" +
+    "                                   <span ng-if=\"selected.sort===option.value && selected.sort!==selectSort.options[0].value\">\n" +
+    "                                        <span ng-repeat=\"optionorder in selectOrder.options\">\n" +
+    "                                            <label>\n" +
+    "                                                <i ng-if=\"optionorder.value=='-'\"\n" +
+    "                                                   class=\"fa fa-long-arrow-down\"></i>\n" +
+    "                                                <i ng-if=\"optionorder.value==''\"\n" +
+    "                                                   class=\"fa fa-long-arrow-up\"></i>\n" +
+    "                                            </label>\n" +
+    "                                            <input type=\"radio\"\n" +
+    "                                                   ng-model=\"selected.order\"\n" +
+    "                                                   ng-value=\"optionorder.value\"\n" +
+    "                                                   name=\"search-order\"\n" +
+    "                                                   ng-change=\"radioCheked()\">\n" +
+    "                                        </span>\n" +
+    "                                   </span>\n" +
+    "                               </td>\n" +
+    "                           </tr>\n" +
+    "                        </table>\n" +
+    "                    </span>\n" +
     "               </form>\n" +
     "            </span>\n" +
     "        </span>\n" +
