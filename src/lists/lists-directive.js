@@ -10,6 +10,8 @@
 
 'use strict';
 
+/* global typeToTarget */
+
 angular.module('obiba.mica.lists')
   .directive('listSortWidget', [function () {
     return {
@@ -32,8 +34,8 @@ angular.module('obiba.mica.lists')
     };
   }])
 
-  .directive('suggestionField', ['DocumentSuggestionResource', '$translate',
-    function (DocumentSuggestionResource, $translate) {
+  .directive('suggestionField', ['$location', 'DocumentSuggestionResource', '$translate','RqlQueryService',
+    function ($location, DocumentSuggestionResource, $translate, RqlQueryService) {
       return {
         restrict: 'EA',
         replace: true,
@@ -47,6 +49,13 @@ angular.module('obiba.mica.lists')
         link: function (scope) {
           scope.suggest = function (query) {
             if (scope.target && query && query.length > 1) {
+              var rql = RqlQueryService.parseQuery($location.search().query);
+              var targetQuery = RqlQueryService.findTargetQuery(typeToTarget(scope.target), rql);
+              var classNameQuery = RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className');
+              if (classNameQuery) {
+                query = 'className:' + classNameQuery.args[1] + ' AND (' + query + ')';
+              }
+
               return DocumentSuggestionResource.query({locale: $translate.use(), documentType: scope.target, query: query})
                   .$promise.then(function (response) { return Array.isArray(response) ? response : []; });
             } else {
