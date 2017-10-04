@@ -1091,6 +1091,32 @@ angular.module('obiba.mica.search')
         }).pop();
       }
 
+      function findQueryInTargetByVocabulary(target, vocabulary) {
+        if (!target) {
+          return null;
+        }
+
+        function search(parent, rx, result) {
+          return parent.args.some(function(arg) {
+            if (null !== rx.exec(arg)) {
+              result.parent = parent;
+              return true;
+            }
+
+            if (arg instanceof RqlQuery) {
+              return search(arg, rx, result);
+            }
+
+            return false;
+
+          });
+        }
+
+        var result = {};
+        search(target, new RegExp('\\.'+vocabulary+'$'), result);
+        return result.parent;
+      }
+
       function getSourceFields(context, target) {
         switch (context) {
           case DISPLAY_TYPES.LIST:
@@ -1123,6 +1149,7 @@ angular.module('obiba.mica.search')
       this.findCriteriaItemFromTree = findCriteriaItemFromTree;
       this.findTargetCriteria = findTargetCriteria;
       this.findTargetQuery = findTargetQuery;
+      this.findQueryInTargetByVocabulary = findQueryInTargetByVocabulary;
 
       function isLeafCriteria(item) {
         switch (item.type) {

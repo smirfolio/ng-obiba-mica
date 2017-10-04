@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-10-03
+ * Date: 2017-10-04
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -3242,6 +3242,32 @@ angular.module('obiba.mica.search')
         }).pop();
       }
 
+      function findQueryInTargetByVocabulary(target, vocabulary) {
+        if (!target) {
+          return null;
+        }
+
+        function search(parent, rx, result) {
+          return parent.args.some(function(arg) {
+            if (null !== rx.exec(arg)) {
+              result.parent = parent;
+              return true;
+            }
+
+            if (arg instanceof RqlQuery) {
+              return search(arg, rx, result);
+            }
+
+            return false;
+
+          });
+        }
+
+        var result = {};
+        search(target, new RegExp('\\.'+vocabulary+'$'), result);
+        return result.parent;
+      }
+
       function getSourceFields(context, target) {
         switch (context) {
           case DISPLAY_TYPES.LIST:
@@ -3274,6 +3300,7 @@ angular.module('obiba.mica.search')
       this.findCriteriaItemFromTree = findCriteriaItemFromTree;
       this.findTargetCriteria = findTargetCriteria;
       this.findTargetQuery = findTargetQuery;
+      this.findQueryInTargetByVocabulary = findQueryInTargetByVocabulary;
 
       function isLeafCriteria(item) {
         switch (item.type) {
@@ -8430,6 +8457,8 @@ angular.module('obiba.mica.lists')
 
 'use strict';
 
+/* global typeToTarget */
+
 angular.module('obiba.mica.lists')
   .directive('listSortWidget', [function () {
     return {
@@ -8452,8 +8481,8 @@ angular.module('obiba.mica.lists')
     };
   }])
 
-  .directive('suggestionField', ['DocumentSuggestionResource', '$translate',
-    function (DocumentSuggestionResource, $translate) {
+  .directive('suggestionField', ['$location', 'DocumentSuggestionResource', '$translate','RqlQueryService',
+    function ($location, DocumentSuggestionResource, $translate, RqlQueryService) {
       return {
         restrict: 'EA',
         replace: true,
@@ -8467,6 +8496,13 @@ angular.module('obiba.mica.lists')
         link: function (scope) {
           scope.suggest = function (query) {
             if (scope.target && query && query.length > 1) {
+              var rql = RqlQueryService.parseQuery($location.search().query);
+              var targetQuery = RqlQueryService.findTargetQuery(typeToTarget(scope.target), rql);
+              var classNameQuery = RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className');
+              if (classNameQuery) {
+                query = 'className:' + classNameQuery.args[1] + ' AND (' + query + ')';
+              }
+
               return DocumentSuggestionResource.query({locale: $translate.use(), documentType: scope.target, query: query})
                   .$promise.then(function (response) { return Array.isArray(response) ? response : []; });
             } else {
