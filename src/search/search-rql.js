@@ -567,10 +567,11 @@ angular.module('obiba.mica.search')
           case RQL_NODE.LT:
           case RQL_NODE.LE:
           case RQL_NODE.BETWEEN:
-          case RQL_NODE.MATCH:
           case RQL_NODE.EXISTS:
           case RQL_NODE.MISSING:
             return true;
+          case RQL_NODE.MATCH:
+            return query.args.length > 1;
         }
 
         return false;
@@ -1790,8 +1791,10 @@ angular.module('obiba.mica.search')
         function inner(criteria, id) {
           var result;
           if(criteria.id === id) { return criteria; }
-          for(var i = criteria.children.length; i--;){
-            result = inner(criteria.children[i], id);
+          var children = criteria.children.filter(function (childCriterion) { return childCriterion instanceof CriteriaItem; });
+
+          for(var i = children.length; i--;){
+            result = inner(children[i], id);
 
             if (result) {return result;}
           }
