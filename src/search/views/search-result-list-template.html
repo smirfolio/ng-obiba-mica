@@ -8,7 +8,7 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
-<div ng-show="display === 'list'">
+<div ng-show="display === 'list'" class="list-table">
     <ul class="nav nav-pills pull-left voffset2" test-ref="search-counts">
         <li role="presentation" ng-repeat="res in resultTabsOrder"
             ng-class="{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}"

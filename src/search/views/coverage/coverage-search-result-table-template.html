@@ -3,11 +3,11 @@
   <div ng-if="hasVariableTarget()">
     <ul class="nav nav-pills pull-left">
       <li ng-if="groupByOptions.canShowStudy()"
-        ng-class="{'active': bucket.startsWith('study') || bucket.startsWith('dce')}">
+        ng-class="{'active': bucket.startsWith('study') || bucket.startsWith('dce')}" class="studies">
         <a href ng-click="selectTab('study')" translate>{{groupByOptions.studyTitle()}}</a>
       </li>
       <li ng-if="groupByOptions.canShowDataset()"
-        ng-class="{'active': bucket.startsWith('dataset')}">
+        ng-class="{'active': bucket.startsWith('dataset')}" class="datasets">
         <a href ng-click="selectTab('dataset')" translate>{{groupByOptions.datasetTitle()}}</a>
       </li>
     </ul>

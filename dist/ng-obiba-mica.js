@@ -11798,7 +11798,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
   $templateCache.put("search/views/classifications/taxonomies-view.html",
     "<div class=\"collapse\">\n" +
     "  <div class=\"voffset2\">\n" +
-    "    <div class=\"panel panel-default\">\n" +
+    "    <div class=\"search-browser panel panel-default\">\n" +
     "      <div class=\"panel-heading no-padding-top no-padding-bottom\">\n" +
     "        <div class=\"row no-padding\">\n" +
     "          <div class=\"col-md-8\">\n" +
@@ -12125,11 +12125,11 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "  <div ng-if=\"hasVariableTarget()\">\n" +
     "    <ul class=\"nav nav-pills pull-left\">\n" +
     "      <li ng-if=\"groupByOptions.canShowStudy()\"\n" +
-    "        ng-class=\"{'active': bucket.startsWith('study') || bucket.startsWith('dce')}\">\n" +
+    "        ng-class=\"{'active': bucket.startsWith('study') || bucket.startsWith('dce')}\" class=\"studies\">\n" +
     "        <a href ng-click=\"selectTab('study')\" translate>{{groupByOptions.studyTitle()}}</a>\n" +
     "      </li>\n" +
     "      <li ng-if=\"groupByOptions.canShowDataset()\"\n" +
-    "        ng-class=\"{'active': bucket.startsWith('dataset')}\">\n" +
+    "        ng-class=\"{'active': bucket.startsWith('dataset')}\" class=\"datasets\">\n" +
     "        <a href ng-click=\"selectTab('dataset')\" translate>{{groupByOptions.datasetTitle()}}</a>\n" +
     "      </li>\n" +
     "    </ul>\n" +
@@ -12993,7 +12993,7 @@ angular.module("search/views/search-result-graphics-template.html", []).run(["$t
     "  -->\n" +
     "\n" +
     "<div ng-show=\"display === 'graphics'\">\n" +
-    "  <graphics-result on-update-criteria=\"onUpdateCriteria\" result=\"result.graphics\" loading=\"loading\" class=\"voffset2\"></graphics-result>\n" +
+    "  <graphics-result on-update-criteria=\"onUpdateCriteria\" result=\"result.graphics\" loading=\"loading\" class=\"voffset2 graphics-tab\"></graphics-result>\n" +
     "</div>");
 }]);
 
@@ -13065,7 +13065,7 @@ angular.module("search/views/search-result-list-template.html", []).run(["$templ
     "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
     "  -->\n" +
     "\n" +
-    "<div ng-show=\"display === 'list'\">\n" +
+    "<div ng-show=\"display === 'list'\" class=\"list-table\">\n" +
     "    <ul class=\"nav nav-pills pull-left voffset2\" test-ref=\"search-counts\">\n" +
     "        <li role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
     "            ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}\"\n" +
