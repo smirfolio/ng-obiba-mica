@@ -2718,10 +2718,11 @@ angular.module('obiba.mica.search')
           case RQL_NODE.LT:
           case RQL_NODE.LE:
           case RQL_NODE.BETWEEN:
-          case RQL_NODE.MATCH:
           case RQL_NODE.EXISTS:
           case RQL_NODE.MISSING:
             return true;
+          case RQL_NODE.MATCH:
+            return query.args.length > 1;
         }
 
         return false;
@@ -3941,8 +3942,10 @@ angular.module('obiba.mica.search')
         function inner(criteria, id) {
           var result;
           if(criteria.id === id) { return criteria; }
-          for(var i = criteria.children.length; i--;){
-            result = inner(criteria.children[i], id);
+          var children = criteria.children.filter(function (childCriterion) { return childCriterion instanceof CriteriaItem; });
+
+          for(var i = children.length; i--;){
+            result = inner(children[i], id);
 
             if (result) {return result;}
           }
@@ -4802,6 +4805,7 @@ angular.module('obiba.mica.search')
     'CoverageGroupByService',
     'TaxonomyUtils',
     'LocaleStringUtils',
+    'StringUtils',
     function ($scope,
               $rootScope,
               $timeout,
@@ -4826,7 +4830,8 @@ angular.module('obiba.mica.search')
               SearchContext,
               CoverageGroupByService,
               TaxonomyUtils,
-              LocaleStringUtils) {
+              LocaleStringUtils,
+              StringUtils) {
 
       $scope.options = ngObibaMicaSearch.getOptions();
       var cookiesSearchHelp = 'micaHideSearchHelpText';
@@ -5094,16 +5099,6 @@ angular.module('obiba.mica.search')
         return false;
       }
 
-      function quoteQuery(query) {
-        query = query.trim();
-
-        if (query.match(/\s+/)) {
-          return '"'+query.replace(/^"|"$/g, '').replace(/"/, '\"')+'"';
-        }
-
-        return query;
-      }
-
       var clearSearchQuery = function () {
         var search = $location.search();
         delete search.query;
@@ -5368,7 +5363,7 @@ angular.module('obiba.mica.search')
         }
 
         var criteria = TaxonomiesSearchResource.get({
-          query: quoteQuery(query), locale: $scope.lang, target: $scope.documents.search.target
+          query: StringUtils.quoteQuery(query), locale: $scope.lang, target: $scope.documents.search.target
         }).$promise.then(function (response) {
           if (response) {
             var results = [];
@@ -5729,9 +5724,10 @@ angular.module('obiba.mica.search')
           target: $scope.target,
           rqlQuery: new RqlQuery(RQL_NODE.MATCH)
         };
-        if (searchFilter.trim().length) {
-          var split = searchFilter.split(/[\\\/+\-&!?~*^"(){}\[\]]/);
-          matchQuery.rqlQuery.args.push(split.map(function (item) { return item.trim(); }));
+
+        var trimmedQuery = searchFilter.trim();
+        if (trimmedQuery.length) {
+          matchQuery.rqlQuery.args.push([trimmedQuery]);
         } else {
           matchQuery.rqlQuery.args.push(['*']);
         }
@@ -8412,12 +8408,12 @@ angular.module('obiba.mica.lists')
 
 angular.module('obiba.mica.lists')
 
-  .controller('listSearchWidgetController', ['$scope', '$rootScope',
-    function ($scope, $rootScope) {
+  .controller('listSearchWidgetController', ['$scope', '$rootScope', 'StringUtils',
+    function ($scope, $rootScope, StringUtils) {
       var emitter = $rootScope.$new();
 
       $scope.selectSuggestion = function (suggestion) {
-        emitter.$emit('ngObibaMicaSearch.searchChange', suggestion);
+        emitter.$emit('ngObibaMicaSearch.searchChange', StringUtils.quoteQuery(suggestion));
       };
 
       $scope.search = function() {
@@ -10948,7 +10944,7 @@ angular.module("lists/views/input-search-widget/suggestion-field.html", []).run(
   $templateCache.put("lists/views/input-search-widget/suggestion-field.html",
     "<input type=\"text\" ng-model=\"model\" ng-attr-placeholder=\"{{placeholderText | translate}}\"\n" +
     "       uib-typeahead=\"suggestion for suggestion in suggest($viewValue)\"\n" +
-    "       typeahead-wait-ms=\"500\" typeahead-on-select=\"select($item)\"\n" +
+    "       typeahead-wait-ms=\"250\" typeahead-focus-first=\"false\" typeahead-on-select=\"select($item)\"\n" +
     "       class=\"form-control\">");
 }]);
 

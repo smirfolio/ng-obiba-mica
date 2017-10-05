@@ -12,12 +12,12 @@
 
 angular.module('obiba.mica.lists')
 
-  .controller('listSearchWidgetController', ['$scope', '$rootScope',
-    function ($scope, $rootScope) {
+  .controller('listSearchWidgetController', ['$scope', '$rootScope', 'StringUtils',
+    function ($scope, $rootScope, StringUtils) {
       var emitter = $rootScope.$new();
 
       $scope.selectSuggestion = function (suggestion) {
-        emitter.$emit('ngObibaMicaSearch.searchChange', suggestion);
+        emitter.$emit('ngObibaMicaSearch.searchChange', StringUtils.quoteQuery(suggestion));
       };
 
       $scope.search = function() {

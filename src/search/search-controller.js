@@ -436,6 +436,7 @@ angular.module('obiba.mica.search')
     'CoverageGroupByService',
     'TaxonomyUtils',
     'LocaleStringUtils',
+    'StringUtils',
     function ($scope,
               $rootScope,
               $timeout,
@@ -460,7 +461,8 @@ angular.module('obiba.mica.search')
               SearchContext,
               CoverageGroupByService,
               TaxonomyUtils,
-              LocaleStringUtils) {
+              LocaleStringUtils,
+              StringUtils) {
 
       $scope.options = ngObibaMicaSearch.getOptions();
       var cookiesSearchHelp = 'micaHideSearchHelpText';
@@ -728,16 +730,6 @@ angular.module('obiba.mica.search')
         return false;
       }
 
-      function quoteQuery(query) {
-        query = query.trim();
-
-        if (query.match(/\s+/)) {
-          return '"'+query.replace(/^"|"$/g, '').replace(/"/, '\"')+'"';
-        }
-
-        return query;
-      }
-
       var clearSearchQuery = function () {
         var search = $location.search();
         delete search.query;
@@ -1002,7 +994,7 @@ angular.module('obiba.mica.search')
         }
 
         var criteria = TaxonomiesSearchResource.get({
-          query: quoteQuery(query), locale: $scope.lang, target: $scope.documents.search.target
+          query: StringUtils.quoteQuery(query), locale: $scope.lang, target: $scope.documents.search.target
         }).$promise.then(function (response) {
           if (response) {
             var results = [];
@@ -1363,9 +1355,10 @@ angular.module('obiba.mica.search')
           target: $scope.target,
           rqlQuery: new RqlQuery(RQL_NODE.MATCH)
         };
-        if (searchFilter.trim().length) {
-          var split = searchFilter.split(/[\\\/+\-&!?~*^"(){}\[\]]/);
-          matchQuery.rqlQuery.args.push(split.map(function (item) { return item.trim(); }));
+
+        var trimmedQuery = searchFilter.trim();
+        if (trimmedQuery.length) {
+          matchQuery.rqlQuery.args.push([trimmedQuery]);
         } else {
           matchQuery.rqlQuery.args.push(['*']);
         }
