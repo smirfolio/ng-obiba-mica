@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-10-10
+ * Date: 2017-10-11
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8436,21 +8436,39 @@ angular.module('obiba.mica.lists')
         order: $scope.selectOrder.options[0].value
       };
 
+      angular.forEach($scope.selectSort, function(sortOption){
+        $scope.selected[sortOption] = {
+          order: $scope.selectOrder.options[0].value
+        };
+      });
+
       var selectedOptions = sortWidgetService.getSortArg();
       if (selectedOptions) {
         $scope.selected = {
           sort:  selectedOptions.selectedSort ? selectedOptions.selectedSort.value : $scope.selectSort.options[0].value,
           order: selectedOptions.slectedOrder ? selectedOptions.slectedOrder.value : $scope.selectOrder.options[0].value
         };
-      }
-      $scope.radioCheked = function(){
-        var sortParam = {
-          sort: $scope.selected.sort,
-          order: $scope.selected.order
+
+        $scope.selected[selectedOptions.selectedSort.value] = {
+          order: selectedOptions.slectedOrder ? selectedOptions.slectedOrder.value : $scope.selectOrder.options[0].value
         };
-        if($scope.selected.sort === '_score'){
-          sortParam.order= '-';
-        }
+      }
+      var sortParam;
+      $scope.radioCheked = function (selectedSort) {
+        angular.forEach($scope.selectSort.options, function (sortOption) {
+          if (selectedSort === sortOption.value) {
+            sortParam = {
+              sort: selectedSort,
+              order: $scope.selected[sortOption.value].order
+            };
+            $scope.selected.order = $scope.selected[sortOption.value].order;
+          }
+          else {
+            $scope.selected[sortOption.value] = null;
+          }
+        });
+
+        $scope.selected.sort = selectedSort;
         emitter.$emit('ngObibaMicaSearch.sortChange', sortParam);
       };
     }]);;/*
@@ -10984,10 +11002,8 @@ angular.module("lists/views/list/datasets-search-result-table-template.html", []
     "                       markdown-it=\"true\"\n" +
     "                       lang=\"lang\"></localized>\n" +
     "              </p>\n" +
+    "              <a href=\"{{PageUrlService.datasetPage(summary.id, summary.variableType)}}\" class=\"read-more-btn\">{{\"read-more\" | translate}}</a>\n" +
     "              <div class=\"clear-fix\"></div>\n" +
-    "              <a href=\"{{PageUrlService.datasetPage(summary.id, summary.variableType)}}\"\n" +
-    "                 class=\"btn btn-primary btn-xs sm-top-margin\">Read\n" +
-    "                  More</a>\n" +
     "              <div class=\"sm-top-margin countDetail\">\n" +
     "                  {{counts=summary['obiba.mica.CountStatsDto.datasetCountStats'];\"\"}}\n" +
     "                  <a ng-if=\"counts.networks\"\n" +
@@ -11064,10 +11080,8 @@ angular.module("lists/views/list/networks-search-result-table-template.html", []
     "                                       ellipsis-size=\"250\"\n" +
     "                                       markdown-it=\"true\"></localized>\n" +
     "                        </p>\n" +
+    "                        <a href=\"{{'network/' + summary.id | getBaseUrl}}\" class=\"read-more-btn\">{{\"read-more\" | translate}}</a>\n" +
     "                        <div class=\"clear-fix\"></div>\n" +
-    "                        <a href=\"{{'network/' + summary.id | getBaseUrl}}\"\n" +
-    "                           class=\"btn btn-primary btn-xs sm-top-margin\">Read\n" +
-    "                            More</a>\n" +
     "                        <div class=\"sm-top-margin countDetail\">\n" +
     "                            {{counts=summary['obiba.mica.CountStatsDto.networkCountStats'];\"\"}}\n" +
     "                            <a ng-if=\"counts.individualStudies\"\n" +
@@ -11161,13 +11175,6 @@ angular.module("lists/views/list/studies-search-result-table-template.html", [])
     "        <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
     "\n" +
     "            <table class=\"table \" ng-init=\"lang = $parent.$parent.lang\">\n" +
-    "                <thead>\n" +
-    "                <tr>\n" +
-    "                    <th width=\"15%\"></th>\n" +
-    "                    <th><span translate>study.name</span> & <span translate>study.description</span></th>\n" +
-    "                    <th width=\"15%\" translate>search.study.participants</th>\n" +
-    "                </tr>\n" +
-    "                </thead>\n" +
     "                <tbody>\n" +
     "                <tr ng-repeat=\"summary in summaries\"\n" +
     "                    ng-init=\"lang = $parent.$parent.lang; studyPath= summary.studyResourcePath=='individual-study'?'individual-study':'harmonization-study'\">\n" +
@@ -11197,20 +11204,22 @@ angular.module("lists/views/list/studies-search-result-table-template.html", [])
     "                            <localized value=\"summary.objectives\" lang=\"lang\"\n" +
     "                                       markdown-it=\"true\"></localized>\n" +
     "                        </p>\n" +
+    "                        <a href=\"{{'study/' + summary.id | getBaseUrl}}\" class=\"read-more-btn\">{{\"read-more\" | translate}}</a>\n" +
     "                        <div class=\"clear-fix\"></div>\n" +
-    "                        <a href=\"{{'study/' + summary.id | getBaseUrl}}\"\n" +
-    "                           class=\"btn btn-primary btn-xs sm-top-margin\">Read\n" +
-    "                            More</a>\n" +
     "                        <div ng-if=\"options.obibaListOptions.studiesSupplInfoDetails\">\n" +
     "                            <blockquote-small\n" +
     "                                    ng-if=\"summary.design || summary.targetNumber.noLimit\"\n" +
     "                                    class=\"help-block\">\n" +
     "                                <span ng-if=\"summary.design\">\n" +
     "                                {{\"search.study.design\" | translate}} : {{ summary.design === undefined ? '-' : 'study_taxonomy.vocabulary.methods-design.term.' + summary.design + '.title' | translate}}\n" +
+    "                                </span> -\n" +
+    "                                <span ng-if=\"summary.targetNumber.number\">\n" +
+    "                                 {{\"numberOfParticipants.participants\" | translate}} : <localized-number\n" +
+    "                                        value=\"summary.targetNumber.number\"></localized-number>\n" +
     "                                </span>\n" +
     "                                <span ng-if=\"summary.targetNumber.noLimit\">\n" +
     "                                    <span ng-if=\"summary.design\">; </span>\n" +
-    "                                    {{\"numberOfParticipants.participants\" | translate}} : {{\"numberOfParticipants.no-limit\" | translate}}\n" +
+    "                                    {{\"numberOfParticipants.no-limit\" | translate}}\n" +
     "                                </span>\n" +
     "                            </blockquote-small>\n" +
     "                            <div class=\"sm-top-margin\">\n" +
@@ -11235,15 +11244,6 @@ angular.module("lists/views/list/studies-search-result-table-template.html", [])
     "                                    {{datasetsCount>1?\"datasets\":\"dataset.details\"\n" +
     "                                    | translate}}\n" +
     "                                </a>\n" +
-    "                                <a ng-if=\"counts.variables\"\n" +
-    "                                   href=\"{{'variables' | doSearchQuery:'study(in(Mica_study.id,' + summary.id + '))'}}\"\n" +
-    "                                   class=\"btn btn-default btn-xxs\"\n" +
-    "                                   test-ref=\"variableCount\">\n" +
-    "                                    <localized-number\n" +
-    "                                            value=\"counts.variables\"></localized-number>\n" +
-    "                                    {{counts.variables>1?\"variables\":\"search.variable.facet-label\"\n" +
-    "                                    | translate}}\n" +
-    "                                </a>\n" +
     "                                <a ng-if=\"counts.studyVariables\"\n" +
     "                                   href=\"{{'variables' | doSearchQuery:'study(in(Mica_study.id,' + summary.id + ')),variable(in(Mica_variable.variableType,Collected))'}}\"\n" +
     "                                   class=\"btn btn-default btn-xxs\"\n" +
@@ -11264,10 +11264,6 @@ angular.module("lists/views/list/studies-search-result-table-template.html", [])
     "                                </a>\n" +
     "                            </div>\n" +
     "                        </div>\n" +
-    "                    </td>\n" +
-    "                    <td ng-if=\"summary.targetNumber.number\">\n" +
-    "                        <localized-number\n" +
-    "                                value=\"summary.targetNumber.number\"></localized-number>\n" +
     "                    </td>\n" +
     "                </tr>\n" +
     "                </tbody>\n" +
@@ -11360,23 +11356,25 @@ angular.module("lists/views/sort-widget/sort-widget-template.html", []).run(["$t
     "                                       ng-model=\"selected.sort\"\n" +
     "                                       ng-value=\"option.value\"\n" +
     "                                       name=\"search-sort\"\n" +
-    "                                       ng-change=\"radioCheked()\">\n" +
+    "                                       class=\"hide\">\n" +
     "                                    <label  translate>{{option.label}}</label>\n" +
     "                               </td>\n" +
-    "                               <td >\n" +
-    "                                   <span ng-if=\"selected.sort===option.value && selected.sort!==selectSort.options[0].value\">\n" +
+    "                               <td width=\"25%\">\n" +
+    "                                   <span >\n" +
     "                                        <span ng-repeat=\"optionorder in selectOrder.options\">\n" +
-    "                                            <label>\n" +
+    "                                            <span ng-class=\"{'pull-right':optionorder.value=='-','pull-left':optionorder.value==''}\">\n" +
+    "                                            <label >\n" +
     "                                                <i ng-if=\"optionorder.value=='-'\"\n" +
     "                                                   class=\"fa fa-long-arrow-down\"></i>\n" +
-    "                                                <i ng-if=\"optionorder.value==''\"\n" +
+    "                                                <i ng-if=\"optionorder.value=='' && option.value!==selectSort.options[0].value\"\n" +
     "                                                   class=\"fa fa-long-arrow-up\"></i>\n" +
     "                                            </label>\n" +
-    "                                            <input type=\"radio\"\n" +
-    "                                                   ng-model=\"selected.order\"\n" +
-    "                                                   ng-value=\"optionorder.value\"\n" +
-    "                                                   name=\"search-order\"\n" +
-    "                                                   ng-change=\"radioCheked()\">\n" +
+    "                                                <input ng-if=\"option.value!==selectSort.options[0].value || optionorder.value=='-'\" type=\"radio\"\n" +
+    "                                                       ng-model=\"selected[option.value].order\"\n" +
+    "                                                       ng-value=\"optionorder.value\"\n" +
+    "                                                       name=\"{{'search-order' + option.value}}\"\n" +
+    "                                                       ng-change=\"radioCheked(option.value)\">\n" +
+    "                                             </span>\n" +
     "                                        </span>\n" +
     "                                   </span>\n" +
     "                               </td>\n" +

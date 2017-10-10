@@ -21,23 +21,25 @@
                                        ng-model="selected.sort"
                                        ng-value="option.value"
                                        name="search-sort"
-                                       ng-change="radioCheked()">
+                                       class="hide">
                                     <label  translate>{{option.label}}</label>
                                </td>
-                               <td >
-                                   <span ng-if="selected.sort===option.value && selected.sort!==selectSort.options[0].value">
+                               <td width="25%">
+                                   <span >
                                         <span ng-repeat="optionorder in selectOrder.options">
-                                            <label>
+                                            <span ng-class="{'pull-right':optionorder.value=='-','pull-left':optionorder.value==''}">
+                                            <label >
                                                 <i ng-if="optionorder.value=='-'"
                                                    class="fa fa-long-arrow-down"></i>
-                                                <i ng-if="optionorder.value==''"
+                                                <i ng-if="optionorder.value=='' && option.value!==selectSort.options[0].value"
                                                    class="fa fa-long-arrow-up"></i>
                                             </label>
-                                            <input type="radio"
-                                                   ng-model="selected.order"
-                                                   ng-value="optionorder.value"
-                                                   name="search-order"
-                                                   ng-change="radioCheked()">
+                                                <input ng-if="option.value!==selectSort.options[0].value || optionorder.value=='-'" type="radio"
+                                                       ng-model="selected[option.value].order"
+                                                       ng-value="optionorder.value"
+                                                       name="{{'search-order' + option.value}}"
+                                                       ng-change="radioCheked(option.value)">
+                                             </span>
                                         </span>
                                    </span>
                                </td>

@@ -19,10 +19,8 @@
                        markdown-it="true"
                        lang="lang"></localized>
               </p>
+              <a href="{{PageUrlService.datasetPage(summary.id, summary.variableType)}}" class="read-more-btn">{{"read-more" | translate}}</a>
               <div class="clear-fix"></div>
-              <a href="{{PageUrlService.datasetPage(summary.id, summary.variableType)}}"
-                 class="btn btn-primary btn-xs sm-top-margin">Read
-                  More</a>
               <div class="sm-top-margin countDetail">
                   {{counts=summary['obiba.mica.CountStatsDto.datasetCountStats'];""}}
                   <a ng-if="counts.networks"
