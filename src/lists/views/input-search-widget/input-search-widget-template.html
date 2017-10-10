@@ -1,16 +1,25 @@
 <form>
-    <div class="row">
-        <div class="col-md-10">
-            <div class="form-group ">
-                <suggestion-field target="target" model="searchFilter" placeholder-text="'global.search'" select="selectSuggestion"></suggestion-field>
-            </div>
-        </div>
-        <div class="col-md-2 " ng-click="search()">
-            <button class="btn btn-success col-md-12">
-                {{"global.search" | translate}}
-                <i class="glyphicon glyphicon-search"></i>
+  <div class="row">
+    <div class="col-md-9">
+      <div class="form-group">
+        <div class="input-group">
+          <suggestion-field target="target" model="searchFilter" placeholder-text="'global.search'"
+                            select="selectSuggestion"></suggestion-field>
+
+          <span class="input-group-btn">
+            <button type="submit" class="btn btn-sm btn-default col-md-12" ng-click="search()">
+              <i class="fa fa-search"></i>
             </button>
-<!--            <span class="btn btn-md search-help pull-right">?</span>-->
+          </span>
         </div>
+
+      </div>
     </div>
+    <div class="col-md-3">
+      <a class="btn btn-success col-md-12" href="{{target | doSearchQuery:query}}">
+        {{'search.advanced' | translate}} {{'search.title' | translate}}
+      </a>
+      <!--<span class="btn btn-md search-help pull-right">?</span>-->
+    </div>
+  </div>
 </form>
