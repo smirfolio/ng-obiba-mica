@@ -33,10 +33,8 @@
                                        ellipsis-size="250"
                                        markdown-it="true"></localized>
                         </p>
+                        <a href="{{'network/' + summary.id | getBaseUrl}}" class="read-more-btn">{{"read-more" | translate}}</a>
                         <div class="clear-fix"></div>
-                        <a href="{{'network/' + summary.id | getBaseUrl}}"
-                           class="btn btn-primary btn-xs sm-top-margin">Read
-                            More</a>
                         <div class="sm-top-margin countDetail">
                             {{counts=summary['obiba.mica.CountStatsDto.networkCountStats'];""}}
                             <a ng-if="counts.individualStudies"

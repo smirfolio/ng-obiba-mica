@@ -38,21 +38,39 @@ angular.module('obiba.mica.lists')
         order: $scope.selectOrder.options[0].value
       };
 
+      angular.forEach($scope.selectSort, function(sortOption){
+        $scope.selected[sortOption] = {
+          order: $scope.selectOrder.options[0].value
+        };
+      });
+
       var selectedOptions = sortWidgetService.getSortArg();
       if (selectedOptions) {
         $scope.selected = {
           sort:  selectedOptions.selectedSort ? selectedOptions.selectedSort.value : $scope.selectSort.options[0].value,
           order: selectedOptions.slectedOrder ? selectedOptions.slectedOrder.value : $scope.selectOrder.options[0].value
         };
-      }
-      $scope.radioCheked = function(){
-        var sortParam = {
-          sort: $scope.selected.sort,
-          order: $scope.selected.order
+
+        $scope.selected[selectedOptions.selectedSort.value] = {
+          order: selectedOptions.slectedOrder ? selectedOptions.slectedOrder.value : $scope.selectOrder.options[0].value
         };
-        if($scope.selected.sort === '_score'){
-          sortParam.order= '-';
-        }
+      }
+      var sortParam;
+      $scope.radioCheked = function (selectedSort) {
+        angular.forEach($scope.selectSort.options, function (sortOption) {
+          if (selectedSort === sortOption.value) {
+            sortParam = {
+              sort: selectedSort,
+              order: $scope.selected[sortOption.value].order
+            };
+            $scope.selected.order = $scope.selected[sortOption.value].order;
+          }
+          else {
+            $scope.selected[sortOption.value] = null;
+          }
+        });
+
+        $scope.selected.sort = selectedSort;
         emitter.$emit('ngObibaMicaSearch.sortChange', sortParam);
       };
     }]);
