@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-10-05
+ * Date: 2017-10-10
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -7130,7 +7130,6 @@ angular.module('obiba.mica.search')
                   .withData(geoStudies.entries)
                   .withTitle($filter('translate')(charOptions.geoChartOptions.title) + ' (N=' + result.studyResultDto.totalHits + ')');
                 d3Config.color = charOptions.geoChartOptions.options.colorAxis.colors;
-
                 var chartObject = {
                   geoChartOptions: {
                     directiveTitle: geoStudies.options.title,
@@ -8411,12 +8410,14 @@ angular.module('obiba.mica.lists')
 
 angular.module('obiba.mica.lists')
 
-  .controller('listSearchWidgetController', ['$scope', '$rootScope', 'StringUtils',
-    function ($scope, $rootScope, StringUtils) {
+  .controller('listSearchWidgetController', ['$scope', '$rootScope', '$location',
+    function ($scope, $rootScope, $location) {
+      $scope.query = $location.search().query;
+
       var emitter = $rootScope.$new();
 
       $scope.selectSuggestion = function (suggestion) {
-        emitter.$emit('ngObibaMicaSearch.searchChange', StringUtils.quoteQuery(suggestion));
+        emitter.$emit('ngObibaMicaSearch.searchChange', suggestion);
       };
 
       $scope.search = function() {
@@ -10925,20 +10926,29 @@ angular.module("graphics/views/tables-directive.html", []).run(["$templateCache"
 angular.module("lists/views/input-search-widget/input-search-widget-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("lists/views/input-search-widget/input-search-widget-template.html",
     "<form>\n" +
-    "    <div class=\"row\">\n" +
-    "        <div class=\"col-md-10\">\n" +
-    "            <div class=\"form-group \">\n" +
-    "                <suggestion-field target=\"target\" model=\"searchFilter\" placeholder-text=\"'global.search'\" select=\"selectSuggestion\"></suggestion-field>\n" +
-    "            </div>\n" +
-    "        </div>\n" +
-    "        <div class=\"col-md-2 \" ng-click=\"search()\">\n" +
-    "            <button class=\"btn btn-success col-md-12\">\n" +
-    "                {{\"global.search\" | translate}}\n" +
-    "                <i class=\"glyphicon glyphicon-search\"></i>\n" +
+    "  <div class=\"row\">\n" +
+    "    <div class=\"col-md-9\">\n" +
+    "      <div class=\"form-group\">\n" +
+    "        <div class=\"input-group\">\n" +
+    "          <suggestion-field target=\"target\" model=\"searchFilter\" placeholder-text=\"'global.search'\"\n" +
+    "                            select=\"selectSuggestion\"></suggestion-field>\n" +
+    "\n" +
+    "          <span class=\"input-group-btn\">\n" +
+    "            <button type=\"submit\" class=\"btn btn-sm btn-default col-md-12\" ng-click=\"search()\">\n" +
+    "              <i class=\"fa fa-search\"></i>\n" +
     "            </button>\n" +
-    "<!--            <span class=\"btn btn-md search-help pull-right\">?</span>-->\n" +
+    "          </span>\n" +
     "        </div>\n" +
+    "\n" +
+    "      </div>\n" +
     "    </div>\n" +
+    "    <div class=\"col-md-3\">\n" +
+    "      <a class=\"btn btn-success col-md-12\" href=\"{{target | doSearchQuery:query}}\">\n" +
+    "        {{'search.advanced' | translate}} {{'search.title' | translate}}\n" +
+    "      </a>\n" +
+    "      <!--<span class=\"btn btn-md search-help pull-right\">?</span>-->\n" +
+    "    </div>\n" +
+    "  </div>\n" +
     "</form>\n" +
     "");
 }]);
