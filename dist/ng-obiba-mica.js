@@ -11313,20 +11313,28 @@ angular.module("lists/views/search-result-list-template.html", []).run(["$templa
     "    </div>\n" +
     "  </div>\n" +
     "  <div class=\"clearfix\"/>\n" +
-    "  <div class=\"tab-content col-md-12\">\n" +
-    "    <ng-include include-replace ng-repeat=\"res in resultTabsOrder\"\n" +
-    "                src=\"'search/views/search-result-list-' + res + '-template.html'\"></ng-include>\n" +
-    "  </div>\n" +
-    "  <div class=\"pull-right voffset2 \">\n" +
-    "    <div ng-repeat=\"res in resultTabsOrder\" ng-show=\"activeTarget[targetTypeMap[res]].active\" class=\"inline \"\n" +
-    "         test-ref=\"pager\">\n" +
+    "\n" +
+    "  <div class=\"row\">\n" +
+    "    <div class=\"col-md-12\">\n" +
+    "      <div class=\"pull-right voffset2 \">\n" +
+    "        <div ng-repeat=\"res in resultTabsOrder\" ng-show=\"activeTarget[targetTypeMap[res]].active\" class=\"inline \"\n" +
+    "             test-ref=\"pager\">\n" +
     "      <span search-result-pagination\n" +
     "            target=\"activeTarget[targetTypeMap[res]].name\"\n" +
     "            total-hits=\"activeTarget[targetTypeMap[res]].totalHits\"\n" +
     "            on-change=\"onPaginate\">\n" +
     "      </span>\n" +
+    "        </div>\n" +
+    "      </div>\n" +
     "    </div>\n" +
+    "    <div class=\"tab-content col-md-12\">\n" +
+    "\n" +
+    "        <ng-include include-replace ng-repeat=\"res in resultTabsOrder\"\n" +
+    "                    src=\"'search/views/search-result-list-' + res + '-template.html'\"></ng-include>\n" +
+    "      </div>\n" +
+    "\n" +
     "  </div>\n" +
+    "\n" +
     "</div>\n" +
     "");
 }]);
