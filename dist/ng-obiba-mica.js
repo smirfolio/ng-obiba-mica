@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-10-11
+ * Date: 2017-10-12
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8408,11 +8408,22 @@ angular.module('obiba.mica.lists')
 
 'use strict';
 
+/* global RQL_NODE */
+
 angular.module('obiba.mica.lists')
 
-  .controller('listSearchWidgetController', ['$scope', '$rootScope', '$location',
-    function ($scope, $rootScope, $location) {
+  .controller('listSearchWidgetController', ['$scope', '$rootScope', '$location', 'RqlQueryService',
+    function ($scope, $rootScope, $location, RqlQueryService) {
       $scope.query = $location.search().query;
+
+      if ($scope.query) {
+        var targetQuery = RqlQueryService.findTargetQuery('study', RqlQueryService.parseQuery($scope.query));
+
+        var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
+        if (foundFulltextMatchQuery.length === 1) {
+          $scope.searchFilter = foundFulltextMatchQuery[0].args[0][0];
+        }
+      }
 
       var emitter = $rootScope.$new();
 

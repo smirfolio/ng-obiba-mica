@@ -10,11 +10,22 @@
 
 'use strict';
 
+/* global RQL_NODE */
+
 angular.module('obiba.mica.lists')
 
-  .controller('listSearchWidgetController', ['$scope', '$rootScope', '$location',
-    function ($scope, $rootScope, $location) {
+  .controller('listSearchWidgetController', ['$scope', '$rootScope', '$location', 'RqlQueryService',
+    function ($scope, $rootScope, $location, RqlQueryService) {
       $scope.query = $location.search().query;
+
+      if ($scope.query) {
+        var targetQuery = RqlQueryService.findTargetQuery('study', RqlQueryService.parseQuery($scope.query));
+
+        var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
+        if (foundFulltextMatchQuery.length === 1) {
+          $scope.searchFilter = foundFulltextMatchQuery[0].args[0][0];
+        }
+      }
 
       var emitter = $rootScope.$new();
 
