@@ -1372,6 +1372,16 @@ angular.module('obiba.mica.search')
           targetQuery.args.push(matchQuery.rqlQuery);
         }
 
+        // change the sort for relevance
+        $scope.search.rqlQuery = RqlQueryService.prepareSearchQueryNoFields(
+          $scope.search.display,
+          $scope.search.type,
+          $scope.search.rqlQuery,
+          $scope.search.pagination,
+          $scope.lang,
+          '-_score'
+        );
+
         refreshQuery();
       });
 

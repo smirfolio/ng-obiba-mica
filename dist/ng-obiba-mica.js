@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-10-12
+ * Date: 2017-10-13
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -5741,6 +5741,16 @@ angular.module('obiba.mica.search')
           targetQuery.args.push(matchQuery.rqlQuery);
         }
 
+        // change the sort for relevance
+        $scope.search.rqlQuery = RqlQueryService.prepareSearchQueryNoFields(
+          $scope.search.display,
+          $scope.search.type,
+          $scope.search.rqlQuery,
+          $scope.search.pagination,
+          $scope.lang,
+          '-_score'
+        );
+
         refreshQuery();
       });
 
@@ -8453,17 +8463,13 @@ angular.module('obiba.mica.lists')
         };
       });
 
-      var selectedOptions = sortWidgetService.getSortArg();
-      if (selectedOptions) {
-        $scope.selected = {
-          sort:  selectedOptions.selectedSort ? selectedOptions.selectedSort.value : $scope.selectSort.options[0].value,
-          order: selectedOptions.slectedOrder ? selectedOptions.slectedOrder.value : $scope.selectOrder.options[0].value
-        };
 
-        $scope.selected[selectedOptions.selectedSort.value] = {
-          order: selectedOptions.slectedOrder ? selectedOptions.slectedOrder.value : $scope.selectOrder.options[0].value
-        };
-      }
+      intiSelectedOptions();
+
+      $scope.$on('$locationChangeSuccess', function () {
+        intiSelectedOptions();
+      });
+
       var sortParam;
       $scope.radioCheked = function (selectedSort) {
         angular.forEach($scope.selectSort.options, function (sortOption) {
@@ -8482,6 +8488,20 @@ angular.module('obiba.mica.lists')
         $scope.selected.sort = selectedSort;
         emitter.$emit('ngObibaMicaSearch.sortChange', sortParam);
       };
+
+      function intiSelectedOptions() {
+        var selectedOptions = sortWidgetService.getSortArg();
+        if (selectedOptions) {
+          $scope.selected = {
+            sort: selectedOptions.selectedSort ? selectedOptions.selectedSort.value : $scope.selectSort.options[0].value,
+            order: selectedOptions.slectedOrder ? selectedOptions.slectedOrder.value : $scope.selectOrder.options[0].value
+          };
+
+          $scope.selected[selectedOptions.selectedSort.value] = {
+            order: selectedOptions.slectedOrder ? selectedOptions.slectedOrder.value : $scope.selectOrder.options[0].value
+          };
+        }
+      }
     }]);;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
  *
@@ -10973,7 +10993,7 @@ angular.module("lists/views/input-search-widget/input-search-widget-template.htm
     "    </div>\n" +
     "    <div class=\"col-md-3\">\n" +
     "      <a class=\"btn btn-success col-md-12\" href=\"{{target | doSearchQuery:query}}\">\n" +
-    "        {{'search.advanced' | translate}} {{'search.title' | translate}}\n" +
+    "        {{'search.advanced-button' | translate}}\n" +
     "      </a>\n" +
     "      <!--<span class=\"btn btn-md search-help pull-right\">?</span>-->\n" +
     "    </div>\n" +
