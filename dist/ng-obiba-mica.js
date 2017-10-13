@@ -8446,6 +8446,7 @@ angular.module('obiba.mica.lists')
 'use strict';
 
 /* global RQL_NODE */
+/* global typeToTarget */
 
 angular.module('obiba.mica.lists')
 
@@ -8454,7 +8455,7 @@ angular.module('obiba.mica.lists')
       $scope.query = $location.search().query;
 
       if ($scope.query) {
-        var targetQuery = RqlQueryService.findTargetQuery('study', RqlQueryService.parseQuery($scope.query));
+        var targetQuery = RqlQueryService.findTargetQuery(typeToTarget($scope.type), RqlQueryService.parseQuery($scope.query));
 
         var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
         if (foundFulltextMatchQuery.length === 1) {
@@ -8558,7 +8559,7 @@ angular.module('obiba.mica.lists')
       transclude: true,
       replace: true,
       scope: {
-        target: '='
+        type: '='
       },
       controller: 'listSearchWidgetController',
       templateUrl: 'lists/views/input-search-widget/input-search-widget-template.html'
@@ -8571,7 +8572,7 @@ angular.module('obiba.mica.lists')
         restrict: 'EA',
         replace: true,
         scope: {
-          target: '=',
+          documentType: '=',
           model: '=',
           placeholderText: '=',
           select: '='
@@ -8579,15 +8580,15 @@ angular.module('obiba.mica.lists')
         templateUrl: 'lists/views/input-search-widget/suggestion-field.html',
         link: function (scope) {
           scope.suggest = function (query) {
-            if (scope.target && query && query.length > 1) {
+            if (scope.documentType && query && query.length > 1) {
               var rql = RqlQueryService.parseQuery($location.search().query);
-              var targetQuery = RqlQueryService.findTargetQuery(typeToTarget(scope.target), rql);
+              var targetQuery = RqlQueryService.findTargetQuery(typeToTarget(scope.documentType), rql);
               var classNameQuery = RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className');
               if (classNameQuery) {
                 query = 'className:' + classNameQuery.args[1] + ' AND (' + query + ')';
               }
 
-              return DocumentSuggestionResource.query({locale: $translate.use(), documentType: scope.target, query: query})
+              return DocumentSuggestionResource.query({locale: $translate.use(), documentType: scope.documentType, query: query})
                   .$promise.then(function (response) { return Array.isArray(response) ? response : []; });
             } else {
               return [];
@@ -11006,11 +11007,11 @@ angular.module("lists/views/input-search-widget/input-search-widget-template.htm
     "    <div class=\"col-md-9\">\n" +
     "      <div class=\"form-group\">\n" +
     "        <div class=\"input-group\">\n" +
-    "          <suggestion-field target=\"target\" model=\"searchFilter\" placeholder-text=\"'global.search'\"\n" +
+    "          <suggestion-field document-type=\"type\" model=\"searchFilter\" placeholder-text=\"'global.search'\"\n" +
     "                            select=\"selectSuggestion\"></suggestion-field>\n" +
     "\n" +
     "          <span class=\"input-group-btn\">\n" +
-    "            <button type=\"submit\" class=\"btn btn-sm btn-default col-md-12\" ng-click=\"search()\">\n" +
+    "            <button type=\"submit\" class=\"btn btn-default col-md-12\" ng-click=\"search()\">\n" +
     "              <i class=\"fa fa-search\"></i>\n" +
     "            </button>\n" +
     "          </span>\n" +
@@ -11400,7 +11401,7 @@ angular.module("lists/views/search-result-list-template.html", []).run(["$templa
     "\n" +
     "<div ng-show=\"options.obibaListOptions.searchForm\" class=\"list-search-widget\">\n" +
     "  <div>\n" +
-    "    <list-search-widget target=\"type\"></list-search-widget>\n" +
+    "    <list-search-widget type=\"type\"></list-search-widget>\n" +
     "  </div>\n" +
     "</div>\n" +
     "<div ng-show=\"display === 'list'\" class=\"row \">\n" +
