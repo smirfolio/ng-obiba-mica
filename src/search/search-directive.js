@@ -502,16 +502,17 @@ angular.module('obiba.mica.search')
         query: '=',
         advanced: '=',
         onRemove: '=',
-        onRefresh: '='
+        onRefresh: '=',
+        isFacetted: '='
       },
       templateUrl: 'search/views/criteria/criteria-root-template.html',
-      link: function(scope) {
-        scope.$on(CRITERIA_ITEM_EVENT.deleted, function(event, item){
-          scope.onRemove(item);
+      link: function($scope) {
+        $scope.$on(CRITERIA_ITEM_EVENT.deleted, function(event, item){
+          $scope.onRemove(item);
         });
 
-        scope.$on(CRITERIA_ITEM_EVENT.refresh, function(){
-          scope.onRefresh();
+        $scope.$on(CRITERIA_ITEM_EVENT.refresh, function(){
+          $scope.onRefresh();
         });
       }
     };
@@ -576,12 +577,23 @@ angular.module('obiba.mica.search')
       templateUrl: 'search/views/criteria/criterion-numeric-template.html'
     };
   }])
-
+  .directive('searchCriteriaRegion', ['ngObibaMicaSearchTemplateUrl', function(ngObibaMicaSearchTemplateUrl){
+    return {
+      restrict: 'EA',
+      replace: true,
+      scope: {
+        options: '=',
+        search: '='
+      },
+      controller: 'searchCriteriaRegionController',
+      templateUrl: ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchCriteriaRegionTemplate')
+    };
+  }])
   /**
    * This directive serves as the container for each time of criterion based on a vocabulary type.
    * Specialize contents types as directives and share the state with this container.
    */
-  .directive('criterionDropdown', ['$document', '$timeout', function ($document, $timeout) {
+  .directive('criterionDropdown', ['$document', '$timeout', 'ngObibaMicaSearchTemplateUrl', function ($document, $timeout, ngObibaMicaSearchTemplateUrl) {
     return {
       restrict: 'EA',
       replace: true,
@@ -590,7 +602,7 @@ angular.module('obiba.mica.search')
         query: '='
       },
       controller: 'CriterionDropdownController',
-      templateUrl: 'search/views/criteria/criterion-dropdown-template.html',//
+      templateUrl: ngObibaMicaSearchTemplateUrl.getTemplateUrl('CriterionDropdownTemplate'),
       link: function( $scope, $element){
         var onDocumentClick = function (event) {
           var isChild = document.querySelector('#'+$scope.criterion.id.replace('.','-')+'-dropdown-'+$scope.timestamp)

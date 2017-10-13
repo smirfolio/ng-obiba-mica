@@ -1002,6 +1002,10 @@ angular.module('obiba.mica.search')
       return vocabulary.terms && (self.vocabularyType(vocabulary) === VOCABULARY_TYPES.INTEGER || self.vocabularyType(vocabulary) === VOCABULARY_TYPES.DECIMAL);
     };
 
+    this.isFacettedVocabulary = function (vocabulary) {
+      return 'true' === vocabularyAttributeValue(vocabulary, 'facet', 'false');
+    };
+
     this.sortVocabularyTerms = function(vocabulary, locale) {
       var termsSortKey = self.vocabularyTermsSortKey(vocabulary);
       if (termsSortKey && vocabulary.terms && vocabulary.terms.length > 0) {
