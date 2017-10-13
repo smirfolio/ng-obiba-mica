@@ -2770,7 +2770,7 @@ angular.module('obiba.mica.search')
                 var d3Config = new D3GeoConfig()
                   .withData(geoStudies.entries)
                   .withTitle($filter('translate')(charOptions.geoChartOptions.title) + ' (N=' + result.studyResultDto.totalHits + ')');
-                d3Config.color = charOptions.geoChartOptions.options.colorAxis.colors;
+                d3Config.color = charOptions.geoChartOptions.options.colors;
                 var chartObject = {
                   geoChartOptions: {
                     directiveTitle: geoStudies.options.title,
