@@ -1926,7 +1926,12 @@ angular.module('obiba.mica.search')
       $scope.closeDropdown = closeDropdown;
       $scope.RqlQueryUtils = RqlQueryUtils;
     }])
-
+  .controller('searchCriteriaRegionController', ['$scope', function ($scope) {
+    var canShowCriteriaRegion = function(){
+      return $scope.options.studyTaxonomiesOrder.length || $scope.options.datasetTaxonomiesOrder.length || $scope.options.networkTaxonomiesOrder.length;
+    };
+    $scope.canShowCriteriaRegion = canShowCriteriaRegion;
+  }])
   .controller('MatchCriterionTermsController', [
     '$scope',
     'RqlQueryService',

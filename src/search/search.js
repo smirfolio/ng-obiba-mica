@@ -33,6 +33,8 @@ angular.module('obiba.mica.search', [
         searchStudiesResultTable: {template: null},
         searchNetworksResultTable: {template: null},
         searchDatasetsResultTable: {template: null},
+        searchCriteriaRegionTemplate: {template: null},
+        CriterionDropdownTemplate: {template: null},
         searchResultList: {template: null},
         searchResultCoverage: {template: null},
         searchResultGraphics: {template: null},

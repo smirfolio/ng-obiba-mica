@@ -86,6 +86,8 @@ function NgObibaMicaTemplateUrlFactory() {
     'searchStudiesResultTable' :'search/views/list/studies-search-result-table-template.html',
     'searchNetworksResultTable' :'search/views/list/networks-search-result-table-template.html',
     'searchDatasetsResultTable' :'search/views/list/datasets-search-result-table-template.html',
+    'searchCriteriaRegionTemplate' :'search/views/criteria/search-criteria-region-template.html',
+    'CriterionDropdownTemplate' :'search/views/criteria/criterion-dropdown-template.html',
     'searchResultList' :'search/views/search-result-list-template.html',
     'searchResultCoverage' :'search/views/search-result-coverage-template.html',
     'searchResultGraphics' :'search/views/search-result-graphics-template.html'
@@ -1890,6 +1892,8 @@ angular.module('obiba.mica.search', [
         searchStudiesResultTable: {template: null},
         searchNetworksResultTable: {template: null},
         searchDatasetsResultTable: {template: null},
+        searchCriteriaRegionTemplate: {template: null},
+        CriterionDropdownTemplate: {template: null},
         searchResultList: {template: null},
         searchResultCoverage: {template: null},
         searchResultGraphics: {template: null},
@@ -3151,6 +3155,10 @@ angular.module('obiba.mica.search')
 
     this.isRangeVocabulary = function (vocabulary) {
       return vocabulary.terms && (self.vocabularyType(vocabulary) === VOCABULARY_TYPES.INTEGER || self.vocabularyType(vocabulary) === VOCABULARY_TYPES.DECIMAL);
+    };
+
+    this.isFacettedVocabulary = function (vocabulary) {
+      return 'true' === vocabularyAttributeValue(vocabulary, 'facet', 'false');
     };
 
     this.sortVocabularyTerms = function(vocabulary, locale) {
@@ -6295,7 +6303,12 @@ angular.module('obiba.mica.search')
       $scope.closeDropdown = closeDropdown;
       $scope.RqlQueryUtils = RqlQueryUtils;
     }])
-
+  .controller('searchCriteriaRegionController', ['$scope', function ($scope) {
+    var canShowCriteriaRegion = function(){
+      return $scope.options.studyTaxonomiesOrder.length || $scope.options.datasetTaxonomiesOrder.length || $scope.options.networkTaxonomiesOrder.length;
+    };
+    $scope.canShowCriteriaRegion = canShowCriteriaRegion;
+  }])
   .controller('MatchCriterionTermsController', [
     '$scope',
     'RqlQueryService',
@@ -7841,16 +7854,17 @@ angular.module('obiba.mica.search')
         query: '=',
         advanced: '=',
         onRemove: '=',
-        onRefresh: '='
+        onRefresh: '=',
+        isFacetted: '='
       },
       templateUrl: 'search/views/criteria/criteria-root-template.html',
-      link: function(scope) {
-        scope.$on(CRITERIA_ITEM_EVENT.deleted, function(event, item){
-          scope.onRemove(item);
+      link: function($scope) {
+        $scope.$on(CRITERIA_ITEM_EVENT.deleted, function(event, item){
+          $scope.onRemove(item);
         });
 
-        scope.$on(CRITERIA_ITEM_EVENT.refresh, function(){
-          scope.onRefresh();
+        $scope.$on(CRITERIA_ITEM_EVENT.refresh, function(){
+          $scope.onRefresh();
         });
       }
     };
@@ -7915,12 +7929,23 @@ angular.module('obiba.mica.search')
       templateUrl: 'search/views/criteria/criterion-numeric-template.html'
     };
   }])
-
+  .directive('searchCriteriaRegion', ['ngObibaMicaSearchTemplateUrl', function(ngObibaMicaSearchTemplateUrl){
+    return {
+      restrict: 'EA',
+      replace: true,
+      scope: {
+        options: '=',
+        search: '='
+      },
+      controller: 'searchCriteriaRegionController',
+      templateUrl: ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchCriteriaRegionTemplate')
+    };
+  }])
   /**
    * This directive serves as the container for each time of criterion based on a vocabulary type.
    * Specialize contents types as directives and share the state with this container.
    */
-  .directive('criterionDropdown', ['$document', '$timeout', function ($document, $timeout) {
+  .directive('criterionDropdown', ['$document', '$timeout', 'ngObibaMicaSearchTemplateUrl', function ($document, $timeout, ngObibaMicaSearchTemplateUrl) {
     return {
       restrict: 'EA',
       replace: true,
@@ -7929,7 +7954,7 @@ angular.module('obiba.mica.search')
         query: '='
       },
       controller: 'CriterionDropdownController',
-      templateUrl: 'search/views/criteria/criterion-dropdown-template.html',//
+      templateUrl: ngObibaMicaSearchTemplateUrl.getTemplateUrl('CriterionDropdownTemplate'),
       link: function( $scope, $element){
         var onDocumentClick = function (event) {
           var isChild = document.querySelector('#'+$scope.criterion.id.replace('.','-')+'-dropdown-'+$scope.timestamp)
@@ -8305,6 +8330,8 @@ angular.module('obiba.mica.lists', ['obiba.mica.search'])
       ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchNetworksResultTable', 'lists/views/list/networks-search-result-table-template.html');
       ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchDatasetsResultTable', 'lists/views/list/datasets-search-result-table-template.html');
       ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchResultList', 'lists/views/search-result-list-template.html');
+      ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchCriteriaRegionTemplate', 'lists/views/region-criteria/search-criteria-region-template.html');
+      ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('CriterionDropdownTemplate', 'lists/views/region-criteria/criterion-dropdown-template.html');
     }])
   .config(['$provide', function($provide){
       $provide.provider('sortWidgetOptions', SortWidgetOptionsProvider);
@@ -9974,7 +10001,7 @@ angular.module('obiba.mica.fileBrowser')
       }
     };
   }]);
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/input-search-widget/suggestion-field.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-facets-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search-study-filter-template.html', 'search/views/search.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/input-search-widget/suggestion-field.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-facets-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/search-criteria-region-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search-study-filter-template.html', 'search/views/search.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/views/data-access-request-documents-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-documents-view.html",
@@ -11305,6 +11332,60 @@ angular.module("lists/views/list/studies-search-result-table-template.html", [])
     "");
 }]);
 
+angular.module("lists/views/region-criteria/criterion-dropdown-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("lists/views/region-criteria/criterion-dropdown-template.html",
+    "<div id=\"{{criterion.id.replace('.','-')}}-dropdown-{{timestamp}}\" class=\"{{'btn-group voffset1 btn-' + criterion.target}}\" ng-class='{open: state.open}'\n" +
+    "     ng-keyup=\"onKeyup($event)\">\n" +
+    "\n" +
+    "  <span ng-if=\"RqlQueryUtils.isFacettedVocabulary(criterion.vocabulary)\" ng-class='{open: state.open}'>\n" +
+    "  <button class=\"{{'btn btn-xs dropdown btn-' + criterion.target}}\"\n" +
+    "          ng-click=\"openDropdown()\">\n" +
+    "    <span uib-popover=\"{{localize(criterion.vocabulary.description ? criterion.vocabulary.description : criterion.vocabulary.title)}}\"\n" +
+    "          popover-title=\"{{criterion.vocabulary.description ? localize(criterion.vocabulary.title) : null}}\"\n" +
+    "          popover-placement=\"bottom\"\n" +
+    "          popover-trigger=\"'mouseenter'\">\n" +
+    "    <i class=\"fa fa-info-circle\"> </i>\n" +
+    "  </span>\n" +
+    "    <span title=\"{{localizeCriterion()}}\" test-ref=\"search-criterion\">\n" +
+    "    {{truncate(localizeCriterion())}}\n" +
+    "    </span>\n" +
+    "    <span class='fa fa-caret-down'></span>\n" +
+    "  </button>\n" +
+    "  <button class='btn btn-xs btn-default' ng-click='remove(criterion.id)'>\n" +
+    "    <span class='fa fa-times'></span>\n" +
+    "  </button>\n" +
+    "\n" +
+    "  <match-criterion ng-if=\"RqlQueryUtils.isMatchVocabulary(criterion.vocabulary)\" criterion=\"criterion\" query=\"query\"\n" +
+    "                   state=\"state\"></match-criterion>\n" +
+    "\n" +
+    "  <string-criterion-terms\n" +
+    "          ng-if=\"RqlQueryUtils.isTermsVocabulary(criterion.vocabulary) || RqlQueryUtils.isRangeVocabulary(criterion.vocabulary)\"\n" +
+    "          criterion=\"criterion\" query=\"query\" state=\"state\"></string-criterion-terms>\n" +
+    "\n" +
+    "  <numeric-criterion ng-if=\"RqlQueryUtils.isNumericVocabulary(criterion.vocabulary)\" criterion=\"criterion\" query=\"query\"\n" +
+    "                     state=\"state\"></numeric-criterion>\n" +
+    "</span>\n" +
+    "</div>");
+}]);
+
+angular.module("lists/views/region-criteria/search-criteria-region-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("lists/views/region-criteria/search-criteria-region-template.html",
+    "<div id=\"search-criteria-region\" ng-class=\"options.showSearchBox || options.showSearchBrowser ? 'voffset2' : ''\" class=\"panel panel-default\" ng-if=\"search.criteria.children && search.criteria.children.length>0 && canShowCriteriaRegion()\">\n" +
+    "    <div class=\"panel-body\">\n" +
+    "        <table style=\"border:none\">\n" +
+    "            <tbody>\n" +
+    "            <tr >\n" +
+    "                <td style=\"padding-left: 10px\">\n" +
+    "                    <div criteria-root item=\"search.criteria\"  on-remove=\"removeCriteriaItem\"\n" +
+    "                         on-refresh=\"refreshQuery\" query=\"search.query\" class=\"inline\"></div>\n" +
+    "                </td>\n" +
+    "            </tr>\n" +
+    "            </tbody>\n" +
+    "        </table>\n" +
+    "    </div>\n" +
+    "</div>");
+}]);
+
 angular.module("lists/views/search-result-list-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("lists/views/search-result-list-template.html",
     "<!--\n" +
@@ -11564,30 +11645,7 @@ angular.module("search/views/classifications.html", []).run(["$templateCache", f
     "  </ul>\n" +
     "\n" +
     "  <!-- Search criteria region -->\n" +
-    "  <div id=\"search-criteria-region\" class=\"panel panel-default voffset2\" ng-if=\"search.criteria.children && search.criteria.children.length>0\">\n" +
-    "    <div class=\"panel-body\">\n" +
-    "      <table style=\"border:none\">\n" +
-    "        <tbody>\n" +
-    "        <tr>\n" +
-    "          <td>\n" +
-    "            <a href class=\"btn btn-sm btn-default\" ng-click=\"clearSearchQuery()\" translate>clear</a>\n" +
-    "          </td>\n" +
-    "          <td style=\"padding-left: 10px\">\n" +
-    "            <div criteria-root item=\"search.criteria\" query=\"search.query\" advanced=\"search.advanced\" on-remove=\"removeCriteriaItem\"\n" +
-    "              on-refresh=\"refreshQuery\" class=\"inline\"></div>\n" +
-    "\n" +
-    "            <small ng-if=\"showAdvanced()\" class=\"hoffset2\">\n" +
-    "              <a href ng-click=\"toggleSearchQuery()\"\n" +
-    "                title=\"{{search.advanced ? 'search.basic-help' : 'search.advanced-help' | translate}}\" translate>\n" +
-    "                {{search.advanced ? 'search.basic' : 'search.advanced' | translate}}\n" +
-    "              </a>\n" +
-    "            </small>\n" +
-    "          </td>\n" +
-    "        </tr>\n" +
-    "        </tbody>\n" +
-    "      </table>\n" +
-    "    </div>\n" +
-    "  </div>\n" +
+    "  <search-criteria-region options=\"options\" search=\"search\"> </search-criteria-region>\n" +
     "\n" +
     "  <!-- Classifications region -->\n" +
     "  <div class=\"{{tabs && tabs.length>1 ? 'tab-content voffset4' : ''}}\">\n" +
@@ -12556,6 +12614,34 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
     "</ul>");
 }]);
 
+angular.module("search/views/criteria/search-criteria-region-template.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/views/criteria/search-criteria-region-template.html",
+    "<div id=\"search-criteria-region\" ng-class=\"options.showSearchBox || options.showSearchBrowser ? 'voffset2' : ''\" class=\"panel panel-default\" ng-if=\"search.criteria.children && search.criteria.children.length>0\">\n" +
+    "    <div class=\"panel-body\">\n" +
+    "        <table style=\"border:none\">\n" +
+    "            <tbody>\n" +
+    "            <tr>\n" +
+    "                <td>\n" +
+    "                    <a href class=\"btn btn-sm btn-default\" ng-click=\"clearSearchQuery()\" translate>clear</a>\n" +
+    "                </td>\n" +
+    "                <td style=\"padding-left: 10px\">\n" +
+    "                    <div criteria-root item=\"search.criteria\" query=\"search.query\" advanced=\"search.advanced\" on-remove=\"removeCriteriaItem\"\n" +
+    "                         on-refresh=\"refreshQuery\" class=\"inline\"></div>\n" +
+    "\n" +
+    "                    <small class=\"hoffset2\" ng-if=\"showAdvanced()\">\n" +
+    "                        <a href ng-click=\"toggleSearchQuery()\"\n" +
+    "                           title=\"{{search.advanced ? 'search.basic-help' : 'search.advanced-help' | translate}}\" translate>\n" +
+    "                            {{search.advanced ? 'search.basic' : 'search.advanced' | translate}}\n" +
+    "                        </a>\n" +
+    "                    </small>\n" +
+    "                </td>\n" +
+    "            </tr>\n" +
+    "            </tbody>\n" +
+    "        </table>\n" +
+    "    </div>\n" +
+    "</div>");
+}]);
+
 angular.module("search/views/criteria/target-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/target-template.html",
     "<!--\n" +
@@ -13331,30 +13417,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      </div>\n" +
     "\n" +
     "      <!-- Search criteria region -->\n" +
-    "      <div id=\"search-criteria-region\" ng-class=\"options.showSearchBox || options.showSearchBrowser ? 'voffset2' : ''\" class=\"panel panel-default\" ng-if=\"search.criteria.children && search.criteria.children.length>0\">\n" +
-    "        <div class=\"panel-body\">\n" +
-    "          <table style=\"border:none\">\n" +
-    "            <tbody>\n" +
-    "            <tr>\n" +
-    "              <td>\n" +
-    "                <a href class=\"btn btn-sm btn-default\" ng-click=\"clearSearchQuery()\" translate>clear</a>\n" +
-    "              </td>\n" +
-    "              <td style=\"padding-left: 10px\">\n" +
-    "                <div criteria-root item=\"search.criteria\" query=\"search.query\" advanced=\"search.advanced\" on-remove=\"removeCriteriaItem\"\n" +
-    "                     on-refresh=\"refreshQuery\" class=\"inline\"></div>\n" +
-    "\n" +
-    "                <small class=\"hoffset2\" ng-if=\"showAdvanced()\">\n" +
-    "                  <a href ng-click=\"toggleSearchQuery()\"\n" +
-    "                     title=\"{{search.advanced ? 'search.basic-help' : 'search.advanced-help' | translate}}\" translate>\n" +
-    "                    {{search.advanced ? 'search.basic' : 'search.advanced' | translate}}\n" +
-    "                  </a>\n" +
-    "                </small>\n" +
-    "              </td>\n" +
-    "            </tr>\n" +
-    "            </tbody>\n" +
-    "          </table>\n" +
-    "        </div>\n" +
-    "      </div>\n" +
+    "      <search-criteria-region options=\"options\" search=\"search\"> </search-criteria-region>\n" +
     "\n" +
     "      <!-- Search Results region -->\n" +
     "      <div id=\"search-result-region\" class=\"voffset3 can-full-screen\" ng-if=\"search.query\" fullscreen=\"isFullscreen\">\n" +
