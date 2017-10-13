@@ -11,6 +11,7 @@
 'use strict';
 
 /* global RQL_NODE */
+/* global typeToTarget */
 
 angular.module('obiba.mica.lists')
 
@@ -19,7 +20,7 @@ angular.module('obiba.mica.lists')
       $scope.query = $location.search().query;
 
       if ($scope.query) {
-        var targetQuery = RqlQueryService.findTargetQuery('study', RqlQueryService.parseQuery($scope.query));
+        var targetQuery = RqlQueryService.findTargetQuery(typeToTarget($scope.type), RqlQueryService.parseQuery($scope.query));
 
         var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
         if (foundFulltextMatchQuery.length === 1) {

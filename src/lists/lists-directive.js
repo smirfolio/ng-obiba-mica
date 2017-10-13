@@ -27,7 +27,7 @@ angular.module('obiba.mica.lists')
       transclude: true,
       replace: true,
       scope: {
-        target: '='
+        type: '='
       },
       controller: 'listSearchWidgetController',
       templateUrl: 'lists/views/input-search-widget/input-search-widget-template.html'
@@ -40,7 +40,7 @@ angular.module('obiba.mica.lists')
         restrict: 'EA',
         replace: true,
         scope: {
-          target: '=',
+          documentType: '=',
           model: '=',
           placeholderText: '=',
           select: '='
@@ -48,15 +48,15 @@ angular.module('obiba.mica.lists')
         templateUrl: 'lists/views/input-search-widget/suggestion-field.html',
         link: function (scope) {
           scope.suggest = function (query) {
-            if (scope.target && query && query.length > 1) {
+            if (scope.documentType && query && query.length > 1) {
               var rql = RqlQueryService.parseQuery($location.search().query);
-              var targetQuery = RqlQueryService.findTargetQuery(typeToTarget(scope.target), rql);
+              var targetQuery = RqlQueryService.findTargetQuery(typeToTarget(scope.documentType), rql);
               var classNameQuery = RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className');
               if (classNameQuery) {
                 query = 'className:' + classNameQuery.args[1] + ' AND (' + query + ')';
               }
 
-              return DocumentSuggestionResource.query({locale: $translate.use(), documentType: scope.target, query: query})
+              return DocumentSuggestionResource.query({locale: $translate.use(), documentType: scope.documentType, query: query})
                   .$promise.then(function (response) { return Array.isArray(response) ? response : []; });
             } else {
               return [];
