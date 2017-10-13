@@ -15,7 +15,20 @@
 </div>
 <div ng-show="display === 'list'" class="row ">
   <div class="col-md-12">
-    <div ng-show="options.obibaListOptions.countCaption" class="pull-left" test-ref="search-counts">
+    <div class="pull-right">
+      <list-sort-widget target="type"></list-sort-widget>
+    </div>
+  </div>
+  <div class="clearfix"/>
+
+  <div class="row">
+    <div class="col-md-12">
+        <div>
+          <div class="col-md-12">
+            <div class="row">
+
+              <div class="col-md-12">
+                <div ng-show="options.obibaListOptions.countCaption" class="pull-left caption-count" test-ref="search-counts">
       <span role="presentation" ng-repeat="res in resultTabsOrder"
             ng-class="{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}"
             ng-if="options[targetTypeMap[res]].showSearchTab">
@@ -29,26 +42,26 @@
           </div>
         </a>
       </span>
-    </div>
-    <div class="pull-right">
-      <list-sort-widget target="type"></list-sort-widget>
-    </div>
-  </div>
-  <div class="clearfix"/>
+                </div>
 
-  <div class="row">
-    <div class="col-md-12">
-      <div class="pull-right voffset2 ">
-        <div ng-repeat="res in resultTabsOrder" ng-show="activeTarget[targetTypeMap[res]].active" class="inline "
-             test-ref="pager">
+                <div class="pull-right voffset2 ">
+                  <div ng-repeat="res in resultTabsOrder" ng-show="activeTarget[targetTypeMap[res]].active" class="inline "
+                       test-ref="pager">
       <span search-result-pagination
             target="activeTarget[targetTypeMap[res]].name"
             total-hits="activeTarget[targetTypeMap[res]].totalHits"
             on-change="onPaginate">
       </span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
         </div>
-      </div>
+
     </div>
+
     <div class="tab-content col-md-12">
 
         <ng-include include-replace ng-repeat="res in resultTabsOrder"

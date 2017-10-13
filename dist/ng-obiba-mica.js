@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-10-13
+ * Date: 2017-10-18
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -11041,64 +11041,57 @@ angular.module("lists/views/input-search-widget/suggestion-field.html", []).run(
 angular.module("lists/views/list/datasets-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("lists/views/list/datasets-search-result-table-template.html",
     "<div>\n" +
-    "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
-    "  <div ng-show=\"!loading\">\n" +
-    "    <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.dataset.noResults</p>\n" +
-    "    <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
-    "      <table class=\"table table-bordered table-striped\" ng-init=\"lang = $parent.$parent.lang\">\n" +
-    "        <tbody test-ref=\"search-results\">\n" +
-    "        <tr ng-if=\"!summaries || !summaries.length\">\n" +
-    "          <td colspan=\"6\" translate>search.dataset.noResults</td>\n" +
-    "        </tr>\n" +
-    "        <tr ng-repeat=\"summary in summaries\">\n" +
-    "          <td>\n" +
-    "            <a ng-href=\"{{PageUrlService.datasetPage(summary.id, summary.variableType)}}\">\n" +
-    "              <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
-    "            </a>\n" +
-    "              <p>\n" +
-    "            <localized value=\"summary.description\"\n" +
-    "                       ellipsis-size=\"250\"\n" +
-    "                       markdown-it=\"true\"\n" +
-    "                       lang=\"lang\"></localized>\n" +
-    "              </p>\n" +
-    "              <a href=\"{{PageUrlService.datasetPage(summary.id, summary.variableType)}}\" class=\"read-more-btn\">{{\"read-more\" | translate}}</a>\n" +
-    "              <div class=\"clear-fix\"></div>\n" +
-    "              <div class=\"sm-top-margin countDetail\">\n" +
-    "                  {{counts=summary['obiba.mica.CountStatsDto.datasetCountStats'];\"\"}}\n" +
-    "                  <a ng-if=\"counts.networks\"\n" +
-    "                     href=\"{{'networks' | doSearchQuery : 'dataset(in(Mica_dataset.id,' + summary.id +  '))' }}\"\n" +
-    "                     class=\"btn btn-default btn-xxs\"\n" +
-    "                     test-ref=\"studyCount\">\n" +
-    "                      <localized-number\n" +
-    "                              value=\"counts.networks\"></localized-number>\n" +
-    "                      {{counts.networks > 1 ? \"networks\" : \"network.label\"\n" +
-    "                      | translate}}\n" +
-    "                  </a>\n" +
-    "                  <a ng-if=\"counts.studies\"\n" +
-    "                     href=\"{{'studies' | doSearchQuery : 'dataset(in(Mica_dataset.id,' + summary.id +  '))' }}\"\n" +
-    "                     class=\"btn btn-default btn-xxs\"\n" +
-    "                     test-ref=\"studyCount\">\n" +
-    "                      <localized-number\n" +
-    "                              value=\"counts.studies\"></localized-number>\n" +
-    "                      {{counts.studies > 1 ? \"studies\" : \"study.label\"\n" +
-    "                      | translate}}\n" +
-    "                  </a>\n" +
-    "                  <a ng-if=\"counts.variables\"\n" +
-    "                     href=\"{{'variables' | doSearchQuery : 'dataset(in(Mica_dataset.id,' + summary.id +  '))' }}\"\n" +
-    "                     class=\"btn btn-default btn-xxs\"\n" +
-    "                     test-ref=\"variableCount\">\n" +
-    "                      <localized-number\n" +
-    "                              value=\"counts.variables\"></localized-number>\n" +
-    "                      {{counts.variables > 1 ? \"variables\" : \"search.variable.facet-label\"\n" +
-    "                      | translate}}\n" +
-    "                  </a>\n" +
-    "              </div>\n" +
-    "          </td>\n" +
-    "        </tr>\n" +
-    "        </tbody>\n" +
-    "      </table>\n" +
+    "    <div ng-if=\"loading\" class=\"loading\"></div>\n" +
+    "    <div ng-show=\"!loading\" class=\"col-md-12\">\n" +
+    "        <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.dataset.noResults</p>\n" +
+    "        <div ng-repeat=\"summary in summaries\" class=\"row sm-bottom-margin document-item-list flex-row\" test-ref=\"dataset\">\n" +
+    "            <div class=\"col-md-12  col-sm-12 col-xs-12\">\n" +
+    "                <h4>\n" +
+    "                    <a ng-href=\"{{PageUrlService.datasetPage(summary.id, summary.variableType)}}\">\n" +
+    "                        <localized value=\"summary.name\" lang=\"lang\"></localized>\n" +
+    "                    </a>\n" +
+    "                </h4>\n" +
+    "                <p>\n" +
+    "                    <localized value=\"summary.description\"\n" +
+    "                               ellipsis-size=\"250\"\n" +
+    "                               markdown-it=\"true\"\n" +
+    "                               lang=\"lang\"></localized>\n" +
+    "                </p>\n" +
+    "                <a ng-if=\"summary.description\" href=\"{{PageUrlService.datasetPage(summary.id, summary.variableType)}}\" >{{\"global.read-more\" | translate}}</a>\n" +
+    "                <div class=\"clear-fix\"></div>\n" +
+    "                <div class=\"sm-top-margin countDetail voffset3\">\n" +
+    "                    {{counts=summary['obiba.mica.CountStatsDto.datasetCountStats'];\"\"}}\n" +
+    "                    <a ng-if=\"counts.networks\"\n" +
+    "                       href=\"{{'networks' | doSearchQuery : 'dataset(in(Mica_dataset.id,' + summary.id +  '))' }}\"\n" +
+    "                       class=\"btn btn-default btn-xxs\"\n" +
+    "                       test-ref=\"studyCount\">\n" +
+    "                        <localized-number\n" +
+    "                                value=\"counts.networks\"></localized-number>\n" +
+    "                        {{counts.networks > 1 ? \"networks\" : \"network.label\"\n" +
+    "                        | translate}}\n" +
+    "                    </a>\n" +
+    "                    <a ng-if=\"counts.studies\"\n" +
+    "                       href=\"{{'studies' | doSearchQuery : 'dataset(in(Mica_dataset.id,' + summary.id +  '))' }}\"\n" +
+    "                       class=\"btn btn-default btn-xxs\"\n" +
+    "                       test-ref=\"studyCount\">\n" +
+    "                        <localized-number\n" +
+    "                                value=\"counts.studies\"></localized-number>\n" +
+    "                        {{counts.studies > 1 ? \"studies\" : \"study.label\"\n" +
+    "                        | translate}}\n" +
+    "                    </a>\n" +
+    "                    <a ng-if=\"counts.variables\"\n" +
+    "                       href=\"{{'variables' | doSearchQuery : 'dataset(in(Mica_dataset.id,' + summary.id +  '))' }}\"\n" +
+    "                       class=\"btn btn-default btn-xxs\"\n" +
+    "                       test-ref=\"variableCount\">\n" +
+    "                        <localized-number\n" +
+    "                                value=\"counts.variables\"></localized-number>\n" +
+    "                        {{counts.variables > 1 ? \"variables\" : \"search.variable.facet-label\"\n" +
+    "                        | translate}}\n" +
+    "                    </a>\n" +
+    "                </div>\n" +
+    "            </div>\n" +
+    "        </div>\n" +
     "    </div>\n" +
-    "  </div>\n" +
     "</div>");
 }]);
 
@@ -11106,231 +11099,229 @@ angular.module("lists/views/list/networks-search-result-table-template.html", []
   $templateCache.put("lists/views/list/networks-search-result-table-template.html",
     "<div>\n" +
     "    <div ng-if=\"loading\" class=\"loading\"></div>\n" +
-    "    <div ng-show=\"!loading\">\n" +
+    "    <div ng-show=\"!loading\" class=\"col-md-12\">\n" +
     "        <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>\n" +
     "            search.network.noResults</p>\n" +
-    "        <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
-    "            <table class=\"table  \" ng-init=\"lang = $parent.$parent.lang\">\n" +
-    "                <tbody test-ref=\"search-results\">\n" +
-    "                <tr ng-if=\"!summaries || !summaries.length\">\n" +
-    "                    <td colspan=\"2\" translate>search.network.noResults</td>\n" +
-    "                </tr>\n" +
-    "                <tr ng-repeat=\"summary in summaries\"\n" +
-    "                    ng-init=\"lang = $parent.$parent.lang;\">\n" +
-    "                    <td width=\"15%\">\n" +
-    "                        <img ng-if=\"summary.logo\" src=\"\" alt=\"\">\n" +
     "\n" +
-    "                        <img src=\"{{summary.logoUrl}}\"\n" +
-    "                             class=\"img-responsive\"/>\n" +
+    "        <div ng-if=\"summaries && summaries.length\" ng-init=\"lang = $parent.$parent.lang\">\n" +
+    "            <div ng-repeat=\"summary in summaries\"\n" +
+    "                 ng-init=\"lang = $parent.$parent.lang;\"\n" +
+    "                 class=\"row lg-bottom-margin document-item-list flex-row\"\n" +
+    "                 test-ref=\"network\">\n" +
+    "                <div class=\"col-md-2 hidden-xs hidden-sm text-center\">\n" +
+    "                    <img ng-if=\"summary.logo\" src=\"\" alt=\"\">\n" +
     "\n" +
-    "                        <h1 ng-if=\"!summary.logo\" src=\"\" alt=\"\"\n" +
-    "                            class=\"big-character\">\n" +
-    "                            <span class=\"t_badge color_light i-obiba-S\"></span>\n" +
-    "                        </h1>\n" +
-    "                    </td>\n" +
-    "                    <td>\n" +
-    "                        <h4>\n" +
-    "                            <a href=\"{{'network/' + summary.id | getBaseUrl}}\">\n" +
-    "                                <localized value=\"summary.name\"\n" +
-    "                                           lang=\"lang\"></localized>\n" +
-    "                            </a></h4>\n" +
-    "                        <p>\n" +
-    "                            <localized value=\"summary.description\" lang=\"lang\"\n" +
-    "                                       ellipsis-size=\"250\"\n" +
-    "                                       markdown-it=\"true\"></localized>\n" +
-    "                        </p>\n" +
-    "                        <a href=\"{{'network/' + summary.id | getBaseUrl}}\" class=\"read-more-btn\">{{\"read-more\" | translate}}</a>\n" +
-    "                        <div class=\"clear-fix\"></div>\n" +
-    "                        <div class=\"sm-top-margin countDetail\">\n" +
-    "                            {{counts=summary['obiba.mica.CountStatsDto.networkCountStats'];\"\"}}\n" +
-    "                            <a ng-if=\"counts.individualStudies\"\n" +
-    "                               href=\"{{'studies' | doSearchQuery:'network(in(Mica_network.id,' + summary.id +  ')),study(in(Mica_study.className,Study))' }}\"\n" +
-    "                               class=\"btn btn-default btn-xxs\"\n" +
-    "                               test-ref=\"individualStudyCount\">\n" +
-    "                                <localized-number\n" +
-    "                                        value=\"counts.individualStudies\"></localized-number>\n" +
-    "                                {{counts.individualStudies > 1 ?\n" +
-    "                                \"global.individual-studies\":\"global.individual-study\"\n" +
-    "                                | translate}}\n" +
-    "                            </a>\n" +
+    "                    <img src=\"{{summary.logoUrl}}\"\n" +
+    "                         class=\"img-responsive\"/>\n" +
     "\n" +
-    "                            <a ng-if=\"counts.studiesWithVariables\"\n" +
-    "                               href=\"{{'studies' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  ')),variable(in(Mica_variable.variableType,Collected))' }}\"\n" +
-    "                               class=\"btn btn-default btn-xxs\"\n" +
-    "                               test-ref=\"studyWithVariablesCount\">\n" +
-    "                                <localized-number\n" +
-    "                                        value=\"counts.studiesWithVariables\"></localized-number>\n" +
-    "                                {{counts.studiesWithVariables > 1 ?\n" +
-    "                                \"metrics.mica.studies-with-variables\" :\n" +
-    "                                \"metrics.mica.study-with-variables\"\n" +
-    "                                | translate}}\n" +
-    "                            </a>\n" +
+    "                    <h1 ng-if=\"!summary.logo\" src=\"\" alt=\"\"\n" +
+    "                        class=\"big-character\">\n" +
+    "                        <span class=\"t_badge color_light i-obiba-N\"></span>\n" +
+    "                    </h1>\n" +
+    "                </div>\n" +
+    "                <div class=\"col-md-10  col-sm-12 col-xs-12\">\n" +
+    "                    <h4>\n" +
+    "                        <a href=\"{{'network/' + summary.id | getBaseUrl}}\">\n" +
+    "                            <localized value=\"summary.name\"\n" +
+    "                                       lang=\"lang\"></localized>\n" +
+    "                        </a>\n" +
+    "                    </h4>\n" +
+    "                    <p>\n" +
+    "                        <localized value=\"summary.description\" lang=\"lang\"\n" +
+    "                                   ellipsis-size=\"250\"\n" +
+    "                                   markdown-it=\"true\"></localized>\n" +
+    "                    </p>\n" +
+    "                    <a ng-if=\"summary.description\" href=\"{{'network/' + summary.id | getBaseUrl}}\" >{{\"global.read-more\" | translate}}</a>\n" +
+    "                    <div class=\"clear-fix\"></div>\n" +
+    "                    <div class=\"sm-top-margin countDetail voffset3\">\n" +
+    "                        {{counts=summary['obiba.mica.CountStatsDto.networkCountStats'];\"\"}}\n" +
+    "                        <a ng-if=\"counts.individualStudies\"\n" +
+    "                           href=\"{{'studies' | doSearchQuery:'network(in(Mica_network.id,' + summary.id +  ')),study(in(Mica_study.className,Study))' }}\"\n" +
+    "                           class=\"btn btn-default btn-xxs\"\n" +
+    "                           test-ref=\"individualStudyCount\">\n" +
+    "                            <localized-number\n" +
+    "                                    value=\"counts.individualStudies\"></localized-number>\n" +
+    "                            {{counts.individualStudies > 1 ?\n" +
+    "                            \"global.individual-studies\":\"global.individual-study\"\n" +
+    "                            | translate}}\n" +
+    "                        </a>\n" +
     "\n" +
-    "                            <a ng-if=\"counts.studyVariables\"\n" +
-    "                               href=\"{{'variables' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  ')),variable(in(Mica_variable.variableType,Collected))' }}\"\n" +
-    "                               class=\"btn btn-default btn-xxs\"\n" +
-    "                               test-ref=\"studyVariableCount\">\n" +
-    "                                <localized-number\n" +
-    "                                        value=\"counts.studyVariables\"></localized-number>\n" +
-    "                                {{counts.studyVariables > 1 ?\n" +
-    "                                \"metrics.mica.study-variables\" :\n" +
-    "                                \"metrics.mica.study-variable\"\n" +
-    "                                | translate}}\n" +
-    "                            </a>\n" +
+    "                        <a ng-if=\"counts.studiesWithVariables\"\n" +
+    "                           href=\"{{'studies' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  ')),variable(in(Mica_variable.variableType,Collected))' }}\"\n" +
+    "                           class=\"btn btn-default btn-xxs\"\n" +
+    "                           test-ref=\"studyWithVariablesCount\">\n" +
+    "                            <localized-number\n" +
+    "                                    value=\"counts.studiesWithVariables\"></localized-number>\n" +
+    "                            {{counts.studiesWithVariables > 1 ?\n" +
+    "                            \"metrics.mica.studies-with-variables\" :\n" +
+    "                            \"metrics.mica.study-with-variables\"\n" +
+    "                            | translate}}\n" +
+    "                        </a>\n" +
     "\n" +
-    "                            <a ng-if=\"counts.harmonizationStudies\"\n" +
-    "                               href=\"{{'studies' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  ')),study(in(Mica_study.className,HarmonizationStudy))' }}\"\n" +
-    "                               class=\"btn btn-default btn-xxs\"\n" +
-    "                               test-ref=\"harmonizationStudyCount\">\n" +
-    "                                <localized-number\n" +
-    "                                        value=\"counts.harmonizationStudies\"></localized-number>\n" +
-    "                                {{counts.harmonizationStudies > 1 ?\n" +
-    "                                \"global.harmonization-studies\" :\n" +
-    "                                \"global.harmonization-study\"\n" +
-    "                                | translate}}\n" +
-    "                            </a>\n" +
+    "                        <a ng-if=\"counts.studyVariables\"\n" +
+    "                           href=\"{{'variables' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  ')),variable(in(Mica_variable.variableType,Collected))' }}\"\n" +
+    "                           class=\"btn btn-default btn-xxs\"\n" +
+    "                           test-ref=\"studyVariableCount\">\n" +
+    "                            <localized-number\n" +
+    "                                    value=\"counts.studyVariables\"></localized-number>\n" +
+    "                            {{counts.studyVariables > 1 ?\n" +
+    "                            \"metrics.mica.study-variables\" :\n" +
+    "                            \"metrics.mica.study-variable\"\n" +
+    "                            | translate}}\n" +
+    "                        </a>\n" +
     "\n" +
-    "                            <a ng-if=\"counts.dataschemaVariables\"\n" +
-    "                               href=\"{{'variables' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  ')),variable(in(Mica_variable.variableType,Dataschema))' }}\"\n" +
-    "                               class=\"btn btn-default btn-xxs\"\n" +
-    "                               test-ref=\"harmonizationStudyWithVariablesCount\">\n" +
-    "                                <localized-number\n" +
-    "                                        value=\"counts.dataschemaVariables\"></localized-number>\n" +
-    "                                {{counts.dataschemaVariables > 1 ?\n" +
-    "                                \"metrics.mica.harmonization-study-variables\" :\n" +
-    "                                \"metrics.mica.harmonization-study-variable\"\n" +
-    "                                | translate}}\n" +
-    "                            </a>\n" +
-    "                            {{datasetsCount = counts.studyDatasets +\n" +
-    "                            counts.harmonizationDatasets; \"\"}}\n" +
-    "                            <a ng-if=\"datasetsCount\"\n" +
-    "                               href=\"{{'datasets' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  '))' }}\"\n" +
-    "                               class=\"btn btn-default btn-xxs\"\n" +
-    "                               test-ref=\"datasetCount\">\n" +
-    "                                <localized-number\n" +
-    "                                        value=\"datasetsCount\"></localized-number>\n" +
-    "                                {{datasetsCount > 1 ? \"datasets\" :\n" +
-    "                                \"dataset.details\"\n" +
-    "                                | translate}}\n" +
-    "                            </a>\n" +
-    "                        </div>\n" +
-    "                    </td>\n" +
-    "                </tr>\n" +
-    "                </tbody>\n" +
-    "            </table>\n" +
+    "                        <a ng-if=\"counts.harmonizationStudies\"\n" +
+    "                           href=\"{{'studies' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  ')),study(in(Mica_study.className,HarmonizationStudy))' }}\"\n" +
+    "                           class=\"btn btn-default btn-xxs\"\n" +
+    "                           test-ref=\"harmonizationStudyCount\">\n" +
+    "                            <localized-number\n" +
+    "                                    value=\"counts.harmonizationStudies\"></localized-number>\n" +
+    "                            {{counts.harmonizationStudies > 1 ?\n" +
+    "                            \"global.harmonization-studies\" :\n" +
+    "                            \"global.harmonization-study\"\n" +
+    "                            | translate}}\n" +
+    "                        </a>\n" +
+    "\n" +
+    "                        <a ng-if=\"counts.dataschemaVariables\"\n" +
+    "                           href=\"{{'variables' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  ')),variable(in(Mica_variable.variableType,Dataschema))' }}\"\n" +
+    "                           class=\"btn btn-default btn-xxs\"\n" +
+    "                           test-ref=\"harmonizationStudyWithVariablesCount\">\n" +
+    "                            <localized-number\n" +
+    "                                    value=\"counts.dataschemaVariables\"></localized-number>\n" +
+    "                            {{counts.dataschemaVariables > 1 ?\n" +
+    "                            \"metrics.mica.harmonization-study-variables\" :\n" +
+    "                            \"metrics.mica.harmonization-study-variable\"\n" +
+    "                            | translate}}\n" +
+    "                        </a>\n" +
+    "                        {{datasetsCount = counts.studyDatasets +\n" +
+    "                        counts.harmonizationDatasets; \"\"}}\n" +
+    "                        <a ng-if=\"datasetsCount\"\n" +
+    "                           href=\"{{'datasets' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  '))' }}\"\n" +
+    "                           class=\"btn btn-default btn-xxs\"\n" +
+    "                           test-ref=\"datasetCount\">\n" +
+    "                            <localized-number\n" +
+    "                                    value=\"datasetsCount\"></localized-number>\n" +
+    "                            {{datasetsCount > 1 ? \"datasets\" :\n" +
+    "                            \"dataset.details\"\n" +
+    "                            | translate}}\n" +
+    "                        </a>\n" +
+    "                    </div>\n" +
+    "                </div>\n" +
+    "            </div>\n" +
     "        </div>\n" +
     "    </div>\n" +
-    "</div>\n" +
-    "");
+    "</div>");
 }]);
 
 angular.module("lists/views/list/studies-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("lists/views/list/studies-search-result-table-template.html",
     "<div>\n" +
     "    <div ng-if=\"loading\" class=\"loading\"></div>\n" +
-    "    <div ng-show=\"!loading\">\n" +
+    "    <div ng-show=\"!loading\" class=\"col-md-12\">\n" +
     "        <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>\n" +
     "            search.study.noResults</p>\n" +
-    "        <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
     "\n" +
-    "            <table class=\"table \" ng-init=\"lang = $parent.$parent.lang\">\n" +
-    "                <tbody>\n" +
-    "                <tr ng-repeat=\"summary in summaries\"\n" +
-    "                    ng-init=\"lang = $parent.$parent.lang; studyPath= summary.studyResourcePath=='individual-study'?'individual-study':'harmonization-study'\">\n" +
-    "                    <td>\n" +
-    "                        <img ng-if=\"summary.logo\" src=\"\" alt=\"\">\n" +
+    "        <div ng-if=\"summaries && summaries.length\" ng-init=\"lang = $parent.$parent.lang\">\n" +
+    "            <div ng-repeat=\"summary in summaries\"\n" +
+    "                 ng-init=\"lang = $parent.$parent.lang; studyPath= summary.studyResourcePath=='individual-study'?'individual-study':'harmonization-study'\"\n" +
+    "                 class=\"row lg-bottom-margin document-item-list flex-row\"\n" +
+    "                 test-ref=\"study\">\n" +
     "\n" +
-    "                        <img src=\"{{summary.logoUrl}}\"\n" +
-    "                             class=\"img-responsive\"/>\n" +
+    "                <div class=\"col-md-2 hidden-xs hidden-sm text-center\">\n" +
+    "                    <img ng-if=\"summary.logo\" src=\"\" alt=\"\">\n" +
     "\n" +
-    "                        <h1 ng-if=\"!summary.logo\" src=\"\" alt=\"\"\n" +
-    "                            class=\"big-character\">\n" +
-    "                            <span class=\"t_badge color_light i-obiba-S\"></span>\n" +
-    "                        </h1>\n" +
-    "                    </td>\n" +
-    "                    <td>\n" +
-    "                        <h4>\n" +
-    "                            <a href=\"{{studyPath + '/' + summary.id | getBaseUrl}}\">\n" +
-    "                                <localized value=\"summary.name\"\n" +
-    "                                           lang=\"lang\"></localized>\n" +
-    "                            </a></h4>\n" +
-    "                        <p ng-if=\"options.obibaListOptions.studiesTrimedDescrition\">\n" +
-    "                            <localized value=\"summary.objectives\" lang=\"lang\"\n" +
-    "                                       ellipsis-size=\"250\"\n" +
-    "                                       markdown-it=\"true\"></localized>\n" +
-    "                        </p>\n" +
-    "                        <p ng-if=\"!options.obibaListOptions.studiesTrimedDescrition\">\n" +
-    "                            <localized value=\"summary.objectives\" lang=\"lang\"\n" +
-    "                                       markdown-it=\"true\"></localized>\n" +
-    "                        </p>\n" +
-    "                        <a href=\"{{'study/' + summary.id | getBaseUrl}}\" class=\"read-more-btn\">{{\"read-more\" | translate}}</a>\n" +
-    "                        <div class=\"clear-fix\"></div>\n" +
-    "                        <div ng-if=\"options.obibaListOptions.studiesSupplInfoDetails\">\n" +
-    "                            <blockquote-small\n" +
-    "                                    ng-if=\"summary.design || summary.targetNumber.noLimit\"\n" +
-    "                                    class=\"help-block\">\n" +
+    "                    <img src=\"{{summary.logoUrl}}\"\n" +
+    "                         class=\"img-responsive\"/>\n" +
+    "\n" +
+    "                    <h1 ng-if=\"!summary.logo\" src=\"\" alt=\"\"\n" +
+    "                        class=\"big-character\">\n" +
+    "                        <span class=\"t_badge color_light i-obiba-S\"></span>\n" +
+    "                    </h1>\n" +
+    "                </div>\n" +
+    "\n" +
+    "                <div class=\"col-md-10  col-sm-12 col-xs-12\">\n" +
+    "                    <h4>\n" +
+    "                        <a href=\"{{studyPath + '/' + summary.id | getBaseUrl}}\">\n" +
+    "                            <localized value=\"summary.name\"\n" +
+    "                                       lang=\"lang\"></localized>\n" +
+    "                        </a>\n" +
+    "                    </h4>\n" +
+    "                    <p ng-if=\"options.obibaListOptions.studiesTrimedDescrition\">\n" +
+    "                        <localized value=\"summary.objectives\" lang=\"lang\"\n" +
+    "                                   ellipsis-size=\"250\"\n" +
+    "                                   markdown-it=\"true\"></localized>\n" +
+    "                    </p>\n" +
+    "                    <p ng-if=\"!options.obibaListOptions.studiesTrimedDescrition\">\n" +
+    "                        <localized value=\"summary.objectives\" lang=\"lang\"\n" +
+    "                                   markdown-it=\"true\"></localized>\n" +
+    "                    </p>\n" +
+    "                    <a ng-if=\"summary.objectives\" href=\"{{'study/' + summary.id | getBaseUrl}}\" >{{\"global.read-more\" | translate}}</a>\n" +
+    "                    <div class=\"clear-fix\"></div>\n" +
+    "                    <div ng-if=\"options.obibaListOptions.studiesSupplInfoDetails\" class=\"voffset3\">\n" +
+    "                        <blockquote-small\n" +
+    "                                ng-if=\"summary.design || summary.targetNumber.noLimit\"\n" +
+    "                                class=\"help-block\">\n" +
     "                                <span ng-if=\"summary.design\">\n" +
     "                                {{\"search.study.design\" | translate}} : {{ summary.design === undefined ? '-' : 'study_taxonomy.vocabulary.methods-design.term.' + summary.design + '.title' | translate}}\n" +
     "                                </span> -\n" +
-    "                                <span ng-if=\"summary.targetNumber.number\">\n" +
+    "                            <span ng-if=\"summary.targetNumber.number\">\n" +
     "                                 {{\"numberOfParticipants.participants\" | translate}} : <localized-number\n" +
-    "                                        value=\"summary.targetNumber.number\"></localized-number>\n" +
+    "                                    value=\"summary.targetNumber.number\"></localized-number>\n" +
     "                                </span>\n" +
-    "                                <span ng-if=\"summary.targetNumber.noLimit\">\n" +
+    "                            <span ng-if=\"summary.targetNumber.noLimit\">\n" +
     "                                    <span ng-if=\"summary.design\">; </span>\n" +
     "                                    {{\"numberOfParticipants.no-limit\" | translate}}\n" +
     "                                </span>\n" +
-    "                            </blockquote-small>\n" +
-    "                            <div class=\"sm-top-margin\">\n" +
-    "                                {{counts=summary['obiba.mica.CountStatsDto.studyCountStats'];\"\"}}\n" +
-    "                                <a ng-if=\"counts.networks\"\n" +
-    "                                   href=\"{{'networks' | doSearchQuery:'network(in(Mica_network.studyIds,' + summary.id +  '))' }}\"\n" +
-    "                                   class=\"btn btn-default btn-xxs\"\n" +
-    "                                   test-ref=\"networkCount\">\n" +
-    "                                    <localized-number\n" +
-    "                                            value=\"counts.networks\"></localized-number>\n" +
-    "                                    {{counts.networks>1?\"networks\":\"network.label\"\n" +
-    "                                    | translate}}\n" +
-    "                                </a>\n" +
-    "                                {{datasetsCount=counts.studyDatasets +\n" +
-    "                                counts.harmonizationDatasets;\"\"}}\n" +
-    "                                <a ng-if=\"datasetsCount\"\n" +
-    "                                   href=\"{{'datasets' | doSearchQuery:'study(in(Mica_study.id,' + summary.id + '))'}}\"\n" +
-    "                                   class=\"btn btn-default btn-xxs\"\n" +
-    "                                   test-ref=\"datasetCount\">\n" +
-    "                                    <localized-number\n" +
-    "                                            value=\"datasetsCount\"></localized-number>\n" +
-    "                                    {{datasetsCount>1?\"datasets\":\"dataset.details\"\n" +
-    "                                    | translate}}\n" +
-    "                                </a>\n" +
-    "                                <a ng-if=\"counts.studyVariables\"\n" +
-    "                                   href=\"{{'variables' | doSearchQuery:'study(in(Mica_study.id,' + summary.id + ')),variable(in(Mica_variable.variableType,Collected))'}}\"\n" +
-    "                                   class=\"btn btn-default btn-xxs\"\n" +
-    "                                   test-ref=\"studyVariableCount\">\n" +
-    "                                    <localized-number\n" +
-    "                                            value=\"counts.studyVariables\"></localized-number>\n" +
-    "                                    {{counts.studyVariables>1?\"client.label.study-variables\":\"client.label.study-variable\"\n" +
-    "                                    | translate}}\n" +
-    "                                </a>\n" +
-    "                                <a ng-if=\"counts.dataschemaVariables\"\n" +
-    "                                   href=\"{{'variables' | doSearchQuery:'study(in(Mica_study.id,' + summary.id + ')),variable(in(Mica_variable.variableType,Dataschema))'}}\"\n" +
-    "                                   class=\"btn btn-default btn-xxs\"\n" +
-    "                                   test-ref=\"dataSchemaVariableCount\">\n" +
-    "                                    <localized-number\n" +
-    "                                            value=\"counts.dataschemaVariables\"></localized-number>\n" +
-    "                                    {{counts.dataschemaVariables>1?\"client.label.dataschema-variables\":\"client.label.dataschema-variable\"\n" +
-    "                                    | translate}}\n" +
-    "                                </a>\n" +
-    "                            </div>\n" +
+    "                        </blockquote-small>\n" +
+    "                        <div class=\"sm-top-margin\">\n" +
+    "                            {{counts=summary['obiba.mica.CountStatsDto.studyCountStats'];\"\"}}\n" +
+    "                            <a ng-if=\"counts.networks\"\n" +
+    "                               href=\"{{'networks' | doSearchQuery:'network(in(Mica_network.studyIds,' + summary.id +  '))' }}\"\n" +
+    "                               class=\"btn btn-default btn-xxs\"\n" +
+    "                               test-ref=\"networkCount\">\n" +
+    "                                <localized-number\n" +
+    "                                        value=\"counts.networks\"></localized-number>\n" +
+    "                                {{counts.networks>1?\"networks\":\"network.label\"\n" +
+    "                                | translate}}\n" +
+    "                            </a>\n" +
+    "                            {{datasetsCount=counts.studyDatasets +\n" +
+    "                            counts.harmonizationDatasets;\"\"}}\n" +
+    "                            <a ng-if=\"datasetsCount\"\n" +
+    "                               href=\"{{'datasets' | doSearchQuery:'study(in(Mica_study.id,' + summary.id + '))'}}\"\n" +
+    "                               class=\"btn btn-default btn-xxs\"\n" +
+    "                               test-ref=\"datasetCount\">\n" +
+    "                                <localized-number\n" +
+    "                                        value=\"datasetsCount\"></localized-number>\n" +
+    "                                {{datasetsCount>1?\"datasets\":\"dataset.details\"\n" +
+    "                                | translate}}\n" +
+    "                            </a>\n" +
+    "                            <a ng-if=\"counts.studyVariables\"\n" +
+    "                               href=\"{{'variables' | doSearchQuery:'study(in(Mica_study.id,' + summary.id + ')),variable(in(Mica_variable.variableType,Collected))'}}\"\n" +
+    "                               class=\"btn btn-default btn-xxs\"\n" +
+    "                               test-ref=\"studyVariableCount\">\n" +
+    "                                <localized-number\n" +
+    "                                        value=\"counts.studyVariables\"></localized-number>\n" +
+    "                                {{counts.studyVariables>1?\"client.label.study-variables\":\"client.label.study-variable\"\n" +
+    "                                | translate}}\n" +
+    "                            </a>\n" +
+    "                            <a ng-if=\"counts.dataschemaVariables\"\n" +
+    "                               href=\"{{'variables' | doSearchQuery:'study(in(Mica_study.id,' + summary.id + ')),variable(in(Mica_variable.variableType,Dataschema))'}}\"\n" +
+    "                               class=\"btn btn-default btn-xxs\"\n" +
+    "                               test-ref=\"dataSchemaVariableCount\">\n" +
+    "                                <localized-number\n" +
+    "                                        value=\"counts.dataschemaVariables\"></localized-number>\n" +
+    "                                {{counts.dataschemaVariables>1?\"client.label.dataschema-variables\":\"client.label.dataschema-variable\"\n" +
+    "                                | translate}}\n" +
+    "                            </a>\n" +
     "                        </div>\n" +
-    "                    </td>\n" +
-    "                </tr>\n" +
-    "                </tbody>\n" +
-    "            </table>\n" +
+    "                    </div>\n" +
+    "                </div>\n" +
+    "\n" +
+    "            </div>\n" +
     "        </div>\n" +
+    "\n" +
     "    </div>\n" +
-    "</div>\n" +
-    "");
+    "</div>");
 }]);
 
 angular.module("lists/views/region-criteria/criterion-dropdown-template.html", []).run(["$templateCache", function($templateCache) {
@@ -11406,7 +11397,20 @@ angular.module("lists/views/search-result-list-template.html", []).run(["$templa
     "</div>\n" +
     "<div ng-show=\"display === 'list'\" class=\"row \">\n" +
     "  <div class=\"col-md-12\">\n" +
-    "    <div ng-show=\"options.obibaListOptions.countCaption\" class=\"pull-left\" test-ref=\"search-counts\">\n" +
+    "    <div class=\"pull-right\">\n" +
+    "      <list-sort-widget target=\"type\"></list-sort-widget>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "  <div class=\"clearfix\"/>\n" +
+    "\n" +
+    "  <div class=\"row\">\n" +
+    "    <div class=\"col-md-12\">\n" +
+    "        <div>\n" +
+    "          <div class=\"col-md-12\">\n" +
+    "            <div class=\"row\">\n" +
+    "\n" +
+    "              <div class=\"col-md-12\">\n" +
+    "                <div ng-show=\"options.obibaListOptions.countCaption\" class=\"pull-left caption-count\" test-ref=\"search-counts\">\n" +
     "      <span role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
     "            ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}\"\n" +
     "            ng-if=\"options[targetTypeMap[res]].showSearchTab\">\n" +
@@ -11420,26 +11424,26 @@ angular.module("lists/views/search-result-list-template.html", []).run(["$templa
     "          </div>\n" +
     "        </a>\n" +
     "      </span>\n" +
-    "    </div>\n" +
-    "    <div class=\"pull-right\">\n" +
-    "      <list-sort-widget target=\"type\"></list-sort-widget>\n" +
-    "    </div>\n" +
-    "  </div>\n" +
-    "  <div class=\"clearfix\"/>\n" +
+    "                </div>\n" +
     "\n" +
-    "  <div class=\"row\">\n" +
-    "    <div class=\"col-md-12\">\n" +
-    "      <div class=\"pull-right voffset2 \">\n" +
-    "        <div ng-repeat=\"res in resultTabsOrder\" ng-show=\"activeTarget[targetTypeMap[res]].active\" class=\"inline \"\n" +
-    "             test-ref=\"pager\">\n" +
+    "                <div class=\"pull-right voffset2 \">\n" +
+    "                  <div ng-repeat=\"res in resultTabsOrder\" ng-show=\"activeTarget[targetTypeMap[res]].active\" class=\"inline \"\n" +
+    "                       test-ref=\"pager\">\n" +
     "      <span search-result-pagination\n" +
     "            target=\"activeTarget[targetTypeMap[res]].name\"\n" +
     "            total-hits=\"activeTarget[targetTypeMap[res]].totalHits\"\n" +
     "            on-change=\"onPaginate\">\n" +
     "      </span>\n" +
+    "                  </div>\n" +
+    "                </div>\n" +
+    "              </div>\n" +
+    "\n" +
+    "            </div>\n" +
+    "          </div>\n" +
     "        </div>\n" +
-    "      </div>\n" +
+    "\n" +
     "    </div>\n" +
+    "\n" +
     "    <div class=\"tab-content col-md-12\">\n" +
     "\n" +
     "        <ng-include include-replace ng-repeat=\"res in resultTabsOrder\"\n" +
