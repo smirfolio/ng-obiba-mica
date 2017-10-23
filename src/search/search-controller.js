@@ -1555,9 +1555,13 @@ angular.module('obiba.mica.search')
         
         if(RqlQueryUtils.hasTargetQuery(criteria.rqlQuery, criterion.target)) {
           query = angular.copy(criteria.rqlQuery);
-          
+
           if(!isCriterionPresent) {
-            RqlQueryService.addCriteriaItem(query, criterion, RQL_NODE.OR);
+            var operator = criterion.target === QUERY_TARGETS.VARIABLE && criterion.taxonomy.name !== 'Mica_variable' ?
+              RQL_NODE.OR :
+              RQL_NODE.AND;
+            
+            RqlQueryService.addCriteriaItem(query, criterion, operator);
           }
         } else {
           query = createExistsQuery(criteria, criterion); 
@@ -1658,11 +1662,6 @@ angular.module('obiba.mica.search')
       $scope.setTarget = function(target) {
         $scope.target=target;
         init(target);
-        if ($scope.criteria) {
-          $timeout(function(){
-            $scope.$broadcast('ngObibaMicaQueryUpdated', $scope.criteria);
-          });
-        }
       };
 
       $scope.loadVocabulary = function(taxonomy, vocabulary) {
@@ -1684,7 +1683,10 @@ angular.module('obiba.mica.search')
               return f.name === t.name;
             })[0];
           }).filter(function(t) { return t; }).map(function(t) {
-            t.vocabularies = TaxonomyUtils.visibleFacetVocabularies(t.vocabularies);
+            t.isOpen = false;
+            t.vocabularies = 'Maelstrom Research' === t.author ?
+              t.vocabularies :
+              TaxonomyUtils.visibleFacetVocabularies(t.vocabularies);
 
             t.vocabularies.map(function (v) {
               var facetAttributes = TaxonomyUtils.findVocabularyAttributes(v, /^facet/i);
@@ -1693,6 +1695,8 @@ angular.module('obiba.mica.search')
               v.limit = 10;
               v.isMatch = RqlQueryUtils.isMatchVocabulary(v);
               v.isNumeric = RqlQueryUtils.isNumericVocabulary(v);
+
+              t.isOpen = t.isOpen || v.isOpen;
             });
 
             return t;
@@ -1700,6 +1704,12 @@ angular.module('obiba.mica.search')
 
           if($scope.taxonomies[target].length === 1) {
             $scope.taxonomies[target][0].isOpen = 1;
+          }
+
+          if ($scope.criteria) {
+            $timeout(function(){
+              $scope.$broadcast('ngObibaMicaQueryUpdated', $scope.criteria);
+            });
           }
         });
       }
