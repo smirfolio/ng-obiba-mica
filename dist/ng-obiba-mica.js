@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-10-20
+ * Date: 2017-10-23
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -6155,7 +6155,7 @@ angular.module('obiba.mica.search')
         RqlQueryUtils.addLimit(targetQuery, RqlQueryUtils.limit(0, 100000));
         var queryWithoutLimit = new RqlQuery().serializeArgs(parsedQuery.args);
 
-        return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', queryWithoutLimit);
+        return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(queryWithoutLimit));
       };
 
       $scope.getStudySpecificReportUrl = function () {
@@ -6172,7 +6172,7 @@ angular.module('obiba.mica.search')
           RqlQueryUtils.addLimit(targetQuery, RqlQueryUtils.limit(0, 100000));
           var queryWithoutLimit = new RqlQuery().serializeArgs(parsedQuery.args);
 
-          return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvReportResource').replace(':type', $scope.type).replace(':query', queryWithoutLimit);
+          return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvReportResource').replace(':type', $scope.type).replace(':query', encodeURI(queryWithoutLimit));
       };
 
       $scope.$watchCollection('result', function () {
@@ -7631,7 +7631,7 @@ angular.module('obiba.mica.search')
       templateUrl: ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchStudiesResultTable'),
       link: function(scope) {
         $q.all([
-          TaxonomyResource.get({target: 'study', taxonomy: 'Mica_study'})
+          TaxonomyResource.get({target: 'study', taxonomy: 'Mica_study'}).$promise
         ]).then(function (data) {
           var taxonomy = data[0];
           scope.taxonomy = taxonomy;
