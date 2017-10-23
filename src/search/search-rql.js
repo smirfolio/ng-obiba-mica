@@ -1096,7 +1096,7 @@ angular.module('obiba.mica.search')
         }).pop();
       }
 
-      function findQueryInTargetByVocabulary(target, vocabulary) {
+      function findQueryInTargetByTaxonomyVocabulary(target, taxonomy, vocabulary) {
         if (!target) {
           return null;
         }
@@ -1118,8 +1118,12 @@ angular.module('obiba.mica.search')
         }
 
         var result = {};
-        search(target, new RegExp('\\.'+vocabulary+'$'), result);
+        search(target, new RegExp((taxonomy ? taxonomy : '') + '\\.' + vocabulary+'$'), result);
         return result.parent;
+      }
+
+      function findQueryInTargetByVocabulary(target, vocabulary) {
+        return findQueryInTargetByTaxonomyVocabulary(target, null, vocabulary);
       }
 
       function getSourceFields(context, target) {
@@ -1155,6 +1159,7 @@ angular.module('obiba.mica.search')
       this.findTargetCriteria = findTargetCriteria;
       this.findTargetQuery = findTargetQuery;
       this.findQueryInTargetByVocabulary = findQueryInTargetByVocabulary;
+      this.findQueryInTargetByTaxonomyVocabulary = findQueryInTargetByTaxonomyVocabulary;
 
       function isLeafCriteria(item) {
         switch (item.type) {
