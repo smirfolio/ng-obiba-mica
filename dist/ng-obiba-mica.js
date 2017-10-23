@@ -6090,7 +6090,6 @@ angular.module('obiba.mica.search')
 
           if ($scope.criteria) {
             $timeout(function(){
-              console.log('Dispatch ngObibaMicaQueryUpdated');
               $scope.$broadcast('ngObibaMicaQueryUpdated', $scope.criteria);
             });
           }
@@ -11042,7 +11041,7 @@ angular.module("lists/views/input-search-widget/input-search-widget-template.htm
     "      </div>\n" +
     "    </div>\n" +
     "    <div class=\"col-md-3\">\n" +
-    "      <a class=\"btn btn-success col-md-12\" href=\"{{target | doSearchQuery:query}}\">\n" +
+    "      <a class=\"btn btn-success col-md-12\" href=\"{{type | doSearchQuery:query}}\">\n" +
     "        {{'search.advanced-button' | translate}}\n" +
     "      </a>\n" +
     "      <!--<span class=\"btn btn-md search-help pull-right\">?</span>-->\n" +
