@@ -1778,7 +1778,7 @@ angular.module('obiba.mica.search')
         RqlQueryUtils.addLimit(targetQuery, RqlQueryUtils.limit(0, 100000));
         var queryWithoutLimit = new RqlQuery().serializeArgs(parsedQuery.args);
 
-        return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', queryWithoutLimit);
+        return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(queryWithoutLimit));
       };
 
       $scope.getStudySpecificReportUrl = function () {
@@ -1795,7 +1795,7 @@ angular.module('obiba.mica.search')
           RqlQueryUtils.addLimit(targetQuery, RqlQueryUtils.limit(0, 100000));
           var queryWithoutLimit = new RqlQuery().serializeArgs(parsedQuery.args);
 
-          return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvReportResource').replace(':type', $scope.type).replace(':query', queryWithoutLimit);
+          return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvReportResource').replace(':type', $scope.type).replace(':query', encodeURI(queryWithoutLimit));
       };
 
       $scope.$watchCollection('result', function () {
