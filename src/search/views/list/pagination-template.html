@@ -29,7 +29,7 @@
   </ul>
   <ul class="pagination no-margin pagination-sm" ng-show="1 < totalPages">
     <li>
-      <a href ng-show="1 < totalPages" class="pagination-total">{{$parent.pagination.from}} - {{$parent.pagination.to}} {{'of' | translate}} {{totalItems}}</a>
+      <a href ng-show="$parent.canShow() && 1 < totalPages" class="pagination-total">{{$parent.pagination.from}} - {{$parent.pagination.to}} {{'of' | translate}} {{totalItems}}</a>
     </li>
   </ul>
 </span>

@@ -662,6 +662,7 @@ angular.module('obiba.mica.search')
       restrict: 'EA',
       replace: true,
       scope: {
+        showTotal: '=',
         target: '=',
         totalHits: '=',
         onChange: '='
