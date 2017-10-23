@@ -273,7 +273,7 @@ angular.module('obiba.mica.search')
       templateUrl: ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchStudiesResultTable'),
       link: function(scope) {
         $q.all([
-          TaxonomyResource.get({target: 'study', taxonomy: 'Mica_study'})
+          TaxonomyResource.get({target: 'study', taxonomy: 'Mica_study'}).$promise
         ]).then(function (data) {
           var taxonomy = data[0];
           scope.taxonomy = taxonomy;
