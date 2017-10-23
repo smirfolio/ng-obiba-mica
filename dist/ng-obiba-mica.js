@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-10-18
+ * Date: 2017-10-20
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -6304,8 +6304,14 @@ angular.module('obiba.mica.search')
       $scope.RqlQueryUtils = RqlQueryUtils;
     }])
   .controller('searchCriteriaRegionController', ['$scope', function ($scope) {
-    var canShowCriteriaRegion = function(){
-      return $scope.options.studyTaxonomiesOrder.length || $scope.options.datasetTaxonomiesOrder.length || $scope.options.networkTaxonomiesOrder.length;
+    var canShow = false;
+    $scope.$watchCollection('search.criteriaItemMap', function () {
+      if ($scope.search.criteriaItemMap) {
+        canShow = Object.keys($scope.search.criteriaItemMap).length > 1;
+      }
+    });
+    var canShowCriteriaRegion = function () {
+      return ($scope.options.studyTaxonomiesOrder.length || $scope.options.datasetTaxonomiesOrder.length || $scope.options.networkTaxonomiesOrder.length) && canShow;
     };
     $scope.canShowCriteriaRegion = canShowCriteriaRegion;
   }])
