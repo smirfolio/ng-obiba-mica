@@ -38,7 +38,7 @@ function NgObibaMicaListsOptionsFactory() {
               studiesCountCaption: true,
               studiesSearchForm: true,
               studiesSupplInfoDetails: true,
-              studiesTrimedDescrition: true
+              studiesTrimmedDescription: true
       }
     }
   };

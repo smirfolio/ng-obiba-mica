@@ -51,12 +51,13 @@ angular.module('obiba.mica.search', [
           countCaption: true,
           searchForm: true,
           supplInfoDetails: true,
-          trimedDescrition: true
+          trimmedDescription: true
         },
         targetTabsOrder: [QUERY_TARGETS.VARIABLE, QUERY_TARGETS.DATASET, QUERY_TARGETS.STUDY, QUERY_TARGETS.NETWORK],
         searchTabsOrder: [DISPLAY_TYPES.LIST, DISPLAY_TYPES.COVERAGE, DISPLAY_TYPES.GRAPHICS],
         resultTabsOrder: [QUERY_TARGETS.VARIABLE, QUERY_TARGETS.DATASET, QUERY_TARGETS.STUDY, QUERY_TARGETS.NETWORK],
         showAllFacetedTaxonomies: true,
+        showFacetTermsWithZeroCount: false,
         showSearchBox: true,
         showSearchBrowser: true,
         showSearchRefreshButton: false,
@@ -175,7 +176,7 @@ angular.module('obiba.mica.search', [
           options.obibaListOptions.countCaption = value.studies.obibaListOptions.studiesCountCaption === 0  ? value.studies.obibaListOptions.studiesCountCaption : true;
           options.obibaListOptions.searchForm = value.studies.obibaListOptions.studiesSearchForm === 0 ? value.studies.obibaListOptions.studiesSearchForm : true;
           options.obibaListOptions.supplInfoDetails = value.studies.obibaListOptions.studiesSupplInfoDetails === 0 ? value.studies.obibaListOptions.studiesSupplInfoDetails : true;
-          options.obibaListOptions.trimedDescrition = value.studies.obibaListOptions.studiesTrimedDescrition === 0 ? value.studies.obibaListOptions.studiesTrimedDescrition : true;
+          options.obibaListOptions.trimmedDescription = value.studies.obibaListOptions.studiesTrimmedDescription === 0 ? value.studies.obibaListOptions.studiesTrimmedDescription : true;
         }
       };
 
