@@ -1516,7 +1516,7 @@ angular.module('obiba.mica.search')
         return criterion.selectedTerms && (criterion.rqlQuery.name === RQL_NODE.EXISTS || criterion.selectedTerms.indexOf(term.key) !== -1);
       }
 
-      $scope.loading = true;
+      $scope.loading = false;
       $scope.selectTerm = function (target, taxonomy, vocabulary, args) {
         var selected = vocabulary.terms.filter(function(t) {return t.selected;}).map(function(t) { return t.name; }),
           criterion = RqlQueryService.findCriterion($scope.criteria, CriteriaIdGenerator.generate(taxonomy, vocabulary));
