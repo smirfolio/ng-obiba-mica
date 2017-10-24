@@ -17,16 +17,24 @@ angular.module('obiba.mica.lists')
 
   .controller('listSearchWidgetController', ['$scope', '$rootScope', '$location', 'RqlQueryService',
     function ($scope, $rootScope, $location, RqlQueryService) {
-      $scope.query = $location.search().query;
+      function initMatchInput() {
+        $scope.query = $location.search().query;
 
-      if ($scope.query) {
-        var targetQuery = RqlQueryService.findTargetQuery(typeToTarget($scope.type), RqlQueryService.parseQuery($scope.query));
+        if ($scope.query) {
+          var targetQuery = RqlQueryService.findTargetQuery(typeToTarget($scope.type), RqlQueryService.parseQuery($scope.query));
 
-        var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
-        if (foundFulltextMatchQuery.length === 1) {
-          $scope.searchFilter = foundFulltextMatchQuery[0].args[0][0];
+          var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
+          if (foundFulltextMatchQuery.length === 1) {
+            $scope.searchFilter = foundFulltextMatchQuery[0].args[0][0];
+          } else {
+            $scope.searchFilter = null;
+          }
         }
       }
+
+      $scope.$on('$locationChangeSuccess', function () {
+        initMatchInput();
+      });
 
       var emitter = $rootScope.$new();
 
@@ -37,6 +45,8 @@ angular.module('obiba.mica.lists')
       $scope.search = function() {
         emitter.$emit('ngObibaMicaSearch.searchChange', $scope.searchFilter);
       };
+
+      initMatchInput();
     }])
   .controller('listSortWidgetController', ['$scope', '$rootScope', 'sortWidgetService',
     function ($scope, $rootScope, sortWidgetService) {
