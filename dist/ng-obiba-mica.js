@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-10-23
+ * Date: 2017-10-24
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -1910,12 +1910,13 @@ angular.module('obiba.mica.search', [
           countCaption: true,
           searchForm: true,
           supplInfoDetails: true,
-          trimedDescrition: true
+          trimmedDescription: true
         },
         targetTabsOrder: [QUERY_TARGETS.VARIABLE, QUERY_TARGETS.DATASET, QUERY_TARGETS.STUDY, QUERY_TARGETS.NETWORK],
         searchTabsOrder: [DISPLAY_TYPES.LIST, DISPLAY_TYPES.COVERAGE, DISPLAY_TYPES.GRAPHICS],
         resultTabsOrder: [QUERY_TARGETS.VARIABLE, QUERY_TARGETS.DATASET, QUERY_TARGETS.STUDY, QUERY_TARGETS.NETWORK],
         showAllFacetedTaxonomies: true,
+        showFacetTermsWithZeroCount: false,
         showSearchBox: true,
         showSearchBrowser: true,
         showSearchRefreshButton: false,
@@ -2034,7 +2035,7 @@ angular.module('obiba.mica.search', [
           options.obibaListOptions.countCaption = value.studies.obibaListOptions.studiesCountCaption === 0  ? value.studies.obibaListOptions.studiesCountCaption : true;
           options.obibaListOptions.searchForm = value.studies.obibaListOptions.studiesSearchForm === 0 ? value.studies.obibaListOptions.studiesSearchForm : true;
           options.obibaListOptions.supplInfoDetails = value.studies.obibaListOptions.studiesSupplInfoDetails === 0 ? value.studies.obibaListOptions.studiesSupplInfoDetails : true;
-          options.obibaListOptions.trimedDescrition = value.studies.obibaListOptions.studiesTrimedDescrition === 0 ? value.studies.obibaListOptions.studiesTrimedDescrition : true;
+          options.obibaListOptions.trimmedDescription = value.studies.obibaListOptions.studiesTrimmedDescription === 0 ? value.studies.obibaListOptions.studiesTrimmedDescription : true;
         }
       };
 
@@ -5898,6 +5899,7 @@ angular.module('obiba.mica.search')
         return criterion.selectedTerms && (criterion.rqlQuery.name === RQL_NODE.EXISTS || criterion.selectedTerms.indexOf(term.key) !== -1);
       }
 
+      $scope.loading = true;
       $scope.selectTerm = function (target, taxonomy, vocabulary, args) {
         var selected = vocabulary.terms.filter(function(t) {return t.selected;}).map(function(t) { return t.name; }),
           criterion = RqlQueryService.findCriterion($scope.criteria, CriteriaIdGenerator.generate(taxonomy, vocabulary));
@@ -5918,6 +5920,7 @@ angular.module('obiba.mica.search')
 
       function updateCounts(criteria, vocabulary) {
         var query = null, isCriterionPresent = false;
+        $scope.loading = true;
 
         function createExistsQuery(criteria, criterion) {
           var rootQuery = angular.copy(criteria.rqlQuery);
@@ -5951,15 +5954,19 @@ angular.module('obiba.mica.search')
         
         var joinQuery = RqlQueryService.prepareCriteriaTermsQuery(query, criterion, criterion.lang);
         JoinQuerySearchResource[targetToType($scope.target)]({query: joinQuery}).$promise.then(function (joinQueryResponse) {
+          $scope.vocabulary.visibleTerms = 0;
           RqlQueryService.getTargetAggregations(joinQueryResponse, criterion, criterion.lang).forEach(function (term) {
             $scope.vocabulary.terms.some(function(t) {
               if (t.name === term.key) {
                 t.selected = isSelectedTerm(criterion, term);
                 t.count = term.count;
+                t.isVisible = $scope.options.showFacetTermsWithZeroCount || term.count > 0;
+                $scope.vocabulary.visibleTerms += t.isVisible;
                 return true;
               }
             });
           });
+          $scope.loading = false;
         });
       }
       
@@ -8252,7 +8259,7 @@ function NgObibaMicaListsOptionsFactory() {
               studiesCountCaption: true,
               studiesSearchForm: true,
               studiesSupplInfoDetails: true,
-              studiesTrimedDescrition: true
+              studiesTrimmedDescription: true
       }
     }
   };
@@ -11267,12 +11274,12 @@ angular.module("lists/views/list/studies-search-result-table-template.html", [])
     "                                       lang=\"lang\"></localized>\n" +
     "                        </a>\n" +
     "                    </h4>\n" +
-    "                    <p ng-if=\"options.obibaListOptions.studiesTrimedDescrition\">\n" +
+    "                    <p ng-if=\"options.obibaListOptions.studiesTrimmedDescription\">\n" +
     "                        <localized value=\"summary.objectives\" lang=\"lang\"\n" +
     "                                   ellipsis-size=\"250\"\n" +
     "                                   markdown-it=\"true\"></localized>\n" +
     "                    </p>\n" +
-    "                    <p ng-if=\"!options.obibaListOptions.studiesTrimedDescrition\">\n" +
+    "                    <p ng-if=\"!options.obibaListOptions.studiesTrimmedDescription\">\n" +
     "                        <localized value=\"summary.objectives\" lang=\"lang\"\n" +
     "                                   markdown-it=\"true\"></localized>\n" +
     "                    </p>\n" +
@@ -11887,10 +11894,11 @@ angular.module("search/views/classifications/taxonomies-facets-view.html", []).r
     "                </div>\n" +
     "              </form>\n" +
     "            </div>\n" +
-    "            <div ng-controller=\"TermsVocabularyFacetController\">\n" +
-    "              <ul class=\"nav nav-pills nav-stacked\" ng-if=\"vocabulary.terms\">\n" +
+    "            <div ng-if=\"!vocabulary.isNumeric && !vocabulary.isMatch\" ng-controller=\"TermsVocabularyFacetController\">\n" +
+    "              <div ng-if=\"loading\" class=\"loading\"></div>\n" +
+    "              <ul class=\"nav nav-pills nav-stacked\" ng-if=\"vocabulary.visibleTerms > 0\">\n" +
     "                <li ng-repeat=\"term in vocabulary.terms | orderBy:['-selected', '-count', '+name']  | limitTo:vocabulary.limit:begin\"\n" +
-    "                    class=\"checkbox\" ng-class=\"{active: term.name === term.name}\">\n" +
+    "                    class=\"checkbox\" ng-class=\"{active: term.name === term.name}\" ng-if=\"term.isVisible\">\n" +
     "                  <label style=\"max-width: 80%;\">\n" +
     "                    <input type=\"checkbox\" ng-model=\"term.selected\" ng-change=\"selectTerm(target, taxonomy, vocabulary, {term: term})\">\n" +
     "                    <span uib-popover=\"{{localize(term.description ? term.description : term.title)}}\"\n" +
@@ -11911,7 +11919,10 @@ angular.module("search/views/classifications/taxonomies-facets-view.html", []).r
     "                    </span>\n" +
     "                </li>\n" +
     "              </ul>\n" +
-    "              <div ng-if=\"!vocabulary.isNumeric && !vocabulary.isMatch && vocabulary.terms.length > 10\" class=\"voffset1 pull-right form-group\">\n" +
+    "              <span ng-if=\"vocabulary.visibleTerms === 0\">\n" +
+    "                <em translate>search.facet.no-data</em>\n" +
+    "              </span>\n" +
+    "              <div ng-if=\"!vocabulary.isNumeric && !vocabulary.isMatch && vocabulary.visibleTerms > 10\" class=\"voffset1 pull-right form-group\">\n" +
     "                <button class=\"btn btn-xs btn-primary\" ng-if=\"vocabulary.limit\" ng-click=\"vocabulary.limit = undefined\" translate>search.facet.more</button>\n" +
     "                <button class=\"btn btn-xs btn-default\" ng-if=\"!vocabulary.limit\" ng-click=\"vocabulary.limit = 10\" translate>search.facet.less</button>\n" +
     "              </div>\n" +

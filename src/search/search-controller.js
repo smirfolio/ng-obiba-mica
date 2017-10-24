@@ -1516,6 +1516,7 @@ angular.module('obiba.mica.search')
         return criterion.selectedTerms && (criterion.rqlQuery.name === RQL_NODE.EXISTS || criterion.selectedTerms.indexOf(term.key) !== -1);
       }
 
+      $scope.loading = true;
       $scope.selectTerm = function (target, taxonomy, vocabulary, args) {
         var selected = vocabulary.terms.filter(function(t) {return t.selected;}).map(function(t) { return t.name; }),
           criterion = RqlQueryService.findCriterion($scope.criteria, CriteriaIdGenerator.generate(taxonomy, vocabulary));
@@ -1536,6 +1537,7 @@ angular.module('obiba.mica.search')
 
       function updateCounts(criteria, vocabulary) {
         var query = null, isCriterionPresent = false;
+        $scope.loading = true;
 
         function createExistsQuery(criteria, criterion) {
           var rootQuery = angular.copy(criteria.rqlQuery);
@@ -1569,15 +1571,19 @@ angular.module('obiba.mica.search')
         
         var joinQuery = RqlQueryService.prepareCriteriaTermsQuery(query, criterion, criterion.lang);
         JoinQuerySearchResource[targetToType($scope.target)]({query: joinQuery}).$promise.then(function (joinQueryResponse) {
+          $scope.vocabulary.visibleTerms = 0;
           RqlQueryService.getTargetAggregations(joinQueryResponse, criterion, criterion.lang).forEach(function (term) {
             $scope.vocabulary.terms.some(function(t) {
               if (t.name === term.key) {
                 t.selected = isSelectedTerm(criterion, term);
                 t.count = term.count;
+                t.isVisible = $scope.options.showFacetTermsWithZeroCount || term.count > 0;
+                $scope.vocabulary.visibleTerms += t.isVisible;
                 return true;
               }
             });
           });
+          $scope.loading = false;
         });
       }
       

@@ -61,10 +61,11 @@
                 </div>
               </form>
             </div>
-            <div ng-controller="TermsVocabularyFacetController">
-              <ul class="nav nav-pills nav-stacked" ng-if="vocabulary.terms">
+            <div ng-if="!vocabulary.isNumeric && !vocabulary.isMatch" ng-controller="TermsVocabularyFacetController">
+              <div ng-if="loading" class="loading"></div>
+              <ul class="nav nav-pills nav-stacked" ng-if="vocabulary.visibleTerms > 0">
                 <li ng-repeat="term in vocabulary.terms | orderBy:['-selected', '-count', '+name']  | limitTo:vocabulary.limit:begin"
-                    class="checkbox" ng-class="{active: term.name === term.name}">
+                    class="checkbox" ng-class="{active: term.name === term.name}" ng-if="term.isVisible">
                   <label style="max-width: 80%;">
                     <input type="checkbox" ng-model="term.selected" ng-change="selectTerm(target, taxonomy, vocabulary, {term: term})">
                     <span uib-popover="{{localize(term.description ? term.description : term.title)}}"
@@ -85,7 +86,10 @@
                     </span>
                 </li>
               </ul>
-              <div ng-if="!vocabulary.isNumeric && !vocabulary.isMatch && vocabulary.terms.length > 10" class="voffset1 pull-right form-group">
+              <span ng-if="vocabulary.visibleTerms === 0">
+                <em translate>search.facet.no-data</em>
+              </span>
+              <div ng-if="!vocabulary.isNumeric && !vocabulary.isMatch && vocabulary.visibleTerms > 10" class="voffset1 pull-right form-group">
                 <button class="btn btn-xs btn-primary" ng-if="vocabulary.limit" ng-click="vocabulary.limit = undefined" translate>search.facet.more</button>
                 <button class="btn btn-xs btn-default" ng-if="!vocabulary.limit" ng-click="vocabulary.limit = 10" translate>search.facet.less</button>
               </div>
