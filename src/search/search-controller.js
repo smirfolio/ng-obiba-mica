@@ -2958,6 +2958,10 @@ angular.module('obiba.mica.search')
       $scope.pagination.to = Math.min($scope.totalHits, pageSize * current);
     }
 
+    function canShow() {
+      return angular.isUndefined($scope.showTotal) ||  true === $scope.showTotal;
+    }
+
     var pageChanged = function () {
       calculateRange();
       if ($scope.onChange) {
@@ -2975,6 +2979,7 @@ angular.module('obiba.mica.search')
       pageChanged();
     };
 
+    $scope.canShow = canShow;
     $scope.pageChanged = pageChanged;
     $scope.pageSizeChanged = pageSizeChanged;
     $scope.pageSizes = [
