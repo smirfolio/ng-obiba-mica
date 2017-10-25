@@ -24,7 +24,7 @@
 
                 <div class="col-md-10  col-sm-12 col-xs-12">
                     <h4>
-                        <a href="{{studyPath + '/' + summary.id | getBaseUrl}}">
+                        <a href="{{PageUrlService.studyPage( summary.id, studyPath)}}">
                             <localized value="summary.name"
                                        lang="lang"></localized>
                         </a>
@@ -38,7 +38,7 @@
                         <localized value="summary.objectives" lang="lang"
                                    markdown-it="true"></localized>
                     </p>
-                    <a ng-if="summary.objectives" href="{{'study/' + summary.id | getBaseUrl}}" >{{"global.read-more" | translate}}</a>
+                    <a ng-if="summary.objectives" href="{{PageUrlService.studyPage( summary.id, studyPath)}}" >{{"global.read-more" | translate}}</a>
                     <div class="clear-fix"></div>
                     <div ng-if="options.obibaListOptions.studiesSupplInfoDetails" class="voffset3">
                         <blockquote-small

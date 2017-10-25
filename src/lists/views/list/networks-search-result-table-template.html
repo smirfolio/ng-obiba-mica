@@ -22,7 +22,7 @@
                 </div>
                 <div class="col-md-10  col-sm-12 col-xs-12">
                     <h4>
-                        <a href="{{'network/' + summary.id | getBaseUrl}}">
+                        <a href="{{PageUrlService.networkPage(summary.id)}}">
                             <localized value="summary.name"
                                        lang="lang"></localized>
                         </a>
@@ -32,7 +32,7 @@
                                    ellipsis-size="250"
                                    markdown-it="true"></localized>
                     </p>
-                    <a ng-if="summary.description" href="{{'network/' + summary.id | getBaseUrl}}" >{{"global.read-more" | translate}}</a>
+                    <a ng-if="summary.description" href="{{PageUrlService.networkPage(summary.id)}}" >{{"global.read-more" | translate}}</a>
                     <div class="clear-fix"></div>
                     <div class="sm-top-margin countDetail voffset3">
                         {{counts=summary['obiba.mica.CountStatsDto.networkCountStats'];""}}

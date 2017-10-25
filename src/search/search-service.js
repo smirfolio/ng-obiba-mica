@@ -193,7 +193,7 @@ angular.module('obiba.mica.search')
   .service('PageUrlService', ['ngObibaMicaUrl', 'StringUtils', 'urlEncode', function(ngObibaMicaUrl, StringUtils, urlEncode) {
 
     this.studyPage = function(id, type) {
-      var sType = (type.toLowerCase() === 'individual' ? 'individual' : 'harmonization') + '-study';
+      var sType = (type.toLowerCase().indexOf('individual') > -1 ? 'individual' : 'harmonization') + '-study';
       return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyPage'), {':type': urlEncode(sType), ':study': urlEncode(id)}) : '';
     };
 
@@ -203,13 +203,12 @@ angular.module('obiba.mica.search')
     };
 
     this.networkPage = function(id) {
-      return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('NetworkPage'), {':network': urlEncode(id)}) : '';
+      return  id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('NetworkPage'), {':network': urlEncode(id)}) : '';
     };
 
     this.datasetPage = function(id, type) {
       var dsType = (type.toLowerCase() === 'collected' ? 'collected' : 'harmonized') + '-dataset';
-      var result = id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('DatasetPage'), {':type': urlEncode(dsType), ':dataset': urlEncode(id)}) : '';
-      return result;
+      return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('DatasetPage'), {':type': urlEncode(dsType), ':dataset': urlEncode(id)}) : '';
     };
 
     this.variablePage = function(id) {
