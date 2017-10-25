@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-10-24
+ * Date: 2017-10-25
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -4163,7 +4163,7 @@ angular.module('obiba.mica.search')
   .service('PageUrlService', ['ngObibaMicaUrl', 'StringUtils', 'urlEncode', function(ngObibaMicaUrl, StringUtils, urlEncode) {
 
     this.studyPage = function(id, type) {
-      var sType = (type.toLowerCase() === 'individual' ? 'individual' : 'harmonization') + '-study';
+      var sType = (type.toLowerCase().indexOf('individual') > -1 ? 'individual' : 'harmonization') + '-study';
       return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyPage'), {':type': urlEncode(sType), ':study': urlEncode(id)}) : '';
     };
 
@@ -4173,13 +4173,12 @@ angular.module('obiba.mica.search')
     };
 
     this.networkPage = function(id) {
-      return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('NetworkPage'), {':network': urlEncode(id)}) : '';
+      return  id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('NetworkPage'), {':network': urlEncode(id)}) : '';
     };
 
     this.datasetPage = function(id, type) {
       var dsType = (type.toLowerCase() === 'collected' ? 'collected' : 'harmonized') + '-dataset';
-      var result = id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('DatasetPage'), {':type': urlEncode(dsType), ':dataset': urlEncode(id)}) : '';
-      return result;
+      return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('DatasetPage'), {':type': urlEncode(dsType), ':dataset': urlEncode(id)}) : '';
     };
 
     this.variablePage = function(id) {
@@ -11165,7 +11164,7 @@ angular.module("lists/views/list/networks-search-result-table-template.html", []
     "                </div>\n" +
     "                <div class=\"col-md-10  col-sm-12 col-xs-12\">\n" +
     "                    <h4>\n" +
-    "                        <a href=\"{{'network/' + summary.id | getBaseUrl}}\">\n" +
+    "                        <a href=\"{{PageUrlService.networkPage(summary.id)}}\">\n" +
     "                            <localized value=\"summary.name\"\n" +
     "                                       lang=\"lang\"></localized>\n" +
     "                        </a>\n" +
@@ -11175,7 +11174,7 @@ angular.module("lists/views/list/networks-search-result-table-template.html", []
     "                                   ellipsis-size=\"250\"\n" +
     "                                   markdown-it=\"true\"></localized>\n" +
     "                    </p>\n" +
-    "                    <a ng-if=\"summary.description\" href=\"{{'network/' + summary.id | getBaseUrl}}\" >{{\"global.read-more\" | translate}}</a>\n" +
+    "                    <a ng-if=\"summary.description\" href=\"{{PageUrlService.networkPage(summary.id)}}\" >{{\"global.read-more\" | translate}}</a>\n" +
     "                    <div class=\"clear-fix\"></div>\n" +
     "                    <div class=\"sm-top-margin countDetail voffset3\">\n" +
     "                        {{counts=summary['obiba.mica.CountStatsDto.networkCountStats'];\"\"}}\n" +
@@ -11285,7 +11284,7 @@ angular.module("lists/views/list/studies-search-result-table-template.html", [])
     "\n" +
     "                <div class=\"col-md-10  col-sm-12 col-xs-12\">\n" +
     "                    <h4>\n" +
-    "                        <a href=\"{{studyPath + '/' + summary.id | getBaseUrl}}\">\n" +
+    "                        <a href=\"{{PageUrlService.studyPage( summary.id, studyPath)}}\">\n" +
     "                            <localized value=\"summary.name\"\n" +
     "                                       lang=\"lang\"></localized>\n" +
     "                        </a>\n" +
@@ -11299,7 +11298,7 @@ angular.module("lists/views/list/studies-search-result-table-template.html", [])
     "                        <localized value=\"summary.objectives\" lang=\"lang\"\n" +
     "                                   markdown-it=\"true\"></localized>\n" +
     "                    </p>\n" +
-    "                    <a ng-if=\"summary.objectives\" href=\"{{'study/' + summary.id | getBaseUrl}}\" >{{\"global.read-more\" | translate}}</a>\n" +
+    "                    <a ng-if=\"summary.objectives\" href=\"{{PageUrlService.studyPage( summary.id, studyPath)}}\" >{{\"global.read-more\" | translate}}</a>\n" +
     "                    <div class=\"clear-fix\"></div>\n" +
     "                    <div ng-if=\"options.obibaListOptions.studiesSupplInfoDetails\" class=\"voffset3\">\n" +
     "                        <blockquote-small\n" +
