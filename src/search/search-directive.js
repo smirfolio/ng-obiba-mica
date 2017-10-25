@@ -73,6 +73,7 @@ angular.module('obiba.mica.search')
         restrict: 'EA',
         replace: true,
         scope: {
+          lang: '=',
           summaries: '=',
           loading: '=',
           onUpdateCriteria: '='
@@ -163,6 +164,7 @@ angular.module('obiba.mica.search')
       restrict: 'EA',
       replace: true,
       scope: {
+        lang: '=',
         summaries: '=',
         loading: '=',
         onUpdateCriteria: '='
@@ -400,6 +402,7 @@ angular.module('obiba.mica.search')
       restrict: 'EA',
       replace: true,
       scope: {
+        lang: '=',
         summaries: '=',
         loading: '='
       },
