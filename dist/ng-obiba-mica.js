@@ -7457,6 +7457,7 @@ angular.module('obiba.mica.search')
         restrict: 'EA',
         replace: true,
         scope: {
+          lang: '=',
           summaries: '=',
           loading: '=',
           onUpdateCriteria: '='
@@ -7547,6 +7548,7 @@ angular.module('obiba.mica.search')
       restrict: 'EA',
       replace: true,
       scope: {
+        lang: '=',
         summaries: '=',
         loading: '=',
         onUpdateCriteria: '='
@@ -7784,6 +7786,7 @@ angular.module('obiba.mica.search')
       restrict: 'EA',
       replace: true,
       scope: {
+        lang: '=',
         summaries: '=',
         loading: '='
       },
@@ -13197,7 +13200,7 @@ angular.module("search/views/search-result-list-dataset-template.html", []).run(
     "  -->\n" +
     "\n" +
     "<div class=\"tab-pane\" ng-show=\"options.datasets.showSearchTab\" ng-class=\"{'active': activeTarget.datasets.active}\">\n" +
-    "  <datasets-result-table loading=\"loading\" on-update-criteria=\"onUpdateCriteria\"\n" +
+    "  <datasets-result-table lang=\"lang\" loading=\"loading\" on-update-criteria=\"onUpdateCriteria\"\n" +
     "      summaries=\"result.list.datasetResultDto['obiba.mica.DatasetResultDto.result'].datasets\"></datasets-result-table>\n" +
     "</div>\n" +
     "");
@@ -13216,7 +13219,7 @@ angular.module("search/views/search-result-list-network-template.html", []).run(
     "  -->\n" +
     "\n" +
     "<div class=\"tab-pane\" ng-show=\"options.networks.showSearchTab\" ng-class=\"{'active': activeTarget.networks.active}\">\n" +
-    "  <networks-result-table loading=\"loading\" on-update-criteria=\"onUpdateCriteria\"\n" +
+    "  <networks-result-table lang=\"lang\" loading=\"loading\" on-update-criteria=\"onUpdateCriteria\"\n" +
     "      summaries=\"result.list.networkResultDto['obiba.mica.NetworkResultDto.result'].networks\"></networks-result-table>\n" +
     "</div>\n" +
     "");
@@ -13305,7 +13308,7 @@ angular.module("search/views/search-result-list-variable-template.html", []).run
     "  -->\n" +
     "\n" +
     "<div class=\"tab-pane\" ng-show=\"options.variables.showSearchTab\" ng-class=\"{'active': activeTarget.variables.active}\">\n" +
-    "  <variables-result-table loading=\"loading\"\n" +
+    "  <variables-result-table lang=\"lang\" loading=\"loading\"\n" +
     "      summaries=\"result.list.variableResultDto['obiba.mica.DatasetVariableResultDto.result'].summaries\"></variables-result-table>\n" +
     "</div>\n" +
     "");
