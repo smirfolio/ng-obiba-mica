@@ -19,7 +19,7 @@
         <span ng-if="resultTabsOrder.length === 1">
           <div>
             {{totalHits = getTotalHits(res);""}}
-            {{singleLabel = res + ".label";""}}
+            {{singleLabel = "search." + res + ".label";""}}
             <span>
                 {{totalHits | localizedNumber }}  {{totalHits>1?targetTypeMap[res]:singleLabel | translate}}
             </span>
