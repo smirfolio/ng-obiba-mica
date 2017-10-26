@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-10-25
+ * Date: 2017-10-26
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -11447,7 +11447,7 @@ angular.module("lists/views/search-result-list-template.html", []).run(["$templa
     "        <span ng-if=\"resultTabsOrder.length === 1\">\n" +
     "          <div>\n" +
     "            {{totalHits = getTotalHits(res);\"\"}}\n" +
-    "            {{singleLabel = res + \".label\";\"\"}}\n" +
+    "            {{singleLabel = \"search.\" + res + \".label\";\"\"}}\n" +
     "            <span>\n" +
     "                {{totalHits | localizedNumber }}  {{totalHits>1?targetTypeMap[res]:singleLabel | translate}}\n" +
     "            </span>\n" +
