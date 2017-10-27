@@ -8263,11 +8263,24 @@ function NgObibaMicaListsOptionsFactory() {
       }
     },
     listOptions: {
+      networkOptions: {
+        showStudyBadge: true,
+        showDatasetBadge:true,
+        showVariableBadge: true
+      },
       studyOptions: {
               studiesCountCaption: true,
               studiesSearchForm: true,
               studiesSupplInfoDetails: true,
-              studiesTrimmedDescription: true
+              studiesTrimmedDescription: true,
+              showNetworkBadge: true,
+              showDatasetBadge:true,
+              showVariableBadge: true
+      },
+      datasetOptions: {
+              showNetworkBadge: true,
+              showStudyBadge:true,
+              showVariableBadge: true
       }
     }
   };
@@ -11107,7 +11120,7 @@ angular.module("lists/views/list/datasets-search-result-table-template.html", []
     "                <div class=\"clear-fix\"></div>\n" +
     "                <div class=\"sm-top-margin countDetail voffset3\">\n" +
     "                    {{counts=summary['obiba.mica.CountStatsDto.datasetCountStats'];\"\"}}\n" +
-    "                    <a ng-if=\"counts.networks\"\n" +
+    "                    <a ng-if=\"counts.networks && options.obibaListOptions.showNetworkBadge!==false\"\n" +
     "                       href=\"{{'networks' | doSearchQuery : 'dataset(in(Mica_dataset.id,' + summary.id +  '))' }}\"\n" +
     "                       class=\"btn btn-default btn-xxs\"\n" +
     "                       test-ref=\"studyCount\">\n" +
@@ -11116,7 +11129,7 @@ angular.module("lists/views/list/datasets-search-result-table-template.html", []
     "                        {{counts.networks > 1 ? \"networks\" : \"network.label\"\n" +
     "                        | translate}}\n" +
     "                    </a>\n" +
-    "                    <a ng-if=\"counts.studies\"\n" +
+    "                    <a ng-if=\"counts.studies && options.obibaListOptions.showStudyBadge!==false\"\n" +
     "                       href=\"{{'studies' | doSearchQuery : 'dataset(in(Mica_dataset.id,' + summary.id +  '))' }}\"\n" +
     "                       class=\"btn btn-default btn-xxs\"\n" +
     "                       test-ref=\"studyCount\">\n" +
@@ -11125,7 +11138,7 @@ angular.module("lists/views/list/datasets-search-result-table-template.html", []
     "                        {{counts.studies > 1 ? \"studies\" : \"study.label\"\n" +
     "                        | translate}}\n" +
     "                    </a>\n" +
-    "                    <a ng-if=\"counts.variables\"\n" +
+    "                    <a ng-show=\"counts.variables && options.obibaListOptions.showVariableBadge!==false\"\n" +
     "                       href=\"{{'variables' | doSearchQuery : 'dataset(in(Mica_dataset.id,' + summary.id +  '))' }}\"\n" +
     "                       class=\"btn btn-default btn-xxs\"\n" +
     "                       test-ref=\"variableCount\">\n" +
@@ -11146,9 +11159,7 @@ angular.module("lists/views/list/networks-search-result-table-template.html", []
     "<div>\n" +
     "    <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "    <div ng-show=\"!loading\" class=\"col-md-12\">\n" +
-    "        <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>\n" +
-    "            search.network.noResults</p>\n" +
-    "\n" +
+    "        <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.network.noResults</p>\n" +
     "        <div ng-if=\"summaries && summaries.length\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "            <div ng-repeat=\"summary in summaries\"\n" +
     "                 ng-init=\"lang = $parent.$parent.lang;\"\n" +
@@ -11181,7 +11192,7 @@ angular.module("lists/views/list/networks-search-result-table-template.html", []
     "                    <div class=\"clear-fix\"></div>\n" +
     "                    <div class=\"sm-top-margin countDetail voffset3\">\n" +
     "                        {{counts=summary['obiba.mica.CountStatsDto.networkCountStats'];\"\"}}\n" +
-    "                        <a ng-if=\"counts.individualStudies\"\n" +
+    "                        <a ng-if=\"counts.individualStudies && options.obibaListOptions.showStudyBadge!==false\"\n" +
     "                           href=\"{{'studies' | doSearchQuery:'network(in(Mica_network.id,' + summary.id +  ')),study(in(Mica_study.className,Study))' }}\"\n" +
     "                           class=\"btn btn-default btn-xxs\"\n" +
     "                           test-ref=\"individualStudyCount\">\n" +
@@ -11192,7 +11203,7 @@ angular.module("lists/views/list/networks-search-result-table-template.html", []
     "                            | translate}}\n" +
     "                        </a>\n" +
     "\n" +
-    "                        <a ng-if=\"counts.studiesWithVariables\"\n" +
+    "                        <a ng-if=\"counts.studiesWithVariables && options.obibaListOptions.showStudyBadge!==false\"\n" +
     "                           href=\"{{'studies' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  ')),variable(in(Mica_variable.variableType,Collected))' }}\"\n" +
     "                           class=\"btn btn-default btn-xxs\"\n" +
     "                           test-ref=\"studyWithVariablesCount\">\n" +
@@ -11204,7 +11215,7 @@ angular.module("lists/views/list/networks-search-result-table-template.html", []
     "                            | translate}}\n" +
     "                        </a>\n" +
     "\n" +
-    "                        <a ng-if=\"counts.studyVariables\"\n" +
+    "                        <a ng-if=\"counts.studyVariables && options.obibaListOptions.showVariableBadge!==false\"\n" +
     "                           href=\"{{'variables' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  ')),variable(in(Mica_variable.variableType,Collected))' }}\"\n" +
     "                           class=\"btn btn-default btn-xxs\"\n" +
     "                           test-ref=\"studyVariableCount\">\n" +
@@ -11216,7 +11227,7 @@ angular.module("lists/views/list/networks-search-result-table-template.html", []
     "                            | translate}}\n" +
     "                        </a>\n" +
     "\n" +
-    "                        <a ng-if=\"counts.harmonizationStudies\"\n" +
+    "                        <a ng-if=\"counts.harmonizationStudies && options.obibaListOptions.showStudyBadge!==false\"\n" +
     "                           href=\"{{'studies' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  ')),study(in(Mica_study.className,HarmonizationStudy))' }}\"\n" +
     "                           class=\"btn btn-default btn-xxs\"\n" +
     "                           test-ref=\"harmonizationStudyCount\">\n" +
@@ -11228,7 +11239,7 @@ angular.module("lists/views/list/networks-search-result-table-template.html", []
     "                            | translate}}\n" +
     "                        </a>\n" +
     "\n" +
-    "                        <a ng-if=\"counts.dataschemaVariables\"\n" +
+    "                        <a ng-if=\"counts.dataschemaVariables && options.obibaListOptions.showVariableBadge!==false\"\n" +
     "                           href=\"{{'variables' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  ')),variable(in(Mica_variable.variableType,Dataschema))' }}\"\n" +
     "                           class=\"btn btn-default btn-xxs\"\n" +
     "                           test-ref=\"harmonizationStudyWithVariablesCount\">\n" +
@@ -11241,7 +11252,7 @@ angular.module("lists/views/list/networks-search-result-table-template.html", []
     "                        </a>\n" +
     "                        {{datasetsCount = counts.studyDatasets +\n" +
     "                        counts.harmonizationDatasets; \"\"}}\n" +
-    "                        <a ng-if=\"datasetsCount\"\n" +
+    "                        <a ng-if=\"datasetsCount && options.obibaListOptions.showDatasetBadge!==false\"\n" +
     "                           href=\"{{'datasets' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  '))' }}\"\n" +
     "                           class=\"btn btn-default btn-xxs\"\n" +
     "                           test-ref=\"datasetCount\">\n" +
@@ -11264,9 +11275,7 @@ angular.module("lists/views/list/studies-search-result-table-template.html", [])
     "<div>\n" +
     "    <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "    <div ng-show=\"!loading\" class=\"col-md-12\">\n" +
-    "        <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>\n" +
-    "            search.study.noResults</p>\n" +
-    "\n" +
+    "        <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.study.noResults</p>\n" +
     "        <div ng-if=\"summaries && summaries.length\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "            <div ng-repeat=\"summary in summaries\"\n" +
     "                 ng-init=\"lang = $parent.$parent.lang; studyPath= summary.studyResourcePath=='individual-study'?'individual-study':'harmonization-study'\"\n" +
@@ -11321,7 +11330,7 @@ angular.module("lists/views/list/studies-search-result-table-template.html", [])
     "                        </blockquote-small>\n" +
     "                        <div class=\"sm-top-margin\">\n" +
     "                            {{counts=summary['obiba.mica.CountStatsDto.studyCountStats'];\"\"}}\n" +
-    "                            <a ng-if=\"counts.networks\"\n" +
+    "                            <a ng-if=\"counts.networks && options.obibaListOptions.showNetworkBadge!==false\"\n" +
     "                               href=\"{{'networks' | doSearchQuery:'network(in(Mica_network.studyIds,' + summary.id +  '))' }}\"\n" +
     "                               class=\"btn btn-default btn-xxs\"\n" +
     "                               test-ref=\"networkCount\">\n" +
@@ -11332,7 +11341,7 @@ angular.module("lists/views/list/studies-search-result-table-template.html", [])
     "                            </a>\n" +
     "                            {{datasetsCount=counts.studyDatasets +\n" +
     "                            counts.harmonizationDatasets;\"\"}}\n" +
-    "                            <a ng-if=\"datasetsCount\"\n" +
+    "                            <a ng-if=\"datasetsCount && options.obibaListOptions.showDatasetBadge!==false\"\n" +
     "                               href=\"{{'datasets' | doSearchQuery:'study(in(Mica_study.id,' + summary.id + '))'}}\"\n" +
     "                               class=\"btn btn-default btn-xxs\"\n" +
     "                               test-ref=\"datasetCount\">\n" +
@@ -11341,7 +11350,7 @@ angular.module("lists/views/list/studies-search-result-table-template.html", [])
     "                                {{datasetsCount>1?\"datasets\":\"dataset.details\"\n" +
     "                                | translate}}\n" +
     "                            </a>\n" +
-    "                            <a ng-if=\"counts.studyVariables\"\n" +
+    "                            <a ng-if=\"counts.studyVariables && options.obibaListOptions.showVariableBadge!==false\"\n" +
     "                               href=\"{{'variables' | doSearchQuery:'study(in(Mica_study.id,' + summary.id + ')),variable(in(Mica_variable.variableType,Collected))'}}\"\n" +
     "                               class=\"btn btn-default btn-xxs\"\n" +
     "                               test-ref=\"studyVariableCount\">\n" +
@@ -11350,7 +11359,7 @@ angular.module("lists/views/list/studies-search-result-table-template.html", [])
     "                                {{counts.studyVariables>1?\"client.label.study-variables\":\"client.label.study-variable\"\n" +
     "                                | translate}}\n" +
     "                            </a>\n" +
-    "                            <a ng-if=\"counts.dataschemaVariables\"\n" +
+    "                            <a ng-if=\"counts.dataschemaVariables && options.obibaListOptions.showVariableBadge!==false\"\n" +
     "                               href=\"{{'variables' | doSearchQuery:'study(in(Mica_study.id,' + summary.id + ')),variable(in(Mica_variable.variableType,Dataschema))'}}\"\n" +
     "                               class=\"btn btn-default btn-xxs\"\n" +
     "                               test-ref=\"dataSchemaVariableCount\">\n" +

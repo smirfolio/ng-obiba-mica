@@ -34,11 +34,24 @@ function NgObibaMicaListsOptionsFactory() {
       }
     },
     listOptions: {
+      networkOptions: {
+        showStudyBadge: true,
+        showDatasetBadge:true,
+        showVariableBadge: true
+      },
       studyOptions: {
               studiesCountCaption: true,
               studiesSearchForm: true,
               studiesSupplInfoDetails: true,
-              studiesTrimmedDescription: true
+              studiesTrimmedDescription: true,
+              showNetworkBadge: true,
+              showDatasetBadge:true,
+              showVariableBadge: true
+      },
+      datasetOptions: {
+              showNetworkBadge: true,
+              showStudyBadge:true,
+              showVariableBadge: true
       }
     }
   };

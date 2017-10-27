@@ -1,9 +1,7 @@
 <div>
     <div ng-if="loading" class="loading"></div>
     <div ng-show="!loading" class="col-md-12">
-        <p class="help-block" ng-if="!summaries || !summaries.length" translate>
-            search.network.noResults</p>
-
+        <p class="help-block" ng-if="!summaries || !summaries.length" translate>search.network.noResults</p>
         <div ng-if="summaries && summaries.length" ng-init="lang = $parent.$parent.lang">
             <div ng-repeat="summary in summaries"
                  ng-init="lang = $parent.$parent.lang;"
@@ -36,7 +34,7 @@
                     <div class="clear-fix"></div>
                     <div class="sm-top-margin countDetail voffset3">
                         {{counts=summary['obiba.mica.CountStatsDto.networkCountStats'];""}}
-                        <a ng-if="counts.individualStudies"
+                        <a ng-if="counts.individualStudies && options.obibaListOptions.showStudyBadge!==false"
                            href="{{'studies' | doSearchQuery:'network(in(Mica_network.id,' + summary.id +  ')),study(in(Mica_study.className,Study))' }}"
                            class="btn btn-default btn-xxs"
                            test-ref="individualStudyCount">
@@ -47,7 +45,7 @@
                             | translate}}
                         </a>
 
-                        <a ng-if="counts.studiesWithVariables"
+                        <a ng-if="counts.studiesWithVariables && options.obibaListOptions.showStudyBadge!==false"
                            href="{{'studies' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  ')),variable(in(Mica_variable.variableType,Collected))' }}"
                            class="btn btn-default btn-xxs"
                            test-ref="studyWithVariablesCount">
@@ -59,7 +57,7 @@
                             | translate}}
                         </a>
 
-                        <a ng-if="counts.studyVariables"
+                        <a ng-if="counts.studyVariables && options.obibaListOptions.showVariableBadge!==false"
                            href="{{'variables' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  ')),variable(in(Mica_variable.variableType,Collected))' }}"
                            class="btn btn-default btn-xxs"
                            test-ref="studyVariableCount">
@@ -71,7 +69,7 @@
                             | translate}}
                         </a>
 
-                        <a ng-if="counts.harmonizationStudies"
+                        <a ng-if="counts.harmonizationStudies && options.obibaListOptions.showStudyBadge!==false"
                            href="{{'studies' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  ')),study(in(Mica_study.className,HarmonizationStudy))' }}"
                            class="btn btn-default btn-xxs"
                            test-ref="harmonizationStudyCount">
@@ -83,7 +81,7 @@
                             | translate}}
                         </a>
 
-                        <a ng-if="counts.dataschemaVariables"
+                        <a ng-if="counts.dataschemaVariables && options.obibaListOptions.showVariableBadge!==false"
                            href="{{'variables' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  ')),variable(in(Mica_variable.variableType,Dataschema))' }}"
                            class="btn btn-default btn-xxs"
                            test-ref="harmonizationStudyWithVariablesCount">
@@ -96,7 +94,7 @@
                         </a>
                         {{datasetsCount = counts.studyDatasets +
                         counts.harmonizationDatasets; ""}}
-                        <a ng-if="datasetsCount"
+                        <a ng-if="datasetsCount && options.obibaListOptions.showDatasetBadge!==false"
                            href="{{'datasets' | doSearchQuery : 'network(in(Mica_network.id,' + summary.id +  '))' }}"
                            class="btn btn-default btn-xxs"
                            test-ref="datasetCount">

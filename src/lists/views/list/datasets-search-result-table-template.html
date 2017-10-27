@@ -19,7 +19,7 @@
                 <div class="clear-fix"></div>
                 <div class="sm-top-margin countDetail voffset3">
                     {{counts=summary['obiba.mica.CountStatsDto.datasetCountStats'];""}}
-                    <a ng-if="counts.networks"
+                    <a ng-if="counts.networks && options.obibaListOptions.showNetworkBadge!==false"
                        href="{{'networks' | doSearchQuery : 'dataset(in(Mica_dataset.id,' + summary.id +  '))' }}"
                        class="btn btn-default btn-xxs"
                        test-ref="studyCount">
@@ -28,7 +28,7 @@
                         {{counts.networks > 1 ? "networks" : "network.label"
                         | translate}}
                     </a>
-                    <a ng-if="counts.studies"
+                    <a ng-if="counts.studies && options.obibaListOptions.showStudyBadge!==false"
                        href="{{'studies' | doSearchQuery : 'dataset(in(Mica_dataset.id,' + summary.id +  '))' }}"
                        class="btn btn-default btn-xxs"
                        test-ref="studyCount">
@@ -37,7 +37,7 @@
                         {{counts.studies > 1 ? "studies" : "study.label"
                         | translate}}
                     </a>
-                    <a ng-if="counts.variables"
+                    <a ng-show="counts.variables && options.obibaListOptions.showVariableBadge!==false"
                        href="{{'variables' | doSearchQuery : 'dataset(in(Mica_dataset.id,' + summary.id +  '))' }}"
                        class="btn btn-default btn-xxs"
                        test-ref="variableCount">
