@@ -1459,7 +1459,7 @@ angular.module('obiba.mica.search')
     }
 
     $scope.onKeypress = function(ev) {
-      if(ev.keyCode === 13) { updateCriteria(); }
+      if(ev.keyCode === 13 || ev.type==='click') { updateCriteria(); }
     };
 
     $scope.$on('ngObibaMicaQueryUpdated', function(ev, criteria) {
@@ -1491,7 +1491,7 @@ angular.module('obiba.mica.search')
     }
     
     $scope.onKeypress = function(ev) {
-      if(ev.keyCode === 13) {
+      if(ev.keyCode === 13 || ev.type==='click') {
         updateCriteria();
       }
     };

@@ -48,6 +48,7 @@
               <form novalidate class="form-inline" ng-keypress="onKeypress($event)">
                 <div class="form-group form-group-sm">
                   <input type="text" class="form-control" ng-model="text" placeholder="{{'search.match.placeholder' | translate}}">
+                  <button class="btn btn-sm btn-default" ng-click="onKeypress($event)" ><i class="glyphicon glyphicon-chevron-right"></i></button>
                 </div>
               </form>
             </div>
@@ -58,6 +59,7 @@
                   <input type="number" class="form-control" id="nav-{{vocabulary.name}}-from" ng-model="from" placeholder="{{min}}" style="width:75px;">
                   <label for="nav-{{vocabulary.name}}-to" translate>to</label>
                   <input type="number" class="form-control" id="nav-{{vocabulary.name}}-to" ng-model="to" placeholder="{{max}}" style="width:75px;">
+                  <button class="btn btn-sm btn-default" ng-click="onKeypress($event)" ><i class="glyphicon glyphicon-chevron-right"></i></button>
                 </div>
               </form>
             </div>
