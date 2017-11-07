@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-10-26
+ * Date: 2017-11-07
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -5841,7 +5841,7 @@ angular.module('obiba.mica.search')
     }
 
     $scope.onKeypress = function(ev) {
-      if(ev.keyCode === 13) { updateCriteria(); }
+      if(ev.keyCode === 13 || ev.type==='click') { updateCriteria(); }
     };
 
     $scope.$on('ngObibaMicaQueryUpdated', function(ev, criteria) {
@@ -5873,7 +5873,7 @@ angular.module('obiba.mica.search')
     }
     
     $scope.onKeypress = function(ev) {
-      if(ev.keyCode === 13) {
+      if(ev.keyCode === 13 || ev.type==='click') {
         updateCriteria();
       }
     };
@@ -11911,6 +11911,7 @@ angular.module("search/views/classifications/taxonomies-facets-view.html", []).r
     "              <form novalidate class=\"form-inline\" ng-keypress=\"onKeypress($event)\">\n" +
     "                <div class=\"form-group form-group-sm\">\n" +
     "                  <input type=\"text\" class=\"form-control\" ng-model=\"text\" placeholder=\"{{'search.match.placeholder' | translate}}\">\n" +
+    "                  <button class=\"btn btn-sm btn-default\" ng-click=\"onKeypress($event)\" ><i class=\"glyphicon glyphicon-chevron-right\"></i></button>\n" +
     "                </div>\n" +
     "              </form>\n" +
     "            </div>\n" +
@@ -11921,6 +11922,7 @@ angular.module("search/views/classifications/taxonomies-facets-view.html", []).r
     "                  <input type=\"number\" class=\"form-control\" id=\"nav-{{vocabulary.name}}-from\" ng-model=\"from\" placeholder=\"{{min}}\" style=\"width:75px;\">\n" +
     "                  <label for=\"nav-{{vocabulary.name}}-to\" translate>to</label>\n" +
     "                  <input type=\"number\" class=\"form-control\" id=\"nav-{{vocabulary.name}}-to\" ng-model=\"to\" placeholder=\"{{max}}\" style=\"width:75px;\">\n" +
+    "                  <button class=\"btn btn-sm btn-default\" ng-click=\"onKeypress($event)\" ><i class=\"glyphicon glyphicon-chevron-right\"></i></button>\n" +
     "                </div>\n" +
     "              </form>\n" +
     "            </div>\n" +
