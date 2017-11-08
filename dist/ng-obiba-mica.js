@@ -12024,9 +12024,6 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "          <div ng-if=\"taxonomies.taxonomy\">\n" +
     "            <div class=\"row\">\n" +
     "              <div class=\"col-md-4 height3\" scroll-to-top=\"taxonomies.taxonomy\">\n" +
-    "                <!--<h5 ng-repeat=\"label in taxonomies.taxonomy.title\" ng-if=\"label.locale === lang\">-->\n" +
-    "                  <!--{{label.text}}-->\n" +
-    "                <!--</h5>-->\n" +
     "                <p class=\"help-block\" ng-repeat=\"label in taxonomies.taxonomy.description\"\n" +
     "                   ng-if=\"label.locale === lang\">\n" +
     "                  {{label.text}}\n" +
