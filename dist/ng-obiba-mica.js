@@ -11066,7 +11066,7 @@ angular.module("lists/views/input-search-widget/input-search-widget-template.htm
     "    <div class=\"col-md-9\">\n" +
     "      <div class=\"form-group\">\n" +
     "        <div class=\"input-group\">\n" +
-    "          <suggestion-field document-type=\"type\" model=\"searchFilter\" placeholder-text=\"'global.search'\"\n" +
+    "          <suggestion-field document-type=\"type\" model=\"searchFilter\" placeholder-text=\"'global.list-search-widget-placeholder'\"\n" +
     "                            select=\"selectSuggestion\"></suggestion-field>\n" +
     "\n" +
     "          <span class=\"input-group-btn\">\n" +
@@ -11521,9 +11521,9 @@ angular.module("lists/views/sort-widget/sort-widget-template.html", []).run(["$t
     "           <button id=\"SortOrder\"  type=\"button\" class=\"btn btn-primary dropdown-toggle\"\n" +
     "                   data-toggle=\"dropdown\" >\n" +
     "               <i ng-if=\"selected.order=='-' || selected.sort===selectSort.options[0].value\"\n" +
-    "                  class=\"glyphicon glyphicon-sort-by-attributes-alt\"></i>\n" +
+    "                  class=\"glyphicon glyphicon-arrow-down\"></i>\n" +
     "               <i ng-if=\"selected.order=='' && selected.sort!==selectSort.options[0].value\"\n" +
-    "                  class=\"glyphicon glyphicon-sort-by-attributes\"></i>\n" +
+    "                  class=\"glyphicon glyphicon-arrow-up\"></i>\n" +
     "               {{getLabel(selectSort,selected.sort) | translate}}\n" +
     "           </button>\n" +
     "           <span class=\"dropdown-menu pull-left\" role=\"menu\" uib-dropdown-menu aria-labelledby=\"SortOrder\">\n" +
@@ -12290,7 +12290,7 @@ angular.module("search/views/classifications/vocabulary-panel-template.html", []
 
 angular.module("search/views/coverage/coverage-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/coverage/coverage-search-result-table-template.html",
-    "<div>\n" +
+    "<div class=\"coverage\">\n" +
     "\n" +
     "  <div ng-if=\"hasVariableTarget()\">\n" +
     "    <ul class=\"nav nav-pills pull-left\">\n" +

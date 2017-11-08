@@ -3,9 +3,9 @@
            <button id="SortOrder"  type="button" class="btn btn-primary dropdown-toggle"
                    data-toggle="dropdown" >
                <i ng-if="selected.order=='-' || selected.sort===selectSort.options[0].value"
-                  class="glyphicon glyphicon-sort-by-attributes-alt"></i>
+                  class="glyphicon glyphicon-arrow-down"></i>
                <i ng-if="selected.order=='' && selected.sort!==selectSort.options[0].value"
-                  class="glyphicon glyphicon-sort-by-attributes"></i>
+                  class="glyphicon glyphicon-arrow-up"></i>
                {{getLabel(selectSort,selected.sort) | translate}}
            </button>
            <span class="dropdown-menu pull-left" role="menu" uib-dropdown-menu aria-labelledby="SortOrder">
