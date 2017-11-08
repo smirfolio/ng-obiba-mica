@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-11-07
+ * Date: 2017-11-08
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -12024,9 +12024,9 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
     "          <div ng-if=\"taxonomies.taxonomy\">\n" +
     "            <div class=\"row\">\n" +
     "              <div class=\"col-md-4 height3\" scroll-to-top=\"taxonomies.taxonomy\">\n" +
-    "                <h5 ng-repeat=\"label in taxonomies.taxonomy.title\" ng-if=\"label.locale === lang\">\n" +
-    "                  {{label.text}}\n" +
-    "                </h5>\n" +
+    "                <!--<h5 ng-repeat=\"label in taxonomies.taxonomy.title\" ng-if=\"label.locale === lang\">-->\n" +
+    "                  <!--{{label.text}}-->\n" +
+    "                <!--</h5>-->\n" +
     "                <p class=\"help-block\" ng-repeat=\"label in taxonomies.taxonomy.description\"\n" +
     "                   ng-if=\"label.locale === lang\">\n" +
     "                  {{label.text}}\n" +
