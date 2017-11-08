@@ -11066,7 +11066,7 @@ angular.module("lists/views/input-search-widget/input-search-widget-template.htm
     "    <div class=\"col-md-9\">\n" +
     "      <div class=\"form-group\">\n" +
     "        <div class=\"input-group\">\n" +
-    "          <suggestion-field document-type=\"type\" model=\"searchFilter\" placeholder-text=\"'global.list-search-widget-placeholder'\"\n" +
+    "          <suggestion-field document-type=\"type\" model=\"searchFilter\" placeholder-text=\"'global.list-search-placeholder'\"\n" +
     "                            select=\"selectSuggestion\"></suggestion-field>\n" +
     "\n" +
     "          <span class=\"input-group-btn\">\n" +
