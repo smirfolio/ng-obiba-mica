@@ -116,8 +116,8 @@ angular.module('obiba.mica.graphics')
                 
                 if ($scope.chartType === 'GeoChart') {
                   $scope.chartObject.d3Config = new D3GeoConfig().withData(entries).withTitle($scope.chartObject.options.title);
-                  if ($scope.chartObject.options && $scope.chartObject.options.colorAxis && $scope.chartObject.options.colorAxis.colors) {
-                    $scope.chartObject.d3Config.withColor($scope.chartObject.options.colorAxis.colors);
+                  if ($scope.chartObject.options ) {
+                    $scope.chartObject.d3Config.withColor($scope.chartOptions.colors);
                   }
                 } else {
 

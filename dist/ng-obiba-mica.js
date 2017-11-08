@@ -7179,7 +7179,7 @@ angular.module('obiba.mica.search')
                 var d3Config = new D3GeoConfig()
                   .withData(geoStudies.entries)
                   .withTitle($filter('translate')(charOptions.geoChartOptions.title) + ' (N=' + result.studyResultDto.totalHits + ')');
-                d3Config.color = charOptions.geoChartOptions.options.colors;
+                d3Config.withColor(charOptions.geoChartOptions.options.colors);
                 var chartObject = {
                   geoChartOptions: {
                     directiveTitle: geoStudies.options.title,
@@ -8880,8 +8880,8 @@ angular.module('obiba.mica.graphics')
                 
                 if ($scope.chartType === 'GeoChart') {
                   $scope.chartObject.d3Config = new D3GeoConfig().withData(entries).withTitle($scope.chartObject.options.title);
-                  if ($scope.chartObject.options && $scope.chartObject.options.colorAxis && $scope.chartObject.options.colorAxis.colors) {
-                    $scope.chartObject.d3Config.withColor($scope.chartObject.options.colorAxis.colors);
+                  if ($scope.chartObject.options ) {
+                    $scope.chartObject.d3Config.withColor($scope.chartOptions.colors);
                   }
                 } else {
 
