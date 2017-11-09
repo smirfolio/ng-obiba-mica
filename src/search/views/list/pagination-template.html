@@ -8,8 +8,8 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
-<span class="input-group voffset1">
-  <ul class="pagination pagination-sm no-padding no-margin">
+<span>
+  <ul class="pagination pagination-sm">
     <li ng-if="::boundaryLinks" ng-class="{disabled: noPrevious()||ngDisabled}" class="pagination-first">
       <a href ng-click="selectPage(1, $event)">{{::getText('first')}}</a>
     </li>
@@ -27,7 +27,7 @@
       <a href ng-click="selectPage(totalPages, $event)">{{::getText('last')}}</a>
     </li>
   </ul>
-  <ul class="pagination no-margin pagination-sm" ng-show="1 < totalPages">
+  <ul class="pagination pagination-sm" ng-show="1 < totalPages">
     <li>
       <a href ng-show="$parent.canShow() && 1 < totalPages" class="pagination-total">{{$parent.pagination.from}} - {{$parent.pagination.to}} {{'of' | translate}} {{totalItems}}</a>
     </li>

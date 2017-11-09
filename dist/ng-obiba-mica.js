@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-11-08
+ * Date: 2017-11-09
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -12776,7 +12776,6 @@ angular.module("search/views/list/datasets-search-result-table-template.html", [
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "  <div ng-show=\"!loading\">\n" +
-    "    <div study-filter-shortcut></div>\n" +
     "\n" +
     "    <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.dataset.noResults</p>\n" +
     "    <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
@@ -12834,7 +12833,6 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "  <div ng-show=\"!loading\">\n" +
-    "    <div study-filter-shortcut></div>\n" +
     "\n" +
     "    <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.network.noResults</p>\n" +
     "    <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
@@ -12918,8 +12916,8 @@ angular.module("search/views/list/pagination-template.html", []).run(["$template
     "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
     "  -->\n" +
     "\n" +
-    "<span class=\"input-group voffset1\">\n" +
-    "  <ul class=\"pagination pagination-sm no-padding no-margin\">\n" +
+    "<span>\n" +
+    "  <ul class=\"pagination pagination-sm\">\n" +
     "    <li ng-if=\"::boundaryLinks\" ng-class=\"{disabled: noPrevious()||ngDisabled}\" class=\"pagination-first\">\n" +
     "      <a href ng-click=\"selectPage(1, $event)\">{{::getText('first')}}</a>\n" +
     "    </li>\n" +
@@ -12937,7 +12935,7 @@ angular.module("search/views/list/pagination-template.html", []).run(["$template
     "      <a href ng-click=\"selectPage(totalPages, $event)\">{{::getText('last')}}</a>\n" +
     "    </li>\n" +
     "  </ul>\n" +
-    "  <ul class=\"pagination no-margin pagination-sm\" ng-show=\"1 < totalPages\">\n" +
+    "  <ul class=\"pagination pagination-sm\" ng-show=\"1 < totalPages\">\n" +
     "    <li>\n" +
     "      <a href ng-show=\"$parent.canShow() && 1 < totalPages\" class=\"pagination-total\">{{$parent.pagination.from}} - {{$parent.pagination.to}} {{'of' | translate}} {{totalItems}}</a>\n" +
     "    </li>\n" +
@@ -12947,30 +12945,31 @@ angular.module("search/views/list/pagination-template.html", []).run(["$template
 
 angular.module("search/views/list/search-result-pagination-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/list/search-result-pagination-template.html",
-    "<span ng-show=\"totalHits > 10\" class=\"form-inline\">\n" +
-    "  <span class=\"input-group\">\n" +
-    "    <select class=\"form-control form-select\"\n" +
+    "<div ng-show=\"totalHits > 10\" style=\"padding-top: 2px;\">\n" +
+    "  <div class=\"pull-left\">\n" +
+    "    <select class=\"form-control input-sm form-select\"\n" +
     "            ng-model=\"pagination.selected\"\n" +
     "            ng-options=\"size.label for size in pageSizes\"\n" +
     "            ng-change=\"pageSizeChanged()\"></select>\n" +
-    "  </span>\n" +
+    "  </div>\n" +
+    "  <div class=\"pull-right\" style=\"margin-left: 5px\">\n" +
+    "    <span uib-pagination  ng-show=\"maxSize > 1\"\n" +
     "\n" +
-    "  <span ng-show=\"maxSize > 1\"\n" +
-    "        uib-pagination\n" +
-    "        total-items=\"totalHits\"\n" +
-    "        max-size=\"maxSize\"\n" +
-    "        ng-model=\"pagination.currentPage\"\n" +
-    "        boundary-links=\"true\"\n" +
-    "        force-ellipses=\"true\"\n" +
-    "        items-per-page=\"pagination.selected.value\"\n" +
-    "        previous-text=\"&lsaquo;\"\n" +
-    "        next-text=\"&rsaquo;\"\n" +
-    "        first-text=\"&laquo;\"\n" +
-    "        last-text=\"&raquo;\"\n" +
-    "        template-url=\"search/views/list/pagination-template.html\"\n" +
-    "        ng-change=\"pageChanged()\">\n" +
+    "                  total-items=\"totalHits\"\n" +
+    "                  max-size=\"maxSize\"\n" +
+    "                  ng-model=\"pagination.currentPage\"\n" +
+    "                  boundary-links=\"true\"\n" +
+    "                  force-ellipses=\"true\"\n" +
+    "                  items-per-page=\"pagination.selected.value\"\n" +
+    "                  previous-text=\"&lsaquo;\"\n" +
+    "                  next-text=\"&rsaquo;\"\n" +
+    "                  first-text=\"&laquo;\"\n" +
+    "                  last-text=\"&raquo;\"\n" +
+    "                  template-url=\"search/views/list/pagination-template.html\"\n" +
+    "                  ng-change=\"pageChanged()\">\n" +
     "  </span>\n" +
-    "</span>");
+    "  </div>\n" +
+    "</div>");
 }]);
 
 angular.module("search/views/list/studies-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
@@ -12978,7 +12977,7 @@ angular.module("search/views/list/studies-search-result-table-template.html", []
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "  <div ng-show=\"!loading\">\n" +
-    "    <div study-filter-shortcut></div>\n" +
+    "\n" +
     "\n" +
     "    <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.study.noResults</p>\n" +
     "    <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
@@ -13103,7 +13102,6 @@ angular.module("search/views/list/variables-search-result-table-template.html", 
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "  <div ng-show=\"!loading\">\n" +
-    "    <div study-filter-shortcut></div>\n" +
     "\n" +
     "    <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.variable.noResults</p>\n" +
     "    <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
@@ -13287,15 +13285,17 @@ angular.module("search/views/search-result-list-template.html", []).run(["$templ
     "        <a target=\"_self\" download class=\"btn btn-info\" ng-href=\"{{getReportUrl()}}\">\n" +
     "            <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
     "        </a>\n" +
-    "        <div ng-repeat=\"res in resultTabsOrder\" ng-show=\"activeTarget[targetTypeMap[res]].active\" class=\"inline\" test-ref=\"pager\">\n" +
+    "    </div>\n" +
+    "    <div class=\"clearfix\"/>\n" +
+    "    <div class=\"tab-content\">\n" +
+    "        <div class=\"pull-left\" study-filter-shortcut></div>\n" +
+    "        <div ng-repeat=\"res in resultTabsOrder\" ng-show=\"activeTarget[targetTypeMap[res]].active\" class=\"pull-right voffset2\" test-ref=\"pager\">\n" +
     "          <span search-result-pagination\n" +
     "                target=\"activeTarget[targetTypeMap[res]].name\"\n" +
     "                total-hits=\"activeTarget[targetTypeMap[res]].totalHits\"\n" +
     "                on-change=\"onPaginate\"></span>\n" +
     "        </div>\n" +
-    "    </div>\n" +
-    "    <div class=\"clearfix\"/>\n" +
-    "    <div class=\"tab-content\">\n" +
+    "        <div class=\"clearfix\"/>\n" +
     "        <ng-include include-replace ng-repeat=\"res in resultTabsOrder\"\n" +
     "                    src=\"'search/views/search-result-list-' + res + '-template.html'\"></ng-include>\n" +
     "    </div>\n" +
