@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-11-09
+ * Date: 2017-11-10
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -11518,7 +11518,7 @@ angular.module("lists/views/sort-widget/sort-widget-template.html", []).run(["$t
   $templateCache.put("lists/views/sort-widget/sort-widget-template.html",
     "<div class=\"sortwidget\">\n" +
     "        <span class=\"btn-group dropdown\" >\n" +
-    "           <button id=\"SortOrder\"  type=\"button\" class=\"btn btn-primary dropdown-toggle\"\n" +
+    "           <button id=\"SortOrder\"  type=\"button\" class=\"btn-sm btn btn-primary dropdown-toggle\"\n" +
     "                   data-toggle=\"dropdown\" >\n" +
     "               <i ng-if=\"selected.order=='-' || selected.sort===selectSort.options[0].value\"\n" +
     "                  class=\"glyphicon glyphicon-arrow-down\"></i>\n" +
@@ -12945,7 +12945,7 @@ angular.module("search/views/list/pagination-template.html", []).run(["$template
 
 angular.module("search/views/list/search-result-pagination-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/list/search-result-pagination-template.html",
-    "<div ng-show=\"totalHits > 10\" style=\"padding-top: 2px;\">\n" +
+    "<div ng-show=\"totalHits > 10\">\n" +
     "  <div class=\"pull-left\">\n" +
     "    <select class=\"form-control input-sm form-select\"\n" +
     "            ng-model=\"pagination.selected\"\n" +
@@ -12953,22 +12953,23 @@ angular.module("search/views/list/search-result-pagination-template.html", []).r
     "            ng-change=\"pageSizeChanged()\"></select>\n" +
     "  </div>\n" +
     "  <div class=\"pull-right\" style=\"margin-left: 5px\">\n" +
-    "    <span uib-pagination  ng-show=\"maxSize > 1\"\n" +
     "\n" +
-    "                  total-items=\"totalHits\"\n" +
-    "                  max-size=\"maxSize\"\n" +
-    "                  ng-model=\"pagination.currentPage\"\n" +
-    "                  boundary-links=\"true\"\n" +
-    "                  force-ellipses=\"true\"\n" +
-    "                  items-per-page=\"pagination.selected.value\"\n" +
-    "                  previous-text=\"&lsaquo;\"\n" +
-    "                  next-text=\"&rsaquo;\"\n" +
-    "                  first-text=\"&laquo;\"\n" +
-    "                  last-text=\"&raquo;\"\n" +
-    "                  template-url=\"search/views/list/pagination-template.html\"\n" +
-    "                  ng-change=\"pageChanged()\">\n" +
+    "  <span ng-show=\"maxSize > 1\"\n" +
+    "        uib-pagination\n" +
+    "        total-items=\"totalHits\"\n" +
+    "        max-size=\"maxSize\"\n" +
+    "        ng-model=\"pagination.currentPage\"\n" +
+    "        boundary-links=\"true\"\n" +
+    "        force-ellipses=\"true\"\n" +
+    "        items-per-page=\"pagination.selected.value\"\n" +
+    "        previous-text=\"&lsaquo;\"\n" +
+    "        next-text=\"&rsaquo;\"\n" +
+    "        first-text=\"&laquo;\"\n" +
+    "        last-text=\"&raquo;\"\n" +
+    "        template-url=\"search/views/list/pagination-template.html\"\n" +
+    "        ng-change=\"pageChanged()\">\n" +
     "  </span>\n" +
-    "  </div>\n" +
+    " </div>\n" +
     "</div>");
 }]);
 
