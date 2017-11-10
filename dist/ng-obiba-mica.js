@@ -11518,7 +11518,7 @@ angular.module("lists/views/sort-widget/sort-widget-template.html", []).run(["$t
   $templateCache.put("lists/views/sort-widget/sort-widget-template.html",
     "<div class=\"sortwidget\">\n" +
     "        <span class=\"btn-group dropdown\" >\n" +
-    "           <button id=\"SortOrder\"  type=\"button\" class=\"btn btn-primary dropdown-toggle\"\n" +
+    "           <button id=\"SortOrder\"  type=\"button\" class=\"btn-sm btn btn-primary dropdown-toggle\"\n" +
     "                   data-toggle=\"dropdown\" >\n" +
     "               <i ng-if=\"selected.order=='-' || selected.sort===selectSort.options[0].value\"\n" +
     "                  class=\"glyphicon glyphicon-arrow-down\"></i>\n" +
@@ -12945,7 +12945,7 @@ angular.module("search/views/list/pagination-template.html", []).run(["$template
 
 angular.module("search/views/list/search-result-pagination-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/list/search-result-pagination-template.html",
-    "<div ng-show=\"totalHits > 10\" style=\"padding-top: 2px;\">\n" +
+    "<div ng-show=\"totalHits > 10\">\n" +
     "  <div class=\"pull-left\">\n" +
     "    <select class=\"form-control input-sm form-select\"\n" +
     "            ng-model=\"pagination.selected\"\n" +
