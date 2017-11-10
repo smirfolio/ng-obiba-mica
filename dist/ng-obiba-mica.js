@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-11-09
+ * Date: 2017-11-10
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -5376,7 +5376,7 @@ angular.module('obiba.mica.search')
         }
 
         var criteria = TaxonomiesSearchResource.get({
-          query: StringUtils.quoteQuery(query), locale: $scope.lang, target: $scope.documents.search.target
+          query: StringUtils.quoteQuery(query.replace('/', ' ')), locale: $scope.lang, target: $scope.documents.search.target
         }).$promise.then(function (response) {
           if (response) {
             var results = [];
@@ -12953,22 +12953,23 @@ angular.module("search/views/list/search-result-pagination-template.html", []).r
     "            ng-change=\"pageSizeChanged()\"></select>\n" +
     "  </div>\n" +
     "  <div class=\"pull-right\" style=\"margin-left: 5px\">\n" +
-    "    <span uib-pagination  ng-show=\"maxSize > 1\"\n" +
     "\n" +
-    "                  total-items=\"totalHits\"\n" +
-    "                  max-size=\"maxSize\"\n" +
-    "                  ng-model=\"pagination.currentPage\"\n" +
-    "                  boundary-links=\"true\"\n" +
-    "                  force-ellipses=\"true\"\n" +
-    "                  items-per-page=\"pagination.selected.value\"\n" +
-    "                  previous-text=\"&lsaquo;\"\n" +
-    "                  next-text=\"&rsaquo;\"\n" +
-    "                  first-text=\"&laquo;\"\n" +
-    "                  last-text=\"&raquo;\"\n" +
-    "                  template-url=\"search/views/list/pagination-template.html\"\n" +
-    "                  ng-change=\"pageChanged()\">\n" +
+    "  <span ng-show=\"maxSize > 1\"\n" +
+    "        uib-pagination\n" +
+    "        total-items=\"totalHits\"\n" +
+    "        max-size=\"maxSize\"\n" +
+    "        ng-model=\"pagination.currentPage\"\n" +
+    "        boundary-links=\"true\"\n" +
+    "        force-ellipses=\"true\"\n" +
+    "        items-per-page=\"pagination.selected.value\"\n" +
+    "        previous-text=\"&lsaquo;\"\n" +
+    "        next-text=\"&rsaquo;\"\n" +
+    "        first-text=\"&laquo;\"\n" +
+    "        last-text=\"&raquo;\"\n" +
+    "        template-url=\"search/views/list/pagination-template.html\"\n" +
+    "        ng-change=\"pageChanged()\">\n" +
     "  </span>\n" +
-    "  </div>\n" +
+    " </div>\n" +
     "</div>");
 }]);
 
