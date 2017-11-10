@@ -1,6 +1,6 @@
 <form class="list-search-widget">
   <div class="row">
-    <div class="col-md-9">
+    <div class="col-md-8">
       <div class="form-group">
         <div class="input-group">
           <suggestion-field document-type="type" model="searchFilter" placeholder-text="'global.list-search-placeholder'"
@@ -15,9 +15,9 @@
 
       </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-4">
       <a class="btn btn-success col-md-12" href="{{type | doSearchQuery:query}}">
-        {{'search.advanced-button' | translate}}
+        {{'global.search' | translate}} {{searchBouttonLable | translate}}
       </a>
       <!--<span class="btn btn-md search-help pull-right">?</span>-->
     </div>

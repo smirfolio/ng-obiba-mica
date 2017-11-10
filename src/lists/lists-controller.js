@@ -12,6 +12,28 @@
 
 /* global RQL_NODE */
 /* global typeToTarget */
+function getSearchBouttonLabale(type, className) {
+  var label = type;
+  if (className) {
+    label = className.args[1];
+  }
+  switch (label) {
+    case 'networks':
+      return 'networks';
+    case 'studies':
+      return 'studies';
+    case 'Study':
+      return 'global.individual-studies';
+    case 'HarmonizationStudy':
+      return 'global.harmonization-studies';
+    case 'datasets':
+      return 'datasets';
+    case 'StudyDataset':
+      return 'collected-datasets';
+    case 'HarmonizationDataset':
+      return 'harmonized-datasets';
+  }
+}
 
 angular.module('obiba.mica.lists')
 
@@ -22,7 +44,7 @@ angular.module('obiba.mica.lists')
 
         if ($scope.query) {
           var targetQuery = RqlQueryService.findTargetQuery(typeToTarget($scope.type), RqlQueryService.parseQuery($scope.query));
-
+          $scope.searchBouttonLable =  getSearchBouttonLabale($scope.type, RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className'));
           var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
           if (foundFulltextMatchQuery.length === 1) {
             $scope.searchFilter = foundFulltextMatchQuery[0].args[0][0];

@@ -8495,6 +8495,28 @@ angular.module('obiba.mica.lists')
 
 /* global RQL_NODE */
 /* global typeToTarget */
+function getSearchBouttonLabale(type, className) {
+  var label = type;
+  if (className) {
+    label = className.args[1];
+  }
+  switch (label) {
+    case 'networks':
+      return 'networks';
+    case 'studies':
+      return 'studies';
+    case 'Study':
+      return 'global.individual-studies';
+    case 'HarmonizationStudy':
+      return 'global.harmonization-studies';
+    case 'datasets':
+      return 'datasets';
+    case 'StudyDataset':
+      return 'collected-datasets';
+    case 'HarmonizationDataset':
+      return 'harmonized-datasets';
+  }
+}
 
 angular.module('obiba.mica.lists')
 
@@ -8505,7 +8527,7 @@ angular.module('obiba.mica.lists')
 
         if ($scope.query) {
           var targetQuery = RqlQueryService.findTargetQuery(typeToTarget($scope.type), RqlQueryService.parseQuery($scope.query));
-
+          $scope.searchBouttonLable =  getSearchBouttonLabale($scope.type, RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className'));
           var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
           if (foundFulltextMatchQuery.length === 1) {
             $scope.searchFilter = foundFulltextMatchQuery[0].args[0][0];
@@ -11063,7 +11085,7 @@ angular.module("lists/views/input-search-widget/input-search-widget-template.htm
   $templateCache.put("lists/views/input-search-widget/input-search-widget-template.html",
     "<form class=\"list-search-widget\">\n" +
     "  <div class=\"row\">\n" +
-    "    <div class=\"col-md-9\">\n" +
+    "    <div class=\"col-md-8\">\n" +
     "      <div class=\"form-group\">\n" +
     "        <div class=\"input-group\">\n" +
     "          <suggestion-field document-type=\"type\" model=\"searchFilter\" placeholder-text=\"'global.list-search-placeholder'\"\n" +
@@ -11078,9 +11100,9 @@ angular.module("lists/views/input-search-widget/input-search-widget-template.htm
     "\n" +
     "      </div>\n" +
     "    </div>\n" +
-    "    <div class=\"col-md-3\">\n" +
+    "    <div class=\"col-md-4\">\n" +
     "      <a class=\"btn btn-success col-md-12\" href=\"{{type | doSearchQuery:query}}\">\n" +
-    "        {{'search.advanced-button' | translate}}\n" +
+    "        {{'global.search' | translate}} {{searchBouttonLable | translate}}\n" +
     "      </a>\n" +
     "      <!--<span class=\"btn btn-md search-help pull-right\">?</span>-->\n" +
     "    </div>\n" +
