@@ -5376,7 +5376,7 @@ angular.module('obiba.mica.search')
         }
 
         var criteria = TaxonomiesSearchResource.get({
-          query: StringUtils.quoteQuery(query), locale: $scope.lang, target: $scope.documents.search.target
+          query: StringUtils.quoteQuery(query.replace('/', ' ')), locale: $scope.lang, target: $scope.documents.search.target
         }).$promise.then(function (response) {
           if (response) {
             var results = [];
