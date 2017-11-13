@@ -11092,7 +11092,7 @@ angular.module("lists/views/input-search-widget/input-search-widget-template.htm
     "                            select=\"selectSuggestion\"></suggestion-field>\n" +
     "\n" +
     "          <span class=\"input-group-btn\">\n" +
-    "            <button type=\"submit\" class=\"btn btn-default col-md-12\" ng-click=\"search()\">\n" +
+    "            <button type=\"submit\" class=\"btn btn-default\" ng-click=\"search()\">\n" +
     "              <i class=\"fa fa-search\"></i>\n" +
     "            </button>\n" +
     "          </span>\n" +
@@ -11101,10 +11101,9 @@ angular.module("lists/views/input-search-widget/input-search-widget-template.htm
     "      </div>\n" +
     "    </div>\n" +
     "    <div class=\"col-md-4\">\n" +
-    "      <a class=\"btn btn-success col-md-12\" href=\"{{type | doSearchQuery:query}}\">\n" +
+    "      <a class=\"btn btn-success pull-right\" href=\"{{type | doSearchQuery:query}}\">\n" +
     "        {{'global.search' | translate}} {{searchBouttonLable | translate}}\n" +
     "      </a>\n" +
-    "      <!--<span class=\"btn btn-md search-help pull-right\">?</span>-->\n" +
     "    </div>\n" +
     "  </div>\n" +
     "</form>\n" +

@@ -7,7 +7,7 @@
                             select="selectSuggestion"></suggestion-field>
 
           <span class="input-group-btn">
-            <button type="submit" class="btn btn-default col-md-12" ng-click="search()">
+            <button type="submit" class="btn btn-default" ng-click="search()">
               <i class="fa fa-search"></i>
             </button>
           </span>
@@ -16,10 +16,9 @@
       </div>
     </div>
     <div class="col-md-4">
-      <a class="btn btn-success col-md-12" href="{{type | doSearchQuery:query}}">
+      <a class="btn btn-success pull-right" href="{{type | doSearchQuery:query}}">
         {{'global.search' | translate}} {{searchBouttonLable | translate}}
       </a>
-      <!--<span class="btn btn-md search-help pull-right">?</span>-->
     </div>
   </div>
 </form>
