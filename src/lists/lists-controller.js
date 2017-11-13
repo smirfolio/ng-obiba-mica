@@ -37,8 +37,8 @@ function getSearchButtonLabel(type, className) {
 
 angular.module('obiba.mica.lists')
 
-  .controller('listSearchWidgetController', ['$scope', '$rootScope', '$location', 'RqlQueryService',
-    function ($scope, $rootScope, $location, RqlQueryService) {
+  .controller('listSearchWidgetController', ['$scope', '$rootScope', '$location', 'RqlQueryService', 'ngObibaMicaUrl',
+    function ($scope, $rootScope, $location, RqlQueryService, ngObibaMicaUrl) {
       function initMatchInput() {
         $scope.query = $location.search().query;
 
@@ -53,6 +53,33 @@ angular.module('obiba.mica.lists')
           }
         }
       }
+
+      /**
+       * Removes all other query parts except the ID or className criterion
+       *
+       * @returns query urk
+       */
+      $scope.navigateToSearchPage = function() {
+        var targetQuery =
+          RqlQueryService.findTargetQuery(typeToTarget($scope.type), RqlQueryService.parseQuery($scope.query));
+
+        if (targetQuery) {
+          var query = RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className') ||
+            RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'id');
+          if (query) {
+            targetQuery.args = [query];
+            var containerQuery = new RqlQuery(RQL_NODE.AND);
+            containerQuery.args.push(targetQuery);
+            return ngObibaMicaUrl.getUrl('BaseUrl') + ngObibaMicaUrl.getUrl('SearchBaseUrl') + '?type=' +
+              $scope.type +
+              '&query=' +
+              (new RqlQuery().serializeArgs(containerQuery.args)) +
+              '&display=list';
+          }
+        }
+
+        return '';
+      };
 
       $scope.$on('$locationChangeSuccess', function () {
         initMatchInput();

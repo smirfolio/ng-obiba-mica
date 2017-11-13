@@ -53,7 +53,7 @@ function NgObibaMicaUrlProvider() {
     'FileBrowserFileResource': 'ws/file/:path/',
     'FileBrowserSearchResource': 'ws/files-search/:path',
     'FileBrowserDownloadUrl': 'ws/draft/file-dl/:path?inline=:inline',
-    'GraphicsSearchRootUrl': '#/search',
+    'SearchBaseUrl': '#/search',
     'DocumentSuggestion': 'ws/:documentType/_suggest'
   };
 
@@ -8520,8 +8520,8 @@ function getSearchButtonLabel(type, className) {
 
 angular.module('obiba.mica.lists')
 
-  .controller('listSearchWidgetController', ['$scope', '$rootScope', '$location', 'RqlQueryService',
-    function ($scope, $rootScope, $location, RqlQueryService) {
+  .controller('listSearchWidgetController', ['$scope', '$rootScope', '$location', 'RqlQueryService', 'ngObibaMicaUrl',
+    function ($scope, $rootScope, $location, RqlQueryService, ngObibaMicaUrl) {
       function initMatchInput() {
         $scope.query = $location.search().query;
 
@@ -8536,6 +8536,33 @@ angular.module('obiba.mica.lists')
           }
         }
       }
+
+      /**
+       * Removes all other query parts except the ID or className criterion
+       *
+       * @returns query urk
+       */
+      $scope.navigateToSearchPage = function() {
+        var targetQuery =
+          RqlQueryService.findTargetQuery(typeToTarget($scope.type), RqlQueryService.parseQuery($scope.query));
+
+        if (targetQuery) {
+          var query = RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className') ||
+            RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'id');
+          if (query) {
+            targetQuery.args = [query];
+            var containerQuery = new RqlQuery(RQL_NODE.AND);
+            containerQuery.args.push(targetQuery);
+            return ngObibaMicaUrl.getUrl('BaseUrl') + ngObibaMicaUrl.getUrl('SearchBaseUrl') + '?type=' +
+              $scope.type +
+              '&query=' +
+              (new RqlQuery().serializeArgs(containerQuery.args)) +
+              '&display=list';
+          }
+        }
+
+        return '';
+      };
 
       $scope.$on('$locationChangeSuccess', function () {
         initMatchInput();
@@ -8843,7 +8870,7 @@ angular.module('obiba.mica.graphics')
                     var id = GraphicChartsConfig.getOptions().entityIds;
                     var parts = item.id.split('.');
 
-                    var urlRedirect = ngObibaMicaUrl.getUrl('GraphicsSearchRootUrl') + '?type=studies&query=' +
+                    var urlRedirect = ngObibaMicaUrl.getUrl('SearchBaseUrl') + '?type=studies&query=' +
                       entity + '(in(Mica_' + entity + '.id,' + id + ')),study(in(' + parts[0] + '.' + parts[1] + ',' +
                       parts[2].replace(':', '%253A') + '))';
 
@@ -11101,7 +11128,7 @@ angular.module("lists/views/input-search-widget/input-search-widget-template.htm
     "      </div>\n" +
     "    </div>\n" +
     "    <div class=\"col-md-4\">\n" +
-    "      <a class=\"btn btn-success pull-right\" href=\"{{type | doSearchQuery:query}}\">\n" +
+    "      <a class=\"btn btn-success pull-right\" href ng-href=\"{{navigateToSearchPage()}}\">\n" +
     "        {{'global.search' | translate}} {{searchBouttonLable | translate}}\n" +
     "      </a>\n" +
     "    </div>\n" +

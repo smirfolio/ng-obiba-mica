@@ -57,7 +57,7 @@ angular.module('obiba.mica.graphics')
                     var id = GraphicChartsConfig.getOptions().entityIds;
                     var parts = item.id.split('.');
 
-                    var urlRedirect = ngObibaMicaUrl.getUrl('GraphicsSearchRootUrl') + '?type=studies&query=' +
+                    var urlRedirect = ngObibaMicaUrl.getUrl('SearchBaseUrl') + '?type=studies&query=' +
                       entity + '(in(Mica_' + entity + '.id,' + id + ')),study(in(' + parts[0] + '.' + parts[1] + ',' +
                       parts[2].replace(':', '%253A') + '))';
 
