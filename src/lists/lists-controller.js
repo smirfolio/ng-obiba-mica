@@ -12,7 +12,7 @@
 
 /* global RQL_NODE */
 /* global typeToTarget */
-function getSearchBouttonLabale(type, className) {
+function getSearchButtonLabel(type, className) {
   var label = type;
   if (className) {
     label = className.args[1];
@@ -44,7 +44,7 @@ angular.module('obiba.mica.lists')
 
         if ($scope.query) {
           var targetQuery = RqlQueryService.findTargetQuery(typeToTarget($scope.type), RqlQueryService.parseQuery($scope.query));
-          $scope.searchBouttonLable =  getSearchBouttonLabale($scope.type, RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className'));
+          $scope.searchBouttonLable =  getSearchButtonLabel($scope.type, RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className'));
           var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
           if (foundFulltextMatchQuery.length === 1) {
             $scope.searchFilter = foundFulltextMatchQuery[0].args[0][0];
