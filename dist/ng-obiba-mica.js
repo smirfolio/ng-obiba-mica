@@ -11525,7 +11525,9 @@ angular.module("lists/views/search-result-list-template.html", []).run(["$templa
     "          <div class=\"col-md-12\">\n" +
     "            <div class=\"row\">\n" +
     "              <div class=\"col-md-4\">\n" +
-    "                  <span><list-sort-widget target=\"type\"></list-sort-widget></span>\n" +
+    "                  <span ng-repeat=\"res in resultTabsOrder\" ng-show=\"activeTarget[targetTypeMap[res]].active && activeTarget[targetTypeMap[res]].totalHits > 0\">\n" +
+    "                      <list-sort-widget target=\"type\"></list-sort-widget>\n" +
+    "                  </span>\n" +
     "              </div>\n" +
     "              <div class=\"col-md-8\">\n" +
     "                    <div class=\"pull-right \">\n" +
