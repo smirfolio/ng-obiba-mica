@@ -8,9 +8,7 @@
                  class="row lg-bottom-margin document-item-list flex-row"
                  test-ref="network">
                 <div class="col-md-2 hidden-xs hidden-sm text-center">
-                    <img ng-if="summary.logo" src="" alt="">
-
-                    <img src="{{summary.logoUrl}}"
+                    <img ng-if="summary.logo" ng-src="{{summary.logoUrl}}"
                          class="img-responsive"/>
 
                     <h1 ng-if="!summary.logo" src="" alt=""

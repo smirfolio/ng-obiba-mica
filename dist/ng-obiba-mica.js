@@ -11214,9 +11214,7 @@ angular.module("lists/views/list/networks-search-result-table-template.html", []
     "                 class=\"row lg-bottom-margin document-item-list flex-row\"\n" +
     "                 test-ref=\"network\">\n" +
     "                <div class=\"col-md-2 hidden-xs hidden-sm text-center\">\n" +
-    "                    <img ng-if=\"summary.logo\" src=\"\" alt=\"\">\n" +
-    "\n" +
-    "                    <img src=\"{{summary.logoUrl}}\"\n" +
+    "                    <img ng-if=\"summary.logo\" ng-src=\"{{summary.logoUrl}}\"\n" +
     "                         class=\"img-responsive\"/>\n" +
     "\n" +
     "                    <h1 ng-if=\"!summary.logo\" src=\"\" alt=\"\"\n" +
@@ -11331,9 +11329,8 @@ angular.module("lists/views/list/studies-search-result-table-template.html", [])
     "                 test-ref=\"study\">\n" +
     "\n" +
     "                <div class=\"col-md-2 hidden-xs hidden-sm text-center\">\n" +
-    "                    <img ng-if=\"summary.logo\" src=\"\" alt=\"\">\n" +
     "\n" +
-    "                    <img src=\"{{summary.logoUrl}}\"\n" +
+    "                    <img ng-if=\"summary.logo\" ng-src=\"{{summary.logoUrl}}\"\n" +
     "                         class=\"img-responsive\"/>\n" +
     "\n" +
     "                    <h1 ng-if=\"!summary.logo\" src=\"\" alt=\"\"\n" +
