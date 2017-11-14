@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-11-13
+ * Date: 2017-11-14
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -11497,7 +11497,7 @@ angular.module("lists/views/search-result-list-template.html", []).run(["$templa
     "  <div class=\"row\">\n" +
     "    <div class=\"col-md-2\">\n" +
     "     <div class=\"list-counts\">\n" +
-    "          <div ng-show=\"options.obibaListOptions.countCaption\" class=\"btn btn-default disabled\" test-ref=\"search-counts\">\n" +
+    "          <div ng-show=\"options.obibaListOptions.countCaption\" test-ref=\"search-counts\">\n" +
     "      <span role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
     "            ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}\"\n" +
     "            ng-if=\"options[targetTypeMap[res]].showSearchTab\">\n" +
