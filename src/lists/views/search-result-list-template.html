@@ -12,7 +12,7 @@
   <div class="row">
     <div class="col-md-2">
      <div class="list-counts">
-          <div ng-show="options.obibaListOptions.countCaption" class="btn btn-default disabled" test-ref="search-counts">
+          <div ng-show="options.obibaListOptions.countCaption" test-ref="search-counts">
       <span role="presentation" ng-repeat="res in resultTabsOrder"
             ng-class="{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}"
             ng-if="options[targetTypeMap[res]].showSearchTab">
