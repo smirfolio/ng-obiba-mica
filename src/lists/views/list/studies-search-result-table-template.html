@@ -1,5 +1,5 @@
 <div>
-    <div ng-if="loading" class="loading"></div>
+    <div class="col-md-12"><div ng-if="loading" class="loading "></div></div>
     <div ng-show="!loading" class="col-md-12">
         <p class="help-block" ng-if="!summaries || !summaries.length" translate>search.study.noResults</p>
         <div ng-if="summaries && summaries.length" ng-init="lang = $parent.$parent.lang">
