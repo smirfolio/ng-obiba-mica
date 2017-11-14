@@ -11148,7 +11148,7 @@ angular.module("lists/views/input-search-widget/suggestion-field.html", []).run(
 angular.module("lists/views/list/datasets-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("lists/views/list/datasets-search-result-table-template.html",
     "<div>\n" +
-    "    <div ng-if=\"loading\" class=\"loading\"></div>\n" +
+    "    <div class=\"col-md-12\"><div ng-if=\"loading\" class=\"loading \"></div></div>\n" +
     "    <div ng-show=\"!loading\" class=\"col-md-12\">\n" +
     "        <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.dataset.noResults</p>\n" +
     "        <div ng-repeat=\"summary in summaries\" class=\"row sm-bottom-margin document-item-list flex-row\" test-ref=\"dataset\">\n" +
@@ -11205,7 +11205,7 @@ angular.module("lists/views/list/datasets-search-result-table-template.html", []
 angular.module("lists/views/list/networks-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("lists/views/list/networks-search-result-table-template.html",
     "<div>\n" +
-    "    <div ng-if=\"loading\" class=\"loading\"></div>\n" +
+    "    <div class=\"col-md-12\"><div ng-if=\"loading\" class=\"loading \"></div></div>\n" +
     "    <div ng-show=\"!loading\" class=\"col-md-12\">\n" +
     "        <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.network.noResults</p>\n" +
     "        <div ng-if=\"summaries && summaries.length\" ng-init=\"lang = $parent.$parent.lang\">\n" +
@@ -11321,7 +11321,7 @@ angular.module("lists/views/list/networks-search-result-table-template.html", []
 angular.module("lists/views/list/studies-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("lists/views/list/studies-search-result-table-template.html",
     "<div>\n" +
-    "    <div ng-if=\"loading\" class=\"loading\"></div>\n" +
+    "    <div class=\"col-md-12\"><div ng-if=\"loading\" class=\"loading \"></div></div>\n" +
     "    <div ng-show=\"!loading\" class=\"col-md-12\">\n" +
     "        <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.study.noResults</p>\n" +
     "        <div ng-if=\"summaries && summaries.length\" ng-init=\"lang = $parent.$parent.lang\">\n" +
