@@ -8575,7 +8575,7 @@ angular.module('obiba.mica.lists')
       };
 
       $scope.search = function() {
-        emitter.$emit('ngObibaMicaSearch.searchChange', $scope.searchFilter);
+        emitter.$emit('ngObibaMicaSearch.searchChange', $scope.searchFilter.replace(/\/.*/g, ''));
       };
 
       initMatchInput();
@@ -8693,7 +8693,7 @@ angular.module('obiba.mica.lists')
               var targetQuery = RqlQueryService.findTargetQuery(typeToTarget(scope.documentType), rql);
               var classNameQuery = RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className');
               if (classNameQuery) {
-                query = 'className:' + classNameQuery.args[1] + ' AND (' + query + ')';
+                query = 'className:' + classNameQuery.args[1] + ' AND (' + query.replace(/\/.*/, '') + ')';
               }
 
               return DocumentSuggestionResource.query({locale: $translate.use(), documentType: scope.documentType, query: query})

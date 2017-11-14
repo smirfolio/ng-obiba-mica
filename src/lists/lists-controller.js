@@ -92,7 +92,7 @@ angular.module('obiba.mica.lists')
       };
 
       $scope.search = function() {
-        emitter.$emit('ngObibaMicaSearch.searchChange', $scope.searchFilter);
+        emitter.$emit('ngObibaMicaSearch.searchChange', $scope.searchFilter.replace(/\/.*/g, ''));
       };
 
       initMatchInput();
