@@ -12063,7 +12063,7 @@ angular.module("search/views/classifications/taxonomy-accordion-group.html", [])
     "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
     "  -->\n" +
     "\n" +
-    "<div class=\"panel no-margin no-border-radius\" ng-class=\"panelClass || 'panel-default'\">\n" +
+    "<div class=\"panel panel-taxonomy\" ng-class=\"panelClass || 'panel-default'\">\n" +
     "  <div role=\"tab\" id=\"{{::headingId}}\" aria-selected=\"{{isOpen}}\" class=\"panel-heading\" ng-keypress=\"toggleOpen($event)\">\n" +
     "    <h4 class=\"panel-title\">\n" +
     "      <a role=\"button\" data-toggle=\"collapse\" href aria-expanded=\"{{isOpen}}\" aria-controls=\"{{::panelId}}\" tabindex=\"0\" class=\"accordion-toggle\" ng-click=\"toggleOpen()\" uib-accordion-transclude=\"heading\"><small><span uib-accordion-header ng-class=\"{'text-muted': isDisabled}\">{{heading}}</span></small></a>\n" +
@@ -12155,7 +12155,7 @@ angular.module("search/views/classifications/vocabulary-accordion-group.html", [
     "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
     "  -->\n" +
     "\n" +
-    "<div class=\"panel no-margin no-padding no-border-radius\" ng-class=\"panelClass || 'panel-default'\">\n" +
+    "<div class=\"panel panel-vocabulary\" ng-class=\"panelClass || 'panel-default'\">\n" +
     "  <div role=\"tab\" id=\"{{::headingId}}\" aria-selected=\"{{isOpen}}\" class=\"panel-heading\" ng-keypress=\"toggleOpen($event)\">\n" +
     "    <h4 class=\"panel-title\">\n" +
     "      <a role=\"button\" data-toggle=\"collapse\" href aria-expanded=\"{{isOpen}}\" aria-controls=\"{{::panelId}}\" tabindex=\"0\" class=\"accordion-toggle\" ng-click=\"toggleOpen()\" uib-accordion-transclude=\"heading\"><small><span uib-accordion-header ng-class=\"{'text-muted': isDisabled}\">{{heading}}</span></small></a>\n" +
