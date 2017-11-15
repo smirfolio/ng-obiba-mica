@@ -11801,7 +11801,7 @@ angular.module("search/views/classifications/taxonomies-facets-view.html", []).r
     "            </span>\n" +
     "          </uib-accordion-heading>\n" +
     "          <div>\n" +
-    "            <div ng-if=\"vocabulary.isMatch\" ng-controller=\"MatchVocabularyFacetController\" class=\"voffset2 form-group\">\n" +
+    "            <div ng-if=\"vocabulary.isMatch\" ng-controller=\"MatchVocabularyFacetController\" class=\"form-group\">\n" +
     "              <form novalidate class=\"form-inline\" ng-keypress=\"onKeypress($event)\">\n" +
     "                <div class=\"form-group form-group-sm\">\n" +
     "                  <input type=\"text\" class=\"form-control\" ng-model=\"text\" placeholder=\"{{'search.match.placeholder' | translate}}\">\n" +
@@ -11809,7 +11809,7 @@ angular.module("search/views/classifications/taxonomies-facets-view.html", []).r
     "                </div>\n" +
     "              </form>\n" +
     "            </div>\n" +
-    "            <div ng-if=\"vocabulary.isNumeric\" ng-controller=\"NumericVocabularyFacetController\" class=\"voffset2 form-group\">\n" +
+    "            <div ng-if=\"vocabulary.isNumeric\" ng-controller=\"NumericVocabularyFacetController\" class=\"form-group\">\n" +
     "              <form novalidate class=\"form-inline\"  ng-keypress=\"onKeypress($event)\">\n" +
     "                <div class=\"form-group form-group-sm\">\n" +
     "                  <label for=\"nav-{{vocabulary.name}}-from\" translate>from</label>\n" +
@@ -12153,7 +12153,7 @@ angular.module("search/views/classifications/vocabulary-accordion-group.html", [
     "    </h4>\n" +
     "  </div>\n" +
     "  <div id=\"{{::panelId}}\" aria-labelledby=\"{{::headingId}}\" aria-hidden=\"{{!isOpen}}\" role=\"tabpanel\" class=\"panel-collapse collapse\" uib-collapse=\"!isOpen\">\n" +
-    "    <div class=\"panel-body no-padding-top no-padding-bottom\" ng-transclude></div>\n" +
+    "    <div class=\"panel-body\" ng-transclude></div>\n" +
     "  </div>\n" +
     "</div>");
 }]);

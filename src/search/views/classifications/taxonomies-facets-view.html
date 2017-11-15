@@ -44,7 +44,7 @@
             </span>
           </uib-accordion-heading>
           <div>
-            <div ng-if="vocabulary.isMatch" ng-controller="MatchVocabularyFacetController" class="voffset2 form-group">
+            <div ng-if="vocabulary.isMatch" ng-controller="MatchVocabularyFacetController" class="form-group">
               <form novalidate class="form-inline" ng-keypress="onKeypress($event)">
                 <div class="form-group form-group-sm">
                   <input type="text" class="form-control" ng-model="text" placeholder="{{'search.match.placeholder' | translate}}">
@@ -52,7 +52,7 @@
                 </div>
               </form>
             </div>
-            <div ng-if="vocabulary.isNumeric" ng-controller="NumericVocabularyFacetController" class="voffset2 form-group">
+            <div ng-if="vocabulary.isNumeric" ng-controller="NumericVocabularyFacetController" class="form-group">
               <form novalidate class="form-inline"  ng-keypress="onKeypress($event)">
                 <div class="form-group form-group-sm">
                   <label for="nav-{{vocabulary.name}}-from" translate>from</label>
