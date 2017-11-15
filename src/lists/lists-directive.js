@@ -57,7 +57,16 @@ angular.module('obiba.mica.lists')
               }
 
               return DocumentSuggestionResource.query({locale: $translate.use(), documentType: scope.documentType, query: query})
-                  .$promise.then(function (response) { return Array.isArray(response) ? response : []; });
+                  .$promise
+                  .then(function (response) {
+                      var parsedResponse = Array.isArray(response) ? response : [];
+
+                      for (var i = 0; i < parsedResponse.length; i++) {
+                        parsedResponse[i] = parsedResponse[i].replace(/\/.*/, '');
+                      }
+
+                      return parsedResponse;
+                  });
             } else {
               return [];
             }

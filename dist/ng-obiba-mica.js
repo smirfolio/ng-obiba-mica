@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-11-14
+ * Date: 2017-11-15
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8697,7 +8697,16 @@ angular.module('obiba.mica.lists')
               }
 
               return DocumentSuggestionResource.query({locale: $translate.use(), documentType: scope.documentType, query: query})
-                  .$promise.then(function (response) { return Array.isArray(response) ? response : []; });
+                  .$promise
+                  .then(function (response) {
+                      var parsedResponse = Array.isArray(response) ? response : [];
+
+                      for (var i = 0; i < parsedResponse.length; i++) {
+                        parsedResponse[i] = parsedResponse[i].replace(/\/.*/, '');
+                      }
+
+                      return parsedResponse;
+                  });
             } else {
               return [];
             }
