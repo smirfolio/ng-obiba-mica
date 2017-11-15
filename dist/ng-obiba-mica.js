@@ -89,6 +89,7 @@ function NgObibaMicaTemplateUrlFactory() {
     'searchCriteriaRegionTemplate' :'search/views/criteria/search-criteria-region-template.html',
     'CriterionDropdownTemplate' :'search/views/criteria/criterion-dropdown-template.html',
     'searchResultList' :'search/views/search-result-list-template.html',
+    'searchInputList' : 'lists/views/input-search-widget/input-search-widget-template.html',
     'searchResultCoverage' :'search/views/search-result-coverage-template.html',
     'searchResultGraphics' :'search/views/search-result-graphics-template.html'
   };
@@ -1895,6 +1896,7 @@ angular.module('obiba.mica.search', [
         searchCriteriaRegionTemplate: {template: null},
         CriterionDropdownTemplate: {template: null},
         searchResultList: {template: null},
+        searchInputList: {template: null},
         searchResultCoverage: {template: null},
         searchResultGraphics: {template: null},
         classifications: {header: null, footer: null}
@@ -8374,6 +8376,7 @@ angular.module('obiba.mica.lists', ['obiba.mica.search'])
       ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchNetworksResultTable', 'lists/views/list/networks-search-result-table-template.html');
       ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchDatasetsResultTable', 'lists/views/list/datasets-search-result-table-template.html');
       ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchResultList', 'lists/views/search-result-list-template.html');
+      ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchInputList', 'lists/views/input-search-widget/input-search-widget-template.html');
       ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('searchCriteriaRegionTemplate', 'lists/views/region-criteria/search-criteria-region-template.html');
       ngObibaMicaSearchTemplateUrlProvider.setTemplateUrl('CriterionDropdownTemplate', 'lists/views/region-criteria/criterion-dropdown-template.html');
     }])
@@ -8498,7 +8501,7 @@ angular.module('obiba.mica.lists')
 
         if ($scope.query) {
           var targetQuery = RqlQueryService.findTargetQuery(typeToTarget($scope.type), RqlQueryService.parseQuery($scope.query));
-          $scope.searchBouttonLable =  getSearchButtonLabel($scope.type, RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className'));
+          $scope.searchButtonLabel =  getSearchButtonLabel($scope.type, RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className'));
           var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
           if (foundFulltextMatchQuery.length === 1) {
             $scope.searchFilter = foundFulltextMatchQuery[0].args[0][0];
@@ -11054,26 +11057,22 @@ angular.module("graphics/views/tables-directive.html", []).run(["$templateCache"
 angular.module("lists/views/input-search-widget/input-search-widget-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("lists/views/input-search-widget/input-search-widget-template.html",
     "<form class=\"list-search-widget\">\n" +
-    "  <div class=\"row\">\n" +
-    "    <div class=\"col-md-8\">\n" +
-    "      <div class=\"form-group\">\n" +
-    "        <div class=\"input-group\">\n" +
-    "          <suggestion-field document-type=\"type\" model=\"searchFilter\" placeholder-text=\"'global.list-search-placeholder'\"\n" +
-    "                            select=\"selectSuggestion\"></suggestion-field>\n" +
-    "          <span class=\"input-group-btn\">\n" +
-    "            <button type=\"submit\" class=\"btn btn-default\" ng-click=\"search()\">\n" +
-    "              <i class=\"fa fa-search\"></i>\n" +
-    "            </button>\n" +
-    "          </span>\n" +
-    "        </div>\n" +
+    "    <div class=\"form-group pull-left\">\n" +
+    "      <div class=\"input-group\">\n" +
+    "        <suggestion-field document-type=\"type\" model=\"searchFilter\" placeholder-text=\"'global.list-search-placeholder'\"\n" +
+    "                          select=\"selectSuggestion\"></suggestion-field>\n" +
+    "        <span class=\"input-group-btn\">\n" +
+    "          <button type=\"submit\" class=\"btn btn-default\" ng-click=\"search()\">\n" +
+    "            <i class=\"fa fa-search\"></i>\n" +
+    "          </button>\n" +
+    "        </span>\n" +
     "      </div>\n" +
     "    </div>\n" +
-    "    <div class=\"col-md-4 voffset2\">\n" +
-    "      <a href ng-href=\"{{navigateToSearchPage()}}\">\n" +
-    "        {{'global.search' | translate}} {{searchBouttonLable | translate}}\n" +
-    "      </a>\n" +
+    "    <div class=\"pull-left voffset2 hoffset2\">\n" +
+    "      <small><a href ng-href=\"{{navigateToSearchPage()}}\">\n" +
+    "        {{'search.advanced-button' | translate}}\n" +
+    "      </a></small>\n" +
     "    </div>\n" +
-    "  </div>\n" +
     "</form>\n" +
     "");
 }]);
@@ -11431,40 +11430,41 @@ angular.module("lists/views/search-result-list-template.html", []).run(["$templa
     "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
     "  -->\n" +
     "\n" +
-    "<div ng-show=\"options.obibaListOptions.searchForm\">\n" +
-    "    <div class=\"row\">\n" +
-    "        <div class=\"col-md-2\"><span role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
-    "                                     ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}\"\n" +
-    "                                     ng-if=\"options[targetTypeMap[res]].showSearchTab\">\n" +
+    "\n" +
+    "<div ng-show=\"display === 'list'\">\n" +
+    "    <div class=\"row voffset3\">\n" +
+    "        <div class=\"col-md-2\">\n" +
+    "            <span role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
+    "                  ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}\"\n" +
+    "                  ng-if=\"options[targetTypeMap[res]].showSearchTab\">\n" +
     "                <h4 ng-if=\"resultTabsOrder.length === 1\" class=\"pull-left\">\n" +
     "                    {{totalHits = getTotalHits(res);\"\"}}\n" +
     "                    {{singleLabel = \"search.\" + res + \".label\";\"\"}}\n" +
     "                    {{totalHits | localizedNumber }}  {{totalHits>1?targetTypeMap[res]:singleLabel | translate}}\n" +
     "                </h4>\n" +
-    "            </span></div>\n" +
-    "        <div class=\"col-md-10\"><list-search-widget type=\"type\"></list-search-widget></div>\n" +
-    "    </div>\n" +
-    "</div>\n" +
-    "<div ng-show=\"display === 'list'\">\n" +
-    "    <div class=\"row voffset3\">\n" +
-    "        <div class=\"col-md-2\">\n" +
-    "             <span ng-repeat=\"res in resultTabsOrder\"\n" +
-    "                   ng-show=\"activeTarget[targetTypeMap[res]].active && activeTarget[targetTypeMap[res]].totalHits > 0\">\n" +
-    "                                <list-sort-widget target=\"type\"></list-sort-widget>\n" +
     "            </span>\n" +
-    "        </div>\n" +
-    "        <div class=\"col-md-10\"><div class=\"pull-right hoffset1\">\n" +
-    "            <div ng-repeat=\"res in resultTabsOrder\"\n" +
-    "                 ng-show=\"activeTarget[targetTypeMap[res]].active\"\n" +
-    "                 class=\"inline\" test-ref=\"pager\">\n" +
+    "            </div>\n" +
+    "        <div class=\"col-md-10\">\n" +
+    "            <div ng-show=\"options.obibaListOptions.searchForm\">\n" +
+    "                <list-search-widget type=\"type\"></list-search-widget>\n" +
+    "            </div>\n" +
+    "            <div class=\"pull-right hoffset1\">\n" +
+    "                <div ng-repeat=\"res in resultTabsOrder\"\n" +
+    "                     ng-show=\"activeTarget[targetTypeMap[res]].active\"\n" +
+    "                     class=\"inline\" test-ref=\"pager\">\n" +
     "                  <span search-result-pagination\n" +
     "                        show-total=\"false\"\n" +
     "                        target=\"activeTarget[targetTypeMap[res]].name\"\n" +
     "                        total-hits=\"activeTarget[targetTypeMap[res]].totalHits\"\n" +
     "                        on-change=\"onPaginate\">\n" +
     "                  </span>\n" +
+    "                </div>\n" +
     "            </div>\n" +
-    "        </div></div>\n" +
+    "            <span ng-repeat=\"res in resultTabsOrder\"\n" +
+    "                  ng-show=\"activeTarget[targetTypeMap[res]].active && activeTarget[targetTypeMap[res]].totalHits > 0\">\n" +
+    "                                <list-sort-widget target=\"type\" class=\"pull-right\"></list-sort-widget>\n" +
+    "            </span>\n" +
+    "        </div>\n" +
     "    </div>\n" +
     "    <div class=\"row\">\n" +
     "        <ng-include include-replace ng-repeat=\"res in resultTabsOrder\"\n" +

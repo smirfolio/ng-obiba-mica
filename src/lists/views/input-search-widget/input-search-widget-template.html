@@ -1,22 +1,18 @@
 <form class="list-search-widget">
-  <div class="row">
-    <div class="col-md-8">
-      <div class="form-group">
-        <div class="input-group">
-          <suggestion-field document-type="type" model="searchFilter" placeholder-text="'global.list-search-placeholder'"
-                            select="selectSuggestion"></suggestion-field>
-          <span class="input-group-btn">
-            <button type="submit" class="btn btn-default" ng-click="search()">
-              <i class="fa fa-search"></i>
-            </button>
-          </span>
-        </div>
+    <div class="form-group pull-left">
+      <div class="input-group">
+        <suggestion-field document-type="type" model="searchFilter" placeholder-text="'global.list-search-placeholder'"
+                          select="selectSuggestion"></suggestion-field>
+        <span class="input-group-btn">
+          <button type="submit" class="btn btn-default" ng-click="search()">
+            <i class="fa fa-search"></i>
+          </button>
+        </span>
       </div>
     </div>
-    <div class="col-md-4 voffset2">
-      <a href ng-href="{{navigateToSearchPage()}}">
-        {{'global.search' | translate}} {{searchBouttonLable | translate}}
-      </a>
+    <div class="pull-left voffset2 hoffset2">
+      <small><a href ng-href="{{navigateToSearchPage()}}">
+        {{'search.advanced-button' | translate}}
+      </a></small>
     </div>
-  </div>
 </form>
