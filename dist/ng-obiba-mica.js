@@ -8466,6 +8466,28 @@ angular.module('obiba.mica.lists')
 
 /* global RQL_NODE */
 /* global typeToTarget */
+function getSearchButtonLabel(type, className) {
+  var label = type;
+  if (className) {
+    label = className.args[1];
+  }
+  switch (label) {
+    case 'networks':
+      return 'networks';
+    case 'studies':
+      return 'studies';
+    case 'Study':
+      return 'global.individual-studies';
+    case 'HarmonizationStudy':
+      return 'global.harmonization-studies';
+    case 'datasets':
+      return 'datasets';
+    case 'StudyDataset':
+      return 'collected-datasets';
+    case 'HarmonizationDataset':
+      return 'harmonized-datasets';
+  }
+}
 
 angular.module('obiba.mica.lists')
 
@@ -8476,6 +8498,7 @@ angular.module('obiba.mica.lists')
 
         if ($scope.query) {
           var targetQuery = RqlQueryService.findTargetQuery(typeToTarget($scope.type), RqlQueryService.parseQuery($scope.query));
+          $scope.searchBouttonLable =  getSearchButtonLabel($scope.type, RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className'));
           var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
           if (foundFulltextMatchQuery.length === 1) {
             $scope.searchFilter = foundFulltextMatchQuery[0].args[0][0];
@@ -8535,10 +8558,10 @@ angular.module('obiba.mica.lists')
       $scope.selectSortOrder = sortWidgetService.getSortOrderOptions();
       $scope.getLabel = sortWidgetService.getLabel;
       $scope.selected = $scope.selectSortOrder.options.defaultValue;
-      intiSelectedOptions();
+      initSelectedOptions();
 
       $scope.$on('$locationChangeSuccess', function () {
-        intiSelectedOptions();
+        initSelectedOptions();
       });
 
       $scope.selectSortOrderOption = function (option) {
@@ -8546,7 +8569,7 @@ angular.module('obiba.mica.lists')
         emitter.$emit('ngObibaMicaSearch.sortChange', option.value);
       };
 
-      function intiSelectedOptions() {
+      function initSelectedOptions() {
         $scope.selected = sortWidgetService.getSortOrderOption(sortWidgetService.getSortArg());
       }
     }]);;/*
@@ -11047,7 +11070,7 @@ angular.module("lists/views/input-search-widget/input-search-widget-template.htm
     "    </div>\n" +
     "    <div class=\"col-md-4 voffset2\">\n" +
     "      <a href ng-href=\"{{navigateToSearchPage()}}\">\n" +
-    "        {{'search.advanced-button' | translate}}\n" +
+    "        {{'global.search' | translate}} {{searchBouttonLable | translate}}\n" +
     "      </a>\n" +
     "    </div>\n" +
     "  </div>\n" +
@@ -11409,37 +11432,39 @@ angular.module("lists/views/search-result-list-template.html", []).run(["$templa
     "  -->\n" +
     "\n" +
     "<div ng-show=\"options.obibaListOptions.searchForm\">\n" +
-    "    <list-search-widget type=\"type\"></list-search-widget>\n" +
-    "</div>\n" +
-    "<div ng-show=\"display === 'list'\">\n" +
-    "    <div class=\"row voffset3\">\n" +
-    "        <div class=\"col-md-12\">\n" +
-    "            <span role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
-    "                  ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}\"\n" +
-    "                  ng-if=\"options[targetTypeMap[res]].showSearchTab\">\n" +
+    "    <div class=\"row\">\n" +
+    "        <div class=\"col-md-2\"><span role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
+    "                                     ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}\"\n" +
+    "                                     ng-if=\"options[targetTypeMap[res]].showSearchTab\">\n" +
     "                <h4 ng-if=\"resultTabsOrder.length === 1\" class=\"pull-left\">\n" +
     "                    {{totalHits = getTotalHits(res);\"\"}}\n" +
     "                    {{singleLabel = \"search.\" + res + \".label\";\"\"}}\n" +
     "                    {{totalHits | localizedNumber }}  {{totalHits>1?targetTypeMap[res]:singleLabel | translate}}\n" +
     "                </h4>\n" +
+    "            </span></div>\n" +
+    "        <div class=\"col-md-10\"><list-search-widget type=\"type\"></list-search-widget></div>\n" +
+    "    </div>\n" +
+    "</div>\n" +
+    "<div ng-show=\"display === 'list'\">\n" +
+    "    <div class=\"row voffset3\">\n" +
+    "        <div class=\"col-md-2\">\n" +
+    "             <span ng-repeat=\"res in resultTabsOrder\"\n" +
+    "                   ng-show=\"activeTarget[targetTypeMap[res]].active && activeTarget[targetTypeMap[res]].totalHits > 0\">\n" +
+    "                                <list-sort-widget target=\"type\"></list-sort-widget>\n" +
     "            </span>\n" +
-    "            <div class=\"pull-right hoffset1\">\n" +
-    "                <div ng-repeat=\"res in resultTabsOrder\"\n" +
-    "                     ng-show=\"activeTarget[targetTypeMap[res]].active\"\n" +
-    "                     class=\"inline\" test-ref=\"pager\">\n" +
+    "        </div>\n" +
+    "        <div class=\"col-md-10\"><div class=\"pull-right hoffset1\">\n" +
+    "            <div ng-repeat=\"res in resultTabsOrder\"\n" +
+    "                 ng-show=\"activeTarget[targetTypeMap[res]].active\"\n" +
+    "                 class=\"inline\" test-ref=\"pager\">\n" +
     "                  <span search-result-pagination\n" +
     "                        show-total=\"false\"\n" +
     "                        target=\"activeTarget[targetTypeMap[res]].name\"\n" +
     "                        total-hits=\"activeTarget[targetTypeMap[res]].totalHits\"\n" +
     "                        on-change=\"onPaginate\">\n" +
     "                  </span>\n" +
-    "                </div>\n" +
     "            </div>\n" +
-    "            <span ng-repeat=\"res in resultTabsOrder\"\n" +
-    "                  ng-show=\"activeTarget[targetTypeMap[res]].active && activeTarget[targetTypeMap[res]].totalHits > 0\">\n" +
-    "                                <list-sort-widget target=\"type\" class=\"pull-right\"></list-sort-widget>\n" +
-    "            </span>\n" +
-    "        </div>\n" +
+    "        </div></div>\n" +
     "    </div>\n" +
     "    <div class=\"row\">\n" +
     "        <ng-include include-replace ng-repeat=\"res in resultTabsOrder\"\n" +
