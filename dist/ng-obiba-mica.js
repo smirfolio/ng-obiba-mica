@@ -8597,7 +8597,7 @@ angular.module('obiba.mica.lists')
       templateUrl: 'lists/views/sort-widget/sort-widget-template.html'
     };
   }])
-  .directive('listSearchWidget', [function () {
+  .directive('listSearchWidget', ['ngObibaMicaSearchTemplateUrl', function (ngObibaMicaSearchTemplateUrl) {
     return {
       restrict: 'EA',
       require: '^^suggestionField',
@@ -8607,7 +8607,7 @@ angular.module('obiba.mica.lists')
         type: '='
       },
       controller: 'listSearchWidgetController',
-      templateUrl: 'lists/views/input-search-widget/input-search-widget-template.html'
+      templateUrl: ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchInputList')
     };
   }])
 

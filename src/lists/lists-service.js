@@ -15,7 +15,6 @@
 angular.module('obiba.mica.lists')
     .service('sortWidgetService', ['$filter', '$location', 'RqlQueryService', 'sortWidgetOptions', function ($filter, $location, RqlQueryService, sortWidgetOptions) {
         var newOptions = sortWidgetOptions.getOptions();
-        console.log(newOptions);
         var self = this;
         this.getSortOrderOptions = function () {
             newOptions.sortOrderField.options.map(function (option) {
