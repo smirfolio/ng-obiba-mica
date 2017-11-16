@@ -82,6 +82,7 @@ function NgObibaMicaTemplateUrlFactory() {
     'searchCriteriaRegionTemplate' :'search/views/criteria/search-criteria-region-template.html',
     'CriterionDropdownTemplate' :'search/views/criteria/criterion-dropdown-template.html',
     'searchResultList' :'search/views/search-result-list-template.html',
+    'searchInputList' : 'lists/views/input-search-widget/input-search-widget-template.html',
     'searchResultCoverage' :'search/views/search-result-coverage-template.html',
     'searchResultGraphics' :'search/views/search-result-graphics-template.html'
   };

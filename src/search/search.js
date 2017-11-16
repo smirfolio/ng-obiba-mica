@@ -36,6 +36,7 @@ angular.module('obiba.mica.search', [
         searchCriteriaRegionTemplate: {template: null},
         CriterionDropdownTemplate: {template: null},
         searchResultList: {template: null},
+        searchInputList: {template: null},
         searchResultCoverage: {template: null},
         searchResultGraphics: {template: null},
         classifications: {header: null, footer: null}
