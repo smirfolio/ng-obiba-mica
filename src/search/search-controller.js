@@ -1351,23 +1351,31 @@ angular.module('obiba.mica.search')
       // it may be an Rql part out of facet match string query
       $rootScope.$on('ngObibaMicaSearch.searchChange', function (event, searchFilter) {
 
-        var matchQuery = {
-          target: $scope.target,
-          rqlQuery: new RqlQuery(RQL_NODE.MATCH)
-        };
+        var matchQuery = null;
 
         var trimmedQuery = searchFilter.trim();
         if (trimmedQuery.length) {
-          matchQuery.rqlQuery.args.push([trimmedQuery]);
-        } else {
-          matchQuery.rqlQuery.args.push(['*']);
+          // add filter as match criteria
+          var rqlQuery = new RqlQuery(RQL_NODE.MATCH);
+          rqlQuery.args.push([trimmedQuery]);
+          matchQuery = {
+              target: $scope.target,
+              rqlQuery: rqlQuery
+            };
         }
 
         var targetQuery = RqlQueryService.findTargetQuery($scope.target, $scope.search.rqlQuery);
 
         var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
         if (foundFulltextMatchQuery.length === 1) {
-          foundFulltextMatchQuery.pop().args = matchQuery.rqlQuery.args;
+          if (matchQuery) {
+            foundFulltextMatchQuery.pop().args = matchQuery.rqlQuery.args;
+          } else {
+            // remove existing match
+            targetQuery.args = targetQuery.args.filter(function (arg) {
+              return arg.name !== RQL_NODE.MATCH;
+            });
+          }
         } else {
           targetQuery.args.push(matchQuery.rqlQuery);
         }
