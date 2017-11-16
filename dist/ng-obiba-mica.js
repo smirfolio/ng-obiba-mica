@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-11-15
+ * Date: 2017-11-16
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -12478,7 +12478,7 @@ angular.module("search/views/criteria/criterion-header-template.html", []).run([
     "         popover-trigger=\"'mouseenter'\">\n" +
     "    {{localize(criterion.vocabulary.title)}}\n" +
     "  </label>\n" +
-    "  <span class=\"pull-right\" title=\"{{'search.close-and-search' | translate}}\" ng-click=\"$parent.$parent.closeDropdown()\"><i class=\"fa fa-close\"></i></span>\n" +
+    "  <span class=\"pull-right\" title=\"{{'search.close-and-search' | translate}}\" ng-click=\"$parent.$parent.closeDropdown()\"><i class=\"fa fa-check\"></i></span>\n" +
     "</li>\n" +
     "<li class='divider'></li>\n" +
     "");
