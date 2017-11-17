@@ -12,7 +12,7 @@
 <div ng-show="display === 'list'">
     <div class="row voffset3">
         <div class="col-md-2">
-            <span role="presentation" ng-repeat="res in resultTabsOrder"
+            <span ng-show="options.obibaListOptions.countCaption" role="presentation" ng-repeat="res in resultTabsOrder"
                   ng-class="{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}"
                   ng-if="options[targetTypeMap[res]].showSearchTab">
                 <h4 ng-if="resultTabsOrder.length === 1" class="pull-left">
@@ -39,7 +39,7 @@
                 </div>
             </div>
             <span ng-repeat="res in resultTabsOrder"
-                  ng-show="activeTarget[targetTypeMap[res]].active && activeTarget[targetTypeMap[res]].totalHits > 0">
+                  ng-show="activeTarget[targetTypeMap[res]].active && activeTarget[targetTypeMap[res]].totalHits > 0 && options.obibaListOptions.searchForm">
                                 <list-sort-widget target="type" class="pull-right"></list-sort-widget>
             </span>
         </div>
