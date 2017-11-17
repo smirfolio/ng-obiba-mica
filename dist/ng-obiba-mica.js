@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-11-16
+ * Date: 2017-11-17
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -11441,7 +11441,7 @@ angular.module("lists/views/search-result-list-template.html", []).run(["$templa
     "<div ng-show=\"display === 'list'\">\n" +
     "    <div class=\"row voffset3\">\n" +
     "        <div class=\"col-md-2\">\n" +
-    "            <span role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
+    "            <span ng-show=\"options.obibaListOptions.countCaption\" role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
     "                  ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}\"\n" +
     "                  ng-if=\"options[targetTypeMap[res]].showSearchTab\">\n" +
     "                <h4 ng-if=\"resultTabsOrder.length === 1\" class=\"pull-left\">\n" +
@@ -11468,7 +11468,7 @@ angular.module("lists/views/search-result-list-template.html", []).run(["$templa
     "                </div>\n" +
     "            </div>\n" +
     "            <span ng-repeat=\"res in resultTabsOrder\"\n" +
-    "                  ng-show=\"activeTarget[targetTypeMap[res]].active && activeTarget[targetTypeMap[res]].totalHits > 0\">\n" +
+    "                  ng-show=\"activeTarget[targetTypeMap[res]].active && activeTarget[targetTypeMap[res]].totalHits > 0 && options.obibaListOptions.searchForm\">\n" +
     "                                <list-sort-widget target=\"type\" class=\"pull-right\"></list-sort-widget>\n" +
     "            </span>\n" +
     "        </div>\n" +
