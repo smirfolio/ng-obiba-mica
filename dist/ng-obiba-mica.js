@@ -8268,8 +8268,8 @@ angular.module('obiba.mica.search')
     function ($routeProvider) {
       $routeProvider
         .when('/search', {
-          // templateUrl: 'search/views/search.html',
-          templateUrl: 'search/views/search2.html',
+          templateUrl: 'search/views/search.html',
+          // templateUrl: 'search/views/search2.html',
           controller: 'SearchController',
           reloadOnSearch: false
         })
