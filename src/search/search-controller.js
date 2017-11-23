@@ -873,6 +873,10 @@ angular.module('obiba.mica.search')
         }
       }
 
+      function taxonomyFilterPanelVisibility() {
+        $scope.search.showTaxonomyPanel = !$scope.search.showTaxonomyPanel;
+      }
+
       $scope.translateTaxonomyNav = function(t, key) {
         var value = t[key] && t[key].filter(function(item) {
           return item.locale === $translate.use();
@@ -1287,6 +1291,7 @@ angular.module('obiba.mica.search')
 
       $scope.searchHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('search');
       $scope.classificationsHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('classifications');
+      $scope.taxonomyFilterPanelVisibility = taxonomyFilterPanelVisibility;
       $scope.selectSearchTarget = selectSearchTarget;
       $scope.selectDisplay = onDisplayChanged;
       $scope.searchCriteria = searchCriteria;
