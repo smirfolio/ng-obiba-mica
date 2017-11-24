@@ -38,7 +38,8 @@
     "inject": false,
     "RqlParser": false,
     "RqlQuery": false,
-    "ngObibaMica": true
+    "ngObibaMica": true,
+    "QUERY_TARGETS": true
   }
 
 }

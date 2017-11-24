@@ -10,13 +10,23 @@
 
 'use strict';
 
-ngObibaMica.search.Controller = function() {
+ngObibaMica.search.Controller = function($scope, MetaTaxonomyService, TaxonomyResource) {
  var ctrl = this;
 
   function toggle() {
-    ctrl.onToggle();
+    return TaxonomyResource.get({
+      target: QUERY_TARGETS.VARIABLE,
+      taxonomy: ctrl.metaTaxonomies[0].taxonomies[0].name
+    }).$promise.then(function(taxonomy) {
+        ctrl.onToggle(taxonomy);
+      });
+
+
   }
 
+  MetaTaxonomyService.getMetaTaxonomyForTargets(ctrl.tabs).then(function(metaTaxonomies) {
+    ctrl.metaTaxonomies = metaTaxonomies;
+  });
 
   ctrl.toggle = toggle;
 };
@@ -25,9 +35,9 @@ ngObibaMica.search
     .component('metaTaxonomyFilterPanel', {
     bindings: {
       tabs: '<',
-      onToggle: '&'
+      onToggle: '<'
     },
     templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html',
-    controller: ['$scope', ngObibaMica.search.Controller]
+    controller: ['$scope', 'MetaTaxonomyService', 'TaxonomyResource', ngObibaMica.search.Controller]
   });
 
