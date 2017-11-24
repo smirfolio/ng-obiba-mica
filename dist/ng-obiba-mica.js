@@ -8301,8 +8301,9 @@ ngObibaMica.search
   .component('matchVocabularyFilterDetail', {
     transclude: true,
     bindings: {
+      vocabulary: '<'
     },
-    templateUrl: 'search/components/match-vocabulary-filter-detail/component.html',
+    templateUrl: 'search/components/criteria/match-vocabulary-filter-detail/component.html',
     controller: function() {
       // var ctrl = this;
     }
@@ -8322,9 +8323,10 @@ ngObibaMica.search
 ngObibaMica.search
 
   .component('numericVocabularyFilterDetail', {
+    transclude: true,
     bindings: {
     },
-    templateUrl: 'search/components/numeric-vocabulary-filter-detail/component.html',
+    templateUrl: 'search/components/criteria/numeric-vocabulary-filter-detail/component.html',
     controller: function() {
       //var ctrl = this;
     }
@@ -8346,8 +8348,9 @@ ngObibaMica.search
   .component('termsVocabularyFilterDetail', {
     transclude: true,
     bindings: {
+      vocabulary: '<'
     },
-    templateUrl: 'search/components/terms-vocabulary-filter-detail/component.html',
+    templateUrl: 'search/components/criteria/terms-vocabulary-filter-detail/component.html',
     controller: function() {
       // var ctrl = this;
     }
@@ -8432,14 +8435,18 @@ ngObibaMica.search
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+'use strict';
+
 ngObibaMica.search
 
   .component('taxonomyFilterPanel', {
+    transclude: true,
     bindings: {
+      taxonomy: '<'
     },
     templateUrl: 'search/components/taxonomy/taxonomy-filter-panel/component.html',
     controller: function() {
-      //var ctrl = this;
+      // var ctrl = this;
     }
   });
 ;/*
@@ -8454,16 +8461,28 @@ ngObibaMica.search
 
 'use strict';
 
+ngObibaMica.search.VocabularyFilterDetailController = function (RqlQueryUtils) {
+  var ctrl = this;
+
+  if (RqlQueryUtils.isTermsVocabulary(ctrl.vocabulary) || RqlQueryUtils.isRangeVocabulary(ctrl.vocabulary)) {
+    ctrl.criterionType = 'string-terms';
+  } else if (RqlQueryUtils.isNumericVocabulary(ctrl.vocabulary)) {
+    ctrl.criterionType = 'numeric';
+  } else if (RqlQueryUtils.isMatchVocabulary(ctrl.vocabulary)) {
+    ctrl.criterionType = 'match';
+  }
+
+};
+
 ngObibaMica.search
 
   .component('vocabularyFilterDetail', {
     transclude: true,
     bindings: {
+      vocabulary: '<'
     },
     templateUrl: 'search/components/vocabulary/vocabulary-filter-detail/component.html',
-    controller: function() {
-      // var ctrl = this;
-    }
+    controller: ['RqlQueryUtils', ngObibaMica.search.VocabularyFilterDetailController]
   });
 ;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -9769,6 +9788,11 @@ ngObibaMica.localized
   .filter('localizedNumber', ['LocalizedValues', function(LocalizedValues) {
     return function(value){
       return value === 0 ? 0 : value ? LocalizedValues.formatNumber(value) : '';
+    };
+  }])
+  .filter('localizedString', ['$translate', 'LocalizedValues', function ($translate, LocalizedValues) {
+    return function (input) {
+      return LocalizedValues.forLocale(input, $translate.use());
     };
   }]);
 ;/*
@@ -11840,8 +11864,7 @@ angular.module("localized/localized-textarea-template.html", []).run(["$template
 
 angular.module("search/components/criteria/match-vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/match-vocabulary-filter-detail/component.html",
-    "<div>\n" +
-    "</div>\n" +
+    "<input type=\"text\" class=\"form-control\" placeholder=\"'Enter text to search...'\">\n" +
     "\n" +
     "");
 }]);
@@ -11849,6 +11872,8 @@ angular.module("search/components/criteria/match-vocabulary-filter-detail/compon
 angular.module("search/components/criteria/numeric-vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/numeric-vocabulary-filter-detail/component.html",
     "<div>\n" +
+    "  <label>from <input type=\"number\"></label>\n" +
+    "  <label> to <input type=\"number\"></label>\n" +
     "</div>\n" +
     "\n" +
     "");
@@ -11856,7 +11881,14 @@ angular.module("search/components/criteria/numeric-vocabulary-filter-detail/comp
 
 angular.module("search/components/criteria/terms-vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/terms-vocabulary-filter-detail/component.html",
-    "<div>\n" +
+    "<div ng-class=\"{'row': ($index + 1) % 6 === 0}\" ng-repeat=\"term in $ctrl.vocabulary.terms\">\n" +
+    "  <div class=\"col-md-2\">\n" +
+    "    <div class=\"checkbox\">\n" +
+    "      <label for=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\">\n" +
+    "        <input id=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\" type=\"checkbox\"> {{term.title | localizedString}}\n" +
+    "      </label>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
     "</div>\n" +
     "\n" +
     "");
@@ -11895,7 +11927,8 @@ angular.module("search/components/taxonomy/taxonomy-filter-detail/component.html
 
 angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/taxonomy/taxonomy-filter-panel/component.html",
-    "<div class=\"jumbotron\" style=\"width: 100%\">\n" +
+    "<div style=\"max-height: 728px; overflow-y: scroll;\">\n" +
+    "  <vocabulary-filter-detail ng-repeat=\"vocabulary in $ctrl.taxonomy.vocabularies\" vocabulary=\"vocabulary\"></vocabulary-filter-detail>\n" +
     "</div>\n" +
     "\n" +
     "");
@@ -11903,7 +11936,23 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
 
 angular.module("search/components/vocabulary/vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/vocabulary/vocabulary-filter-detail/component.html",
-    "<div>\n" +
+    "<div class=\"panel panel-default\">\n" +
+    "  <div class=\"panel-heading\">{{$ctrl.vocabulary.title | localizedString}}</div>\n" +
+    "  <div class=\"panel-body\">\n" +
+    "    <div ng-switch on=\"$ctrl.criterionType\">\n" +
+    "      <div ng-switch-when=\"string-terms\">\n" +
+    "        <terms-vocabulary-filter-detail vocabulary=\"$ctrl.vocabulary\"></terms-vocabulary-filter-detail>\n" +
+    "      </div>\n" +
+    "\n" +
+    "      <div ng-switch-when=\"numeric\">\n" +
+    "        <numeric-vocabulary-filter-detail vocabulary=\"$ctrl.vocabulary\"></numeric-vocabulary-filter-detail>\n" +
+    "      </div>\n" +
+    "\n" +
+    "      <div ng-switch-default>\n" +
+    "        <match-vocabulary-filter-detail vocabulary=\"$ctrl.vocabulary\"></match-vocabulary-filter-detail>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
     "</div>\n" +
     "\n" +
     "");
@@ -13802,7 +13851,7 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "        </div>\n" +
     "        <div class=\"col-md-9\">\n" +
     "          <!-- Search Results region -->\n" +
-    "          <taxonomy-filter-panel ng-if=\"search.showTaxonomyPanel\" ></taxonomy-filter-panel>\n" +
+    "          <taxonomy-filter-panel ng-if=\"search.showTaxonomyPanel\"></taxonomy-filter-panel>\n" +
     "\n" +
     "          <div id=\"search-result-region\" class=\"voffset3 can-full-screen\" ng-if=\"search.query\" fullscreen=\"isFullscreen\">\n" +
     "            <div ng-if=\"searchTabsOrder.length > 1\">\n" +

@@ -1,3 +1,19 @@
-<div>
+<div class="panel panel-default">
+  <div class="panel-heading">{{$ctrl.vocabulary.title | localizedString}}</div>
+  <div class="panel-body">
+    <div ng-switch on="$ctrl.criterionType">
+      <div ng-switch-when="string-terms">
+        <terms-vocabulary-filter-detail vocabulary="$ctrl.vocabulary"></terms-vocabulary-filter-detail>
+      </div>
+
+      <div ng-switch-when="numeric">
+        <numeric-vocabulary-filter-detail vocabulary="$ctrl.vocabulary"></numeric-vocabulary-filter-detail>
+      </div>
+
+      <div ng-switch-default>
+        <match-vocabulary-filter-detail vocabulary="$ctrl.vocabulary"></match-vocabulary-filter-detail>
+      </div>
+    </div>
+  </div>
 </div>
 

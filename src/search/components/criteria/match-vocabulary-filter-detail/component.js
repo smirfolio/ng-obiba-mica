@@ -14,8 +14,9 @@ ngObibaMica.search
   .component('matchVocabularyFilterDetail', {
     transclude: true,
     bindings: {
+      vocabulary: '<'
     },
-    templateUrl: 'search/components/match-vocabulary-filter-detail/component.html',
+    templateUrl: 'search/components/criteria/match-vocabulary-filter-detail/component.html',
     controller: function() {
       // var ctrl = this;
     }
