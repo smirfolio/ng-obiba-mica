@@ -13,9 +13,10 @@
 ngObibaMica.search
 
   .component('numericVocabularyFilterDetail', {
+    transclude: true,
     bindings: {
     },
-    templateUrl: 'search/components/numeric-vocabulary-filter-detail/component.html',
+    templateUrl: 'search/components/criteria/numeric-vocabulary-filter-detail/component.html',
     controller: function() {
       //var ctrl = this;
     }

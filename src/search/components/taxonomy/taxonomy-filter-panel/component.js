@@ -8,13 +8,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+'use strict';
+
 ngObibaMica.search
 
   .component('taxonomyFilterPanel', {
+    transclude: true,
     bindings: {
+      taxonomy: '<'
     },
     templateUrl: 'search/components/taxonomy/taxonomy-filter-panel/component.html',
     controller: function() {
-      //var ctrl = this;
+      // var ctrl = this;
     }
   });

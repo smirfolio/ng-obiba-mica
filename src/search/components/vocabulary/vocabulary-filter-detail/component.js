@@ -10,14 +10,26 @@
 
 'use strict';
 
+ngObibaMica.search.VocabularyFilterDetailController = function (RqlQueryUtils) {
+  var ctrl = this;
+
+  if (RqlQueryUtils.isTermsVocabulary(ctrl.vocabulary) || RqlQueryUtils.isRangeVocabulary(ctrl.vocabulary)) {
+    ctrl.criterionType = 'string-terms';
+  } else if (RqlQueryUtils.isNumericVocabulary(ctrl.vocabulary)) {
+    ctrl.criterionType = 'numeric';
+  } else if (RqlQueryUtils.isMatchVocabulary(ctrl.vocabulary)) {
+    ctrl.criterionType = 'match';
+  }
+
+};
+
 ngObibaMica.search
 
   .component('vocabularyFilterDetail', {
     transclude: true,
     bindings: {
+      vocabulary: '<'
     },
     templateUrl: 'search/components/vocabulary/vocabulary-filter-detail/component.html',
-    controller: function() {
-      // var ctrl = this;
-    }
+    controller: ['RqlQueryUtils', ngObibaMica.search.VocabularyFilterDetailController]
   });
