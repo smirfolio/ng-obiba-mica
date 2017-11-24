@@ -1,6 +1,7 @@
 <div>
   <button class="btn btn-default" ng-click="$ctrl.toggle()">Test</button>
   <uib-accordion close-others="false" is-disabled="false">
-    <meta-taxonomy-filter-list ng-repeat="tab in $ctrl.tabs" tab="tab"></meta-taxonomy-filter-list>
+    <meta-taxonomy-filter-list ng-repeat="metaTaxonomy in $ctrl.metaTaxonomies" meta-taxonomy="metaTaxonomy">
+    </meta-taxonomy-filter-list>
   </uib-accordion>
 </div>

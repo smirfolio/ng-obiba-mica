@@ -25,7 +25,8 @@ var QUERY_TARGETS = {
   NETWORK: 'network',
   STUDY: 'study',
   DATASET: 'dataset',
-  VARIABLE: 'variable'
+  VARIABLE: 'variable',
+  TAXONOMY: 'taxonomy'
 };
 
 /* exported BUCKET_TYPES */

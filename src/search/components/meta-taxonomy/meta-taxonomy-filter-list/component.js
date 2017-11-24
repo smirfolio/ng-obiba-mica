@@ -15,13 +15,13 @@ ngObibaMica.search
   .component('metaTaxonomyFilterList', {
     transclude: true,
     bindings: {
-      tab: '='
+      metaTaxonomy: '<'
     },
     templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html',
     controller: function() {
       var ctrl = this;
+      console.log('####', ctrl);
       ctrl.items = ['Areas of Information', 'Scales / Measures', 'Source & Target', 'Properties'];
-      ctrl.subItems = ['item 001','item 002','item 003','item 004','item 005'];
       ctrl.status = {isFirstOpen: true};
     }
   });

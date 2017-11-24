@@ -2225,7 +2225,8 @@ var QUERY_TARGETS = {
   NETWORK: 'network',
   STUDY: 'study',
   DATASET: 'dataset',
-  VARIABLE: 'variable'
+  VARIABLE: 'variable',
+  TAXONOMY: 'taxonomy'
 };
 
 /* exported BUCKET_TYPES */
@@ -5299,8 +5300,9 @@ ngObibaMica.search
         }
       }
 
-      function taxonomyFilterPanelVisibility() {
+      function taxonomyFilterPanelVisibility(taxonomy) {
         $scope.search.showTaxonomyPanel = !$scope.search.showTaxonomyPanel;
+        $scope.search.selectedTaxonomy = taxonomy;
       }
 
       $scope.translateTaxonomyNav = function(t, key) {
@@ -8274,8 +8276,8 @@ ngObibaMica.search
     function ($routeProvider) {
       $routeProvider
         .when('/search', {
-          // templateUrl: 'search/views/search.html',
-          templateUrl: 'search/views/search2.html',
+          templateUrl: 'search/views/search.html',
+          // templateUrl: 'search/views/search2.html',
           controller: 'SearchController',
           reloadOnSearch: false
         })
@@ -8286,6 +8288,137 @@ ngObibaMica.search
         });
     }]);
 ;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+'use strict';
+
+/**
+ * Parses each metaTaxonomies taxonomy and returns a list of :
+ * [
+ *  {
+ *    info: {
+ *      name: name,
+ *      title: title
+ *     },
+ *    taxonomies: [taxos]
+ *   }
+ * ]
+ * @constructor
+ */
+ngObibaMica.search.MetaTaxonomyParser = function() {
+
+  function parseTerms(terms) {
+    return terms.map(function(taxonomy) {
+      return {
+        info: {name: taxonomy.name, title: taxonomy.title},
+        taxonomies: [taxonomy]
+      };
+    });
+  }
+
+  this.parseTerms = parseTerms;
+};
+
+ngObibaMica.search.MetaTaxonomyParser.prototype.parseEntityTaxonomies = function(metaVocabulary) {
+  return this.parseTerms(metaVocabulary.terms || []);
+};
+
+ngObibaMica.search.MetaTaxonomyParser.prototype.parseVariableTaxonomies = function(metaVocabulary) {
+
+  // TODO plugin options to build the taxonomy list
+  var chars = metaVocabulary.terms[0] || [];
+  var taxonomies = this.parseTerms(chars.terms);
+
+  var scales = metaVocabulary.terms[1];
+  if (scales) {
+    taxonomies = taxonomies.concat([{
+      info: {name: 'scales/measures', title: 'Scales / Measures'},
+      taxonomies: scales.terms
+    }]);
+  }
+
+  return taxonomies;
+};
+
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+ngObibaMica.search.MetaTaxonomyService = function($q, TaxonomyResource) {
+
+  var parser = new ngObibaMica.search.MetaTaxonomyParser();
+
+  /**
+   * Returns the taxonomy of taxonomy
+   * @returns {*}
+   */
+  function getMetaTaxonomies() {
+    return TaxonomyResource.get({
+      target: QUERY_TARGETS.TAXONOMY,
+      taxonomy: 'Mica_taxonomy'
+    }).$promise;
+  }
+
+  /**
+   * @param targets [variable, study, ...]
+   * @returns parsed list of taxonomies each item having an info object and a list of taxonomies
+   */
+  function getMetaTaxonomyForTargets(targets) {
+    var deferred = $q.defer();
+
+    getMetaTaxonomies().then(
+      function(metaTaxonomy) {
+        var metaVocabularies = (metaTaxonomy.vocabularies || []).filter(function(vocabulary) {
+          return targets.indexOf(vocabulary.name) > -1;
+        });
+
+        var taxonomies = metaVocabularies.map(
+          function(vocabulary) {
+            switch (vocabulary.name) {
+              case QUERY_TARGETS.VARIABLE:
+                return parser.parseVariableTaxonomies(vocabulary).pop();
+              case QUERY_TARGETS.NETWORK:
+              case QUERY_TARGETS.STUDY:
+              case QUERY_TARGETS.DATASET:
+                return parser.parseEntityTaxonomies(vocabulary).pop();
+            }
+          }
+        );
+
+        deferred.resolve(taxonomies || []);
+      }
+    );
+
+    return deferred.promise;
+  }
+
+  // exported functions
+
+  this.getMetaTaxonomyForTargets = getMetaTaxonomyForTargets;
+};
+
+ngObibaMica.search
+  .service('MetaTaxonomyService', [
+    '$q',
+    'TaxonomyResource',
+    ngObibaMica.search.MetaTaxonomyService
+  ]);;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
@@ -8372,13 +8505,13 @@ ngObibaMica.search
   .component('metaTaxonomyFilterList', {
     transclude: true,
     bindings: {
-      tab: '='
+      metaTaxonomy: '<'
     },
     templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html',
     controller: function() {
       var ctrl = this;
+      console.log('####', ctrl);
       ctrl.items = ['Areas of Information', 'Scales / Measures', 'Source & Target', 'Properties'];
-      ctrl.subItems = ['item 001','item 002','item 003','item 004','item 005'];
       ctrl.status = {isFirstOpen: true};
     }
   });
@@ -8394,13 +8527,23 @@ ngObibaMica.search
 
 'use strict';
 
-ngObibaMica.search.Controller = function() {
+ngObibaMica.search.Controller = function($scope, MetaTaxonomyService, TaxonomyResource) {
  var ctrl = this;
 
   function toggle() {
-    ctrl.onToggle();
+    return TaxonomyResource.get({
+      target: QUERY_TARGETS.VARIABLE,
+      taxonomy: ctrl.metaTaxonomies[0].taxonomies[0].name
+    }).$promise.then(function(taxonomy) {
+        ctrl.onToggle(taxonomy);
+      });
+
+
   }
 
+  MetaTaxonomyService.getMetaTaxonomyForTargets(ctrl.tabs).then(function(metaTaxonomies) {
+    ctrl.metaTaxonomies = metaTaxonomies;
+  });
 
   ctrl.toggle = toggle;
 };
@@ -8409,10 +8552,10 @@ ngObibaMica.search
     .component('metaTaxonomyFilterPanel', {
     bindings: {
       tabs: '<',
-      onToggle: '&'
+      onToggle: '<'
     },
     templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html',
-    controller: ['$scope', ngObibaMica.search.Controller]
+    controller: ['$scope', 'MetaTaxonomyService', 'TaxonomyResource', ngObibaMica.search.Controller]
   });
 
 ;ngObibaMica.search
@@ -11896,11 +12039,10 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
 
 angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html",
-    "<div uib-accordion-group class=\"panel-default voffset2\" heading=\"{{$ctrl.tab}}\" is-open=\"$ctrl.status.isFirstOpen\">\n" +
-    "\n" +
+    "<div uib-accordion-group class=\"panel-default voffset2\" heading=\"{{$ctrl.metaTaxonomy.info.name}}\" is-open=\"$ctrl.status.isFirstOpen\">\n" +
     "  <ul class=\"nav nav-pills nav-stacked\">\n" +
-    "    <li role=\"presentation\" ng-repeat=\"item in $ctrl.items\">\n" +
-    "      <a href ng-click=\"\" >{{$ctrl.tab}} - {{item}}<i class=\"fa fa-plus\"></i></a>\n" +
+    "    <li role=\"presentation\" ng-repeat=\"taxonomy in $ctrl.metaTaxonomy.taxonomies\">\n" +
+    "      <a href ng-click=\"\">{{taxonomy.name}}<i class=\"fa fa-plus\"></i></a>\n" +
     "    </li>\n" +
     "  </ul>\n" +
     "\n" +
@@ -11914,7 +12056,8 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-panel/compo
     "<div>\n" +
     "  <button class=\"btn btn-default\" ng-click=\"$ctrl.toggle()\">Test</button>\n" +
     "  <uib-accordion close-others=\"false\" is-disabled=\"false\">\n" +
-    "    <meta-taxonomy-filter-list ng-repeat=\"tab in $ctrl.tabs\" tab=\"tab\"></meta-taxonomy-filter-list>\n" +
+    "    <meta-taxonomy-filter-list ng-repeat=\"metaTaxonomy in $ctrl.metaTaxonomies\" meta-taxonomy=\"metaTaxonomy\">\n" +
+    "    </meta-taxonomy-filter-list>\n" +
     "  </uib-accordion>\n" +
     "</div>\n" +
     "");
@@ -13847,11 +13990,11 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "      <search-criteria-region options=\"options\" search=\"search\"> </search-criteria-region>\n" +
     "      <div class=\"row\">\n" +
     "        <div class=\"col-md-3\">\n" +
-    "          <meta-taxonomy-filter-panel tabs=\"targetTabsOrder\" on-toggle=\"taxonomyFilterPanelVisibility()\"></meta-taxonomy-filter-panel>\n" +
+    "          <meta-taxonomy-filter-panel tabs=\"targetTabsOrder\" on-toggle=\"taxonomyFilterPanelVisibility\"></meta-taxonomy-filter-panel>\n" +
     "        </div>\n" +
     "        <div class=\"col-md-9\">\n" +
     "          <!-- Search Results region -->\n" +
-    "          <taxonomy-filter-panel ng-if=\"search.showTaxonomyPanel\"></taxonomy-filter-panel>\n" +
+    "          <taxonomy-filter-panel taxonomy=\"search.selectedTaxonomy\" ng-if=\"search.showTaxonomyPanel\"></taxonomy-filter-panel>\n" +
     "\n" +
     "          <div id=\"search-result-region\" class=\"voffset3 can-full-screen\" ng-if=\"search.query\" fullscreen=\"isFullscreen\">\n" +
     "            <div ng-if=\"searchTabsOrder.length > 1\">\n" +
