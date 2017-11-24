@@ -35,7 +35,7 @@ function getSearchButtonLabel(type, className) {
   }
 }
 
-angular.module('obiba.mica.lists')
+ngObibaMica.lists
 
   .controller('listSearchWidgetController', ['$scope', '$rootScope', '$location', 'RqlQueryService', 'ngObibaMicaUrl',
     function ($scope, $rootScope, $location, RqlQueryService, ngObibaMicaUrl) {

@@ -18,7 +18,7 @@ var CRITERIA_ITEM_EVENT = {
   refresh: 'event:refresh-criteria-item'
 };
 
-angular.module('obiba.mica.search')
+ngObibaMica.search
 
   .directive('taxonomyPanel', [function () {
     return {

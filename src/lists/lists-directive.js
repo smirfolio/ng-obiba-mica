@@ -12,7 +12,7 @@
 
 /* global typeToTarget */
 
-angular.module('obiba.mica.lists')
+ngObibaMica.lists
   .directive('listSortWidget', [function () {
     return {
       restrict: 'EA',

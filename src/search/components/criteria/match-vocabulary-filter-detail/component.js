@@ -10,8 +10,7 @@
 
 'use strict';
 
-angular.module('obiba.mica.search')
-
+ngObibaMica.search
   .component('matchVocabularyFilterDetail', {
     transclude: true,
     bindings: {

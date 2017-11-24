@@ -10,7 +10,7 @@
 
 'use strict';
 
-angular.module('obiba.mica.graphics')
+ngObibaMica.graphics
   .factory('GraphicChartsDataResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('JoinQuerySearchResource'), {}, {

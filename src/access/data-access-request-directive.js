@@ -10,7 +10,7 @@
 
 'use strict';
 
-angular.module('obiba.mica.access')
+ngObibaMica.access
   .directive('printFriendlyView', [function(){
     return {
       restrict: 'EA',

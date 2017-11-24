@@ -10,7 +10,7 @@
 
 'use strict';
 
-angular.module('obiba.mica.access')
+ngObibaMica.access
   .config(['$routeProvider',
     function ($routeProvider) {
       $routeProvider

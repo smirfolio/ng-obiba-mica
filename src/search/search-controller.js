@@ -408,7 +408,7 @@ function ClassificationPanelController($rootScope,
   $scope.refreshTaxonomyCache = this.refreshTaxonomyCache;
 }
 
-angular.module('obiba.mica.search')
+ngObibaMica.search
 
   .controller('SearchController', [
     '$scope',

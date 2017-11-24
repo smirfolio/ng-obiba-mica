@@ -145,7 +145,7 @@ function NgObibaMicaTemplateUrlFactory() {
   };
 }
 
-angular.module('ngObibaMica', [
+var ngObibaMica = angular.module('ngObibaMica', [
     'schemaForm',
     'ngCookies',
     'obiba.mica.utils',
@@ -157,7 +157,9 @@ angular.module('ngObibaMica', [
     'obiba.mica.localized',
     'obiba.mica.fileBrowser',
     'angularUtils.directives.dirPagination',
-  ])
+  ]);
+
+ngObibaMica
   .constant('USER_ROLES', {
     all: '*',
     admin: 'mica-administrator',

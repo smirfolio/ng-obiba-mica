@@ -37,11 +37,13 @@ function GraphicChartsDataProvider() {
   }];
 }
 
-angular.module('obiba.mica.graphics', [
+ngObibaMica.graphics = angular.module('obiba.mica.graphics', [
     'obiba.graphics',
     'obiba.utils',
     'templates-ngObibaMica'
-  ])
+  ]);
+
+ngObibaMica.graphics
   .config(['$provide', function ($provide) {
     $provide.provider('GraphicChartsData', GraphicChartsDataProvider);
   }])

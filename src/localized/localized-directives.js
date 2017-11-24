@@ -10,7 +10,7 @@
 
 'use strict';
 
-angular.module('obiba.mica.localized')
+ngObibaMica.localized
 
   .directive('localized', ['LocalizedValues', function (LocalizedValues) {
     return {

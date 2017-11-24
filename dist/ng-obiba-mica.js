@@ -152,7 +152,7 @@ function NgObibaMicaTemplateUrlFactory() {
   };
 }
 
-angular.module('ngObibaMica', [
+var ngObibaMica = angular.module('ngObibaMica', [
     'schemaForm',
     'ngCookies',
     'obiba.mica.utils',
@@ -164,7 +164,9 @@ angular.module('ngObibaMica', [
     'obiba.mica.localized',
     'obiba.mica.fileBrowser',
     'angularUtils.directives.dirPagination',
-  ])
+  ]);
+
+ngObibaMica
   .constant('USER_ROLES', {
     all: '*',
     admin: 'mica-administrator',
@@ -190,8 +192,9 @@ angular.module('ngObibaMica', [
 
 'use strict';
 
-angular.module('obiba.mica.utils', ['schemaForm'])
+ngObibaMica.utils = angular.module('obiba.mica.utils', ['schemaForm']);
 
+ngObibaMica.utils
   .factory('urlEncode', function() {
     return function(input) {
       return window.encodeURIComponent(input);
@@ -468,7 +471,7 @@ angular.module('obiba.mica.utils', ['schemaForm'])
 
 'use strict';
 
-angular.module('obiba.mica.file', ['ngResource']);
+ngObibaMica.file = angular.module('obiba.mica.file', ['ngResource']);
 ;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
  *
@@ -481,7 +484,7 @@ angular.module('obiba.mica.file', ['ngResource']);
 
 'use strict';
 
-angular.module('obiba.mica.file')
+ngObibaMica.file
   .filter('bytes', function () {
     return function (bytes) {
       return bytes === null || typeof bytes === 'undefined' ? '' : filesize(bytes);
@@ -500,7 +503,7 @@ angular.module('obiba.mica.file')
 
 'use strict';
 
-angular.module('obiba.mica.file')
+ngObibaMica.file
   .factory('TempFileResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('TempFileResource'), {}, {
@@ -521,7 +524,7 @@ angular.module('obiba.mica.file')
 
 'use strict';
 
-angular.module('obiba.mica.attachment', [
+ngObibaMica.attachment = angular.module('obiba.mica.attachment', [
   'obiba.mica.file',
   'ui',
   'ui.bootstrap',
@@ -540,7 +543,7 @@ angular.module('obiba.mica.attachment', [
 
 'use strict';
 
-angular.module('obiba.mica.attachment')
+ngObibaMica.attachment
   .directive('attachmentList', [function() {
     return {
       restrict: 'E',
@@ -684,7 +687,7 @@ angular.module('obiba.mica.attachment')
 'use strict';
 
 /*global NgObibaMicaTemplateUrlFactory */
-angular.module('obiba.mica.access', [
+ngObibaMica.access = angular.module('obiba.mica.access', [
     'pascalprecht.translate',
     'obiba.alert',
     'obiba.comments',
@@ -692,7 +695,9 @@ angular.module('obiba.mica.access', [
     'obiba.utils',
     'angularMoment',
     'templates-ngObibaMica'
-  ])
+  ]);
+
+ngObibaMica.access
   .config(['$provide', function ($provide) {
     $provide.provider('ngObibaMicaAccessTemplateUrl', new NgObibaMicaTemplateUrlFactory().create(
       {
@@ -714,7 +719,7 @@ angular.module('obiba.mica.access', [
 
 'use strict';
 
-angular.module('obiba.mica.access')
+ngObibaMica.access
   .controller('DataAccessRequestListController', ['$rootScope',
     '$scope',
     '$uibModal',
@@ -1480,7 +1485,7 @@ angular.module('obiba.mica.access')
 
 'use strict';
 
-angular.module('obiba.mica.access')
+ngObibaMica.access
   .config(['$routeProvider',
     function ($routeProvider) {
       $routeProvider
@@ -1513,8 +1518,7 @@ angular.module('obiba.mica.access')
 
 'use strict';
 
-angular.module('obiba.mica.access')
-
+ngObibaMica.access
   .factory('DataAccessFormConfigResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('DataAccessFormConfigResource'), {}, {
@@ -1850,7 +1854,7 @@ angular.module('obiba.mica.access')
 
 'use strict';
 
-angular.module('obiba.mica.access')
+ngObibaMica.access
   .directive('printFriendlyView', [function(){
     return {
       restrict: 'EA',
@@ -1880,12 +1884,14 @@ var DISPLAY_TYPES = {
 };
 
 /*global NgObibaMicaTemplateUrlFactory */
-angular.module('obiba.mica.search', [
+ngObibaMica.search = angular.module('obiba.mica.search', [
     'obiba.alert',
     'ui.bootstrap',
     'pascalprecht.translate',
     'templates-ngObibaMica'
-  ])
+  ]);
+
+ngObibaMica.search
   .config(['$provide', function ($provide) {
     $provide.provider('ngObibaMicaSearchTemplateUrl', new NgObibaMicaTemplateUrlFactory().create(
       {
@@ -2129,7 +2135,7 @@ angular.module('obiba.mica.search', [
 
 'use strict';
 
-angular.module('obiba.mica.search')
+ngObibaMica.search
 
   .filter('regex', function() {
     return function(elements, regex, fields, lang) {
@@ -2732,7 +2738,7 @@ CriteriaBuilder.prototype.build = function () {
   });
 };
 
-angular.module('obiba.mica.search')
+ngObibaMica.search
 
   // TODO merge with RqlQueryService or place all node manipularions here
   .service('RqlQueryUtils', ['LocalizedValues', function (LocalizedValues) {
@@ -4032,7 +4038,7 @@ var STUDY_FILTER_CHOICES = {
 /**
  * Module services and factories
  */
-angular.module('obiba.mica.search')
+ngObibaMica.search
   .factory('TaxonomiesSearchResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('TaxonomiesSearchResource'), {}, {
@@ -4828,7 +4834,7 @@ function ClassificationPanelController($rootScope,
   $scope.refreshTaxonomyCache = this.refreshTaxonomyCache;
 }
 
-angular.module('obiba.mica.search')
+ngObibaMica.search
 
   .controller('SearchController', [
     '$scope',
@@ -7453,7 +7459,7 @@ var CRITERIA_ITEM_EVENT = {
   refresh: 'event:refresh-criteria-item'
 };
 
-angular.module('obiba.mica.search')
+ngObibaMica.search
 
   .directive('taxonomyPanel', [function () {
     return {
@@ -8263,13 +8269,13 @@ angular.module('obiba.mica.search')
 
 'use strict';
 
-angular.module('obiba.mica.search')
+ngObibaMica.search
   .config(['$routeProvider',
     function ($routeProvider) {
       $routeProvider
         .when('/search', {
-          templateUrl: 'search/views/search.html',
-          // templateUrl: 'search/views/search2.html',
+          // templateUrl: 'search/views/search.html',
+          templateUrl: 'search/views/search2.html',
           controller: 'SearchController',
           reloadOnSearch: false
         })
@@ -8289,40 +8295,9 @@ angular.module('obiba.mica.search')
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-angular.module('obiba.mica.search')
-
-  .component('taxonomyFilterPanel', {
-    bindings: {
-    },
-    templateUrl: 'search/components/taxonomy-filter-panel/component.html',
-    controller: function() {
-      //var ctrl = this;
-    }
-  });
-;angular.module('obiba.mica.search')
-
-  .component('taxonomyFilterDetail', {
-    bindings: {
-    },
-    templateUrl: 'search/components/taxonomy-filter-detail/component.html',
-    controller: function() {
-      //var ctrl = this;
-    }
-  });
-;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
- *
- * This program and the accompanying materials
- * are made available under the terms of the GNU Public License v3.0.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 'use strict';
 
-angular.module('obiba.mica.search')
-
+ngObibaMica.search
   .component('matchVocabularyFilterDetail', {
     transclude: true,
     bindings: {
@@ -8344,7 +8319,7 @@ angular.module('obiba.mica.search')
 
 'use strict';
 
-angular.module('obiba.mica.search')
+ngObibaMica.search
 
   .component('numericVocabularyFilterDetail', {
     bindings: {
@@ -8366,7 +8341,7 @@ angular.module('obiba.mica.search')
 
 'use strict';
 
-angular.module('obiba.mica.search')
+ngObibaMica.search
 
   .component('termsVocabularyFilterDetail', {
     transclude: true,
@@ -8389,37 +8364,14 @@ angular.module('obiba.mica.search')
 
 'use strict';
 
-angular.module('obiba.mica.search')
-
-  .component('vocabularyFilterDetail', {
-    transclude: true,
-    bindings: {
-    },
-    templateUrl: 'search/components/vocabulary-filter-detail/component.html',
-    controller: function() {
-      // var ctrl = this;
-    }
-  });
-;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
- *
- * This program and the accompanying materials
- * are made available under the terms of the GNU Public License v3.0.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-'use strict';
-
-angular.module('obiba.mica.search')
+ngObibaMica.search
 
   .component('metaTaxonomyFilterList', {
     transclude: true,
     bindings: {
       tab: '='
     },
-    templateUrl: 'search/components/meta-taxonomy-filter-list/component.html',
+    templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html',
     controller: function() {
       var ctrl = this;
       ctrl.items = ['Areas of Information', 'Scales / Measures', 'Source & Target', 'Properties'];
@@ -8439,9 +8391,7 @@ angular.module('obiba.mica.search')
 
 'use strict';
 
-var obibaMicaSearch = angular.module('obiba.mica.search');
-
-obibaMicaSearch.Controller = function() {
+ngObibaMica.search.Controller = function() {
  var ctrl = this;
 
   function toggle() {
@@ -8452,16 +8402,69 @@ obibaMicaSearch.Controller = function() {
   ctrl.toggle = toggle;
 };
 
-angular.module('obiba.mica.search')
+ngObibaMica.search
     .component('metaTaxonomyFilterPanel', {
     bindings: {
       tabs: '<',
       onToggle: '&'
     },
-    templateUrl: 'search/components/meta-taxonomy-filter-panel/component.html',
-    controller: ['$scope', obibaMicaSearch.Controller]
+    templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html',
+    controller: ['$scope', ngObibaMica.search.Controller]
   });
 
+;ngObibaMica.search
+
+  .component('taxonomyFilterDetail', {
+    bindings: {
+    },
+    templateUrl: 'search/components/taxonomy/taxonomy-filter-detail/component.html',
+    controller: function() {
+      //var ctrl = this;
+    }
+  });
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+ngObibaMica.search
+
+  .component('taxonomyFilterPanel', {
+    bindings: {
+    },
+    templateUrl: 'search/components/taxonomy/taxonomy-filter-panel/component.html',
+    controller: function() {
+      //var ctrl = this;
+    }
+  });
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+ngObibaMica.search
+
+  .component('vocabularyFilterDetail', {
+    transclude: true,
+    bindings: {
+    },
+    templateUrl: 'search/components/vocabulary/vocabulary-filter-detail/component.html',
+    controller: function() {
+      // var ctrl = this;
+    }
+  });
 ;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
  *
@@ -8598,7 +8601,9 @@ function SortWidgetOptionsProvider() {
   };
 }
 
-angular.module('obiba.mica.lists', ['obiba.mica.search'])
+ngObibaMica.lists = angular.module('obiba.mica.lists', ['obiba.mica.search']);
+
+ngObibaMica.lists
   .run()
   .config(['$provide', function($provide){
     $provide.provider('ngObibaMicaLists', NgObibaMicaListsOptionsFactory);
@@ -8640,7 +8645,7 @@ angular.module('obiba.mica.lists', ['obiba.mica.search'])
 
 /* global targetToType */
 
-angular.module('obiba.mica.lists')
+ngObibaMica.lists
     .service('sortWidgetService', ['$filter', '$location', 'RqlQueryService', 'sortWidgetOptions', function ($filter, $location, RqlQueryService, sortWidgetOptions) {
         var newOptions = sortWidgetOptions.getOptions();
         var self = this;
@@ -8724,7 +8729,7 @@ function getSearchButtonLabel(type, className) {
   }
 }
 
-angular.module('obiba.mica.lists')
+ngObibaMica.lists
 
   .controller('listSearchWidgetController', ['$scope', '$rootScope', '$location', 'RqlQueryService', 'ngObibaMicaUrl',
     function ($scope, $rootScope, $location, RqlQueryService, ngObibaMicaUrl) {
@@ -8821,7 +8826,7 @@ angular.module('obiba.mica.lists')
 
 /* global typeToTarget */
 
-angular.module('obiba.mica.lists')
+ngObibaMica.lists
   .directive('listSortWidget', [function () {
     return {
       restrict: 'EA',
@@ -8922,11 +8927,13 @@ function GraphicChartsDataProvider() {
   }];
 }
 
-angular.module('obiba.mica.graphics', [
+ngObibaMica.graphics = angular.module('obiba.mica.graphics', [
     'obiba.graphics',
     'obiba.utils',
     'templates-ngObibaMica'
-  ])
+  ]);
+
+ngObibaMica.graphics
   .config(['$provide', function ($provide) {
     $provide.provider('GraphicChartsData', GraphicChartsDataProvider);
   }])
@@ -8946,7 +8953,7 @@ angular.module('obiba.mica.graphics', [
 
 'use strict';
 
-angular.module('obiba.mica.graphics')
+ngObibaMica.graphics
 
   .directive('obibaChart', [function () {
     return {
@@ -9001,7 +9008,7 @@ angular.module('obiba.mica.graphics')
 
 'use strict';
 
-angular.module('obiba.mica.graphics')
+ngObibaMica.graphics
 
   .controller('GraphicChartsController', [
     '$rootScope',
@@ -9158,7 +9165,7 @@ angular.module('obiba.mica.graphics')
 
 'use strict';
 
-angular.module('obiba.mica.graphics')
+ngObibaMica.graphics
   .factory('GraphicChartsDataResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('JoinQuerySearchResource'), {}, {
@@ -9407,7 +9414,7 @@ angular.module('obiba.mica.graphics')
 
 'use strict';
 
-angular.module('obiba.mica.localized', [
+ngObibaMica.localized = angular.module('obiba.mica.localized', [
   'obiba.notification',
   'pascalprecht.translate',
   'templates-ngObibaMica'
@@ -9424,7 +9431,7 @@ angular.module('obiba.mica.localized', [
 
 'use strict';
 
-angular.module('obiba.mica.localized')
+ngObibaMica.localized
 
   .directive('localized', ['LocalizedValues', function (LocalizedValues) {
     return {
@@ -9602,7 +9609,7 @@ angular.module('obiba.mica.localized')
 
 'use strict';
 
-angular.module('obiba.mica.localized')
+ngObibaMica.localized
 
   .service('LocalizedValues',
     function () {
@@ -9757,7 +9764,7 @@ angular.module('obiba.mica.localized')
 
 'use strict';
 
-angular.module('obiba.mica.localized')
+ngObibaMica.localized
 
   .filter('localizedNumber', ['LocalizedValues', function(LocalizedValues) {
     return function(value){
@@ -9797,7 +9804,7 @@ function NgObibaMicaFileBrowserOptionsProvider() {
   };
 }
 
-angular.module('obiba.mica.fileBrowser', [
+ngObibaMica.fileBrowser = angular.module('obiba.mica.fileBrowser', [
   'pascalprecht.translate',
   'ui.bootstrap',
   'templates-ngObibaMica'
@@ -9816,7 +9823,7 @@ angular.module('obiba.mica.fileBrowser', [
 
 'use strict';
 
-angular.module('obiba.mica.fileBrowser')
+ngObibaMica.fileBrowser
   
   .directive('fileBrowser', [function () {
     return {
@@ -9844,8 +9851,7 @@ angular.module('obiba.mica.fileBrowser')
 
 'use strict';
 
-angular.module('obiba.mica.fileBrowser')
-
+ngObibaMica.fileBrowser
   .controller('FileBrowserController', [
     '$rootScope',
     '$scope',
@@ -10150,8 +10156,7 @@ angular.module('obiba.mica.fileBrowser')
 
 'use strict';
 
-angular.module('obiba.mica.fileBrowser')
-
+ngObibaMica.fileBrowser
   .factory('FileBrowserFileResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       var url = ngObibaMicaUrl.getUrl('FileBrowserFileResource');

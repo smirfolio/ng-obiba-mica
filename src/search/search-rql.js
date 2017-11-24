@@ -538,7 +538,7 @@ CriteriaBuilder.prototype.build = function () {
   });
 };
 
-angular.module('obiba.mica.search')
+ngObibaMica.search
 
   // TODO merge with RqlQueryService or place all node manipularions here
   .service('RqlQueryUtils', ['LocalizedValues', function (LocalizedValues) {

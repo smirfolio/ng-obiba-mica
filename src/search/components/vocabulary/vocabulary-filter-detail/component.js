@@ -10,13 +10,13 @@
 
 'use strict';
 
-angular.module('obiba.mica.search')
+ngObibaMica.search
 
   .component('vocabularyFilterDetail', {
     transclude: true,
     bindings: {
     },
-    templateUrl: 'search/components/vocabulary-filter-detail/component.html',
+    templateUrl: 'search/components/vocabulary/vocabulary-filter-detail/component.html',
     controller: function() {
       // var ctrl = this;
     }

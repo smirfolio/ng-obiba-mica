@@ -10,8 +10,7 @@
 
 'use strict';
 
-angular.module('obiba.mica.access')
-
+ngObibaMica.access
   .factory('DataAccessFormConfigResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('DataAccessFormConfigResource'), {}, {

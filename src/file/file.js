@@ -10,4 +10,4 @@
 
 'use strict';
 
-angular.module('obiba.mica.file', ['ngResource']);
+ngObibaMica.file = angular.module('obiba.mica.file', ['ngResource']);

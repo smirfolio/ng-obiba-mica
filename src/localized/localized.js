@@ -10,7 +10,7 @@
 
 'use strict';
 
-angular.module('obiba.mica.localized', [
+ngObibaMica.localized = angular.module('obiba.mica.localized', [
   'obiba.notification',
   'pascalprecht.translate',
   'templates-ngObibaMica'

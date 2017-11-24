@@ -10,14 +10,14 @@
 
 'use strict';
 
-angular.module('obiba.mica.search')
+ngObibaMica.search
 
   .component('metaTaxonomyFilterList', {
     transclude: true,
     bindings: {
       tab: '='
     },
-    templateUrl: 'search/components/meta-taxonomy-filter-list/component.html',
+    templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html',
     controller: function() {
       var ctrl = this;
       ctrl.items = ['Areas of Information', 'Scales / Measures', 'Source & Target', 'Properties'];

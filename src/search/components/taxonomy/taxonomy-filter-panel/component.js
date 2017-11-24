@@ -8,12 +8,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-angular.module('obiba.mica.search')
+ngObibaMica.search
 
   .component('taxonomyFilterPanel', {
     bindings: {
     },
-    templateUrl: 'search/components/taxonomy-filter-panel/component.html',
+    templateUrl: 'search/components/taxonomy/taxonomy-filter-panel/component.html',
     controller: function() {
       //var ctrl = this;
     }
