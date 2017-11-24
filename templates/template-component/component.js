@@ -10,9 +10,8 @@
 
 'use strict';
 
-var module = angular.module('module');
-
-module.Controller = function () {
+ngObibaMica.module
+  .Controller = function () {
   var ctrl = this;
 
   function toggle() {
@@ -23,7 +22,7 @@ module.Controller = function () {
   ctrl.toggle = toggle;
 };
 
-module
+ngObibaMica.module
   .component('templateComponent', {
     bindings: {
       bla: '<', // one way binding

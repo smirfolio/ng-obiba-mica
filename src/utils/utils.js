@@ -10,8 +10,9 @@
 
 'use strict';
 
-angular.module('obiba.mica.utils', ['schemaForm'])
+ngObibaMica.utils = angular.module('obiba.mica.utils', ['schemaForm']);
 
+ngObibaMica.utils
   .factory('urlEncode', function() {
     return function(input) {
       return window.encodeURIComponent(input);

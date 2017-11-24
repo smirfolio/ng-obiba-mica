@@ -10,7 +10,7 @@
 
 'use strict';
 
-angular.module('obiba.mica.localized')
+ngObibaMica.localized
 
   .filter('localizedNumber', ['LocalizedValues', function(LocalizedValues) {
     return function(value){

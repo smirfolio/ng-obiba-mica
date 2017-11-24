@@ -10,8 +10,7 @@
 
 'use strict';
 
-angular.module('obiba.mica.fileBrowser')
-
+ngObibaMica.fileBrowser
   .controller('FileBrowserController', [
     '$rootScope',
     '$scope',

@@ -10,8 +10,7 @@
 
 'use strict';
 
-angular.module('obiba.mica.fileBrowser')
-
+ngObibaMica.fileBrowser
   .factory('FileBrowserFileResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       var url = ngObibaMicaUrl.getUrl('FileBrowserFileResource');

@@ -1,9 +1,9 @@
-angular.module('obiba.mica.search')
+ngObibaMica.search
 
   .component('taxonomyFilterDetail', {
     bindings: {
     },
-    templateUrl: 'search/components/taxonomy-filter-detail/component.html',
+    templateUrl: 'search/components/taxonomy/taxonomy-filter-detail/component.html',
     controller: function() {
       //var ctrl = this;
     }

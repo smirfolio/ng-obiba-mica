@@ -10,7 +10,7 @@
 
 'use strict';
 
-angular.module('obiba.mica.attachment')
+ngObibaMica.attachment
   .directive('attachmentList', [function() {
     return {
       restrict: 'E',

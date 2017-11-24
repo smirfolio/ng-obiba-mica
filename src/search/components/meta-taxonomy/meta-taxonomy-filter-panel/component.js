@@ -10,9 +10,7 @@
 
 'use strict';
 
-var obibaMicaSearch = angular.module('obiba.mica.search');
-
-obibaMicaSearch.Controller = function() {
+ngObibaMica.search.Controller = function() {
  var ctrl = this;
 
   function toggle() {
@@ -23,13 +21,13 @@ obibaMicaSearch.Controller = function() {
   ctrl.toggle = toggle;
 };
 
-angular.module('obiba.mica.search')
+ngObibaMica.search
     .component('metaTaxonomyFilterPanel', {
     bindings: {
       tabs: '<',
       onToggle: '&'
     },
-    templateUrl: 'search/components/meta-taxonomy-filter-panel/component.html',
-    controller: ['$scope', obibaMicaSearch.Controller]
+    templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html',
+    controller: ['$scope', ngObibaMica.search.Controller]
   });
 

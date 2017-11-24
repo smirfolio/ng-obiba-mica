@@ -24,7 +24,7 @@ var STUDY_FILTER_CHOICES = {
 /**
  * Module services and factories
  */
-angular.module('obiba.mica.search')
+ngObibaMica.search
   .factory('TaxonomiesSearchResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('TaxonomiesSearchResource'), {}, {

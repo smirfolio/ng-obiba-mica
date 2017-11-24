@@ -10,7 +10,7 @@
 
 'use strict';
 
-angular.module('obiba.mica.fileBrowser')
+ngObibaMica.fileBrowser
   
   .directive('fileBrowser', [function () {
     return {

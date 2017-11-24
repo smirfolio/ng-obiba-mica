@@ -10,7 +10,7 @@
 
 'use strict';
 
-angular.module('obiba.mica.graphics')
+ngObibaMica.graphics
 
   .directive('obibaChart', [function () {
     return {

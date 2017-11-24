@@ -20,12 +20,14 @@ var DISPLAY_TYPES = {
 };
 
 /*global NgObibaMicaTemplateUrlFactory */
-angular.module('obiba.mica.search', [
+ngObibaMica.search = angular.module('obiba.mica.search', [
     'obiba.alert',
     'ui.bootstrap',
     'pascalprecht.translate',
     'templates-ngObibaMica'
-  ])
+  ]);
+
+ngObibaMica.search
   .config(['$provide', function ($provide) {
     $provide.provider('ngObibaMicaSearchTemplateUrl', new NgObibaMicaTemplateUrlFactory().create(
       {

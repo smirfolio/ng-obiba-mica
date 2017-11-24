@@ -12,7 +12,7 @@
 
 /* global targetToType */
 
-angular.module('obiba.mica.lists')
+ngObibaMica.lists
     .service('sortWidgetService', ['$filter', '$location', 'RqlQueryService', 'sortWidgetOptions', function ($filter, $location, RqlQueryService, sortWidgetOptions) {
         var newOptions = sortWidgetOptions.getOptions();
         var self = this;

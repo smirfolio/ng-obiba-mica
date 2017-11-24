@@ -10,7 +10,7 @@
 
 'use strict';
 
-angular.module('obiba.mica.search')
+ngObibaMica.search
 
   .component('numericVocabularyFilterDetail', {
     bindings: {

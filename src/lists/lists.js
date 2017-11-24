@@ -134,7 +134,9 @@ function SortWidgetOptionsProvider() {
   };
 }
 
-angular.module('obiba.mica.lists', ['obiba.mica.search'])
+ngObibaMica.lists = angular.module('obiba.mica.lists', ['obiba.mica.search']);
+
+ngObibaMica.lists
   .run()
   .config(['$provide', function($provide){
     $provide.provider('ngObibaMicaLists', NgObibaMicaListsOptionsFactory);

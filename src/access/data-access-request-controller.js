@@ -10,7 +10,7 @@
 
 'use strict';
 
-angular.module('obiba.mica.access')
+ngObibaMica.access
   .controller('DataAccessRequestListController', ['$rootScope',
     '$scope',
     '$uibModal',
