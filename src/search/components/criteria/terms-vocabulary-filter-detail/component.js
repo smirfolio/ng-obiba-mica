@@ -10,24 +10,27 @@
 
 'use strict';
 
-ngObibaMica.search.TermsVocabularyFilterDetailController = function() {
-  var ctrl = this;
+(function () {
+  ngObibaMica.search.TermsVocabularyFilterDetailController = function() {
+    var ctrl = this;
 
-  function selectArgs(input) {
-    var args = {term: input};
-    ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
-  }
+    function clickCheckbox(input) {
+      var args = {term: input};
+      ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
+    }
 
-  ctrl.selectArgs = selectArgs;
-};
+    ctrl.clickCheckbox = clickCheckbox;
+  };
 
-ngObibaMica.search
-  .component('termsVocabularyFilterDetail', {
-    transclude: true,
-    bindings: {
-      vocabulary: '<',
-      onSelectArgs: '&'
-    },
-    templateUrl: 'search/components/criteria/terms-vocabulary-filter-detail/component.html',
-    controller: [ngObibaMica.search.TermsVocabularyFilterDetailController]
-  });
+  ngObibaMica.search
+    .component('termsVocabularyFilterDetail', {
+      transclude: true,
+      bindings: {
+        vocabulary: '<',
+        onSelectArgs: '&',
+        onRemoveArgs: '&'
+      },
+      templateUrl: 'search/components/criteria/terms-vocabulary-filter-detail/component.html',
+      controller: [ngObibaMica.search.TermsVocabularyFilterDetailController]
+    });
+})();

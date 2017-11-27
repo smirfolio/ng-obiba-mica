@@ -10,32 +10,33 @@
 
 'use strict';
 
-ngObibaMica.search.VocabularyFilterDetailController = function (RqlQueryUtils) {
-  var ctrl = this;
+(function () {
+  ngObibaMica.search.VocabularyFilterDetailController = function (RqlQueryUtils) {
+    var ctrl = this;
 
-  if (RqlQueryUtils.isTermsVocabulary(ctrl.vocabulary) || RqlQueryUtils.isRangeVocabulary(ctrl.vocabulary)) {
-    ctrl.criterionType = 'string-terms';
-  } else if (RqlQueryUtils.isNumericVocabulary(ctrl.vocabulary)) {
-    ctrl.criterionType = 'numeric';
-  } else if (RqlQueryUtils.isMatchVocabulary(ctrl.vocabulary)) {
-    ctrl.criterionType = 'match';
-  }
+    if (RqlQueryUtils.isTermsVocabulary(ctrl.vocabulary) || RqlQueryUtils.isRangeVocabulary(ctrl.vocabulary)) {
+      ctrl.criterionType = 'string-terms';
+    } else if (RqlQueryUtils.isNumericVocabulary(ctrl.vocabulary)) {
+      ctrl.criterionType = 'numeric';
+    } else if (RqlQueryUtils.isMatchVocabulary(ctrl.vocabulary)) {
+      ctrl.criterionType = 'match';
+    }
 
-  function selectVocabularyArgs(args) {
-    ctrl.onSelectVocabularyArgs({vocabulary: ctrl.vocabulary, args: args});
-  }
+    function selectVocabularyArgs(args) {
+      ctrl.onSelectVocabularyArgs({vocabulary: ctrl.vocabulary, args: args});
+    }
 
-  ctrl.selectVocabularyArgs = selectVocabularyArgs;
-};
+    ctrl.selectVocabularyArgs = selectVocabularyArgs;
+  };
 
-ngObibaMica.search
-
-  .component('vocabularyFilterDetail', {
-    transclude: true,
-    bindings: {
-      vocabulary: '<',
-      onSelectVocabularyArgs: '&'
-    },
-    templateUrl: 'search/components/vocabulary/vocabulary-filter-detail/component.html',
-    controller: ['RqlQueryUtils', ngObibaMica.search.VocabularyFilterDetailController]
-  });
+  ngObibaMica.search
+    .component('vocabularyFilterDetail', {
+      transclude: true,
+      bindings: {
+        vocabulary: '<',
+        onSelectVocabularyArgs: '&'
+      },
+      templateUrl: 'search/components/vocabulary/vocabulary-filter-detail/component.html',
+      controller: ['RqlQueryUtils', ngObibaMica.search.VocabularyFilterDetailController]
+    });
+})();

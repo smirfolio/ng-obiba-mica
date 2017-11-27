@@ -1197,7 +1197,7 @@ ngObibaMica.search
       };
 
       var onSelectTerm = function (target, taxonomy, vocabulary, args) {
-
+        console.log('SearchController.onSelectTerm', target, taxonomy, vocabulary, args);
         args = args || {};
 
         if (args.text) {
@@ -1227,7 +1227,17 @@ ngObibaMica.search
           }
         }
 
-        selectCriteria(RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, args && args.term, $scope.lang));
+        // TODO externalize TermsVocabularyFacetController.selectTerm and use it for terms case
+        if (!args.term.selected) {
+          var id = CriteriaIdGenerator.generate(taxonomy, vocabulary, args.term);
+          var criteriaItem = RqlQueryService.findCriteriaItemFromTreeById(target, id, $scope.search.criteria);
+          if (criteriaItem) {
+            removeCriteriaItem(criteriaItem);
+            return;
+          }
+        } else {
+          selectCriteria(RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, args && args.term, $scope.lang));
+        }
       };
 
       var selectSearchTarget = function (target) {

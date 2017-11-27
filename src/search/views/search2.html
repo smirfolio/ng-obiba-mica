@@ -41,7 +41,7 @@
         </div>
         <div class="col-md-9">
           <!-- Search Results region -->
-          <taxonomy-filter-panel target="'variables'" taxonomy="search.selectedTaxonomy" on-select-term="onSelectTerm(target, taxonomy, vocabulary, args)" ng-if="search.showTaxonomyPanel"></taxonomy-filter-panel>
+          <taxonomy-filter-panel target="variable" taxonomy="search.selectedTaxonomy" on-select-term="onSelectTerm(target, taxonomy, vocabulary, args)" ng-if="search.showTaxonomyPanel"></taxonomy-filter-panel>
 
           <div id="search-result-region" class="voffset3 can-full-screen" ng-if="search.query" fullscreen="isFullscreen">
             <div ng-if="searchTabsOrder.length > 1">

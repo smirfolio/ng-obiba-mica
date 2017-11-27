@@ -10,23 +10,24 @@
 
 'use strict';
 
-ngObibaMica.search.TaxonomyFilterDetailController = function() {
-  var ctrl = this;
+(function () {
+  ngObibaMica.search.TaxonomyFilterDetailController = function() {
+    var ctrl = this;
 
-  function selectVocabularyArgs(vocabulary, args) {
-    ctrl.onSelectTaxonomyTerm({taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args});
-  }
+    function selectVocabularyArgs(vocabulary, args) {
+      ctrl.onSelectTaxonomyTerm({taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args});
+    }
 
-  ctrl.selectVocabularyArgs = selectVocabularyArgs;
-};
+    ctrl.selectVocabularyArgs = selectVocabularyArgs;
+  };
 
-ngObibaMica.search
-
-  .component('taxonomyFilterDetail', {
-    bindings: {
-      vocabularies: '<',
-      onSelectTaxonomyTerm: '&'
-    },
-    templateUrl: 'search/components/taxonomy/taxonomy-filter-detail/component.html',
-    controller: [ngObibaMica.search.TaxonomyFilterDetailController]
-  });
+  ngObibaMica.search
+    .component('taxonomyFilterDetail', {
+      bindings: {
+        vocabularies: '<',
+        onSelectTaxonomyTerm: '&'
+      },
+      templateUrl: 'search/components/taxonomy/taxonomy-filter-detail/component.html',
+      controller: [ngObibaMica.search.TaxonomyFilterDetailController]
+    });
+})();

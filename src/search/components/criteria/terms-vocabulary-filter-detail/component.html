@@ -2,7 +2,10 @@
   <div class="col-md-2">
     <div class="checkbox">
       <label for="term-{{$ctrl.vocabulary.name + '-' + $index}}">
-        <input id="term-{{$ctrl.vocabulary.name + '-' + $index}}" type="checkbox" ng-click="$ctrl.selectArgs(term)"> {{term.title | localizedString}}
+        <input id="term-{{$ctrl.vocabulary.name + '-' + $index}}"
+               type="checkbox"
+               ng-model="term.selected"
+               ng-click="$ctrl.clickCheckbox(term)"> {{term.title | localizedString}}
       </label>
     </div>
   </div>
