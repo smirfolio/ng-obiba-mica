@@ -1,0 +1,6 @@
+<div style="max-height: 728px; overflow-y: auto;">
+  <vocabulary-filter-detail
+      ng-repeat="vocabulary in $ctrl.vocabularies"
+      vocabulary="vocabulary"
+      on-select-vocabulary-args="$ctrl.selectVocabularyArgs(vocabulary, args)"></vocabulary-filter-detail>
+</div>

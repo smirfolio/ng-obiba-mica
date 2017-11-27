@@ -10,15 +10,26 @@
 
 'use strict';
 
+ngObibaMica.search.TaxonomyFilterPanelController = function() {
+  var ctrl = this;
+
+  function selectTaxonomyVocabularyArgs(vocabulary, args) {
+    console.log(vocabulary, args);
+    ctrl.onSelectTerm({target: ctrl.target, taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args});
+  }
+
+  ctrl.selectTaxonomyVocabularyArgs = selectTaxonomyVocabularyArgs;
+};
+
 ngObibaMica.search
 
   .component('taxonomyFilterPanel', {
     transclude: true,
     bindings: {
-      taxonomy: '<'
+      target: '@',
+      taxonomy: '<',
+      onSelectTerm: '&'
     },
     templateUrl: 'search/components/taxonomy/taxonomy-filter-panel/component.html',
-    controller: function() {
-      // var ctrl = this;
-    }
+    controller: [ngObibaMica.search.TaxonomyFilterPanelController]
   });

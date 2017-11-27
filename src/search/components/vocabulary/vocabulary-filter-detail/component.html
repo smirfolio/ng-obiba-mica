@@ -3,7 +3,7 @@
   <div class="panel-body">
     <div ng-switch on="$ctrl.criterionType">
       <div ng-switch-when="string-terms">
-        <terms-vocabulary-filter-detail vocabulary="$ctrl.vocabulary"></terms-vocabulary-filter-detail>
+        <terms-vocabulary-filter-detail vocabulary="$ctrl.vocabulary" on-select-args="$ctrl.selectVocabularyArgs(args)"></terms-vocabulary-filter-detail>
       </div>
 
       <div ng-switch-when="numeric">
