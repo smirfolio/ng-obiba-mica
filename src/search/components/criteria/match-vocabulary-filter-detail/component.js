@@ -10,24 +10,26 @@
 
 'use strict';
 
-ngObibaMica.search.MatchVocabularyFilterDetailController = function() {
-  var ctrl = this;
+(function () {
+  ngObibaMica.search.MatchVocabularyFilterDetailController = function() {
+    var ctrl = this;
 
-  function selectArgs(input) {
-    var args = {text: input || '*'};
-    ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
-  }
+    function setMatchString(input) {
+      var args = {text: input || '*'};
+      ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
+    }
 
-  ctrl.selectArgs = selectArgs;
-};
+    ctrl.setMatchString = setMatchString;
+  };
 
-ngObibaMica.search
-  .component('matchVocabularyFilterDetail', {
-    transclude: true,
-    bindings: {
-      vocabulary: '<',
-      onSelectArgs: '&'
-    },
-    templateUrl: 'search/components/criteria/match-vocabulary-filter-detail/component.html',
-    controller: [ngObibaMica.search.MatchVocabularyFilterDetailController]
-  });
+  ngObibaMica.search
+    .component('matchVocabularyFilterDetail', {
+      transclude: true,
+      bindings: {
+        vocabulary: '<',
+        onSelectArgs: '&'
+      },
+      templateUrl: 'search/components/criteria/match-vocabulary-filter-detail/component.html',
+      controller: [ngObibaMica.search.MatchVocabularyFilterDetailController]
+    });
+})();

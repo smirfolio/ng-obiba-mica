@@ -5624,7 +5624,7 @@ ngObibaMica.search
       };
 
       var onSelectTerm = function (target, taxonomy, vocabulary, args) {
-
+        console.log('SearchController.onSelectTerm', target, taxonomy, vocabulary, args);
         args = args || {};
 
         if (args.text) {
@@ -5654,7 +5654,17 @@ ngObibaMica.search
           }
         }
 
-        selectCriteria(RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, args && args.term, $scope.lang));
+        // TODO externalize TermsVocabularyFacetController.selectTerm and use it for terms case
+        if (!args.term.selected) {
+          var id = CriteriaIdGenerator.generate(taxonomy, vocabulary, args.term);
+          var criteriaItem = RqlQueryService.findCriteriaItemFromTreeById(target, id, $scope.search.criteria);
+          if (criteriaItem) {
+            removeCriteriaItem(criteriaItem);
+            return;
+          }
+        } else {
+          selectCriteria(RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, args && args.term, $scope.lang));
+        }
       };
 
       var selectSearchTarget = function (target) {
@@ -8439,27 +8449,29 @@ ngObibaMica.search
 
 'use strict';
 
-ngObibaMica.search.MatchVocabularyFilterDetailController = function() {
-  var ctrl = this;
+(function () {
+  ngObibaMica.search.MatchVocabularyFilterDetailController = function() {
+    var ctrl = this;
 
-  function selectArgs(input) {
-    var args = {text: input || '*'};
-    ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
-  }
+    function setMatchString(input) {
+      var args = {text: input || '*'};
+      ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
+    }
 
-  ctrl.selectArgs = selectArgs;
-};
+    ctrl.setMatchString = setMatchString;
+  };
 
-ngObibaMica.search
-  .component('matchVocabularyFilterDetail', {
-    transclude: true,
-    bindings: {
-      vocabulary: '<',
-      onSelectArgs: '&'
-    },
-    templateUrl: 'search/components/criteria/match-vocabulary-filter-detail/component.html',
-    controller: [ngObibaMica.search.MatchVocabularyFilterDetailController]
-  });
+  ngObibaMica.search
+    .component('matchVocabularyFilterDetail', {
+      transclude: true,
+      bindings: {
+        vocabulary: '<',
+        onSelectArgs: '&'
+      },
+      templateUrl: 'search/components/criteria/match-vocabulary-filter-detail/component.html',
+      controller: [ngObibaMica.search.MatchVocabularyFilterDetailController]
+    });
+})();
 ;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
  *
@@ -8472,27 +8484,29 @@ ngObibaMica.search
 
 'use strict';
 
-ngObibaMica.search.NumericVocabularyFilterDetailController = function() {
-  var ctrl = this;
+(function () {
+  ngObibaMica.search.NumericVocabularyFilterDetailController = function() {
+    var ctrl = this;
 
-  function selectArgs(input) {
-    var args = {from: input.from, to: input.to};
-    ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
-  }
+    function setRangeValue(input) {
+      var args = {from: input.from, to: input.to};
+      ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
+    }
 
-  ctrl.selectArgs = selectArgs;
-};
+    ctrl.setRangeValue = setRangeValue;
+  };
 
-ngObibaMica.search
-  .component('numericVocabularyFilterDetail', {
-    transclude: true,
-    bindings: {
-      vocabulary: '<',
-      onSelectArgs: '&'
-    },
-    templateUrl: 'search/components/criteria/numeric-vocabulary-filter-detail/component.html',
-    controller: [ngObibaMica.search.NumericVocabularyFilterDetailController]
-  });
+  ngObibaMica.search
+    .component('numericVocabularyFilterDetail', {
+      transclude: true,
+      bindings: {
+        vocabulary: '<',
+        onSelectArgs: '&'
+      },
+      templateUrl: 'search/components/criteria/numeric-vocabulary-filter-detail/component.html',
+      controller: [ngObibaMica.search.NumericVocabularyFilterDetailController]
+    });
+})();
 ;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
  *
@@ -8505,27 +8519,30 @@ ngObibaMica.search
 
 'use strict';
 
-ngObibaMica.search.TermsVocabularyFilterDetailController = function() {
-  var ctrl = this;
+(function () {
+  ngObibaMica.search.TermsVocabularyFilterDetailController = function() {
+    var ctrl = this;
 
-  function selectArgs(input) {
-    var args = {term: input};
-    ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
-  }
+    function clickCheckbox(input) {
+      var args = {term: input};
+      ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
+    }
 
-  ctrl.selectArgs = selectArgs;
-};
+    ctrl.clickCheckbox = clickCheckbox;
+  };
 
-ngObibaMica.search
-  .component('termsVocabularyFilterDetail', {
-    transclude: true,
-    bindings: {
-      vocabulary: '<',
-      onSelectArgs: '&'
-    },
-    templateUrl: 'search/components/criteria/terms-vocabulary-filter-detail/component.html',
-    controller: [ngObibaMica.search.TermsVocabularyFilterDetailController]
-  });
+  ngObibaMica.search
+    .component('termsVocabularyFilterDetail', {
+      transclude: true,
+      bindings: {
+        vocabulary: '<',
+        onSelectArgs: '&',
+        onRemoveArgs: '&'
+      },
+      templateUrl: 'search/components/criteria/terms-vocabulary-filter-detail/component.html',
+      controller: [ngObibaMica.search.TermsVocabularyFilterDetailController]
+    });
+})();
 ;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
  *
@@ -8631,26 +8648,27 @@ ngObibaMica.search
 
 'use strict';
 
-ngObibaMica.search.TaxonomyFilterDetailController = function() {
-  var ctrl = this;
+(function () {
+  ngObibaMica.search.TaxonomyFilterDetailController = function() {
+    var ctrl = this;
 
-  function selectVocabularyArgs(vocabulary, args) {
-    ctrl.onSelectTaxonomyTerm({taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args});
-  }
+    function selectVocabularyArgs(vocabulary, args) {
+      ctrl.onSelectTaxonomyTerm({taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args});
+    }
 
-  ctrl.selectVocabularyArgs = selectVocabularyArgs;
-};
+    ctrl.selectVocabularyArgs = selectVocabularyArgs;
+  };
 
-ngObibaMica.search
-
-  .component('taxonomyFilterDetail', {
-    bindings: {
-      vocabularies: '<',
-      onSelectTaxonomyTerm: '&'
-    },
-    templateUrl: 'search/components/taxonomy/taxonomy-filter-detail/component.html',
-    controller: [ngObibaMica.search.TaxonomyFilterDetailController]
-  });
+  ngObibaMica.search
+    .component('taxonomyFilterDetail', {
+      bindings: {
+        vocabularies: '<',
+        onSelectTaxonomyTerm: '&'
+      },
+      templateUrl: 'search/components/taxonomy/taxonomy-filter-detail/component.html',
+      controller: [ngObibaMica.search.TaxonomyFilterDetailController]
+    });
+})();
 ;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
  *
@@ -8663,29 +8681,29 @@ ngObibaMica.search
 
 'use strict';
 
-ngObibaMica.search.TaxonomyFilterPanelController = function() {
-  var ctrl = this;
+(function () {
+  ngObibaMica.search.TaxonomyFilterPanelController = function() {
+    var ctrl = this;
 
-  function selectTaxonomyVocabularyArgs(vocabulary, args) {
-    console.log(vocabulary, args);
-    ctrl.onSelectTerm({target: ctrl.target, taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args});
-  }
+    function selectTaxonomyVocabularyArgs(vocabulary, args) {
+      ctrl.onSelectTerm({target: ctrl.target, taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args});
+    }
 
-  ctrl.selectTaxonomyVocabularyArgs = selectTaxonomyVocabularyArgs;
-};
+    ctrl.selectTaxonomyVocabularyArgs = selectTaxonomyVocabularyArgs;
+  };
 
-ngObibaMica.search
-
-  .component('taxonomyFilterPanel', {
-    transclude: true,
-    bindings: {
-      target: '@',
-      taxonomy: '<',
-      onSelectTerm: '&'
-    },
-    templateUrl: 'search/components/taxonomy/taxonomy-filter-panel/component.html',
-    controller: [ngObibaMica.search.TaxonomyFilterPanelController]
-  });
+  ngObibaMica.search
+    .component('taxonomyFilterPanel', {
+      transclude: true,
+      bindings: {
+        target: '@',
+        taxonomy: '<',
+        onSelectTerm: '&'
+      },
+      templateUrl: 'search/components/taxonomy/taxonomy-filter-panel/component.html',
+      controller: [ngObibaMica.search.TaxonomyFilterPanelController]
+    });
+})();
 ;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
  *
@@ -8698,35 +8716,36 @@ ngObibaMica.search
 
 'use strict';
 
-ngObibaMica.search.VocabularyFilterDetailController = function (RqlQueryUtils) {
-  var ctrl = this;
+(function () {
+  ngObibaMica.search.VocabularyFilterDetailController = function (RqlQueryUtils) {
+    var ctrl = this;
 
-  if (RqlQueryUtils.isTermsVocabulary(ctrl.vocabulary) || RqlQueryUtils.isRangeVocabulary(ctrl.vocabulary)) {
-    ctrl.criterionType = 'string-terms';
-  } else if (RqlQueryUtils.isNumericVocabulary(ctrl.vocabulary)) {
-    ctrl.criterionType = 'numeric';
-  } else if (RqlQueryUtils.isMatchVocabulary(ctrl.vocabulary)) {
-    ctrl.criterionType = 'match';
-  }
+    if (RqlQueryUtils.isTermsVocabulary(ctrl.vocabulary) || RqlQueryUtils.isRangeVocabulary(ctrl.vocabulary)) {
+      ctrl.criterionType = 'string-terms';
+    } else if (RqlQueryUtils.isNumericVocabulary(ctrl.vocabulary)) {
+      ctrl.criterionType = 'numeric';
+    } else if (RqlQueryUtils.isMatchVocabulary(ctrl.vocabulary)) {
+      ctrl.criterionType = 'match';
+    }
 
-  function selectVocabularyArgs(args) {
-    ctrl.onSelectVocabularyArgs({vocabulary: ctrl.vocabulary, args: args});
-  }
+    function selectVocabularyArgs(args) {
+      ctrl.onSelectVocabularyArgs({vocabulary: ctrl.vocabulary, args: args});
+    }
 
-  ctrl.selectVocabularyArgs = selectVocabularyArgs;
-};
+    ctrl.selectVocabularyArgs = selectVocabularyArgs;
+  };
 
-ngObibaMica.search
-
-  .component('vocabularyFilterDetail', {
-    transclude: true,
-    bindings: {
-      vocabulary: '<',
-      onSelectVocabularyArgs: '&'
-    },
-    templateUrl: 'search/components/vocabulary/vocabulary-filter-detail/component.html',
-    controller: ['RqlQueryUtils', ngObibaMica.search.VocabularyFilterDetailController]
-  });
+  ngObibaMica.search
+    .component('vocabularyFilterDetail', {
+      transclude: true,
+      bindings: {
+        vocabulary: '<',
+        onSelectVocabularyArgs: '&'
+      },
+      templateUrl: 'search/components/vocabulary/vocabulary-filter-detail/component.html',
+      controller: ['RqlQueryUtils', ngObibaMica.search.VocabularyFilterDetailController]
+    });
+})();
 ;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
  *
@@ -12128,7 +12147,10 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
     "  <div class=\"col-md-2\">\n" +
     "    <div class=\"checkbox\">\n" +
     "      <label for=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\">\n" +
-    "        <input id=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\" type=\"checkbox\" ng-click=\"$ctrl.selectArgs(term)\"> {{term.title | localizedString}}\n" +
+    "        <input id=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\"\n" +
+    "               type=\"checkbox\"\n" +
+    "               ng-model=\"term.selected\"\n" +
+    "               ng-click=\"$ctrl.clickCheckbox(term)\"> {{term.title | localizedString}}\n" +
     "      </label>\n" +
     "    </div>\n" +
     "  </div>\n" +
@@ -14103,7 +14125,7 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "        </div>\n" +
     "        <div class=\"col-md-9\">\n" +
     "          <!-- Search Results region -->\n" +
-    "          <taxonomy-filter-panel target=\"'variables'\" taxonomy=\"search.selectedTaxonomy\" on-select-term=\"onSelectTerm(target, taxonomy, vocabulary, args)\" ng-if=\"search.showTaxonomyPanel\"></taxonomy-filter-panel>\n" +
+    "          <taxonomy-filter-panel target=\"variable\" taxonomy=\"search.selectedTaxonomy\" on-select-term=\"onSelectTerm(target, taxonomy, vocabulary, args)\" ng-if=\"search.showTaxonomyPanel\"></taxonomy-filter-panel>\n" +
     "\n" +
     "          <div id=\"search-result-region\" class=\"voffset3 can-full-screen\" ng-if=\"search.query\" fullscreen=\"isFullscreen\">\n" +
     "            <div ng-if=\"searchTabsOrder.length > 1\">\n" +
