@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-11-24
+ * Date: 2017-11-27
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8430,16 +8430,26 @@ ngObibaMica.search
 
 'use strict';
 
+ngObibaMica.search.MatchVocabularyFilterDetailController = function() {
+  var ctrl = this;
+
+  function selectArgs(input) {
+    var args = {text: input || '*'};
+    ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
+  }
+
+  ctrl.selectArgs = selectArgs;
+};
+
 ngObibaMica.search
   .component('matchVocabularyFilterDetail', {
     transclude: true,
     bindings: {
-      vocabulary: '<'
+      vocabulary: '<',
+      onSelectArgs: '&'
     },
     templateUrl: 'search/components/criteria/match-vocabulary-filter-detail/component.html',
-    controller: function() {
-      // var ctrl = this;
-    }
+    controller: [ngObibaMica.search.MatchVocabularyFilterDetailController]
   });
 ;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8453,16 +8463,26 @@ ngObibaMica.search
 
 'use strict';
 
-ngObibaMica.search
+ngObibaMica.search.NumericVocabularyFilterDetailController = function() {
+  var ctrl = this;
 
+  function selectArgs(input) {
+    var args = {from: input.from, to: input.to};
+    ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
+  }
+
+  ctrl.selectArgs = selectArgs;
+};
+
+ngObibaMica.search
   .component('numericVocabularyFilterDetail', {
     transclude: true,
     bindings: {
+      vocabulary: '<',
+      onSelectArgs: '&'
     },
     templateUrl: 'search/components/criteria/numeric-vocabulary-filter-detail/component.html',
-    controller: function() {
-      //var ctrl = this;
-    }
+    controller: [ngObibaMica.search.NumericVocabularyFilterDetailController]
   });
 ;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8476,17 +8496,26 @@ ngObibaMica.search
 
 'use strict';
 
-ngObibaMica.search
+ngObibaMica.search.TermsVocabularyFilterDetailController = function() {
+  var ctrl = this;
 
+  function selectArgs(input) {
+    var args = {term: input};
+    ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
+  }
+
+  ctrl.selectArgs = selectArgs;
+};
+
+ngObibaMica.search
   .component('termsVocabularyFilterDetail', {
     transclude: true,
     bindings: {
-      vocabulary: '<'
+      vocabulary: '<',
+      onSelectArgs: '&'
     },
     templateUrl: 'search/components/criteria/terms-vocabulary-filter-detail/component.html',
-    controller: function() {
-      // var ctrl = this;
-    }
+    controller: [ngObibaMica.search.TermsVocabularyFilterDetailController]
   });
 ;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8558,15 +8587,37 @@ ngObibaMica.search
     controller: ['$scope', 'MetaTaxonomyService', 'TaxonomyResource', ngObibaMica.search.Controller]
   });
 
-;ngObibaMica.search
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+ngObibaMica.search.TaxonomyFilterDetailController = function() {
+  var ctrl = this;
+
+  function selectVocabularyArgs(vocabulary, args) {
+    ctrl.onSelectTaxonomyTerm({taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args});
+  }
+
+  ctrl.selectVocabularyArgs = selectVocabularyArgs;
+};
+
+ngObibaMica.search
 
   .component('taxonomyFilterDetail', {
     bindings: {
+      vocabularies: '<',
+      onSelectTaxonomyTerm: '&'
     },
     templateUrl: 'search/components/taxonomy/taxonomy-filter-detail/component.html',
-    controller: function() {
-      //var ctrl = this;
-    }
+    controller: [ngObibaMica.search.TaxonomyFilterDetailController]
   });
 ;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8580,17 +8631,28 @@ ngObibaMica.search
 
 'use strict';
 
+ngObibaMica.search.TaxonomyFilterPanelController = function() {
+  var ctrl = this;
+
+  function selectTaxonomyVocabularyArgs(vocabulary, args) {
+    console.log(vocabulary, args);
+    ctrl.onSelectTerm({target: ctrl.target, taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args});
+  }
+
+  ctrl.selectTaxonomyVocabularyArgs = selectTaxonomyVocabularyArgs;
+};
+
 ngObibaMica.search
 
   .component('taxonomyFilterPanel', {
     transclude: true,
     bindings: {
-      taxonomy: '<'
+      target: '@',
+      taxonomy: '<',
+      onSelectTerm: '&'
     },
     templateUrl: 'search/components/taxonomy/taxonomy-filter-panel/component.html',
-    controller: function() {
-      // var ctrl = this;
-    }
+    controller: [ngObibaMica.search.TaxonomyFilterPanelController]
   });
 ;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8615,6 +8677,11 @@ ngObibaMica.search.VocabularyFilterDetailController = function (RqlQueryUtils) {
     ctrl.criterionType = 'match';
   }
 
+  function selectVocabularyArgs(args) {
+    ctrl.onSelectVocabularyArgs({vocabulary: ctrl.vocabulary, args: args});
+  }
+
+  ctrl.selectVocabularyArgs = selectVocabularyArgs;
 };
 
 ngObibaMica.search
@@ -8622,7 +8689,8 @@ ngObibaMica.search
   .component('vocabularyFilterDetail', {
     transclude: true,
     bindings: {
-      vocabulary: '<'
+      vocabulary: '<',
+      onSelectVocabularyArgs: '&'
     },
     templateUrl: 'search/components/vocabulary/vocabulary-filter-detail/component.html',
     controller: ['RqlQueryUtils', ngObibaMica.search.VocabularyFilterDetailController]
@@ -12028,7 +12096,7 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
     "  <div class=\"col-md-2\">\n" +
     "    <div class=\"checkbox\">\n" +
     "      <label for=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\">\n" +
-    "        <input id=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\" type=\"checkbox\"> {{term.title | localizedString}}\n" +
+    "        <input id=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\" type=\"checkbox\" ng-click=\"$ctrl.selectArgs(term)\"> {{term.title | localizedString}}\n" +
     "      </label>\n" +
     "    </div>\n" +
     "  </div>\n" +
@@ -12065,14 +12133,17 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-panel/compo
 
 angular.module("search/components/taxonomy/taxonomy-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/taxonomy/taxonomy-filter-detail/component.html",
-    "");
+    "<div style=\"max-height: 728px; overflow-y: auto;\">\n" +
+    "  <vocabulary-filter-detail\n" +
+    "      ng-repeat=\"vocabulary in $ctrl.vocabularies\"\n" +
+    "      vocabulary=\"vocabulary\"\n" +
+    "      on-select-vocabulary-args=\"$ctrl.selectVocabularyArgs(vocabulary, args)\"></vocabulary-filter-detail>\n" +
+    "</div>");
 }]);
 
 angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/taxonomy/taxonomy-filter-panel/component.html",
-    "<div style=\"max-height: 728px; overflow-y: scroll;\">\n" +
-    "  <vocabulary-filter-detail ng-repeat=\"vocabulary in $ctrl.taxonomy.vocabularies\" vocabulary=\"vocabulary\"></vocabulary-filter-detail>\n" +
-    "</div>\n" +
+    "<taxonomy-filter-detail on-select-taxonomy-term=\"$ctrl.selectTaxonomyVocabularyArgs(vocabulary, args)\" vocabularies=\"$ctrl.taxonomy.vocabularies\"></taxonomy-filter-detail>\n" +
     "\n" +
     "");
 }]);
@@ -12084,7 +12155,7 @@ angular.module("search/components/vocabulary/vocabulary-filter-detail/component.
     "  <div class=\"panel-body\">\n" +
     "    <div ng-switch on=\"$ctrl.criterionType\">\n" +
     "      <div ng-switch-when=\"string-terms\">\n" +
-    "        <terms-vocabulary-filter-detail vocabulary=\"$ctrl.vocabulary\"></terms-vocabulary-filter-detail>\n" +
+    "        <terms-vocabulary-filter-detail vocabulary=\"$ctrl.vocabulary\" on-select-args=\"$ctrl.selectVocabularyArgs(args)\"></terms-vocabulary-filter-detail>\n" +
     "      </div>\n" +
     "\n" +
     "      <div ng-switch-when=\"numeric\">\n" +
@@ -13994,7 +14065,7 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "        </div>\n" +
     "        <div class=\"col-md-9\">\n" +
     "          <!-- Search Results region -->\n" +
-    "          <taxonomy-filter-panel taxonomy=\"search.selectedTaxonomy\" ng-if=\"search.showTaxonomyPanel\"></taxonomy-filter-panel>\n" +
+    "          <taxonomy-filter-panel target=\"'variables'\" taxonomy=\"search.selectedTaxonomy\" on-select-term=\"onSelectTerm(target, taxonomy, vocabulary, args)\" ng-if=\"search.showTaxonomyPanel\"></taxonomy-filter-panel>\n" +
     "\n" +
     "          <div id=\"search-result-region\" class=\"voffset3 can-full-screen\" ng-if=\"search.query\" fullscreen=\"isFullscreen\">\n" +
     "            <div ng-if=\"searchTabsOrder.length > 1\">\n" +

@@ -1,4 +1,2 @@
-<div style="max-height: 728px; overflow-y: scroll;">
-  <vocabulary-filter-detail ng-repeat="vocabulary in $ctrl.taxonomy.vocabularies" vocabulary="vocabulary"></vocabulary-filter-detail>
-</div>
+<taxonomy-filter-detail on-select-taxonomy-term="$ctrl.selectTaxonomyVocabularyArgs(vocabulary, args)" vocabularies="$ctrl.taxonomy.vocabularies"></taxonomy-filter-detail>
 

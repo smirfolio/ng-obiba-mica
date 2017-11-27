@@ -21,6 +21,11 @@ ngObibaMica.search.VocabularyFilterDetailController = function (RqlQueryUtils) {
     ctrl.criterionType = 'match';
   }
 
+  function selectVocabularyArgs(args) {
+    ctrl.onSelectVocabularyArgs({vocabulary: ctrl.vocabulary, args: args});
+  }
+
+  ctrl.selectVocabularyArgs = selectVocabularyArgs;
 };
 
 ngObibaMica.search
@@ -28,7 +33,8 @@ ngObibaMica.search
   .component('vocabularyFilterDetail', {
     transclude: true,
     bindings: {
-      vocabulary: '<'
+      vocabulary: '<',
+      onSelectVocabularyArgs: '&'
     },
     templateUrl: 'search/components/vocabulary/vocabulary-filter-detail/component.html',
     controller: ['RqlQueryUtils', ngObibaMica.search.VocabularyFilterDetailController]

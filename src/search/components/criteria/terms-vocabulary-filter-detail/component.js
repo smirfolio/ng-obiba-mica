@@ -10,15 +10,24 @@
 
 'use strict';
 
-ngObibaMica.search
+ngObibaMica.search.TermsVocabularyFilterDetailController = function() {
+  var ctrl = this;
 
+  function selectArgs(input) {
+    var args = {term: input};
+    ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
+  }
+
+  ctrl.selectArgs = selectArgs;
+};
+
+ngObibaMica.search
   .component('termsVocabularyFilterDetail', {
     transclude: true,
     bindings: {
-      vocabulary: '<'
+      vocabulary: '<',
+      onSelectArgs: '&'
     },
     templateUrl: 'search/components/criteria/terms-vocabulary-filter-detail/component.html',
-    controller: function() {
-      // var ctrl = this;
-    }
+    controller: [ngObibaMica.search.TermsVocabularyFilterDetailController]
   });
