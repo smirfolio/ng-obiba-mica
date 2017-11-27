@@ -10,18 +10,26 @@
 
 'use strict';
 
+ngObibaMica.search.Controller = function() {
+  var ctrl = this;
+
+  function selectTaxonomy(taxonomy) {
+    ctrl.onSelectTaxonomy({target: ctrl.metaTaxonomy.name, taxonomy: taxonomy});
+  }
+
+  ctrl.status = {isFirstOpen: true};
+  ctrl.selectTaxonomy = selectTaxonomy;
+};
+
 ngObibaMica.search
 
   .component('metaTaxonomyFilterList', {
     transclude: true,
     bindings: {
-      metaTaxonomy: '<'
+      metaTaxonomy: '<',
+      loading: '<',
+      onSelectTaxonomy: '&'
     },
     templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html',
-    controller: function() {
-      var ctrl = this;
-      console.log('####', ctrl);
-      ctrl.items = ['Areas of Information', 'Scales / Measures', 'Source & Target', 'Properties'];
-      ctrl.status = {isFirstOpen: true};
-    }
+    controller: ngObibaMica.search.Controller
   });

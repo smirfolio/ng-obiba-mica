@@ -35,11 +35,20 @@ ngObibaMica.search.MetaTaxonomyParser = function() {
     });
   }
 
+  function createResultObject(metaVocabulary, taxonomies) {
+    return {
+      name: metaVocabulary.name,
+      title: metaVocabulary.title,
+      taxonomies: taxonomies
+    };
+  }
+
   this.parseTerms = parseTerms;
+  this.createResultObject = createResultObject;
 };
 
 ngObibaMica.search.MetaTaxonomyParser.prototype.parseEntityTaxonomies = function(metaVocabulary) {
-  return this.parseTerms(metaVocabulary.terms || []);
+  return this.createResultObject(metaVocabulary, this.parseTerms(metaVocabulary.terms || []));
 };
 
 ngObibaMica.search.MetaTaxonomyParser.prototype.parseVariableTaxonomies = function(metaVocabulary) {
@@ -50,12 +59,12 @@ ngObibaMica.search.MetaTaxonomyParser.prototype.parseVariableTaxonomies = functi
 
   var scales = metaVocabulary.terms[1];
   if (scales) {
-    taxonomies = taxonomies.concat([{
-      info: {name: 'scales/measures', title: 'Scales / Measures'},
+    taxonomies.push({
+      info: {name: scales.name, title: scales.title},
       taxonomies: scales.terms
-    }]);
+    });
   }
 
-  return taxonomies;
+  return this.createResultObject(metaVocabulary, taxonomies);
 };
 

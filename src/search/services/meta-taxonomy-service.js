@@ -42,11 +42,11 @@ ngObibaMica.search.MetaTaxonomyService = function($q, TaxonomyResource) {
           function(vocabulary) {
             switch (vocabulary.name) {
               case QUERY_TARGETS.VARIABLE:
-                return parser.parseVariableTaxonomies(vocabulary).pop();
+                return parser.parseVariableTaxonomies(vocabulary);
               case QUERY_TARGETS.NETWORK:
               case QUERY_TARGETS.STUDY:
               case QUERY_TARGETS.DATASET:
-                return parser.parseEntityTaxonomies(vocabulary).pop();
+                return parser.parseEntityTaxonomies(vocabulary);
             }
           }
         );

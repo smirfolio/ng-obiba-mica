@@ -10,29 +10,45 @@
 
 'use strict';
 
-ngObibaMica.search.Controller = function($scope, MetaTaxonomyService, TaxonomyResource) {
- var ctrl = this;
+ngObibaMica.search.Controller = function ($scope, MetaTaxonomyService, TaxonomyResource) {
 
-  function toggle() {
-    return TaxonomyResource.get({
-      target: QUERY_TARGETS.VARIABLE,
-      taxonomy: ctrl.metaTaxonomies[0].taxonomies[0].name
-    }).$promise.then(function(taxonomy) {
+  function onSelectTaxonomy(target, selectedTaxonomy) {
+    if (ctrl.selectedTaxonomy !== selectedTaxonomy) {
+      ctrl.selectedTaxonomy = selectedTaxonomy;
+      ctrl.selectedTaxonomy.loading = true;
+      return TaxonomyResource.get({
+        target: target,
+        taxonomy: selectedTaxonomy.info.name
+      }).$promise.then(function (taxonomy) {
+        delete ctrl.selectedTaxonomy.loading;
         ctrl.onToggle(taxonomy);
       });
-
-
+    } else {
+      delete ctrl.selectedTaxonomy.loading;
+      ctrl.selectedTaxonomy = null;
+      ctrl.onToggle(ctrl.selectedTaxonomy);
+    }
   }
 
-  MetaTaxonomyService.getMetaTaxonomyForTargets(ctrl.tabs).then(function(metaTaxonomies) {
-    ctrl.metaTaxonomies = metaTaxonomies;
-  });
+  /**
+   * Retrieves all meta taxonomies
+   */
+  function init() {
+    MetaTaxonomyService.getMetaTaxonomyForTargets(ctrl.tabs).then(function (metaTaxonomies) {
+      ctrl.metaTaxonomies = metaTaxonomies;
+    });
+  }
 
-  ctrl.toggle = toggle;
+  var ctrl = this;
+  ctrl.loading = false;
+  ctrl.selectedTaxonomy = null;
+  ctrl.onSelectTaxonomy = onSelectTaxonomy;
+
+  init();
 };
 
 ngObibaMica.search
-    .component('metaTaxonomyFilterPanel', {
+  .component('metaTaxonomyFilterPanel', {
     bindings: {
       tabs: '<',
       onToggle: '<'
