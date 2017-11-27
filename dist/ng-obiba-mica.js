@@ -5300,9 +5300,9 @@ ngObibaMica.search
         }
       }
 
-      function taxonomyFilterPanelVisibility(taxonomy) {
-        $scope.search.showTaxonomyPanel = !$scope.search.showTaxonomyPanel;
+      function onTaxonomyFilterPanelToggleVisibility(taxonomy) {
         $scope.search.selectedTaxonomy = taxonomy;
+        $scope.search.showTaxonomyPanel = taxonomy !== null;
       }
 
       $scope.translateTaxonomyNav = function(t, key) {
@@ -5719,7 +5719,7 @@ ngObibaMica.search
 
       $scope.searchHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('search');
       $scope.classificationsHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('classifications');
-      $scope.taxonomyFilterPanelVisibility = taxonomyFilterPanelVisibility;
+      $scope.onTaxonomyFilterPanelToggleVisibility = onTaxonomyFilterPanelToggleVisibility;
       $scope.selectSearchTarget = selectSearchTarget;
       $scope.selectDisplay = onDisplayChanged;
       $scope.searchCriteria = searchCriteria;
@@ -8324,11 +8324,20 @@ ngObibaMica.search.MetaTaxonomyParser = function() {
     });
   }
 
+  function createResultObject(metaVocabulary, taxonomies) {
+    return {
+      name: metaVocabulary.name,
+      title: metaVocabulary.title,
+      taxonomies: taxonomies
+    };
+  }
+
   this.parseTerms = parseTerms;
+  this.createResultObject = createResultObject;
 };
 
 ngObibaMica.search.MetaTaxonomyParser.prototype.parseEntityTaxonomies = function(metaVocabulary) {
-  return this.parseTerms(metaVocabulary.terms || []);
+  return this.createResultObject(metaVocabulary, this.parseTerms(metaVocabulary.terms || []));
 };
 
 ngObibaMica.search.MetaTaxonomyParser.prototype.parseVariableTaxonomies = function(metaVocabulary) {
@@ -8339,13 +8348,13 @@ ngObibaMica.search.MetaTaxonomyParser.prototype.parseVariableTaxonomies = functi
 
   var scales = metaVocabulary.terms[1];
   if (scales) {
-    taxonomies = taxonomies.concat([{
-      info: {name: 'scales/measures', title: 'Scales / Measures'},
+    taxonomies.push({
+      info: {name: scales.name, title: scales.title},
       taxonomies: scales.terms
-    }]);
+    });
   }
 
-  return taxonomies;
+  return this.createResultObject(metaVocabulary, taxonomies);
 };
 
 ;/*
@@ -8392,11 +8401,11 @@ ngObibaMica.search.MetaTaxonomyService = function($q, TaxonomyResource) {
           function(vocabulary) {
             switch (vocabulary.name) {
               case QUERY_TARGETS.VARIABLE:
-                return parser.parseVariableTaxonomies(vocabulary).pop();
+                return parser.parseVariableTaxonomies(vocabulary);
               case QUERY_TARGETS.NETWORK:
               case QUERY_TARGETS.STUDY:
               case QUERY_TARGETS.DATASET:
-                return parser.parseEntityTaxonomies(vocabulary).pop();
+                return parser.parseEntityTaxonomies(vocabulary);
             }
           }
         );
@@ -8529,22 +8538,29 @@ ngObibaMica.search
 
 'use strict';
 
+ngObibaMica.search.Controller = function() {
+  var ctrl = this;
+
+  function selectTaxonomy(taxonomy) {
+    ctrl.onSelectTaxonomy({target: ctrl.metaTaxonomy.name, taxonomy: taxonomy});
+  }
+
+  ctrl.status = {isFirstOpen: true};
+  ctrl.selectTaxonomy = selectTaxonomy;
+};
+
 ngObibaMica.search
 
   .component('metaTaxonomyFilterList', {
     transclude: true,
     bindings: {
-      metaTaxonomy: '<'
+      metaTaxonomy: '<',
+      loading: '<',
+      onSelectTaxonomy: '&'
     },
     templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html',
-    controller: function() {
-      var ctrl = this;
-      console.log('####', ctrl);
-      ctrl.items = ['Areas of Information', 'Scales / Measures', 'Source & Target', 'Properties'];
-      ctrl.status = {isFirstOpen: true};
-    }
-  });
-;/*
+    controller: ngObibaMica.search.Controller
+  });;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
@@ -8556,29 +8572,45 @@ ngObibaMica.search
 
 'use strict';
 
-ngObibaMica.search.Controller = function($scope, MetaTaxonomyService, TaxonomyResource) {
- var ctrl = this;
+ngObibaMica.search.Controller = function ($scope, MetaTaxonomyService, TaxonomyResource) {
 
-  function toggle() {
-    return TaxonomyResource.get({
-      target: QUERY_TARGETS.VARIABLE,
-      taxonomy: ctrl.metaTaxonomies[0].taxonomies[0].name
-    }).$promise.then(function(taxonomy) {
+  function onSelectTaxonomy(target, selectedTaxonomy) {
+    if (ctrl.selectedTaxonomy !== selectedTaxonomy) {
+      ctrl.selectedTaxonomy = selectedTaxonomy;
+      ctrl.selectedTaxonomy.loading = true;
+      return TaxonomyResource.get({
+        target: target,
+        taxonomy: selectedTaxonomy.info.name
+      }).$promise.then(function (taxonomy) {
+        delete ctrl.selectedTaxonomy.loading;
         ctrl.onToggle(taxonomy);
       });
-
-
+    } else {
+      delete ctrl.selectedTaxonomy.loading;
+      ctrl.selectedTaxonomy = null;
+      ctrl.onToggle(ctrl.selectedTaxonomy);
+    }
   }
 
-  MetaTaxonomyService.getMetaTaxonomyForTargets(ctrl.tabs).then(function(metaTaxonomies) {
-    ctrl.metaTaxonomies = metaTaxonomies;
-  });
+  /**
+   * Retrieves all meta taxonomies
+   */
+  function init() {
+    MetaTaxonomyService.getMetaTaxonomyForTargets(ctrl.tabs).then(function (metaTaxonomies) {
+      ctrl.metaTaxonomies = metaTaxonomies;
+    });
+  }
 
-  ctrl.toggle = toggle;
+  var ctrl = this;
+  ctrl.loading = false;
+  ctrl.selectedTaxonomy = null;
+  ctrl.onSelectTaxonomy = onSelectTaxonomy;
+
+  init();
 };
 
 ngObibaMica.search
-    .component('metaTaxonomyFilterPanel', {
+  .component('metaTaxonomyFilterPanel', {
     bindings: {
       tabs: '<',
       onToggle: '<'
@@ -12107,10 +12139,12 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
 
 angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html",
-    "<div uib-accordion-group class=\"panel-default voffset2\" heading=\"{{$ctrl.metaTaxonomy.info.name}}\" is-open=\"$ctrl.status.isFirstOpen\">\n" +
+    "<div uib-accordion-group class=\"panel-default voffset2\" heading=\"{{$ctrl.metaTaxonomy.title | localizedString}}\" is-open=\"$ctrl.status.isFirstOpen\">\n" +
     "  <ul class=\"nav nav-pills nav-stacked\">\n" +
     "    <li role=\"presentation\" ng-repeat=\"taxonomy in $ctrl.metaTaxonomy.taxonomies\">\n" +
-    "      <a href ng-click=\"\">{{taxonomy.name}}<i class=\"fa fa-plus\"></i></a>\n" +
+    "      <a href ng-click=\"$ctrl.selectTaxonomy(taxonomy)\">\n" +
+    "        {{taxonomy.info.title | localizedString}} <span ng-if=\"taxonomy.loading\" class=\"loading\"></span>\n" +
+    "      </a>\n" +
     "    </li>\n" +
     "  </ul>\n" +
     "\n" +
@@ -12122,9 +12156,11 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/compon
 angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html",
     "<div>\n" +
-    "  <button class=\"btn btn-default\" ng-click=\"$ctrl.toggle()\">Test</button>\n" +
     "  <uib-accordion close-others=\"false\" is-disabled=\"false\">\n" +
-    "    <meta-taxonomy-filter-list ng-repeat=\"metaTaxonomy in $ctrl.metaTaxonomies\" meta-taxonomy=\"metaTaxonomy\">\n" +
+    "    <meta-taxonomy-filter-list ng-repeat=\"metaTaxonomy in $ctrl.metaTaxonomies\"\n" +
+    "                               meta-taxonomy=\"metaTaxonomy\"\n" +
+    "                               loading=\"$ctrl.loading\"\n" +
+    "                               on-select-taxonomy=\"$ctrl.onSelectTaxonomy(target, taxonomy)\">\n" +
     "    </meta-taxonomy-filter-list>\n" +
     "  </uib-accordion>\n" +
     "</div>\n" +
@@ -14061,7 +14097,9 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "      <search-criteria-region options=\"options\" search=\"search\"> </search-criteria-region>\n" +
     "      <div class=\"row\">\n" +
     "        <div class=\"col-md-3\">\n" +
-    "          <meta-taxonomy-filter-panel tabs=\"targetTabsOrder\" on-toggle=\"taxonomyFilterPanelVisibility\"></meta-taxonomy-filter-panel>\n" +
+    "          <meta-taxonomy-filter-panel\n" +
+    "                  tabs=\"targetTabsOrder\"\n" +
+    "                  on-toggle=\"onTaxonomyFilterPanelToggleVisibility\"></meta-taxonomy-filter-panel>\n" +
     "        </div>\n" +
     "        <div class=\"col-md-9\">\n" +
     "          <!-- Search Results region -->\n" +

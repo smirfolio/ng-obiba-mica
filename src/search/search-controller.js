@@ -873,9 +873,9 @@ ngObibaMica.search
         }
       }
 
-      function taxonomyFilterPanelVisibility(taxonomy) {
-        $scope.search.showTaxonomyPanel = !$scope.search.showTaxonomyPanel;
+      function onTaxonomyFilterPanelToggleVisibility(taxonomy) {
         $scope.search.selectedTaxonomy = taxonomy;
+        $scope.search.showTaxonomyPanel = taxonomy !== null;
       }
 
       $scope.translateTaxonomyNav = function(t, key) {
@@ -1292,7 +1292,7 @@ ngObibaMica.search
 
       $scope.searchHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('search');
       $scope.classificationsHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('classifications');
-      $scope.taxonomyFilterPanelVisibility = taxonomyFilterPanelVisibility;
+      $scope.onTaxonomyFilterPanelToggleVisibility = onTaxonomyFilterPanelToggleVisibility;
       $scope.selectSearchTarget = selectSearchTarget;
       $scope.selectDisplay = onDisplayChanged;
       $scope.searchCriteria = searchCriteria;
