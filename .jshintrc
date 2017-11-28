@@ -18,6 +18,7 @@
   "latedef": "nofunc",
   "newcap": true,
   "noarg": true,
+  "bitwise": false,
   "quotmark": "single",
   "regexp": true,
   "globals": {

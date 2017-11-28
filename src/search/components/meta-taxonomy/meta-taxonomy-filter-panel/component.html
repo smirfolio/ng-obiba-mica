@@ -2,7 +2,6 @@
   <uib-accordion close-others="false" is-disabled="false">
     <meta-taxonomy-filter-list ng-repeat="metaTaxonomy in $ctrl.metaTaxonomies"
                                meta-taxonomy="metaTaxonomy"
-                               loading="$ctrl.loading"
                                on-select-taxonomy="$ctrl.onSelectTaxonomy(target, taxonomy)">
     </meta-taxonomy-filter-list>
   </uib-accordion>
