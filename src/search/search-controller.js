@@ -1228,13 +1228,18 @@ ngObibaMica.search
         }
 
         // TODO externalize TermsVocabularyFacetController.selectTerm and use it for terms case
-        if (!args.term.selected) {
-          var id = CriteriaIdGenerator.generate(taxonomy, vocabulary, args.term);
-          var criteriaItem = RqlQueryService.findCriteriaItemFromTreeById(target, id, $scope.search.criteria);
-          if (criteriaItem) {
-            removeCriteriaItem(criteriaItem);
-            return;
+        var selected = vocabulary.terms.filter(function(t) {return t.selected;}).map(function(t) { return t.name; }),
+            criterion = RqlQueryService.findCriterion($scope.search.criteria, CriteriaIdGenerator.generate(taxonomy, vocabulary));
+
+        if(criterion) {
+          if (selected.length === 0) {
+            RqlQueryService.removeCriteriaItem(criterion);
+          } else {
+            criterion.rqlQuery.name = RQL_NODE.IN;
+            RqlQueryUtils.updateQuery(criterion.rqlQuery, selected);
           }
+
+          $scope.refreshQuery();
         } else {
           selectCriteria(RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, args && args.term, $scope.lang));
         }
