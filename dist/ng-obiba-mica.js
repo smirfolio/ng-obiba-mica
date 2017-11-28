@@ -1917,6 +1917,25 @@ ngObibaMica.search
       }];
       var optionsResolver;
       var options = {
+        taxonomyPanelOptions: {
+          network: {
+            taxonomies: {'Mica_network': {trKey: 'properties'}}
+          },
+          study: {
+            taxonomies: {'Mica_study': {trKey: 'properties'}}
+          },
+          dataset: {
+            taxonomies: {'Mica_dataset': {trKey: 'properties'}}
+          },
+          variable : {
+            taxonomies: {
+              'Mlstr_area': {weight: 0},
+              'Scales': {weight: 1},
+              'Mlstr_additional': {weight: 2},
+              'Mica_variable': {trKey: 'properties', weight: 3}
+            }
+          }
+        },
         obibaListOptions: {
           countCaption: true,
           searchForm: true,
@@ -8354,9 +8373,10 @@ ngObibaMica.search
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+'use strict';
+
 (function() {
 
-  'use strict';
 
   /**
    * Parses each metaTaxonomies taxonomy and returns a list of :
@@ -8371,16 +8391,21 @@ ngObibaMica.search
    * ]
    * @constructor
    */
-  ngObibaMica.search.MetaTaxonomyParser = function() {
+  ngObibaMica.search.MetaTaxonomyParser = function(config, LocalizedValues, locale) {
 
-    function parseTerms(terms) {
+    function translateTitle(title) {
+      return LocalizedValues.forLocale(title, locale);
+    }
+
+    function parseTerms(targetConfig, terms) {
       return terms.map(function(taxonomy, index) {
+        var title = targetConfig.taxonomies[taxonomy.name].trKey || translateTitle(taxonomy.title);
         return {
           state: new ngObibaMica.search.PanelTaxonomyState(index+''),
-          info: {name: taxonomy.name, title: taxonomy.title},
+          info: {name: taxonomy.name, title: title},
           taxonomies: [taxonomy]
         };
-      });
+      }); 
     }
 
     function createResultObject(metaVocabulary, taxonomies) {
@@ -8391,29 +8416,59 @@ ngObibaMica.search
       };
     }
 
+    function sortTaxonomies(target, taxonomies) {
+      var configTaxonomies = config[target].taxonomies;
+      taxonomies.sort(function(a, b) {
+        return configTaxonomies[a.info.name].weight - configTaxonomies[b.info.name].weight;
+      });
+    }
+
+    this.config = config;
+    this.translateTitle = translateTitle;
     this.parseTerms = parseTerms;
     this.createResultObject = createResultObject;
+    this.sortTaxonomies = sortTaxonomies;
   };
 
   ngObibaMica.search.MetaTaxonomyParser.prototype.parseEntityTaxonomies = function(metaVocabulary) {
-    return this.createResultObject(metaVocabulary, this.parseTerms(metaVocabulary.terms || []));
+    return this.createResultObject(metaVocabulary,
+      this.parseTerms(this.config[metaVocabulary.name], metaVocabulary.terms || []));
   };
 
+  /**
+   * Variable meta taxonomies need to be massaged a little more:
+   * - extract Variable characteristics
+   * - extract Scales as onetaxonomy (there are four related taxonomies) into one
+   * - sort them and return the list to the client code
+   * @param metaVocabulary
+   * @returns {{name, title, taxonomies}|*}
+   */
   ngObibaMica.search.MetaTaxonomyParser.prototype.parseVariableTaxonomies = function(metaVocabulary) {
 
-    // TODO plugin options to build the taxonomy list
-    var chars = metaVocabulary.terms[0] || [];
-    var taxonomies = this.parseTerms(chars.terms);
+    var metaTaxonomies = metaVocabulary.terms.filter(function (term) {
+      return ['Variable_chars', 'Scales'].indexOf(term.name) > -1;
+    }).reduce(function(acc, term) {
+      var key = new obiba.utils.NgObibaStringUtils().camelize(term.name);
+      acc[key] = term;
+      return acc;
+    }, {});
 
-    var scales = metaVocabulary.terms[1];
-    if (scales) {
+    var taxonomies = this.parseTerms(this.config[QUERY_TARGETS.VARIABLE], metaTaxonomies.variableChars.terms);
+
+    var scales = metaTaxonomies.scales;
+    if (scales && scales.terms) {
       taxonomies.push({
         state: new ngObibaMica.search.PanelTaxonomyState(),
-        info: {name: scales.terms.map(function(t){return t.name;}), title: scales.title},
+        info: {
+          name: scales.name,
+          names: scales.terms.map(function(t){return t.name;}),
+          title: this.translateTitle(scales.title)
+        },
         taxonomies: scales.terms
       });
     }
 
+    this.sortTaxonomies(QUERY_TARGETS.VARIABLE, taxonomies);
     return this.createResultObject(metaVocabulary, taxonomies);
   };
 
@@ -8503,9 +8558,14 @@ ngObibaMica.search
     this.filter = filter;
   };
 
-ngObibaMica.search.MetaTaxonomyService = function($q, TaxonomyResource) {
+ngObibaMica.search.MetaTaxonomyService = function($q, $translate, TaxonomyResource, ngObibaMicaSearch, LocalizedValues) {
 
-  var parser = new ngObibaMica.search.MetaTaxonomyParser();
+  var parser =
+    new ngObibaMica.search.MetaTaxonomyParser(
+      ngObibaMicaSearch.getOptions().taxonomyPanelOptions,
+      LocalizedValues,
+      $translate.use());
+
 
   /**
    * Returns the taxonomy of taxonomy
@@ -8559,7 +8619,10 @@ ngObibaMica.search.MetaTaxonomyService = function($q, TaxonomyResource) {
 ngObibaMica.search
   .service('MetaTaxonomyService', [
     '$q',
+    '$translate',
     'TaxonomyResource',
+    'ngObibaMicaSearch',
+    'LocalizedValues',
     ngObibaMica.search.MetaTaxonomyService
   ])
   .service('FilterVocabulariesByQueryString', [ngObibaMica.search.FilterVocabulariesByQueryString]);
@@ -8813,7 +8876,7 @@ ngObibaMica.search
 
 (function() {
 
-  ngObibaMica.search.Controller = function ($scope, MetaTaxonomyService, TaxonomyService) {
+  ngObibaMica.search.Controller = function (MetaTaxonomyService, TaxonomyService) {
 
     function onSelectTaxonomy(target, selectedTaxonomy) {
       if (ctrl.selectedTaxonomy !== selectedTaxonomy) {
@@ -8827,7 +8890,7 @@ ngObibaMica.search
 
         // enough delay for UI rendering
         setTimeout(function() {
-          TaxonomyService.getTaxonomies(target, selectedTaxonomy.info.name)
+          TaxonomyService.getTaxonomies(target, selectedTaxonomy.info.names || selectedTaxonomy.info.name)
             .then(function (taxonomy) {
               ctrl.selectedTaxonomy.state.loaded();
               ctrl.onToggle(target, taxonomy);
@@ -8864,7 +8927,7 @@ ngObibaMica.search
         onToggle: '<'
       },
       templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html',
-      controller: ['$scope', 'MetaTaxonomyService', 'TaxonomyService', ngObibaMica.search.Controller]
+      controller: ['MetaTaxonomyService', 'TaxonomyService', ngObibaMica.search.Controller]
     });
 })();
 
@@ -12442,7 +12505,7 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/compon
     "  <ul class=\"nav nav-pills nav-stacked\">\n" +
     "    <li role=\"presentation\" ng-repeat=\"taxonomy in $ctrl.metaTaxonomy.taxonomies\" ng-class=\"{'active': taxonomy.state.isActive()}\">\n" +
     "      <a href ng-click=\"$ctrl.selectTaxonomy(taxonomy)\">\n" +
-    "        {{taxonomy.info.title | localizedString}} <span ng-if=\"taxonomy.state.isLoading()\" class=\"loading\"></span>\n" +
+    "        {{taxonomy.info.title | translate}} <span ng-if=\"taxonomy.state.isLoading()\" class=\"loading\"></span>\n" +
     "      </a>\n" +
     "    </li>\n" +
     "  </ul>\n" +
