@@ -10,6 +10,8 @@
 
 'use strict';
 
+(function() {
+
 ngObibaMica.search.MetaTaxonomyService = function($q, TaxonomyResource) {
 
   var parser = new ngObibaMica.search.MetaTaxonomyParser();
@@ -69,3 +71,5 @@ ngObibaMica.search
     'TaxonomyResource',
     ngObibaMica.search.MetaTaxonomyService
   ]);
+
+})();
