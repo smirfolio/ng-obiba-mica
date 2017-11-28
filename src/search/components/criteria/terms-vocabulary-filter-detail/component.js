@@ -19,6 +19,7 @@
       ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
     }
 
+    ctrl.limitNumber = 6;
     ctrl.clickCheckbox = clickCheckbox;
   };
 

@@ -5655,13 +5655,18 @@ ngObibaMica.search
         }
 
         // TODO externalize TermsVocabularyFacetController.selectTerm and use it for terms case
-        if (!args.term.selected) {
-          var id = CriteriaIdGenerator.generate(taxonomy, vocabulary, args.term);
-          var criteriaItem = RqlQueryService.findCriteriaItemFromTreeById(target, id, $scope.search.criteria);
-          if (criteriaItem) {
-            removeCriteriaItem(criteriaItem);
-            return;
+        var selected = vocabulary.terms.filter(function(t) {return t.selected;}).map(function(t) { return t.name; }),
+            criterion = RqlQueryService.findCriterion($scope.search.criteria, CriteriaIdGenerator.generate(taxonomy, vocabulary));
+
+        if(criterion) {
+          if (selected.length === 0) {
+            RqlQueryService.removeCriteriaItem(criterion);
+          } else {
+            criterion.rqlQuery.name = RQL_NODE.IN;
+            RqlQueryUtils.updateQuery(criterion.rqlQuery, selected);
           }
+
+          $scope.refreshQuery();
         } else {
           selectCriteria(RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, args && args.term, $scope.lang));
         }
@@ -8640,6 +8645,7 @@ ngObibaMica.search
       ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
     }
 
+    ctrl.limitNumber = 6;
     ctrl.clickCheckbox = clickCheckbox;
   };
 
@@ -12268,7 +12274,7 @@ angular.module("search/components/criteria/numeric-vocabulary-filter-detail/comp
 
 angular.module("search/components/criteria/terms-vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/terms-vocabulary-filter-detail/component.html",
-    "<div ng-class=\"{'row': ($index + 1) % 6 === 0}\" ng-repeat=\"term in $ctrl.vocabulary.terms\">\n" +
+    "<div ng-class=\"{'row': ($index + 1) % 6 === 0}\" ng-repeat=\"term in $ctrl.vocabulary.terms | limitTo:$ctrl.limitNumber\">\n" +
     "  <div class=\"col-md-2\">\n" +
     "    <div class=\"checkbox\">\n" +
     "      <label for=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\">\n" +
@@ -12279,6 +12285,14 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
     "      </label>\n" +
     "    </div>\n" +
     "  </div>\n" +
+    "</div>\n" +
+    "<span class=\"clearfix\"></span>\n" +
+    "<div class=\"row\" ng-if=\"$ctrl.vocabulary.terms.length >= $ctrl.limitNumber\">\n" +
+    "  <button type=\"button\"\n" +
+    "          class=\"btn btn-sm btn-primary pull-right\"\n" +
+    "          ng-click=\"$ctrl.limitNumber = $ctrl.limitNumber + 6\">\n" +
+    "    More\n" +
+    "  </button>\n" +
     "</div>\n" +
     "\n" +
     "");
