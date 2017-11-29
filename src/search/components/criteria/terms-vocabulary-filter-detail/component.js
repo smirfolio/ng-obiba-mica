@@ -28,8 +28,7 @@
       transclude: true,
       bindings: {
         vocabulary: '<',
-        onSelectArgs: '&',
-        onRemoveArgs: '&'
+        onSelectArgs: '&'
       },
       templateUrl: 'search/components/criteria/terms-vocabulary-filter-detail/component.html',
       controller: [ngObibaMica.search.TermsVocabularyFilterDetailController]

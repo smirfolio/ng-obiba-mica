@@ -14,12 +14,15 @@
   ngObibaMica.search.MatchVocabularyFilterDetailController = function() {
     var ctrl = this;
 
-    function setMatchString(input) {
+    function enterText(keyPressEvent) {
+      var input = keyPressEvent.target.value;
       var args = {text: input || '*'};
-      ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
+      if (keyPressEvent.keyCode === 13) {
+        ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
+      }
     }
 
-    ctrl.setMatchString = setMatchString;
+    ctrl.enterText = enterText;
   };
 
   ngObibaMica.search

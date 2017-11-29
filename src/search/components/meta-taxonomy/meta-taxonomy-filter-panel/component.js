@@ -29,14 +29,14 @@
           TaxonomyService.getTaxonomies(target, selectedTaxonomy.info.name)
             .then(function (taxonomy) {
               ctrl.selectedTaxonomy.state.loaded();
-              ctrl.onToggle(taxonomy);
+              ctrl.onToggle(target, taxonomy);
             });
         });
 
       } else {
         ctrl.selectedTaxonomy.state.none();
         ctrl.selectedTaxonomy = null;
-        ctrl.onToggle(ctrl.selectedTaxonomy);
+        ctrl.onToggle(target, ctrl.selectedTaxonomy);
       }
     }
 

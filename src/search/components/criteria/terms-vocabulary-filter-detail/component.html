@@ -11,7 +11,7 @@
   </div>
 </div>
 <span class="clearfix"></span>
-<div class="row" ng-if="$ctrl.vocabulary.terms.length >= $ctrl.limitNumber">
+<div class="row" ng-if="$ctrl.vocabulary.filteredTerms.length > $ctrl.limitNumber">
   <button type="button"
           class="btn btn-sm btn-primary pull-right"
           ng-click="$ctrl.limitNumber = $ctrl.limitNumber + 6">
