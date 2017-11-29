@@ -71,7 +71,7 @@ module.exports = function (grunt) {
           optimization: 2
         },
         files: {
-          "dist/css/ng-obiba-mica.css": "less/ng-obiba-mica.less" // destination file and source file
+          "dist/css/ng-obiba-mica.css": ["less/ng-obiba-mica.less", "src/**/components/**/*.less"] // destination file and source file
         }
       }
     },

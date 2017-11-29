@@ -11,6 +11,23 @@
 'use strict';
 
 (function() {
+  ngObibaMica.search.filterVocabulariesByQueryString = function() {
+
+    function filter(vocabularies, queryString) {
+      console.log(queryString);
+      if(queryString){
+        return vocabularies.filter(function(vocabulary){
+          vocabulary.filteredTerms =  (vocabulary.terms || []).filter(function(term){
+            return term.name.toLowerCase().indexOf(queryString.toLowerCase()) >= 0;
+          });
+          return vocabulary.filteredTerms.length > 0;
+        });
+
+      }
+    }
+
+    this.filter = filter;
+  };
 
 ngObibaMica.search.MetaTaxonomyService = function($q, TaxonomyResource) {
 
@@ -70,6 +87,7 @@ ngObibaMica.search
     '$q',
     'TaxonomyResource',
     ngObibaMica.search.MetaTaxonomyService
-  ]);
+  ])
+  .service('filterVocabulariesByQueryString', [ngObibaMica.search.filterVocabulariesByQueryString]);
 
 })();

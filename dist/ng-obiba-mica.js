@@ -8443,6 +8443,23 @@ ngObibaMica.search
 'use strict';
 
 (function() {
+  ngObibaMica.search.filterVocabulariesByQueryString = function() {
+
+    function filter(vocabularies, queryString) {
+      console.log(queryString);
+      if(queryString){
+        return vocabularies.filter(function(vocabulary){
+          vocabulary.filteredTerms =  (vocabulary.terms || []).filter(function(term){
+            return term.name.toLowerCase().indexOf(queryString.toLowerCase()) >= 0;
+          });
+          return vocabulary.filteredTerms.length > 0;
+        });
+
+      }
+    }
+
+    this.filter = filter;
+  };
 
 ngObibaMica.search.MetaTaxonomyService = function($q, TaxonomyResource) {
 
@@ -8502,7 +8519,8 @@ ngObibaMica.search
     '$q',
     'TaxonomyResource',
     ngObibaMica.search.MetaTaxonomyService
-  ]);
+  ])
+  .service('filterVocabulariesByQueryString', [ngObibaMica.search.filterVocabulariesByQueryString]);
 
 })();;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8673,6 +8691,42 @@ ngObibaMica.search
 
 'use strict';
 
+ngObibaMica.search.inputSearchFilterController = function() {
+  var ctrl = this;
+
+  function change(){
+    ctrl.onFilterChange({queryString:ctrl.queryString});
+  }
+
+  ctrl.queryString = '';
+  ctrl.change = change;
+};
+
+
+ngObibaMica.search
+
+  .component('inputSearchFilter', {
+    transclude: true,
+    bindings: {
+      queryString: '<',
+      vocabularies: '<',
+      onFilterChange: '&'
+    },
+    templateUrl: 'search/components/input-search-filter/component.html',
+    controller: [ngObibaMica.search.inputSearchFilterController]
+  });
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
 (function() {
 
   ngObibaMica.search.Controller = function() {
@@ -8813,14 +8867,30 @@ ngObibaMica.search
 'use strict';
 
 (function () {
-  ngObibaMica.search.TaxonomyFilterPanelController = function() {
+  ngObibaMica.search.TaxonomyFilterPanelController = function(filterVocabulariesByQueryString) {
     var ctrl = this;
 
     function selectTaxonomyVocabularyArgs(vocabulary, args) {
       ctrl.onSelectTerm({target: ctrl.target, taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args});
     }
+    function onFilterChange(queryString) {
+      if (queryString) {
+        ctrl.filteredVocabularies = filterVocabulariesByQueryString.filter(ctrl.taxonomy.vocabularies, queryString);
+      } else {
+        ctrl.filteredVocabularies = initFilteredVocabularies();
+      }
+    }
 
+    function initFilteredVocabularies() {
+      return ctrl.taxonomy.vocabularies.map(function (vocabulary) {
+        vocabulary.filteredTerms = vocabulary.terms;
+        return vocabulary;
+      });
+    }
+
+    ctrl.filteredVocabularies = initFilteredVocabularies();
     ctrl.selectTaxonomyVocabularyArgs = selectTaxonomyVocabularyArgs;
+    ctrl.onFilterChange = onFilterChange;
   };
 
   ngObibaMica.search
@@ -8832,7 +8902,7 @@ ngObibaMica.search
         onSelectTerm: '&'
       },
       templateUrl: 'search/components/taxonomy/taxonomy-filter-panel/component.html',
-      controller: [ngObibaMica.search.TaxonomyFilterPanelController]
+      controller: ['filterVocabulariesByQueryString', ngObibaMica.search.TaxonomyFilterPanelController]
     });
 })();
 ;/*
@@ -10710,7 +10780,7 @@ ngObibaMica.fileBrowser
       }
     };
   }]);
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/input-search-widget/suggestion-field.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-facets-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/search-criteria-region-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search-study-filter-template.html', 'search/views/search.html', 'search/views/search2.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/input-search-widget/suggestion-field.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-facets-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/search-criteria-region-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search-study-filter-template.html', 'search/views/search.html', 'search/views/search2.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/views/data-access-request-documents-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-documents-view.html",
@@ -12274,7 +12344,7 @@ angular.module("search/components/criteria/numeric-vocabulary-filter-detail/comp
 
 angular.module("search/components/criteria/terms-vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/terms-vocabulary-filter-detail/component.html",
-    "<div ng-class=\"{'row': ($index + 1) % 6 === 0}\" ng-repeat=\"term in $ctrl.vocabulary.terms | limitTo:$ctrl.limitNumber\">\n" +
+    "<div ng-class=\"{'row': ($index + 1) % 6 === 0}\" ng-repeat=\"term in $ctrl.vocabulary.filteredTerms | limitTo:$ctrl.limitNumber\">\n" +
     "  <div class=\"col-md-2\">\n" +
     "    <div class=\"checkbox\">\n" +
     "      <label for=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\">\n" +
@@ -12296,6 +12366,21 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
     "</div>\n" +
     "\n" +
     "");
+}]);
+
+angular.module("search/components/input-search-filter/component.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/components/input-search-filter/component.html",
+    "<form>\n" +
+    "    <div class=\"form-group pull-right\">\n" +
+    "        <div class=\"input-group \">\n" +
+    "            <span class=\"input-group-addon\">\n" +
+    "                <i class=\"glyphicon glyphicon-filter\"></i>\n" +
+    "            </span>\n" +
+    "            <input type=\"text\" ng-model=\"$ctrl.queryString\"  ng-attr-placeholder=\"{{global.list-search-placeholder  | translate}}\"\n" +
+    "                   class=\"input-search-filter form-control\" ng-change=\"$ctrl.change()\">\n" +
+    "        </div>\n" +
+    "    </div>\n" +
+    "</form>");
 }]);
 
 angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html", []).run(["$templateCache", function($templateCache) {
@@ -12339,7 +12424,15 @@ angular.module("search/components/taxonomy/taxonomy-filter-detail/component.html
 
 angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/taxonomy/taxonomy-filter-panel/component.html",
-    "<taxonomy-filter-detail on-select-taxonomy-term=\"$ctrl.selectTaxonomyVocabularyArgs(vocabulary, args)\" vocabularies=\"$ctrl.taxonomy.vocabularies\"></taxonomy-filter-detail>\n" +
+    "<div class=\"vocabulary-filter-detail\">\n" +
+    "  <div class=\"row\">\n" +
+    "    <div class=\"col-md-4\"><a href=\"#\" class=\"voffset2\"><i class=\"glyphicon glyphicon-chevron-left\"></i> Close</a></div>\n" +
+    "    <div class=\"col-md-8\">\n" +
+    "      <input-search-filter class=\"input-search-filter pull-right\" vocabularies=\"$ctrl.taxonomy.vocabularies\" on-filter-change=\"$ctrl.onFilterChange(queryString)\"></input-search-filter>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "  <vocabulary-filter-detail ng-repeat=\"vocabulary in $ctrl.filteredVocabularies track by $index\" vocabulary=\"vocabulary\"></vocabulary-filter-detail>\n" +
+    "</div>\n" +
     "\n" +
     "");
 }]);

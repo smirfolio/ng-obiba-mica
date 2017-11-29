@@ -11,14 +11,30 @@
 'use strict';
 
 (function () {
-  ngObibaMica.search.TaxonomyFilterPanelController = function() {
+  ngObibaMica.search.TaxonomyFilterPanelController = function(filterVocabulariesByQueryString) {
     var ctrl = this;
 
     function selectTaxonomyVocabularyArgs(vocabulary, args) {
       ctrl.onSelectTerm({target: ctrl.target, taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args});
     }
+    function onFilterChange(queryString) {
+      if (queryString) {
+        ctrl.filteredVocabularies = filterVocabulariesByQueryString.filter(ctrl.taxonomy.vocabularies, queryString);
+      } else {
+        ctrl.filteredVocabularies = initFilteredVocabularies();
+      }
+    }
 
+    function initFilteredVocabularies() {
+      return ctrl.taxonomy.vocabularies.map(function (vocabulary) {
+        vocabulary.filteredTerms = vocabulary.terms;
+        return vocabulary;
+      });
+    }
+
+    ctrl.filteredVocabularies = initFilteredVocabularies();
     ctrl.selectTaxonomyVocabularyArgs = selectTaxonomyVocabularyArgs;
+    ctrl.onFilterChange = onFilterChange;
   };
 
   ngObibaMica.search
@@ -30,6 +46,6 @@
         onSelectTerm: '&'
       },
       templateUrl: 'search/components/taxonomy/taxonomy-filter-panel/component.html',
-      controller: [ngObibaMica.search.TaxonomyFilterPanelController]
+      controller: ['filterVocabulariesByQueryString', ngObibaMica.search.TaxonomyFilterPanelController]
     });
 })();

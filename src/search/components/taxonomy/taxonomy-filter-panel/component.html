@@ -1,2 +1,10 @@
-<taxonomy-filter-detail on-select-taxonomy-term="$ctrl.selectTaxonomyVocabularyArgs(vocabulary, args)" vocabularies="$ctrl.taxonomy.vocabularies"></taxonomy-filter-detail>
+<div class="vocabulary-filter-detail">
+  <div class="row">
+    <div class="col-md-4"><a href="#" class="voffset2"><i class="glyphicon glyphicon-chevron-left"></i> Close</a></div>
+    <div class="col-md-8">
+      <input-search-filter class="input-search-filter pull-right" vocabularies="$ctrl.taxonomy.vocabularies" on-filter-change="$ctrl.onFilterChange(queryString)"></input-search-filter>
+    </div>
+  </div>
+  <vocabulary-filter-detail ng-repeat="vocabulary in $ctrl.filteredVocabularies track by $index" vocabulary="vocabulary"></vocabulary-filter-detail>
+</div>
 
