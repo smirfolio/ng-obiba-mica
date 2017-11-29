@@ -15,8 +15,10 @@
     var ctrl = this;
 
     function selectTaxonomyVocabularyArgs(vocabulary, args) {
+      console.log('TaxonomyFilterPanelController');
       ctrl.onSelectTerm({target: ctrl.target, taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args});
     }
+
     function onFilterChange(queryString) {
       if (queryString) {
         ctrl.filteredVocabularies = FilterVocabulariesByQueryString.filter(ctrl.taxonomy.vocabularies, queryString);

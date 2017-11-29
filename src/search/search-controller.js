@@ -851,6 +851,14 @@ ngObibaMica.search
 
       }
 
+      function findAndSetCriteriaItemForTaxonomyVocabularies(target, taxonomy) {
+        taxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
+          taxonomyVocabulary.existingItem =
+              RqlQueryService.findCriteriaItemFromTreeById(target,
+                  CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria);
+        });
+      }
+
       function executeSearchQuery() {
         if (validateQueryData()) {
           // build the criteria UI
@@ -868,12 +876,45 @@ ngObibaMica.search
               loadResults();
             }
 
+            if ($scope.search.selectedTarget && $scope.search.selectedTaxonomy) {
+              findAndSetCriteriaItemForTaxonomyVocabularies($scope.search.selectedTarget, $scope.search.selectedTaxonomy);
+            }
+
             $scope.$broadcast('ngObibaMicaQueryUpdated', $scope.search.criteria);
           });
         }
       }
 
       function onTaxonomyFilterPanelToggleVisibility(target, taxonomy) {
+        if (target && taxonomy) {
+          taxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
+            function processExistingItem(existingItem) {
+              if (existingItem) {
+
+                // when vocabulary has terms
+                (taxonomyVocabulary.terms || []).forEach(function (term) {
+                  term.selected = existingItem.selectedTerms.indexOf(term.name) > -1;
+                });
+              } else {
+
+                // when vocabulary has terms
+                (taxonomyVocabulary.terms || []).forEach(function (term) {
+                  term.selected = false;
+                });
+              }
+
+              taxonomyVocabulary._existingItem = existingItem;
+            }
+
+            taxonomyVocabulary.__defineSetter__('existingItem', processExistingItem);
+            taxonomyVocabulary.__defineGetter__('existingItem', function () {  return taxonomyVocabulary._existingItem; });
+
+            taxonomyVocabulary.existingItem =
+              RqlQueryService.findCriteriaItemFromTreeById(target,
+                CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria);
+          });
+        }
+
         $scope.search.selectedTarget = target;
         $scope.search.selectedTaxonomy = taxonomy;
         $scope.search.showTaxonomyPanel = taxonomy !== null;
