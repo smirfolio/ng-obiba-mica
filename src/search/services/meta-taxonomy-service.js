@@ -29,9 +29,14 @@
     this.filter = filter;
   };
 
-ngObibaMica.search.MetaTaxonomyService = function($q, TaxonomyResource) {
+ngObibaMica.search.MetaTaxonomyService = function($q, $translate, TaxonomyResource, ngObibaMicaSearch, LocalizedValues) {
 
-  var parser = new ngObibaMica.search.MetaTaxonomyParser();
+  var parser =
+    new ngObibaMica.search.MetaTaxonomyParser(
+      ngObibaMicaSearch.getOptions().taxonomyPanelOptions,
+      LocalizedValues,
+      $translate.use());
+
 
   /**
    * Returns the taxonomy of taxonomy
@@ -85,7 +90,10 @@ ngObibaMica.search.MetaTaxonomyService = function($q, TaxonomyResource) {
 ngObibaMica.search
   .service('MetaTaxonomyService', [
     '$q',
+    '$translate',
     'TaxonomyResource',
+    'ngObibaMicaSearch',
+    'LocalizedValues',
     ngObibaMica.search.MetaTaxonomyService
   ])
   .service('FilterVocabulariesByQueryString', [ngObibaMica.search.FilterVocabulariesByQueryString]);

@@ -12,7 +12,7 @@
 
 (function() {
 
-  ngObibaMica.search.Controller = function ($scope, MetaTaxonomyService, TaxonomyService) {
+  ngObibaMica.search.Controller = function (MetaTaxonomyService, TaxonomyService) {
 
     function onSelectTaxonomy(target, selectedTaxonomy) {
       if (ctrl.selectedTaxonomy !== selectedTaxonomy) {
@@ -26,7 +26,7 @@
 
         // enough delay for UI rendering
         setTimeout(function() {
-          TaxonomyService.getTaxonomies(target, selectedTaxonomy.info.name)
+          TaxonomyService.getTaxonomies(target, selectedTaxonomy.info.names || selectedTaxonomy.info.name)
             .then(function (taxonomy) {
               ctrl.selectedTaxonomy.state.loaded();
               ctrl.onToggle(target, taxonomy);
@@ -63,7 +63,7 @@
         onToggle: '<'
       },
       templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html',
-      controller: ['$scope', 'MetaTaxonomyService', 'TaxonomyService', ngObibaMica.search.Controller]
+      controller: ['MetaTaxonomyService', 'TaxonomyService', ngObibaMica.search.Controller]
     });
 })();
 

@@ -53,6 +53,25 @@ ngObibaMica.search
       }];
       var optionsResolver;
       var options = {
+        taxonomyPanelOptions: {
+          network: {
+            taxonomies: {'Mica_network': {trKey: 'properties'}}
+          },
+          study: {
+            taxonomies: {'Mica_study': {trKey: 'properties'}}
+          },
+          dataset: {
+            taxonomies: {'Mica_dataset': {trKey: 'properties'}}
+          },
+          variable : {
+            taxonomies: {
+              'Mlstr_area': {weight: 0},
+              'Scales': {weight: 1},
+              'Mlstr_additional': {weight: 2},
+              'Mica_variable': {trKey: 'properties', weight: 3}
+            }
+          }
+        },
         obibaListOptions: {
           countCaption: true,
           searchForm: true,

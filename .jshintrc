@@ -40,6 +40,7 @@
     "RqlParser": false,
     "RqlQuery": false,
     "ngObibaMica": true,
+    "obiba": true,
     "QUERY_TARGETS": true
   }
 
