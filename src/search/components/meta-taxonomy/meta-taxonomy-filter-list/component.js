@@ -19,8 +19,13 @@
       ctrl.onSelectTaxonomy({target: ctrl.metaTaxonomy.name, taxonomy: taxonomy});
     }
 
+    function getEntityType() {
+      return targetToType(ctrl.metaTaxonomy.name);
+    }
+
     ctrl.status = {isFirstOpen: true};
     ctrl.selectTaxonomy = selectTaxonomy;
+    ctrl.entityType = getEntityType();
   };
 
   ngObibaMica.search

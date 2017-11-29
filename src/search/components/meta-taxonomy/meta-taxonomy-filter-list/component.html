@@ -1,5 +1,7 @@
 <div uib-accordion-group class="panel-default voffset2" heading="{{$ctrl.metaTaxonomy.title | localizedString}}" is-open="$ctrl.status.isFirstOpen">
-  <ul class="nav nav-pills nav-stacked">
+  <entity-search-typeahead placeholder-text="global.list-search-placeholder" entity-type="$ctrl.entityType"></entity-search-typeahead>
+
+  <ul class="nav nav-pills nav-stacked voffset1">
     <li role="presentation" ng-repeat="taxonomy in $ctrl.metaTaxonomy.taxonomies" ng-class="{'active': taxonomy.state.isActive()}">
       <a href ng-click="$ctrl.selectTaxonomy(taxonomy)">
         {{taxonomy.info.title | translate}} <span ng-if="taxonomy.state.isLoading()" class="loading"></span>
