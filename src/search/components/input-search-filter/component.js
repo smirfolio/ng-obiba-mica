@@ -10,7 +10,7 @@
 
 'use strict';
 
-ngObibaMica.search.inputSearchFilterController = function() {
+ngObibaMica.search.InputSearchFilterController = function() {
   var ctrl = this;
 
   function change(){
@@ -32,5 +32,5 @@ ngObibaMica.search
       onFilterChange: '&'
     },
     templateUrl: 'search/components/input-search-filter/component.html',
-    controller: [ngObibaMica.search.inputSearchFilterController]
+    controller: [ngObibaMica.search.InputSearchFilterController]
   });

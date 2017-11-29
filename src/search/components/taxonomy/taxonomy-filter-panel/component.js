@@ -11,7 +11,7 @@
 'use strict';
 
 (function () {
-  ngObibaMica.search.TaxonomyFilterPanelController = function(filterVocabulariesByQueryString) {
+  ngObibaMica.search.TaxonomyFilterPanelController = function(FilterVocabulariesByQueryString) {
     var ctrl = this;
 
     function selectTaxonomyVocabularyArgs(vocabulary, args) {
@@ -19,7 +19,7 @@
     }
     function onFilterChange(queryString) {
       if (queryString) {
-        ctrl.filteredVocabularies = filterVocabulariesByQueryString.filter(ctrl.taxonomy.vocabularies, queryString);
+        ctrl.filteredVocabularies = FilterVocabulariesByQueryString.filter(ctrl.taxonomy.vocabularies, queryString);
       } else {
         ctrl.filteredVocabularies = initFilteredVocabularies();
       }
@@ -46,6 +46,6 @@
         onSelectTerm: '&'
       },
       templateUrl: 'search/components/taxonomy/taxonomy-filter-panel/component.html',
-      controller: ['filterVocabulariesByQueryString', ngObibaMica.search.TaxonomyFilterPanelController]
+      controller: ['FilterVocabulariesByQueryString', ngObibaMica.search.TaxonomyFilterPanelController]
     });
 })();

@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-11-28
+ * Date: 2017-11-29
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8443,7 +8443,7 @@ ngObibaMica.search
 'use strict';
 
 (function() {
-  ngObibaMica.search.filterVocabulariesByQueryString = function() {
+  ngObibaMica.search.FilterVocabulariesByQueryString = function() {
 
     function filter(vocabularies, queryString) {
       console.log(queryString);
@@ -8520,7 +8520,7 @@ ngObibaMica.search
     'TaxonomyResource',
     ngObibaMica.search.MetaTaxonomyService
   ])
-  .service('filterVocabulariesByQueryString', [ngObibaMica.search.filterVocabulariesByQueryString]);
+  .service('FilterVocabulariesByQueryString', [ngObibaMica.search.FilterVocabulariesByQueryString]);
 
 })();;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8691,7 +8691,7 @@ ngObibaMica.search
 
 'use strict';
 
-ngObibaMica.search.inputSearchFilterController = function() {
+ngObibaMica.search.InputSearchFilterController = function() {
   var ctrl = this;
 
   function change(){
@@ -8713,7 +8713,7 @@ ngObibaMica.search
       onFilterChange: '&'
     },
     templateUrl: 'search/components/input-search-filter/component.html',
-    controller: [ngObibaMica.search.inputSearchFilterController]
+    controller: [ngObibaMica.search.InputSearchFilterController]
   });
 ;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8867,7 +8867,7 @@ ngObibaMica.search
 'use strict';
 
 (function () {
-  ngObibaMica.search.TaxonomyFilterPanelController = function(filterVocabulariesByQueryString) {
+  ngObibaMica.search.TaxonomyFilterPanelController = function(FilterVocabulariesByQueryString) {
     var ctrl = this;
 
     function selectTaxonomyVocabularyArgs(vocabulary, args) {
@@ -8875,7 +8875,7 @@ ngObibaMica.search
     }
     function onFilterChange(queryString) {
       if (queryString) {
-        ctrl.filteredVocabularies = filterVocabulariesByQueryString.filter(ctrl.taxonomy.vocabularies, queryString);
+        ctrl.filteredVocabularies = FilterVocabulariesByQueryString.filter(ctrl.taxonomy.vocabularies, queryString);
       } else {
         ctrl.filteredVocabularies = initFilteredVocabularies();
       }
@@ -8902,7 +8902,7 @@ ngObibaMica.search
         onSelectTerm: '&'
       },
       templateUrl: 'search/components/taxonomy/taxonomy-filter-panel/component.html',
-      controller: ['filterVocabulariesByQueryString', ngObibaMica.search.TaxonomyFilterPanelController]
+      controller: ['FilterVocabulariesByQueryString', ngObibaMica.search.TaxonomyFilterPanelController]
     });
 })();
 ;/*
