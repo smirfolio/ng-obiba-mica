@@ -11,7 +11,7 @@
 'use strict';
 
 (function() {
-  ngObibaMica.search.filterVocabulariesByQueryString = function() {
+  ngObibaMica.search.FilterVocabulariesByQueryString = function() {
 
     function filter(vocabularies, queryString) {
       console.log(queryString);
@@ -88,6 +88,6 @@ ngObibaMica.search
     'TaxonomyResource',
     ngObibaMica.search.MetaTaxonomyService
   ])
-  .service('filterVocabulariesByQueryString', [ngObibaMica.search.filterVocabulariesByQueryString]);
+  .service('FilterVocabulariesByQueryString', [ngObibaMica.search.FilterVocabulariesByQueryString]);
 
 })();
