@@ -1,0 +1,10 @@
+<div class="input-group">
+  <input type="text" ng-model="model"
+         ng-attr-placeholder="{{$ctrl.placeholderText | translate}}"
+         uib-typeahead="suggestion for suggestion in $ctrl.suggest($viewValue)"
+         typeahead-wait-ms="250"
+         typeahead-focus-first="false"
+         typeahead-on-select="select($item)"
+         class="form-control">
+  <span class="input-group-addon" id="basic-addon2"><i class="fa fa-search"></i></span>
+</div>
