@@ -23,6 +23,7 @@
     }
 
     function selectVocabularyArgs(args) {
+      console.log('VocabularyFilterDetailController');
       ctrl.onSelectVocabularyArgs({vocabulary: ctrl.vocabulary, args: args});
     }
 

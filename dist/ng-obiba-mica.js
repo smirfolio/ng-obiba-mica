@@ -5278,6 +5278,14 @@ ngObibaMica.search
 
       }
 
+      function findAndSetCriteriaItemForTaxonomyVocabularies(target, taxonomy) {
+        taxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
+          taxonomyVocabulary.existingItem =
+              RqlQueryService.findCriteriaItemFromTreeById(target,
+                  CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria);
+        });
+      }
+
       function executeSearchQuery() {
         if (validateQueryData()) {
           // build the criteria UI
@@ -5295,12 +5303,45 @@ ngObibaMica.search
               loadResults();
             }
 
+            if ($scope.search.selectedTarget && $scope.search.selectedTaxonomy) {
+              findAndSetCriteriaItemForTaxonomyVocabularies($scope.search.selectedTarget, $scope.search.selectedTaxonomy);
+            }
+
             $scope.$broadcast('ngObibaMicaQueryUpdated', $scope.search.criteria);
           });
         }
       }
 
       function onTaxonomyFilterPanelToggleVisibility(target, taxonomy) {
+        if (target && taxonomy) {
+          taxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
+            function processExistingItem(existingItem) {
+              if (existingItem) {
+
+                // when vocabulary has terms
+                (taxonomyVocabulary.terms || []).forEach(function (term) {
+                  term.selected = existingItem.selectedTerms.indexOf(term.name) > -1;
+                });
+              } else {
+
+                // when vocabulary has terms
+                (taxonomyVocabulary.terms || []).forEach(function (term) {
+                  term.selected = false;
+                });
+              }
+
+              taxonomyVocabulary._existingItem = existingItem;
+            }
+
+            taxonomyVocabulary.__defineSetter__('existingItem', processExistingItem);
+            taxonomyVocabulary.__defineGetter__('existingItem', function () {  return taxonomyVocabulary._existingItem; });
+
+            taxonomyVocabulary.existingItem =
+              RqlQueryService.findCriteriaItemFromTreeById(target,
+                CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria);
+          });
+        }
+
         $scope.search.selectedTarget = target;
         $scope.search.selectedTaxonomy = taxonomy;
         $scope.search.showTaxonomyPanel = taxonomy !== null;
@@ -8877,8 +8918,10 @@ ngObibaMica.search
     var ctrl = this;
 
     function selectTaxonomyVocabularyArgs(vocabulary, args) {
+      console.log('TaxonomyFilterPanelController');
       ctrl.onSelectTerm({target: ctrl.target, taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args});
     }
+
     function onFilterChange(queryString) {
       if (queryString) {
         ctrl.filteredVocabularies = FilterVocabulariesByQueryString.filter(ctrl.taxonomy.vocabularies, queryString);
@@ -8936,6 +8979,7 @@ ngObibaMica.search
     }
 
     function selectVocabularyArgs(args) {
+      console.log('VocabularyFilterDetailController');
       ctrl.onSelectVocabularyArgs({vocabulary: ctrl.vocabulary, args: args});
     }
 
@@ -12359,6 +12403,7 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
     "        <input id=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\"\n" +
     "               type=\"checkbox\"\n" +
     "               ng-model=\"term.selected\"\n" +
+    "               ng-model-options=\"{getterSetter: true}\"\n" +
     "               ng-click=\"$ctrl.clickCheckbox(term)\"> {{term.title | localizedString}}\n" +
     "      </label>\n" +
     "    </div>\n" +
@@ -12439,7 +12484,11 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
     "      <input-search-filter class=\"input-search-filter pull-right\" vocabularies=\"$ctrl.taxonomy.vocabularies\" on-filter-change=\"$ctrl.onFilterChange(queryString)\"></input-search-filter>\n" +
     "    </div>\n" +
     "  </div>\n" +
-    "  <vocabulary-filter-detail ng-repeat=\"vocabulary in $ctrl.filteredVocabularies track by $index\" vocabulary=\"vocabulary\"></vocabulary-filter-detail>\n" +
+    "  <vocabulary-filter-detail\n" +
+    "      on-select-vocabulary-args=\"$ctrl.selectTaxonomyVocabularyArgs(vocabulary, args)\"\n" +
+    "      ng-repeat=\"vocabulary in $ctrl.filteredVocabularies track by $index\"\n" +
+    "      vocabulary=\"vocabulary\">\n" +
+    "  </vocabulary-filter-detail>\n" +
     "</div>\n" +
     "\n" +
     "");
