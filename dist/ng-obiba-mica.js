@@ -5300,7 +5300,8 @@ ngObibaMica.search
         }
       }
 
-      function onTaxonomyFilterPanelToggleVisibility(taxonomy) {
+      function onTaxonomyFilterPanelToggleVisibility(target, taxonomy) {
+        $scope.search.selectedTarget = target;
         $scope.search.selectedTaxonomy = taxonomy;
         $scope.search.showTaxonomyPanel = taxonomy !== null;
       }
@@ -8588,12 +8589,15 @@ ngObibaMica.search
   ngObibaMica.search.MatchVocabularyFilterDetailController = function() {
     var ctrl = this;
 
-    function setMatchString(input) {
+    function enterText(keyPressEvent) {
+      var input = keyPressEvent.target.value;
       var args = {text: input || '*'};
-      ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
+      if (keyPressEvent.keyCode === 13) {
+        ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
+      }
     }
 
-    ctrl.setMatchString = setMatchString;
+    ctrl.enterText = enterText;
   };
 
   ngObibaMica.search
@@ -8623,11 +8627,14 @@ ngObibaMica.search
   ngObibaMica.search.NumericVocabularyFilterDetailController = function() {
     var ctrl = this;
 
-    function setRangeValue(input) {
+    function setRangeValue(keyPressEvent, input) {
       var args = {from: input.from, to: input.to};
-      ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
+      if (keyPressEvent.keyCode === 13) {
+        ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
+      }
     }
 
+    ctrl.input = {};
     ctrl.setRangeValue = setRangeValue;
   };
 
@@ -8672,8 +8679,7 @@ ngObibaMica.search
       transclude: true,
       bindings: {
         vocabulary: '<',
-        onSelectArgs: '&',
-        onRemoveArgs: '&'
+        onSelectArgs: '&'
       },
       templateUrl: 'search/components/criteria/terms-vocabulary-filter-detail/component.html',
       controller: [ngObibaMica.search.TermsVocabularyFilterDetailController]
@@ -8783,14 +8789,14 @@ ngObibaMica.search
           TaxonomyService.getTaxonomies(target, selectedTaxonomy.info.name)
             .then(function (taxonomy) {
               ctrl.selectedTaxonomy.state.loaded();
-              ctrl.onToggle(taxonomy);
+              ctrl.onToggle(target, taxonomy);
             });
         });
 
       } else {
         ctrl.selectedTaxonomy.state.none();
         ctrl.selectedTaxonomy = null;
-        ctrl.onToggle(ctrl.selectedTaxonomy);
+        ctrl.onToggle(target, ctrl.selectedTaxonomy);
       }
     }
 
@@ -8897,7 +8903,7 @@ ngObibaMica.search
     .component('taxonomyFilterPanel', {
       transclude: true,
       bindings: {
-        target: '@',
+        target: '<',
         taxonomy: '<',
         onSelectTerm: '&'
       },
@@ -12327,7 +12333,9 @@ angular.module("localized/localized-textarea-template.html", []).run(["$template
 
 angular.module("search/components/criteria/match-vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/match-vocabulary-filter-detail/component.html",
-    "<input type=\"text\" class=\"form-control\" placeholder=\"'Enter text to search...'\">\n" +
+    "<input type=\"text\" class=\"form-control\"\n" +
+    "       placeholder=\"Enter text to search...\"\n" +
+    "       ng-keypress=\"$ctrl.enterText($event)\">\n" +
     "\n" +
     "");
 }]);
@@ -12335,8 +12343,8 @@ angular.module("search/components/criteria/match-vocabulary-filter-detail/compon
 angular.module("search/components/criteria/numeric-vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/numeric-vocabulary-filter-detail/component.html",
     "<div>\n" +
-    "  <label>from <input type=\"number\"></label>\n" +
-    "  <label> to <input type=\"number\"></label>\n" +
+    "  <label>from <input type=\"number\" ng-model=\"$ctrl.input.from\" ng-keypress=\"$ctrl.setRangeValue($event, $ctrl.input)\"></label>\n" +
+    "  <label> to <input type=\"number\" ng-model=\"$ctrl.input.to\" ng-keypress=\"$ctrl.setRangeValue($event, $ctrl.input)\"></label>\n" +
     "</div>\n" +
     "\n" +
     "");
@@ -12357,7 +12365,7 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
     "  </div>\n" +
     "</div>\n" +
     "<span class=\"clearfix\"></span>\n" +
-    "<div class=\"row\" ng-if=\"$ctrl.vocabulary.terms.length >= $ctrl.limitNumber\">\n" +
+    "<div class=\"row\" ng-if=\"$ctrl.vocabulary.filteredTerms.length > $ctrl.limitNumber\">\n" +
     "  <button type=\"button\"\n" +
     "          class=\"btn btn-sm btn-primary pull-right\"\n" +
     "          ng-click=\"$ctrl.limitNumber = $ctrl.limitNumber + 6\">\n" +
@@ -12448,11 +12456,11 @@ angular.module("search/components/vocabulary/vocabulary-filter-detail/component.
     "      </div>\n" +
     "\n" +
     "      <div ng-switch-when=\"numeric\">\n" +
-    "        <numeric-vocabulary-filter-detail vocabulary=\"$ctrl.vocabulary\"></numeric-vocabulary-filter-detail>\n" +
+    "        <numeric-vocabulary-filter-detail vocabulary=\"$ctrl.vocabulary\" on-select-args=\"$ctrl.selectVocabularyArgs(args)\"></numeric-vocabulary-filter-detail>\n" +
     "      </div>\n" +
     "\n" +
     "      <div ng-switch-default>\n" +
-    "        <match-vocabulary-filter-detail vocabulary=\"$ctrl.vocabulary\"></match-vocabulary-filter-detail>\n" +
+    "        <match-vocabulary-filter-detail vocabulary=\"$ctrl.vocabulary\" on-select-args=\"$ctrl.selectVocabularyArgs(args)\"></match-vocabulary-filter-detail>\n" +
     "      </div>\n" +
     "    </div>\n" +
     "  </div>\n" +
@@ -14356,7 +14364,11 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "        </div>\n" +
     "        <div class=\"col-md-9\">\n" +
     "          <!-- Search Results region -->\n" +
-    "          <taxonomy-filter-panel target=\"variable\" taxonomy=\"search.selectedTaxonomy\" on-select-term=\"onSelectTerm(target, taxonomy, vocabulary, args)\" ng-if=\"search.showTaxonomyPanel\"></taxonomy-filter-panel>\n" +
+    "          <taxonomy-filter-panel\n" +
+    "              target=\"search.selectedTarget\"\n" +
+    "              taxonomy=\"search.selectedTaxonomy\"\n" +
+    "              on-select-term=\"onSelectTerm(target, taxonomy, vocabulary, args)\"\n" +
+    "              ng-if=\"search.showTaxonomyPanel\"></taxonomy-filter-panel>\n" +
     "\n" +
     "          <div id=\"search-result-region\" class=\"voffset3 can-full-screen\" ng-if=\"search.query\" fullscreen=\"isFullscreen\">\n" +
     "            <div ng-if=\"searchTabsOrder.length > 1\">\n" +

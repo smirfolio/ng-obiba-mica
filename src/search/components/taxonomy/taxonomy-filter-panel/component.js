@@ -41,7 +41,7 @@
     .component('taxonomyFilterPanel', {
       transclude: true,
       bindings: {
-        target: '@',
+        target: '<',
         taxonomy: '<',
         onSelectTerm: '&'
       },

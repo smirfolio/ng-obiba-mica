@@ -1,5 +1,5 @@
 <div>
-  <label>from <input type="number"></label>
-  <label> to <input type="number"></label>
+  <label>from <input type="number" ng-model="$ctrl.input.from" ng-keypress="$ctrl.setRangeValue($event, $ctrl.input)"></label>
+  <label> to <input type="number" ng-model="$ctrl.input.to" ng-keypress="$ctrl.setRangeValue($event, $ctrl.input)"></label>
 </div>
 

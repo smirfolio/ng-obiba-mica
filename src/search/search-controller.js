@@ -873,7 +873,8 @@ ngObibaMica.search
         }
       }
 
-      function onTaxonomyFilterPanelToggleVisibility(taxonomy) {
+      function onTaxonomyFilterPanelToggleVisibility(target, taxonomy) {
+        $scope.search.selectedTarget = target;
         $scope.search.selectedTaxonomy = taxonomy;
         $scope.search.showTaxonomyPanel = taxonomy !== null;
       }

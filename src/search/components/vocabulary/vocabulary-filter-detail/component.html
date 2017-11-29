@@ -7,11 +7,11 @@
       </div>
 
       <div ng-switch-when="numeric">
-        <numeric-vocabulary-filter-detail vocabulary="$ctrl.vocabulary"></numeric-vocabulary-filter-detail>
+        <numeric-vocabulary-filter-detail vocabulary="$ctrl.vocabulary" on-select-args="$ctrl.selectVocabularyArgs(args)"></numeric-vocabulary-filter-detail>
       </div>
 
       <div ng-switch-default>
-        <match-vocabulary-filter-detail vocabulary="$ctrl.vocabulary"></match-vocabulary-filter-detail>
+        <match-vocabulary-filter-detail vocabulary="$ctrl.vocabulary" on-select-args="$ctrl.selectVocabularyArgs(args)"></match-vocabulary-filter-detail>
       </div>
     </div>
   </div>
