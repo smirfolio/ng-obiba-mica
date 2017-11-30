@@ -14,14 +14,22 @@
   ngObibaMica.search.NumericVocabularyFilterDetailController = function() {
     var ctrl = this;
 
-    function setRangeValue(keyPressEvent, input) {
-      var args = {from: input.from, to: input.to};
-      if (keyPressEvent.keyCode === 13) {
-        ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
+    function setRangeValue(submitEvent) {
+      var from = submitEvent.target[0].value;
+      var to = submitEvent.target[1].value;
+      var args = {};
+
+      if (from) {
+        args.from = parseInt(from, 10);
       }
+
+      if (to) {
+        args.to = parseInt(to, 10);
+      }
+
+      ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
     }
 
-    ctrl.input = {};
     ctrl.setRangeValue = setRangeValue;
   };
 

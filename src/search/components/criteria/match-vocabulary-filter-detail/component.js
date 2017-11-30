@@ -14,10 +14,10 @@
   ngObibaMica.search.MatchVocabularyFilterDetailController = function() {
     var ctrl = this;
 
-    function enterText(keyPressEvent) {
-      var input = keyPressEvent.target.value;
+    function enterText(keyUpEvent) {
+      var input = keyUpEvent.target.value;
       var args = {text: input || '*'};
-      if (keyPressEvent.keyCode === 13) {
+      if (keyUpEvent.keyCode === 13) {
         ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
       }
     }

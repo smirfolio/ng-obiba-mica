@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-11-29
+ * Date: 2017-11-30
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -2383,6 +2383,23 @@ CriteriaItem.prototype.getTarget = function() {
   return this.target || null;
 };
 
+CriteriaItem.prototype.getRangeTerms = function () {
+  var range = {from: null, to: null};
+
+  if (this.type === RQL_NODE.BETWEEN) {
+    range.from = this.selectedTerms[0];
+    range.to = this.selectedTerms[1];
+  } else if (this.type === RQL_NODE.GE) {
+    range.from = this.selectedTerms[0];
+    range.to = null;
+  } else if (this.type === RQL_NODE.LE) {
+    range.from = null;
+    range.to = this.selectedTerms[0];
+  }
+
+  return range;
+};
+
 /* exported RepeatableCriteriaItem */
 function RepeatableCriteriaItem() {
   CriteriaItem.call(this, {});
@@ -2467,7 +2484,7 @@ function CriteriaItemBuilder(LocalizedValues, useLang) {
       criteria.selectedTerms = [];
     }
 
-    criteria.selectedTerms.push(typeof term === 'string' ? term : term.name);
+    criteria.selectedTerms.push(typeof term === 'string' || typeof term === 'number' ? term : term.name);
     return this;
   };
 
@@ -2475,7 +2492,7 @@ function CriteriaItemBuilder(LocalizedValues, useLang) {
     criteria.selectedTerms = terms.filter(function (term) {
       return term;
     }).map(function (term) {
-      if (typeof term === 'string') {
+      if (typeof term === 'string' || typeof term === 'number') {
         return term;
       } else {
         return term.name;
@@ -8352,8 +8369,8 @@ ngObibaMica.search
     function ($routeProvider) {
       $routeProvider
         .when('/search', {
-          templateUrl: 'search/views/search.html',
-          // templateUrl: 'search/views/search2.html',
+          // templateUrl: 'search/views/search.html',
+          templateUrl: 'search/views/search2.html',
           controller: 'SearchController',
           reloadOnSearch: false
         })
@@ -8736,10 +8753,10 @@ ngObibaMica.search
   ngObibaMica.search.MatchVocabularyFilterDetailController = function() {
     var ctrl = this;
 
-    function enterText(keyPressEvent) {
-      var input = keyPressEvent.target.value;
+    function enterText(keyUpEvent) {
+      var input = keyUpEvent.target.value;
       var args = {text: input || '*'};
-      if (keyPressEvent.keyCode === 13) {
+      if (keyUpEvent.keyCode === 13) {
         ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
       }
     }
@@ -8774,14 +8791,22 @@ ngObibaMica.search
   ngObibaMica.search.NumericVocabularyFilterDetailController = function() {
     var ctrl = this;
 
-    function setRangeValue(keyPressEvent, input) {
-      var args = {from: input.from, to: input.to};
-      if (keyPressEvent.keyCode === 13) {
-        ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
+    function setRangeValue(submitEvent) {
+      var from = submitEvent.target[0].value;
+      var to = submitEvent.target[1].value;
+      var args = {};
+
+      if (from) {
+        args.from = parseInt(from, 10);
       }
+
+      if (to) {
+        args.to = parseInt(to, 10);
+      }
+
+      ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
     }
 
-    ctrl.input = {};
     ctrl.setRangeValue = setRangeValue;
   };
 
@@ -12526,17 +12551,30 @@ angular.module("search/components/criteria/match-vocabulary-filter-detail/compon
   $templateCache.put("search/components/criteria/match-vocabulary-filter-detail/component.html",
     "<input type=\"text\" class=\"form-control\"\n" +
     "       placeholder=\"Enter text to search...\"\n" +
-    "       ng-keypress=\"$ctrl.enterText($event)\">\n" +
-    "\n" +
-    "");
+    "       ng-value=\"$ctrl.vocabulary.existingItem.selectedTerms.join('')\"\n" +
+    "       ng-keypup=\"$ctrl.enterText($event)\">");
 }]);
 
 angular.module("search/components/criteria/numeric-vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/numeric-vocabulary-filter-detail/component.html",
-    "<div>\n" +
-    "  <label>from <input type=\"number\" ng-model=\"$ctrl.input.from\" ng-keypress=\"$ctrl.setRangeValue($event, $ctrl.input)\"></label>\n" +
-    "  <label> to <input type=\"number\" ng-model=\"$ctrl.input.to\" ng-keypress=\"$ctrl.setRangeValue($event, $ctrl.input)\"></label>\n" +
-    "</div>\n" +
+    "<form ng-submit=\"$ctrl.setRangeValue($event)\">\n" +
+    "  <label>{{'global.from' | translate}}\n" +
+    "    <input type=\"number\"\n" +
+    "           ng-value=\"$ctrl.vocabulary.existingItem.getRangeTerms().from\"\n" +
+    "           name=\"from\"> <!--ng-keyup=\"$ctrl.setRangeValue($event, $ctrl.form.input)\"-->\n" +
+    "  </label>\n" +
+    "\n" +
+    "  <label> {{'global.to' | translate}}\n" +
+    "    <input type=\"number\"\n" +
+    "           ng-value=\"$ctrl.vocabulary.existingItem.getRangeTerms().to\"\n" +
+    "           name=\"to\">\n" +
+    "           <!--ng-keyup=\"$ctrl.setRangeValue($event, $ctrl.form.input)\"-->\n" +
+    "  </label>\n" +
+    "\n" +
+    "  <div class=\"hidden\">\n" +
+    "    <button type=\"submit\"></button>\n" +
+    "  </div>\n" +
+    "</form>\n" +
     "\n" +
     "");
 }]);

@@ -164,6 +164,23 @@ CriteriaItem.prototype.getTarget = function() {
   return this.target || null;
 };
 
+CriteriaItem.prototype.getRangeTerms = function () {
+  var range = {from: null, to: null};
+
+  if (this.type === RQL_NODE.BETWEEN) {
+    range.from = this.selectedTerms[0];
+    range.to = this.selectedTerms[1];
+  } else if (this.type === RQL_NODE.GE) {
+    range.from = this.selectedTerms[0];
+    range.to = null;
+  } else if (this.type === RQL_NODE.LE) {
+    range.from = null;
+    range.to = this.selectedTerms[0];
+  }
+
+  return range;
+};
+
 /* exported RepeatableCriteriaItem */
 function RepeatableCriteriaItem() {
   CriteriaItem.call(this, {});
@@ -248,7 +265,7 @@ function CriteriaItemBuilder(LocalizedValues, useLang) {
       criteria.selectedTerms = [];
     }
 
-    criteria.selectedTerms.push(typeof term === 'string' ? term : term.name);
+    criteria.selectedTerms.push(typeof term === 'string' || typeof term === 'number' ? term : term.name);
     return this;
   };
 
@@ -256,7 +273,7 @@ function CriteriaItemBuilder(LocalizedValues, useLang) {
     criteria.selectedTerms = terms.filter(function (term) {
       return term;
     }).map(function (term) {
-      if (typeof term === 'string') {
+      if (typeof term === 'string' || typeof term === 'number') {
         return term;
       } else {
         return term.name;
