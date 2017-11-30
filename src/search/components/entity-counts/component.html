@@ -1,0 +1,8 @@
+
+<div class="entity-counts voffset2">
+<ul>
+    <li ng-class="{active: (entity === $ctrl.target)}" ng-repeat="entity in $ctrl.resultTabsOrder">
+        {{$ctrl.taxonomyTypeMap[entity] | translate}} {{$ctrl.getTotalHits(entity) | localizedNumber}}
+    </li>
+</ul>
+</div>
