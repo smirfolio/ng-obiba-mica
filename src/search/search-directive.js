@@ -815,4 +815,12 @@ ngObibaMica.search
         }
       }
     };
+  }])
+  .directive('resultTabsOrderCount', [function(){
+    return {
+      restrict: 'EA',
+      replace: true,
+      controller: 'ResultTabsOrderCountController',
+      templateUrl: 'search/views/result-tabs-order-template-view.html'
+    };
   }]);

@@ -12,6 +12,28 @@
 (function() {
   'use strict';
 
+  ngObibaMica.search.FilterVocabulariesByQueryString = function($translate, LocalizedValues) {
+    function translateTitle(title) {
+      return LocalizedValues.forLocale(title, $translate.use());
+    }
+
+    function filter(vocabularies, queryString) {
+      if(queryString){
+        return vocabularies.filter(function(vocabulary){
+          vocabulary.filteredTerms =  (vocabulary.terms || []).filter(function(term){
+            if(translateTitle(term.title).toLowerCase().indexOf(queryString.toLowerCase()) >= 0){
+              return term.name;
+            }
+          });
+          return vocabulary.filteredTerms.length > 0;
+        });
+
+      }
+    }
+
+    this.filter = filter;
+  };
+
   ngObibaMica.search.TaxonomyService = function(TaxonomiesResource, TaxonomyResource) {
 
     /**
@@ -46,6 +68,7 @@
   };
 
   ngObibaMica.search
-    .service('TaxonomyService', ['TaxonomiesResource', 'TaxonomyResource', ngObibaMica.search.TaxonomyService]);
+    .service('TaxonomyService', ['TaxonomiesResource', 'TaxonomyResource', ngObibaMica.search.TaxonomyService])
+    .service('FilterVocabulariesByQueryString', ['$translate','LocalizedValues',  ngObibaMica.search.FilterVocabulariesByQueryString]);
 
 })();

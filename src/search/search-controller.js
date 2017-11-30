@@ -3069,5 +3069,7 @@ ngObibaMica.search
       updateMaxSize();
       calculateRange();
     });
+  }])
+  .controller('ResultTabsOrderCountController', [function(){
   }]);
 
