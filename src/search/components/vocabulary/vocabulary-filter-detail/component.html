@@ -1,5 +1,17 @@
 <div class="panel panel-default">
-  <div class="panel-heading">{{$ctrl.vocabulary.title | localizedString}}</div>
+  <div class="panel-heading">
+    <span>{{$ctrl.vocabulary.title | localizedString}}</span>
+
+    <span class="pull-right">
+      <a href="" ng-click="$ctrl.removeCriterion()" ng-if="$ctrl.vocabulary.existingItem">Clear</a>
+
+      <a href=""
+         ng-if="$ctrl.criterionType === 'string-terms' && $ctrl.vocabulary.existingItem.type !== 'exists'"
+         ng-click="$ctrl.selectVocabularyArgs(null)">
+        Select All
+      </a>
+    </span>
+  </div>
   <div class="panel-body">
     <div ng-switch on="$ctrl.criterionType">
       <div ng-switch-when="string-terms">

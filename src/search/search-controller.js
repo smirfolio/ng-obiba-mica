@@ -852,11 +852,21 @@ ngObibaMica.search
       }
 
       function findAndSetCriteriaItemForTaxonomyVocabularies(target, taxonomy) {
-        taxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
-          taxonomyVocabulary.existingItem =
-              RqlQueryService.findCriteriaItemFromTreeById(target,
-                  CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria);
-        });
+        if (Array.isArray(taxonomy)) {
+          taxonomy.forEach(function (subTaxonomy) {
+            subTaxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
+              taxonomyVocabulary.existingItem =
+                  RqlQueryService.findCriteriaItemFromTreeById(target,
+                      CriteriaIdGenerator.generate(subTaxonomy, taxonomyVocabulary), $scope.search.criteria);
+            });
+          });
+        } else {
+          taxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
+            taxonomyVocabulary.existingItem =
+                RqlQueryService.findCriteriaItemFromTreeById(target,
+                    CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria);
+          });
+        }
       }
 
       function executeSearchQuery() {
@@ -885,34 +895,44 @@ ngObibaMica.search
         }
       }
 
+      function processTaxonomyVocabulary(target, taxonomy, taxonomyVocabulary) {
+        function processExistingItem(existingItem) {
+          if (existingItem) {
+            // when vocabulary has terms
+            (taxonomyVocabulary.terms || []).forEach(function (term) {
+              term.selected = existingItem.type === 'exists' || existingItem.selectedTerms.indexOf(term.name) > -1;
+            });
+          } else {
+            // when vocabulary has terms
+            (taxonomyVocabulary.terms || []).forEach(function (term) {
+              term.selected = false;
+            });
+          }
+
+          taxonomyVocabulary._existingItem = existingItem;
+        }
+
+        taxonomyVocabulary.__defineSetter__('existingItem', processExistingItem);
+        taxonomyVocabulary.__defineGetter__('existingItem', function () {  return taxonomyVocabulary._existingItem; });
+
+        taxonomyVocabulary.existingItem =
+            RqlQueryService.findCriteriaItemFromTreeById(target,
+                CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria);
+      }
+
       function onTaxonomyFilterPanelToggleVisibility(target, taxonomy) {
         if (target && taxonomy) {
-          taxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
-            function processExistingItem(existingItem) {
-              if (existingItem) {
-
-                // when vocabulary has terms
-                (taxonomyVocabulary.terms || []).forEach(function (term) {
-                  term.selected = existingItem.selectedTerms.indexOf(term.name) > -1;
-                });
-              } else {
-
-                // when vocabulary has terms
-                (taxonomyVocabulary.terms || []).forEach(function (term) {
-                  term.selected = false;
-                });
-              }
-
-              taxonomyVocabulary._existingItem = existingItem;
-            }
-
-            taxonomyVocabulary.__defineSetter__('existingItem', processExistingItem);
-            taxonomyVocabulary.__defineGetter__('existingItem', function () {  return taxonomyVocabulary._existingItem; });
-
-            taxonomyVocabulary.existingItem =
-              RqlQueryService.findCriteriaItemFromTreeById(target,
-                CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria);
-          });
+          if (Array.isArray(taxonomy)) {
+            taxonomy.forEach(function (subTaxonomy) {
+              subTaxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
+                processTaxonomyVocabulary(target, subTaxonomy, taxonomyVocabulary);
+              });
+            });
+          } else {
+            taxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
+              processTaxonomyVocabulary(target, taxonomy, taxonomyVocabulary);
+            });
+          }
         }
 
         $scope.search.selectedTarget = target;

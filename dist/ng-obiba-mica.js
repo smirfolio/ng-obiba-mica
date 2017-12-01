@@ -5315,11 +5315,21 @@ ngObibaMica.search
       }
 
       function findAndSetCriteriaItemForTaxonomyVocabularies(target, taxonomy) {
-        taxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
-          taxonomyVocabulary.existingItem =
-              RqlQueryService.findCriteriaItemFromTreeById(target,
-                  CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria);
-        });
+        if (Array.isArray(taxonomy)) {
+          taxonomy.forEach(function (subTaxonomy) {
+            subTaxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
+              taxonomyVocabulary.existingItem =
+                  RqlQueryService.findCriteriaItemFromTreeById(target,
+                      CriteriaIdGenerator.generate(subTaxonomy, taxonomyVocabulary), $scope.search.criteria);
+            });
+          });
+        } else {
+          taxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
+            taxonomyVocabulary.existingItem =
+                RqlQueryService.findCriteriaItemFromTreeById(target,
+                    CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria);
+          });
+        }
       }
 
       function executeSearchQuery() {
@@ -5348,34 +5358,44 @@ ngObibaMica.search
         }
       }
 
+      function processTaxonomyVocabulary(target, taxonomy, taxonomyVocabulary) {
+        function processExistingItem(existingItem) {
+          if (existingItem) {
+            // when vocabulary has terms
+            (taxonomyVocabulary.terms || []).forEach(function (term) {
+              term.selected = existingItem.type === 'exists' || existingItem.selectedTerms.indexOf(term.name) > -1;
+            });
+          } else {
+            // when vocabulary has terms
+            (taxonomyVocabulary.terms || []).forEach(function (term) {
+              term.selected = false;
+            });
+          }
+
+          taxonomyVocabulary._existingItem = existingItem;
+        }
+
+        taxonomyVocabulary.__defineSetter__('existingItem', processExistingItem);
+        taxonomyVocabulary.__defineGetter__('existingItem', function () {  return taxonomyVocabulary._existingItem; });
+
+        taxonomyVocabulary.existingItem =
+            RqlQueryService.findCriteriaItemFromTreeById(target,
+                CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria);
+      }
+
       function onTaxonomyFilterPanelToggleVisibility(target, taxonomy) {
         if (target && taxonomy) {
-          taxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
-            function processExistingItem(existingItem) {
-              if (existingItem) {
-
-                // when vocabulary has terms
-                (taxonomyVocabulary.terms || []).forEach(function (term) {
-                  term.selected = existingItem.selectedTerms.indexOf(term.name) > -1;
-                });
-              } else {
-
-                // when vocabulary has terms
-                (taxonomyVocabulary.terms || []).forEach(function (term) {
-                  term.selected = false;
-                });
-              }
-
-              taxonomyVocabulary._existingItem = existingItem;
-            }
-
-            taxonomyVocabulary.__defineSetter__('existingItem', processExistingItem);
-            taxonomyVocabulary.__defineGetter__('existingItem', function () {  return taxonomyVocabulary._existingItem; });
-
-            taxonomyVocabulary.existingItem =
-              RqlQueryService.findCriteriaItemFromTreeById(target,
-                CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria);
-          });
+          if (Array.isArray(taxonomy)) {
+            taxonomy.forEach(function (subTaxonomy) {
+              subTaxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
+                processTaxonomyVocabulary(target, subTaxonomy, taxonomyVocabulary);
+              });
+            });
+          } else {
+            taxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
+              processTaxonomyVocabulary(target, taxonomy, taxonomyVocabulary);
+            });
+          }
         }
 
         $scope.search.selectedTarget = target;
@@ -8856,7 +8876,15 @@ ngObibaMica.search
       ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
     }
 
-    ctrl.limitNumber = 6;
+    function onChanges(changesObj) {
+      if (changesObj.vocabulary && ctrl.vocabulary.existingItem && ctrl.vocabulary.existingItem.type === 'exists') {
+        ctrl.vocabulary.terms.forEach(function (term) { term.selected = true; });
+      }
+    }
+
+    ctrl.$onChanges = onChanges;
+    ctrl.constantLimitNumber = 6;
+    ctrl.limitNumber = ctrl.constantLimitNumber;
     ctrl.clickCheckbox = clickCheckbox;
   };
 
@@ -9109,14 +9137,21 @@ ngObibaMica.search
       ctrl.onSelectTaxonomyTerm({taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args});
     }
 
+    function removeCriterion(item) {
+      ctrl.onRemoveCriterion({item: item});
+    }
+
     ctrl.selectVocabularyArgs = selectVocabularyArgs;
+    ctrl.removeCriterion = removeCriterion;
   };
 
   ngObibaMica.search
     .component('taxonomyFilterDetail', {
       bindings: {
+        taxonomy: '<',
         vocabularies: '<',
-        onSelectTaxonomyTerm: '&'
+        onSelectTaxonomyTerm: '&',
+        onRemoveCriterion: '&'
       },
       templateUrl: 'search/components/taxonomy/taxonomy-filter-detail/component.html',
       controller: [ngObibaMica.search.TaxonomyFilterDetailController]
@@ -9138,33 +9173,67 @@ ngObibaMica.search
   ngObibaMica.search.TaxonomyFilterPanelController = function(FilterVocabulariesByQueryString) {
     var ctrl = this;
 
-    function selectTaxonomyVocabularyArgs(vocabulary, args) {
+    function selectTaxonomyVocabularyArgs(taxonomy, vocabulary, args) {
       console.log('TaxonomyFilterPanelController');
-      ctrl.onSelectTerm({target: ctrl.target, taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args});
+      ctrl.onSelectTerm({target: ctrl.target, taxonomy: taxonomy, vocabulary: vocabulary, args: args});
     }
 
     function onFilterChange(queryString) {
+      if (!ctrl.taxonomyIsArray) {
+        filterChangedForSingleTaxonomy(queryString);
+      } else {
+        filterChangedForMultipleTaxonomies(queryString);
+      }
+    }
+
+    function filterChangedForSingleTaxonomy(queryString) {
       if (queryString) {
         ctrl.filteredVocabularies = FilterVocabulariesByQueryString.filter(ctrl.taxonomy.vocabularies, queryString);
       } else {
-        ctrl.filteredVocabularies = initFilteredVocabularies();
+        ctrl.filteredVocabularies = initFilteredVocabularies(ctrl.taxonomy);
       }
     }
+
+    function filterChangedForMultipleTaxonomies(queryString) {
+      ctrl.filteredVocabularies = {};
+      if (queryString) {
+        ctrl.taxonomy.forEach(function (subTaxonomy) {
+          ctrl.filteredVocabularies[subTaxonomy.name] = FilterVocabulariesByQueryString.filter(subTaxonomy, queryString);
+        });
+      } else {
+        ctrl.taxonomy.forEach(function (subTaxonomy) {
+          ctrl.filteredVocabularies[subTaxonomy.name] = initFilteredVocabularies(subTaxonomy);
+        });
+      }
+    }
+
     function togglePannel(){
       ctrl.onToggle(ctrl.target, null);
     }
 
-    function initFilteredVocabularies() {
-      return ctrl.taxonomy.vocabularies.map(function (vocabulary) {
+    function initFilteredVocabularies(taxonomy) {
+      return taxonomy.vocabularies.map(function (vocabulary) {
         vocabulary.filteredTerms = vocabulary.terms;
         return vocabulary;
       });
     }
 
-    ctrl.filteredVocabularies = initFilteredVocabularies();
+    function onChanges(changesObj) {
+      ctrl.taxonomyIsArray = Array.isArray(ctrl.taxonomy);
+      if (changesObj.taxonomy) {
+        onFilterChange();
+      }
+    }
+
+    function removeCriterion(item) {
+      ctrl.onRemoveCriterion({item: item});
+    }
+
+    ctrl.$onChanges = onChanges;
     ctrl.selectTaxonomyVocabularyArgs = selectTaxonomyVocabularyArgs;
     ctrl.onFilterChange = onFilterChange;
     ctrl.togglePannel = togglePannel;
+    ctrl.removeCriterion = removeCriterion;
   };
 
   ngObibaMica.search
@@ -9177,6 +9246,7 @@ ngObibaMica.search
         target: '<',
         taxonomy: '<',
         onSelectTerm: '&',
+        onRemoveCriterion: '&',
         onToggle: '<'
       },
       templateUrl: 'search/components/taxonomy/taxonomy-filter-panel/component.html',
@@ -9208,11 +9278,15 @@ ngObibaMica.search
     }
 
     function selectVocabularyArgs(args) {
-      console.log('VocabularyFilterDetailController');
       ctrl.onSelectVocabularyArgs({vocabulary: ctrl.vocabulary, args: args});
     }
 
+    function removeCriterion() {
+      ctrl.onRemoveCriterion({item: ctrl.vocabulary.existingItem});
+    }
+
     ctrl.selectVocabularyArgs = selectVocabularyArgs;
+    ctrl.removeCriterion = removeCriterion;
   };
 
   ngObibaMica.search
@@ -9220,7 +9294,8 @@ ngObibaMica.search
       transclude: true,
       bindings: {
         vocabulary: '<',
-        onSelectVocabularyArgs: '&'
+        onSelectVocabularyArgs: '&',
+        onRemoveCriterion: '&'
       },
       templateUrl: 'search/components/vocabulary/vocabulary-filter-detail/component.html',
       controller: ['RqlQueryUtils', ngObibaMica.search.VocabularyFilterDetailController]
@@ -12611,7 +12686,7 @@ angular.module("search/components/criteria/match-vocabulary-filter-detail/compon
     "<input type=\"text\" class=\"form-control\"\n" +
     "       placeholder=\"Enter text to search...\"\n" +
     "       ng-value=\"$ctrl.vocabulary.existingItem.selectedTerms.join('')\"\n" +
-    "       ng-keypup=\"$ctrl.enterText($event)\">");
+    "       ng-keyup=\"$ctrl.enterText($event)\">");
 }]);
 
 angular.module("search/components/criteria/numeric-vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
@@ -12628,10 +12703,7 @@ angular.module("search/components/criteria/numeric-vocabulary-filter-detail/comp
     "           ng-value=\"$ctrl.vocabulary.existingItem.getRangeTerms().to\"\n" +
     "           name=\"to\">\n" +
     "  </label>\n" +
-    "\n" +
-    "  <div class=\"hidden\">\n" +
-    "    <button type=\"submit\"></button>\n" +
-    "  </div>\n" +
+    "  <button type=\"submit\" class=\"btn btn-default btn-xs\">GO</button>\n" +
     "</form>\n" +
     "\n" +
     "");
@@ -12653,12 +12725,19 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
     "  </div>\n" +
     "</div>\n" +
     "<span class=\"clearfix\"></span>\n" +
-    "<div class=\"row\" ng-if=\"$ctrl.vocabulary.filteredTerms.length > $ctrl.limitNumber\">\n" +
-    "  <button type=\"button\"\n" +
-    "          class=\"btn btn-sm btn-primary pull-right\"\n" +
-    "          ng-click=\"$ctrl.limitNumber = $ctrl.limitNumber + 6\">\n" +
-    "    More\n" +
-    "  </button>\n" +
+    "<div class=\"row\">\n" +
+    "  <div class=\"btn-group pull-right\">\n" +
+    "    <button type=\"button\" ng-if=\"$ctrl.limitNumber > $ctrl.constantLimitNumber\"\n" +
+    "            class=\"btn btn-xs btn-primary\"\n" +
+    "            ng-click=\"$ctrl.limitNumber = $ctrl.limitNumber - $ctrl.constantLimitNumber\">\n" +
+    "      Less\n" +
+    "    </button>\n" +
+    "    <button type=\"button\" ng-if=\"$ctrl.vocabulary.filteredTerms.length > $ctrl.limitNumber\"\n" +
+    "            class=\"btn btn-xs btn-primary\"\n" +
+    "            ng-click=\"$ctrl.limitNumber = $ctrl.limitNumber + $ctrl.constantLimitNumber\">\n" +
+    "      More\n" +
+    "    </button>\n" +
+    "  </div>\n" +
     "</div>\n" +
     "\n" +
     "");
@@ -12737,11 +12816,19 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-panel/compo
 
 angular.module("search/components/taxonomy/taxonomy-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/taxonomy/taxonomy-filter-detail/component.html",
-    "<div style=\"max-height: 728px; overflow-y: auto;\">\n" +
-    "  <vocabulary-filter-detail\n" +
-    "      ng-repeat=\"vocabulary in $ctrl.vocabularies\"\n" +
-    "      vocabulary=\"vocabulary\"\n" +
-    "      on-select-vocabulary-args=\"$ctrl.selectVocabularyArgs(vocabulary, args)\"></vocabulary-filter-detail>\n" +
+    "<div class=\"panel panel-primary\">\n" +
+    "  <div class=\"panel-heading\">\n" +
+    "    {{$ctrl.taxonomy.title | localizedString}}\n" +
+    "  </div>\n" +
+    "\n" +
+    "  <div class=\"panel-body\">\n" +
+    "    <vocabulary-filter-detail\n" +
+    "        ng-repeat=\"vocabulary in $ctrl.vocabularies\"\n" +
+    "        vocabulary=\"vocabulary\"\n" +
+    "        on-select-vocabulary-args=\"$ctrl.selectVocabularyArgs(vocabulary, args)\"\n" +
+    "        on-remove-criterion=\"$ctrl.removeCriterion(item)\">\n" +
+    "    </vocabulary-filter-detail>\n" +
+    "  </div>\n" +
     "</div>");
 }]);
 
@@ -12759,10 +12846,20 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
     "  </div>\n" +
     "  <div class=\"vocabulary-filter-detail-container\">\n" +
     "    <vocabulary-filter-detail\n" +
-    "            on-select-vocabulary-args=\"$ctrl.selectTaxonomyVocabularyArgs(vocabulary, args)\"\n" +
+    "            ng-if=\"!$ctrl.taxonomyIsArray\"\n" +
+    "            on-select-vocabulary-args=\"$ctrl.selectTaxonomyVocabularyArgs($ctrl.taxonomy, vocabulary, args)\"\n" +
     "            ng-repeat=\"vocabulary in $ctrl.filteredVocabularies track by $index\"\n" +
+    "            on-remove-criterion=\"$ctrl.removeCriterion(item)\"\n" +
     "            vocabulary=\"vocabulary\">\n" +
     "    </vocabulary-filter-detail>\n" +
+    "    <div ng-if=\"$ctrl.taxonomyIsArray\" ng-repeat=\"subTaxonomy in $ctrl.taxonomy\">\n" +
+    "\n" +
+    "      <taxonomy-filter-detail taxonomy=\"subTaxonomy\"\n" +
+    "                              vocabularies=\"$ctrl.filteredVocabularies[subTaxonomy.name]\"\n" +
+    "                              on-select-taxonomy-term=\"$ctrl.selectTaxonomyVocabularyArgs(taxonomy, vocabulary, args)\"\n" +
+    "                              on-remove-criterion=\"$ctrl.removeCriterion(item)\">\n" +
+    "      </taxonomy-filter-detail>\n" +
+    "    </div>\n" +
     "  </div>\n" +
     "</div>\n" +
     "\n" +
@@ -12772,7 +12869,19 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
 angular.module("search/components/vocabulary/vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/vocabulary/vocabulary-filter-detail/component.html",
     "<div class=\"panel panel-default\">\n" +
-    "  <div class=\"panel-heading\">{{$ctrl.vocabulary.title | localizedString}}</div>\n" +
+    "  <div class=\"panel-heading\">\n" +
+    "    <span>{{$ctrl.vocabulary.title | localizedString}}</span>\n" +
+    "\n" +
+    "    <span class=\"pull-right\">\n" +
+    "      <a href=\"\" ng-click=\"$ctrl.removeCriterion()\" ng-if=\"$ctrl.vocabulary.existingItem\">Clear</a>\n" +
+    "\n" +
+    "      <a href=\"\"\n" +
+    "         ng-if=\"$ctrl.criterionType === 'string-terms' && $ctrl.vocabulary.existingItem.type !== 'exists'\"\n" +
+    "         ng-click=\"$ctrl.selectVocabularyArgs(null)\">\n" +
+    "        Select All\n" +
+    "      </a>\n" +
+    "    </span>\n" +
+    "  </div>\n" +
     "  <div class=\"panel-body\">\n" +
     "    <div ng-switch on=\"$ctrl.criterionType\">\n" +
     "      <div ng-switch-when=\"string-terms\">\n" +
@@ -14706,6 +14815,7 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "                  target=\"search.selectedTarget\"\n" +
     "                  taxonomy=\"search.selectedTaxonomy\"\n" +
     "                  on-select-term=\"onSelectTerm(target, taxonomy, vocabulary, args)\"\n" +
+    "                  on-remove-criterion=\"removeCriteriaItem(item)\"\n" +
     "                  ng-if=\"search.showTaxonomyPanel\"\n" +
     "                  on-toggle=\"onTaxonomyFilterPanelToggleVisibility\"\n" +
     "          ></taxonomy-filter-panel>\n" +

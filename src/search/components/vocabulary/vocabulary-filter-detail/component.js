@@ -23,11 +23,15 @@
     }
 
     function selectVocabularyArgs(args) {
-      console.log('VocabularyFilterDetailController');
       ctrl.onSelectVocabularyArgs({vocabulary: ctrl.vocabulary, args: args});
     }
 
+    function removeCriterion() {
+      ctrl.onRemoveCriterion({item: ctrl.vocabulary.existingItem});
+    }
+
     ctrl.selectVocabularyArgs = selectVocabularyArgs;
+    ctrl.removeCriterion = removeCriterion;
   };
 
   ngObibaMica.search
@@ -35,7 +39,8 @@
       transclude: true,
       bindings: {
         vocabulary: '<',
-        onSelectVocabularyArgs: '&'
+        onSelectVocabularyArgs: '&',
+        onRemoveCriterion: '&'
       },
       templateUrl: 'search/components/vocabulary/vocabulary-filter-detail/component.html',
       controller: ['RqlQueryUtils', ngObibaMica.search.VocabularyFilterDetailController]
