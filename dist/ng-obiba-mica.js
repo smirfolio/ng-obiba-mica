@@ -5722,7 +5722,6 @@ ngObibaMica.search
       };
 
       var onSelectTerm = function (target, taxonomy, vocabulary, args) {
-        console.log('SearchController.onSelectTerm', target, taxonomy, vocabulary, args);
         args = args || {};
 
         if (args.text) {
@@ -9174,7 +9173,6 @@ ngObibaMica.search
     var ctrl = this;
 
     function selectTaxonomyVocabularyArgs(taxonomy, vocabulary, args) {
-      console.log('TaxonomyFilterPanelController');
       ctrl.onSelectTerm({target: ctrl.target, taxonomy: taxonomy, vocabulary: vocabulary, args: args});
     }
 
@@ -12785,7 +12783,7 @@ angular.module("search/components/input-search-filter/component.html", []).run([
 
 angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html",
-    "<div uib-accordion-group class=\"panel-default voffset2\" heading=\"{{$ctrl.metaTaxonomy.title | localizedString}}\" is-open=\"$ctrl.status.isFirstOpen\">\n" +
+    "<div uib-accordion-group class=\"panel-default\" heading=\"{{$ctrl.metaTaxonomy.title | localizedString}}\" is-open=\"$ctrl.status.isFirstOpen\">\n" +
     "  <entity-search-typeahead placeholder-text=\"global.list-search-placeholder\" entity-type=\"$ctrl.entityType\"></entity-search-typeahead>\n" +
     "\n" +
     "  <ul class=\"nav nav-pills nav-stacked voffset1\">\n" +
@@ -12835,16 +12833,19 @@ angular.module("search/components/taxonomy/taxonomy-filter-detail/component.html
 angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/taxonomy/taxonomy-filter-panel/component.html",
     "<div class=\"vocabulary-filter-detail\">\n" +
-    "  <div class=\"row\">\n" +
-    "    <div class=\"col-md-2\"><div class=\"voffset2\"><a href=\"#\"><i class=\"glyphicon glyphicon-chevron-left\"></i> Close</a></div></div>\n" +
-    "    <div class=\"col-md-6\">\n" +
-    "      <entity-counts taxonomy-type-map=\"$ctrl.taxonomyTypeMap\" result-tabs-order=\"$ctrl.resultTabsOrder\" target=\"$ctrl.target\" result=\"$ctrl.result\"></entity-counts>\n" +
+    "    <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\" ng-click=\"$ctrl.togglePannel()\"><span aria-hidden=\"true\">×</span></button>\n" +
+    "    <div class=\"ng-clearfix\"></div>\n" +
+    "<div class=\"vocabulary-filter-detail-heading\">\n" +
+    "    <div class=\"row\">\n" +
+    "      <div class=\"col-md-4\">\n" +
+    "        <input-search-filter class=\"input-search-filter\" vocabularies=\"$ctrl.taxonomy.vocabularies\" on-filter-change=\"$ctrl.onFilterChange(queryString)\"></input-search-filter>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-md-8\">\n" +
+    "        <entity-counts class=\"pull-right\" taxonomy-type-map=\"$ctrl.taxonomyTypeMap\" result-tabs-order=\"$ctrl.resultTabsOrder\" target=\"$ctrl.target\" result=\"$ctrl.result\"></entity-counts>\n" +
+    "      </div>\n" +
     "    </div>\n" +
-    "    <div class=\"col-md-4\">\n" +
-    "      <input-search-filter class=\"input-search-filter pull-right\" vocabularies=\"$ctrl.taxonomy.vocabularies\" on-filter-change=\"$ctrl.onFilterChange(queryString)\"></input-search-filter>\n" +
-    "    </div>\n" +
-    "  </div>\n" +
-    "  <div class=\"vocabulary-filter-detail-container\">\n" +
+    "</div>\n" +
+    "<div class=\"vocabulary-filter-detail-container\">\n" +
     "    <vocabulary-filter-detail\n" +
     "            ng-if=\"!$ctrl.taxonomyIsArray\"\n" +
     "            on-select-vocabulary-args=\"$ctrl.selectTaxonomyVocabularyArgs($ctrl.taxonomy, vocabulary, args)\"\n" +
@@ -12937,7 +12938,7 @@ angular.module("search/views/classifications.html", []).run(["$templateCache", f
     "  </ul>\n" +
     "\n" +
     "  <!-- Search criteria region -->\n" +
-    "  <search-criteria-region options=\"options\" search=\"search\"> </search-criteria-region>\n" +
+    "  <search-criteria-region class=\"voffset2\" options=\"options\" search=\"search\"> </search-criteria-region>\n" +
     "\n" +
     "  <!-- Classifications region -->\n" +
     "  <div class=\"{{tabs && tabs.length>1 ? 'tab-content voffset4' : ''}}\">\n" +
@@ -13911,7 +13912,7 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
 
 angular.module("search/views/criteria/search-criteria-region-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/search-criteria-region-template.html",
-    "<div id=\"search-criteria-region\" ng-class=\"options.showSearchBox || options.showSearchBrowser ? 'voffset2' : ''\" class=\"panel panel-default\" ng-if=\"search.criteria.children && search.criteria.children.length>0\">\n" +
+    "<div id=\"search-criteria-region\" class=\"panel panel-default\" ng-if=\"search.criteria.children && search.criteria.children.length>0\">\n" +
     "    <div class=\"panel-body\">\n" +
     "        <table style=\"border:none\">\n" +
     "            <tbody>\n" +
@@ -14792,22 +14793,20 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "      <taxonomies-facets-panel id=\"search-facets-region\" faceted-taxonomies=\"facetedTaxonomies\" criteria=\"search.criteria\" on-select-term=\"onSelectTerm\"\n" +
     "                    on-refresh=\"refreshQuery\" lang=\"lang\"></taxonomies-facets-panel>\n" +
     "    </div>\n" +
-    "    <div class=\"{{hasFacetedTaxonomies ? 'col-md-9' : 'col-md-12'}}\">\n" +
-    "\n" +
+    "    <div class=\"col-md-3\" ng-if=\"!hasFacetedTaxonomies\" >\n" +
+    "      <!-- Search Facets region -->\n" +
+    "      <meta-taxonomy-filter-panel\n" +
+    "              tabs=\"targetTabsOrder\"\n" +
+    "              on-toggle=\"onTaxonomyFilterPanelToggleVisibility\"></meta-taxonomy-filter-panel>\n" +
+    "    </div>\n" +
+    "    <div class=\"col-md-9\">\n" +
     "      <div ng-if=\"hasFacetedTaxonomies && hasFacetedNavigationHelp && !(search.criteria.children && search.criteria.children.length > 0)\">\n" +
     "        <p class=\"help-block\" translate>search.faceted-navigation-help</p>\n" +
     "      </div>\n" +
-    "\n" +
     "      <!-- Search criteria region -->\n" +
     "      <search-criteria-region options=\"options\" search=\"search\"> </search-criteria-region>\n" +
-    "      <div class=\"row\">\n" +
-    "        <div class=\"col-md-3\">\n" +
-    "          <meta-taxonomy-filter-panel\n" +
-    "                  tabs=\"targetTabsOrder\"\n" +
-    "                  on-toggle=\"onTaxonomyFilterPanelToggleVisibility\"></meta-taxonomy-filter-panel>\n" +
-    "        </div>\n" +
-    "        <div class=\"col-md-9\">\n" +
     "          <!-- Search Results region -->\n" +
+    "        <div style=\"position: relative\">\n" +
     "          <taxonomy-filter-panel\n" +
     "                  result-tabs-order=\"resultTabsOrder\"\n" +
     "                  taxonomy-type-map=\"taxonomyTypeMap\"\n" +
@@ -14832,23 +14831,22 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "              </ul>\n" +
     "            </div>\n" +
     "\n" +
-    "            <div translate>{{'search.' + search.display + '-help'}}</div>\n" +
-    "            <result-panel display=\"search.display\"\n" +
-    "                          type=\"search.type\"\n" +
-    "                          bucket=\"search.bucket\"\n" +
-    "                          criteria=\"search.criteria\"\n" +
-    "                          query=\"search.executedQuery\"\n" +
-    "                          result=\"search.result\"\n" +
-    "                          loading=\"search.loading\"\n" +
-    "                          on-update-criteria=\"onUpdateCriteria\"\n" +
-    "                          on-remove-criteria=\"onRemoveCriteria\"\n" +
-    "                          on-type-changed=\"onTypeChanged\"\n" +
-    "                          on-bucket-changed=\"onBucketChanged\"\n" +
-    "                          on-paginate=\"onPaginate\"\n" +
-    "                          search-tabs-order=\"searchTabsOrder\"\n" +
-    "                          result-tabs-order=\"resultTabsOrder\"\n" +
-    "                          lang=\"lang\"></result-panel>\n" +
-    "          </div>\n" +
+    "          <div translate>{{'search.' + search.display + '-help'}}</div>\n" +
+    "          <result-panel display=\"search.display\"\n" +
+    "                        type=\"search.type\"\n" +
+    "                        bucket=\"search.bucket\"\n" +
+    "                        criteria=\"search.criteria\"\n" +
+    "                        query=\"search.executedQuery\"\n" +
+    "                        result=\"search.result\"\n" +
+    "                        loading=\"search.loading\"\n" +
+    "                        on-update-criteria=\"onUpdateCriteria\"\n" +
+    "                        on-remove-criteria=\"onRemoveCriteria\"\n" +
+    "                        on-type-changed=\"onTypeChanged\"\n" +
+    "                        on-bucket-changed=\"onBucketChanged\"\n" +
+    "                        on-paginate=\"onPaginate\"\n" +
+    "                        search-tabs-order=\"searchTabsOrder\"\n" +
+    "                        result-tabs-order=\"resultTabsOrder\"\n" +
+    "                        lang=\"lang\"></result-panel>\n" +
     "        </div>\n" +
     "\n" +
     "      </div>\n" +

@@ -1259,7 +1259,6 @@ ngObibaMica.search
       };
 
       var onSelectTerm = function (target, taxonomy, vocabulary, args) {
-        console.log('SearchController.onSelectTerm', target, taxonomy, vocabulary, args);
         args = args || {};
 
         if (args.text) {
