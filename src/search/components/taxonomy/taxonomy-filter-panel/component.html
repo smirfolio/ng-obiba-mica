@@ -10,10 +10,18 @@
   </div>
   <div class="vocabulary-filter-detail-container">
     <vocabulary-filter-detail
-            on-select-vocabulary-args="$ctrl.selectTaxonomyVocabularyArgs(vocabulary, args)"
+            ng-if="!$ctrl.taxonomyIsArray"
+            on-select-vocabulary-args="$ctrl.selectTaxonomyVocabularyArgs($ctrl.taxonomy, vocabulary, args)"
             ng-repeat="vocabulary in $ctrl.filteredVocabularies track by $index"
             vocabulary="vocabulary">
     </vocabulary-filter-detail>
+    <div ng-if="$ctrl.taxonomyIsArray" ng-repeat="subTaxonomy in $ctrl.taxonomy">
+
+      <taxonomy-filter-detail taxonomy="subTaxonomy"
+                              vocabularies="$ctrl.filteredVocabularies[subTaxonomy.name]"
+                              on-select-taxonomy-term="$ctrl.selectTaxonomyVocabularyArgs(taxonomy, vocabulary, args)">
+      </taxonomy-filter-detail>
+    </div>
   </div>
 </div>
 

@@ -24,6 +24,7 @@
   ngObibaMica.search
     .component('taxonomyFilterDetail', {
       bindings: {
+        taxonomy: '<',
         vocabularies: '<',
         onSelectTaxonomyTerm: '&'
       },
