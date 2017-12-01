@@ -47,6 +47,9 @@
     .component('taxonomyFilterPanel', {
       transclude: true,
       bindings: {
+        result: '<',
+        resultTabsOrder: '<',
+        taxonomyTypeMap: '<',
         target: '<',
         taxonomy: '<',
         onSelectTerm: '&',
