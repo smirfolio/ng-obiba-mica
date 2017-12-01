@@ -1,14 +1,17 @@
 <div class="vocabulary-filter-detail">
-  <div class="row">
-    <div class="col-md-2"><div class="voffset2"><a href="#"><i class="glyphicon glyphicon-chevron-left"></i> Close</a></div></div>
-    <div class="col-md-6">
-      <entity-counts taxonomy-type-map="$ctrl.taxonomyTypeMap" result-tabs-order="$ctrl.resultTabsOrder" target="$ctrl.target" result="$ctrl.result"></entity-counts>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close" ng-click="$ctrl.togglePannel()"><span aria-hidden="true">×</span></button>
+    <div class="ng-clearfix"></div>
+<div class="vocabulary-filter-detail-heading">
+    <div class="row">
+      <div class="col-md-4">
+        <input-search-filter class="input-search-filter" vocabularies="$ctrl.taxonomy.vocabularies" on-filter-change="$ctrl.onFilterChange(queryString)"></input-search-filter>
+      </div>
+      <div class="col-md-8">
+        <entity-counts class="pull-right" taxonomy-type-map="$ctrl.taxonomyTypeMap" result-tabs-order="$ctrl.resultTabsOrder" target="$ctrl.target" result="$ctrl.result"></entity-counts>
+      </div>
     </div>
-    <div class="col-md-4">
-      <input-search-filter class="input-search-filter pull-right" vocabularies="$ctrl.taxonomy.vocabularies" on-filter-change="$ctrl.onFilterChange(queryString)"></input-search-filter>
-    </div>
-  </div>
-  <div class="vocabulary-filter-detail-container">
+</div>
+<div class="vocabulary-filter-detail-container">
     <vocabulary-filter-detail
             ng-if="!$ctrl.taxonomyIsArray"
             on-select-vocabulary-args="$ctrl.selectTaxonomyVocabularyArgs($ctrl.taxonomy, vocabulary, args)"

@@ -15,7 +15,6 @@
     var ctrl = this;
 
     function selectTaxonomyVocabularyArgs(taxonomy, vocabulary, args) {
-      console.log('TaxonomyFilterPanelController');
       ctrl.onSelectTerm({target: ctrl.target, taxonomy: taxonomy, vocabulary: vocabulary, args: args});
     }
 

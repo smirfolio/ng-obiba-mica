@@ -1,12 +1,22 @@
 .vocabulary-filter-detail{
-  padding: 5px;
-  padding: 10px 10px 10px 5px;
-  border: solid 1px #ECF0F1;
-  border-radius: 5px;
+  border: none !important;
+  margin-bottom: 0px !important;
+  .close{
+    padding-right: 15px;
+  }
+  .vocabulary-filter-detail-heading{
+    padding: 5px;
+    border-bottom: 1px solid #ECF0F1;
+  }
   .vocabulary-filter-detail-container{
     padding: 5px;
     overflow-y: scroll;
-    max-height: 728px;
+    max-height: 600px;
+  }
+}
+meta-taxonomy-filter-list{
+  .panel{
+    margin-bottom: 15px !important;
   }
 }
 taxonomy-filter-panel{
@@ -14,4 +24,6 @@ taxonomy-filter-panel{
   background-color: #ffffff;
   z-index: 5;
   width: 100%;
+  border-radius: 5px;
+  border: 1px solid #ECF0F1;
 }
