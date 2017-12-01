@@ -14786,7 +14786,8 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "  </div>\n" +
     "\n" +
     "  <div ng-if=\"searchHeaderTemplateUrl\" ng-include=\"searchHeaderTemplateUrl\"></div>\n" +
-    "\n" +
+    "  <!-- Search criteria region -->\n" +
+    "  <search-criteria-region options=\"options\" search=\"search\"> </search-criteria-region>\n" +
     "  <div class=\"row voffset2\">\n" +
     "    <div class=\"col-md-3\" ng-if=\"hasFacetedTaxonomies\" >\n" +
     "      <!-- Search Facets region -->\n" +
@@ -14803,8 +14804,6 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "      <div ng-if=\"hasFacetedTaxonomies && hasFacetedNavigationHelp && !(search.criteria.children && search.criteria.children.length > 0)\">\n" +
     "        <p class=\"help-block\" translate>search.faceted-navigation-help</p>\n" +
     "      </div>\n" +
-    "      <!-- Search criteria region -->\n" +
-    "      <search-criteria-region options=\"options\" search=\"search\"> </search-criteria-region>\n" +
     "          <!-- Search Results region -->\n" +
     "        <div style=\"position: relative\">\n" +
     "          <taxonomy-filter-panel\n" +
