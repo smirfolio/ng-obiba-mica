@@ -48,6 +48,7 @@
                   target="search.selectedTarget"
                   taxonomy="search.selectedTaxonomy"
                   on-select-term="onSelectTerm(target, taxonomy, vocabulary, args)"
+                  on-remove-criterion="removeCriteriaItem(item)"
                   ng-if="search.showTaxonomyPanel"
                   on-toggle="onTaxonomyFilterPanelToggleVisibility"
           ></taxonomy-filter-panel>

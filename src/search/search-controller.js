@@ -900,7 +900,7 @@ ngObibaMica.search
           if (existingItem) {
             // when vocabulary has terms
             (taxonomyVocabulary.terms || []).forEach(function (term) {
-              term.selected = existingItem.selectedTerms.indexOf(term.name) > -1;
+              term.selected = existingItem.type === 'exists' || existingItem.selectedTerms.indexOf(term.name) > -1;
             });
           } else {
             // when vocabulary has terms

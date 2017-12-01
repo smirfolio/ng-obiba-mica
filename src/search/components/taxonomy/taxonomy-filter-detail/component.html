@@ -7,7 +7,8 @@
     <vocabulary-filter-detail
         ng-repeat="vocabulary in $ctrl.vocabularies"
         vocabulary="vocabulary"
-        on-select-vocabulary-args="$ctrl.selectVocabularyArgs(vocabulary, args)">
+        on-select-vocabulary-args="$ctrl.selectVocabularyArgs(vocabulary, args)"
+        on-remove-criterion="$ctrl.removeCriterion(item)">
     </vocabulary-filter-detail>
   </div>
 </div>

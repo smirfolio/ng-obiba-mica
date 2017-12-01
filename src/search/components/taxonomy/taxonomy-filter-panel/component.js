@@ -66,10 +66,15 @@
       }
     }
 
+    function removeCriterion(item) {
+      ctrl.onRemoveCriterion({item: item});
+    }
+
     ctrl.$onChanges = onChanges;
     ctrl.selectTaxonomyVocabularyArgs = selectTaxonomyVocabularyArgs;
     ctrl.onFilterChange = onFilterChange;
     ctrl.togglePannel = togglePannel;
+    ctrl.removeCriterion = removeCriterion;
   };
 
   ngObibaMica.search
@@ -82,6 +87,7 @@
         target: '<',
         taxonomy: '<',
         onSelectTerm: '&',
+        onRemoveCriterion: '&',
         onToggle: '<'
       },
       templateUrl: 'search/components/taxonomy/taxonomy-filter-panel/component.html',

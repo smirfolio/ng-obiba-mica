@@ -5363,7 +5363,7 @@ ngObibaMica.search
           if (existingItem) {
             // when vocabulary has terms
             (taxonomyVocabulary.terms || []).forEach(function (term) {
-              term.selected = existingItem.selectedTerms.indexOf(term.name) > -1;
+              term.selected = existingItem.type === 'exists' || existingItem.selectedTerms.indexOf(term.name) > -1;
             });
           } else {
             // when vocabulary has terms
@@ -8876,6 +8876,13 @@ ngObibaMica.search
       ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
     }
 
+    function onChanges(changesObj) {
+      if (changesObj.vocabulary && ctrl.vocabulary.existingItem && ctrl.vocabulary.existingItem.type === 'exists') {
+        ctrl.vocabulary.terms.forEach(function (term) { term.selected = true; });
+      }
+    }
+
+    ctrl.$onChanges = onChanges;
     ctrl.constantLimitNumber = 6;
     ctrl.limitNumber = ctrl.constantLimitNumber;
     ctrl.clickCheckbox = clickCheckbox;
@@ -9130,7 +9137,12 @@ ngObibaMica.search
       ctrl.onSelectTaxonomyTerm({taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args});
     }
 
+    function removeCriterion(item) {
+      ctrl.onRemoveCriterion({item: item});
+    }
+
     ctrl.selectVocabularyArgs = selectVocabularyArgs;
+    ctrl.removeCriterion = removeCriterion;
   };
 
   ngObibaMica.search
@@ -9138,7 +9150,8 @@ ngObibaMica.search
       bindings: {
         taxonomy: '<',
         vocabularies: '<',
-        onSelectTaxonomyTerm: '&'
+        onSelectTaxonomyTerm: '&',
+        onRemoveCriterion: '&'
       },
       templateUrl: 'search/components/taxonomy/taxonomy-filter-detail/component.html',
       controller: [ngObibaMica.search.TaxonomyFilterDetailController]
@@ -9212,10 +9225,15 @@ ngObibaMica.search
       }
     }
 
+    function removeCriterion(item) {
+      ctrl.onRemoveCriterion({item: item});
+    }
+
     ctrl.$onChanges = onChanges;
     ctrl.selectTaxonomyVocabularyArgs = selectTaxonomyVocabularyArgs;
     ctrl.onFilterChange = onFilterChange;
     ctrl.togglePannel = togglePannel;
+    ctrl.removeCriterion = removeCriterion;
   };
 
   ngObibaMica.search
@@ -9228,6 +9246,7 @@ ngObibaMica.search
         target: '<',
         taxonomy: '<',
         onSelectTerm: '&',
+        onRemoveCriterion: '&',
         onToggle: '<'
       },
       templateUrl: 'search/components/taxonomy/taxonomy-filter-panel/component.html',
@@ -9259,11 +9278,15 @@ ngObibaMica.search
     }
 
     function selectVocabularyArgs(args) {
-      console.log('VocabularyFilterDetailController');
       ctrl.onSelectVocabularyArgs({vocabulary: ctrl.vocabulary, args: args});
     }
 
+    function removeCriterion() {
+      ctrl.onRemoveCriterion({item: ctrl.vocabulary.existingItem});
+    }
+
     ctrl.selectVocabularyArgs = selectVocabularyArgs;
+    ctrl.removeCriterion = removeCriterion;
   };
 
   ngObibaMica.search
@@ -9271,7 +9294,8 @@ ngObibaMica.search
       transclude: true,
       bindings: {
         vocabulary: '<',
-        onSelectVocabularyArgs: '&'
+        onSelectVocabularyArgs: '&',
+        onRemoveCriterion: '&'
       },
       templateUrl: 'search/components/vocabulary/vocabulary-filter-detail/component.html',
       controller: ['RqlQueryUtils', ngObibaMica.search.VocabularyFilterDetailController]
@@ -12801,7 +12825,8 @@ angular.module("search/components/taxonomy/taxonomy-filter-detail/component.html
     "    <vocabulary-filter-detail\n" +
     "        ng-repeat=\"vocabulary in $ctrl.vocabularies\"\n" +
     "        vocabulary=\"vocabulary\"\n" +
-    "        on-select-vocabulary-args=\"$ctrl.selectVocabularyArgs(vocabulary, args)\">\n" +
+    "        on-select-vocabulary-args=\"$ctrl.selectVocabularyArgs(vocabulary, args)\"\n" +
+    "        on-remove-criterion=\"$ctrl.removeCriterion(item)\">\n" +
     "    </vocabulary-filter-detail>\n" +
     "  </div>\n" +
     "</div>");
@@ -12824,13 +12849,15 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
     "            ng-if=\"!$ctrl.taxonomyIsArray\"\n" +
     "            on-select-vocabulary-args=\"$ctrl.selectTaxonomyVocabularyArgs($ctrl.taxonomy, vocabulary, args)\"\n" +
     "            ng-repeat=\"vocabulary in $ctrl.filteredVocabularies track by $index\"\n" +
+    "            on-remove-criterion=\"$ctrl.removeCriterion(item)\"\n" +
     "            vocabulary=\"vocabulary\">\n" +
     "    </vocabulary-filter-detail>\n" +
     "    <div ng-if=\"$ctrl.taxonomyIsArray\" ng-repeat=\"subTaxonomy in $ctrl.taxonomy\">\n" +
     "\n" +
     "      <taxonomy-filter-detail taxonomy=\"subTaxonomy\"\n" +
     "                              vocabularies=\"$ctrl.filteredVocabularies[subTaxonomy.name]\"\n" +
-    "                              on-select-taxonomy-term=\"$ctrl.selectTaxonomyVocabularyArgs(taxonomy, vocabulary, args)\">\n" +
+    "                              on-select-taxonomy-term=\"$ctrl.selectTaxonomyVocabularyArgs(taxonomy, vocabulary, args)\"\n" +
+    "                              on-remove-criterion=\"$ctrl.removeCriterion(item)\">\n" +
     "      </taxonomy-filter-detail>\n" +
     "    </div>\n" +
     "  </div>\n" +
@@ -12842,7 +12869,19 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
 angular.module("search/components/vocabulary/vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/vocabulary/vocabulary-filter-detail/component.html",
     "<div class=\"panel panel-default\">\n" +
-    "  <div class=\"panel-heading\">{{$ctrl.vocabulary.title | localizedString}}</div>\n" +
+    "  <div class=\"panel-heading\">\n" +
+    "    <span>{{$ctrl.vocabulary.title | localizedString}}</span>\n" +
+    "\n" +
+    "    <span class=\"pull-right\">\n" +
+    "      <a href=\"\" ng-click=\"$ctrl.removeCriterion()\" ng-if=\"$ctrl.vocabulary.existingItem\">Clear</a>\n" +
+    "\n" +
+    "      <a href=\"\"\n" +
+    "         ng-if=\"$ctrl.criterionType === 'string-terms' && $ctrl.vocabulary.existingItem.type !== 'exists'\"\n" +
+    "         ng-click=\"$ctrl.selectVocabularyArgs(null)\">\n" +
+    "        Select All\n" +
+    "      </a>\n" +
+    "    </span>\n" +
+    "  </div>\n" +
     "  <div class=\"panel-body\">\n" +
     "    <div ng-switch on=\"$ctrl.criterionType\">\n" +
     "      <div ng-switch-when=\"string-terms\">\n" +
@@ -14776,6 +14815,7 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "                  target=\"search.selectedTarget\"\n" +
     "                  taxonomy=\"search.selectedTaxonomy\"\n" +
     "                  on-select-term=\"onSelectTerm(target, taxonomy, vocabulary, args)\"\n" +
+    "                  on-remove-criterion=\"removeCriteriaItem(item)\"\n" +
     "                  ng-if=\"search.showTaxonomyPanel\"\n" +
     "                  on-toggle=\"onTaxonomyFilterPanelToggleVisibility\"\n" +
     "          ></taxonomy-filter-panel>\n" +

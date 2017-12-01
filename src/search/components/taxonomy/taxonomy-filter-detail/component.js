@@ -18,7 +18,12 @@
       ctrl.onSelectTaxonomyTerm({taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args});
     }
 
+    function removeCriterion(item) {
+      ctrl.onRemoveCriterion({item: item});
+    }
+
     ctrl.selectVocabularyArgs = selectVocabularyArgs;
+    ctrl.removeCriterion = removeCriterion;
   };
 
   ngObibaMica.search
@@ -26,7 +31,8 @@
       bindings: {
         taxonomy: '<',
         vocabularies: '<',
-        onSelectTaxonomyTerm: '&'
+        onSelectTaxonomyTerm: '&',
+        onRemoveCriterion: '&'
       },
       templateUrl: 'search/components/taxonomy/taxonomy-filter-detail/component.html',
       controller: [ngObibaMica.search.TaxonomyFilterDetailController]
