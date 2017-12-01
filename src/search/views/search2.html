@@ -18,7 +18,8 @@
   </div>
 
   <div ng-if="searchHeaderTemplateUrl" ng-include="searchHeaderTemplateUrl"></div>
-
+  <!-- Search criteria region -->
+  <search-criteria-region options="options" search="search"> </search-criteria-region>
   <div class="row voffset2">
     <div class="col-md-3" ng-if="hasFacetedTaxonomies" >
       <!-- Search Facets region -->
@@ -35,8 +36,6 @@
       <div ng-if="hasFacetedTaxonomies && hasFacetedNavigationHelp && !(search.criteria.children && search.criteria.children.length > 0)">
         <p class="help-block" translate>search.faceted-navigation-help</p>
       </div>
-      <!-- Search criteria region -->
-      <search-criteria-region options="options" search="search"> </search-criteria-region>
           <!-- Search Results region -->
         <div style="position: relative">
           <taxonomy-filter-panel
