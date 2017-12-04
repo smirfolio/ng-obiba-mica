@@ -41,6 +41,7 @@
     "RqlQuery": false,
     "ngObibaMica": true,
     "obiba": true,
+    "RQL_NODE": true,
     "targetToType": true,
     "QUERY_TARGETS": true
   }

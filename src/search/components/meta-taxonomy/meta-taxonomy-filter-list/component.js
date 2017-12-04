@@ -35,6 +35,7 @@
       bindings: {
         metaTaxonomy: '<',
         showTaxonomyPanel: '<',
+        rqlQuery: '<',
         onSelectTaxonomy: '&'
       },
       templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html',

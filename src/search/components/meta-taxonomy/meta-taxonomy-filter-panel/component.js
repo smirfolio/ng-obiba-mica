@@ -14,6 +14,15 @@
 
   ngObibaMica.search.Controller = function (MetaTaxonomyService, TaxonomyService) {
 
+    /**
+     * Retrieves all meta taxonomies
+     */
+    function init() {
+      MetaTaxonomyService.getMetaTaxonomyForTargets(ctrl.tabs).then(function (metaTaxonomies) {
+        ctrl.metaTaxonomies = metaTaxonomies;
+      });
+    }
+
     function onSelectTaxonomy(target, selectedTaxonomy) {
       if (ctrl.selectedTaxonomy !== selectedTaxonomy) {
         if (ctrl.selectedTaxonomy) {
@@ -29,24 +38,15 @@
           TaxonomyService.getTaxonomies(target, selectedTaxonomy.info.names || selectedTaxonomy.info.name)
             .then(function (taxonomy) {
               ctrl.selectedTaxonomy.state.loaded();
-              ctrl.onToggle(target, taxonomy);
+              ctrl.onToggle({target: target, taxonomy: taxonomy});
             });
         });
 
       } else {
         ctrl.selectedTaxonomy.state.none();
         ctrl.selectedTaxonomy = null;
-        ctrl.onToggle(target, ctrl.selectedTaxonomy);
+        ctrl.onToggle({target: target, taxonomy: ctrl.selectedTaxonomy});
       }
-    }
-
-    /**
-     * Retrieves all meta taxonomies
-     */
-    function init() {
-      MetaTaxonomyService.getMetaTaxonomyForTargets(ctrl.tabs).then(function (metaTaxonomies) {
-        ctrl.metaTaxonomies = metaTaxonomies;
-      });
     }
 
     function onChanges(changed) {
@@ -69,7 +69,8 @@
       bindings: {
         tabs: '<',
         showTaxonomyPanel: '<',
-        onToggle: '<'
+        onToggle: '&',
+        rqlQuery: '<'
       },
       templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html',
       controller: ['MetaTaxonomyService', 'TaxonomyService', ngObibaMica.search.Controller]

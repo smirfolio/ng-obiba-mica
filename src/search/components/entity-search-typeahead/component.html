@@ -1,10 +1,13 @@
-<div class="input-group">
-  <input type="text" ng-model="model"
+<div class="form-group has-feedback ">
+  <input type="search" ng-model="$ctrl.model"
          ng-attr-placeholder="{{$ctrl.placeholderText | translate}}"
          uib-typeahead="suggestion for suggestion in $ctrl.suggest($viewValue)"
-         typeahead-wait-ms="250"
          typeahead-focus-first="false"
-         typeahead-on-select="select($item)"
+         typeahead-on-select="$ctrl.select($item)"
+         ng-keyup="$ctrl.onKeyUp($event)"
          class="form-control">
-  <span class="input-group-addon" id="basic-addon2"><i class="fa fa-search"></i></span>
+  <span ng-if="$ctrl.model"
+        ng-click="$ctrl.clear()"
+        class="form-control-feedback form-control-clear width-initial height-initial"><i class="fa fa-times"></i>
+  </span>
 </div>
