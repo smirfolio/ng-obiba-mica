@@ -19,13 +19,25 @@
 
     function filter(vocabularies, queryString) {
       if(queryString){
-        return (vocabularies || []).filter(function(vocabulary){
+        var vocabulariesToFilter;
+        if(angular.isArray(vocabularies)){
+          vocabulariesToFilter = vocabularies;
+        }
+        else{
+          vocabulariesToFilter = vocabularies.vocabularies;
+        }
+        return (vocabulariesToFilter || []).filter(function(vocabulary){
           vocabulary.filteredTerms =  (vocabulary.terms || []).filter(function(term){
             if(translateTitle(term.title).toLowerCase().indexOf(queryString.toLowerCase()) >= 0){
               return term.name;
             }
           });
+          if(vocabulary.terms){
           return vocabulary.filteredTerms.length > 0;
+          }
+          else{
+            return vocabulary;
+          }
         });
 
       }
