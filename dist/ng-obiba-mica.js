@@ -9121,9 +9121,17 @@ ngObibaMica.search
       });
     }
 
+    function onChanges(changed) {
+      if (ctrl.selectedTaxonomy && changed.showTaxonomyPanel && changed.showTaxonomyPanel.currentValue !== true) {
+        ctrl.selectedTaxonomy.state.none();
+        ctrl.selectedTaxonomy = null;
+      }
+    }
+
     var ctrl = this;
     ctrl.selectedTaxonomy = null;
     ctrl.onSelectTaxonomy = onSelectTaxonomy;
+    ctrl.$onChanges = onChanges;
 
     init();
   };
