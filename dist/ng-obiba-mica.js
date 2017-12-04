@@ -9041,6 +9041,7 @@ ngObibaMica.search
       transclude: true,
       bindings: {
         metaTaxonomy: '<',
+        showTaxonomyPanel: '<',
         onSelectTaxonomy: '&'
       },
       templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html',
@@ -9109,6 +9110,7 @@ ngObibaMica.search
     .component('metaTaxonomyFilterPanel', {
       bindings: {
         tabs: '<',
+        showTaxonomyPanel: '<',
         onToggle: '<'
       },
       templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html',
@@ -12774,7 +12776,7 @@ angular.module("search/components/input-search-filter/component.html", []).run([
     "            <span class=\"input-group-addon\">\n" +
     "                <i class=\"glyphicon glyphicon-filter\"></i>\n" +
     "            </span>\n" +
-    "            <input type=\"text\" ng-model=\"$ctrl.queryString\"  ng-attr-placeholder=\"{{global.list-search-placeholder  | translate}}\"\n" +
+    "            <input type=\"text\" ng-model=\"$ctrl.queryString\"  ng-attr-placeholder=\"{{'global.list-search-placeholder'  | translate}}\"\n" +
     "                   class=\"input-search-filter form-control\" ng-change=\"$ctrl.change()\">\n" +
     "        </div>\n" +
     "    </div>\n" +
@@ -12787,7 +12789,7 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/compon
     "  <entity-search-typeahead placeholder-text=\"global.list-search-placeholder\" entity-type=\"$ctrl.entityType\"></entity-search-typeahead>\n" +
     "\n" +
     "  <ul class=\"nav nav-pills nav-stacked voffset1\">\n" +
-    "    <li role=\"presentation\" ng-repeat=\"taxonomy in $ctrl.metaTaxonomy.taxonomies\" ng-class=\"{'active': taxonomy.state.isActive()}\">\n" +
+    "    <li role=\"presentation\" ng-repeat=\"taxonomy in $ctrl.metaTaxonomy.taxonomies\" ng-class=\"{'active': taxonomy.state.isActive() && $ctrl.showTaxonomyPanel}\">\n" +
     "      <a href ng-click=\"$ctrl.selectTaxonomy(taxonomy)\">\n" +
     "        {{taxonomy.info.title | translate}} <span ng-if=\"taxonomy.state.isLoading()\" class=\"loading\"></span>\n" +
     "      </a>\n" +
@@ -12805,7 +12807,8 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-panel/compo
     "  <uib-accordion close-others=\"false\" is-disabled=\"false\">\n" +
     "    <meta-taxonomy-filter-list ng-repeat=\"metaTaxonomy in $ctrl.metaTaxonomies\"\n" +
     "                               meta-taxonomy=\"metaTaxonomy\"\n" +
-    "                               on-select-taxonomy=\"$ctrl.onSelectTaxonomy(target, taxonomy)\">\n" +
+    "                               on-select-taxonomy=\"$ctrl.onSelectTaxonomy(target, taxonomy)\"\n" +
+    "                               show-taxonomy-panel=\"$ctrl.showTaxonomyPanel\">\n" +
     "    </meta-taxonomy-filter-list>\n" +
     "  </uib-accordion>\n" +
     "</div>\n" +
@@ -14797,6 +14800,7 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "    <div class=\"col-md-3\" ng-if=\"!hasFacetedTaxonomies\" >\n" +
     "      <!-- Search Facets region -->\n" +
     "      <meta-taxonomy-filter-panel\n" +
+    "              show-taxonomy-panel=\"search.showTaxonomyPanel\"\n" +
     "              tabs=\"targetTabsOrder\"\n" +
     "              on-toggle=\"onTaxonomyFilterPanelToggleVisibility\"></meta-taxonomy-filter-panel>\n" +
     "    </div>\n" +

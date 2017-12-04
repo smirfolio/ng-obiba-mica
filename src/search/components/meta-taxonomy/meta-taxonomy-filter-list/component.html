@@ -2,7 +2,7 @@
   <entity-search-typeahead placeholder-text="global.list-search-placeholder" entity-type="$ctrl.entityType"></entity-search-typeahead>
 
   <ul class="nav nav-pills nav-stacked voffset1">
-    <li role="presentation" ng-repeat="taxonomy in $ctrl.metaTaxonomy.taxonomies" ng-class="{'active': taxonomy.state.isActive()}">
+    <li role="presentation" ng-repeat="taxonomy in $ctrl.metaTaxonomy.taxonomies" ng-class="{'active': taxonomy.state.isActive() && $ctrl.showTaxonomyPanel}">
       <a href ng-click="$ctrl.selectTaxonomy(taxonomy)">
         {{taxonomy.info.title | translate}} <span ng-if="taxonomy.state.isLoading()" class="loading"></span>
       </a>
