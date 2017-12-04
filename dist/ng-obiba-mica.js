@@ -9291,12 +9291,14 @@ ngObibaMica.search
   ngObibaMica.search.VocabularyFilterDetailController = function (RqlQueryUtils) {
     var ctrl = this;
 
-    if (RqlQueryUtils.isTermsVocabulary(ctrl.vocabulary) || RqlQueryUtils.isRangeVocabulary(ctrl.vocabulary)) {
-      ctrl.criterionType = 'string-terms';
-    } else if (RqlQueryUtils.isNumericVocabulary(ctrl.vocabulary)) {
-      ctrl.criterionType = 'numeric';
-    } else if (RqlQueryUtils.isMatchVocabulary(ctrl.vocabulary)) {
-      ctrl.criterionType = 'match';
+    function checkAndSetCriterionType(vocabulary) {
+      if (RqlQueryUtils.isTermsVocabulary(vocabulary) || RqlQueryUtils.isRangeVocabulary(vocabulary)) {
+        ctrl.criterionType = 'string-terms';
+      } else if (RqlQueryUtils.isNumericVocabulary(vocabulary)) {
+        ctrl.criterionType = 'numeric';
+      } else if (RqlQueryUtils.isMatchVocabulary(vocabulary)) {
+        ctrl.criterionType = 'match';
+      }
     }
 
     function selectVocabularyArgs(args) {
@@ -9307,6 +9309,13 @@ ngObibaMica.search
       ctrl.onRemoveCriterion({item: ctrl.vocabulary.existingItem});
     }
 
+    function onChanges(changesObj) {
+      if (changesObj.vocabulary) {
+        checkAndSetCriterionType(ctrl.vocabulary);
+      }
+    }
+
+    ctrl.$onChanges = onChanges;
     ctrl.selectVocabularyArgs = selectVocabularyArgs;
     ctrl.removeCriterion = removeCriterion;
   };
@@ -12706,7 +12715,7 @@ angular.module("localized/localized-textarea-template.html", []).run(["$template
 angular.module("search/components/criteria/match-vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/match-vocabulary-filter-detail/component.html",
     "<input type=\"text\" class=\"form-control\"\n" +
-    "       placeholder=\"Enter text to search...\"\n" +
+    "       placeholder=\"{{'search.match.placeholder' | translate}}\"\n" +
     "       ng-value=\"$ctrl.vocabulary.existingItem.selectedTerms.join('')\"\n" +
     "       ng-keyup=\"$ctrl.enterText($event)\">");
 }]);
@@ -12899,12 +12908,12 @@ angular.module("search/components/vocabulary/vocabulary-filter-detail/component.
     "    <span>{{$ctrl.vocabulary.title | localizedString}}</span>\n" +
     "\n" +
     "    <span class=\"pull-right\">\n" +
-    "      <a href=\"\" ng-click=\"$ctrl.removeCriterion()\" ng-if=\"$ctrl.vocabulary.existingItem\">Clear</a>\n" +
+    "      <a href=\"\" ng-click=\"$ctrl.removeCriterion()\" ng-if=\"$ctrl.vocabulary.existingItem\">{{'clear' | translate}}</a>\n" +
     "\n" +
     "      <a href=\"\"\n" +
     "         ng-if=\"$ctrl.criterionType === 'string-terms' && $ctrl.vocabulary.existingItem.type !== 'exists'\"\n" +
     "         ng-click=\"$ctrl.selectVocabularyArgs(null)\">\n" +
-    "        Select All\n" +
+    "        {{'select-all' | translate}}\n" +
     "      </a>\n" +
     "    </span>\n" +
     "  </div>\n" +

@@ -14,12 +14,14 @@
   ngObibaMica.search.VocabularyFilterDetailController = function (RqlQueryUtils) {
     var ctrl = this;
 
-    if (RqlQueryUtils.isTermsVocabulary(ctrl.vocabulary) || RqlQueryUtils.isRangeVocabulary(ctrl.vocabulary)) {
-      ctrl.criterionType = 'string-terms';
-    } else if (RqlQueryUtils.isNumericVocabulary(ctrl.vocabulary)) {
-      ctrl.criterionType = 'numeric';
-    } else if (RqlQueryUtils.isMatchVocabulary(ctrl.vocabulary)) {
-      ctrl.criterionType = 'match';
+    function checkAndSetCriterionType(vocabulary) {
+      if (RqlQueryUtils.isTermsVocabulary(vocabulary) || RqlQueryUtils.isRangeVocabulary(vocabulary)) {
+        ctrl.criterionType = 'string-terms';
+      } else if (RqlQueryUtils.isNumericVocabulary(vocabulary)) {
+        ctrl.criterionType = 'numeric';
+      } else if (RqlQueryUtils.isMatchVocabulary(vocabulary)) {
+        ctrl.criterionType = 'match';
+      }
     }
 
     function selectVocabularyArgs(args) {
@@ -30,6 +32,13 @@
       ctrl.onRemoveCriterion({item: ctrl.vocabulary.existingItem});
     }
 
+    function onChanges(changesObj) {
+      if (changesObj.vocabulary) {
+        checkAndSetCriterionType(ctrl.vocabulary);
+      }
+    }
+
+    ctrl.$onChanges = onChanges;
     ctrl.selectVocabularyArgs = selectVocabularyArgs;
     ctrl.removeCriterion = removeCriterion;
   };
