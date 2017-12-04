@@ -1,4 +1,4 @@
-<div id="search-criteria-region" class="panel panel-default" ng-if="search.criteria.children && search.criteria.children.length>0">
+<div id="search-criteria-region" ng-class="options.showSearchBox || options.showSearchBrowser ? 'voffset2' : ''" class="panel panel-default" ng-if="renderableTargets && renderableTargets.length > 0">
     <div class="panel-body">
         <table style="border:none">
             <tbody>

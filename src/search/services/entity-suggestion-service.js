@@ -11,7 +11,11 @@
 'use strict';
 
 (function() {
-  ngObibaMica.search.EntitySuggestionService = function($translate, DocumentSuggestionResource) {
+  ngObibaMica.search.EntitySuggestionService = function($rootScope,
+                                                        $location,
+                                                        $translate,
+                                                        DocumentSuggestionResource,
+                                                        RqlQueryService) {
 
     function suggest(entityType, query) {
       if (entityType && query && query.length > 1) {
@@ -31,13 +35,38 @@
       }
     }
 
+    function getCurrentSuggestion(target, query) {
+
+      if (query) {
+        var targetQuery = RqlQueryService.findTargetQuery(target, query);
+        if (targetQuery) {
+          var matchQuery = targetQuery.args.filter(function (arg) {
+            return arg.name === RQL_NODE.MATCH && arg.args.length === 1;
+          }).pop();
+
+          return matchQuery && matchQuery.args ? matchQuery.args[0][0] : '';
+        }
+      }
+
+      return '';
+    }
+
+    function selectSuggestion(target, suggestion) {
+      $rootScope.$new().$emit('ngObibaMicaSearch.searchSuggestion', suggestion, target);
+    }
+
+    this.getCurrentSuggestion = getCurrentSuggestion;
     this.suggest = suggest;
+    this.selectSuggestion = selectSuggestion;
   };
 
   ngObibaMica.search
     .service('EntitySuggestionService', [
+      '$rootScope',
+      '$location',
       '$translate',
       'DocumentSuggestionResource',
+      'RqlQueryService',
       ngObibaMica.search.EntitySuggestionService
     ]);
 

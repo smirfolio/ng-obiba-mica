@@ -2,8 +2,9 @@
   <uib-accordion close-others="false" is-disabled="false">
     <meta-taxonomy-filter-list ng-repeat="metaTaxonomy in $ctrl.metaTaxonomies"
                                meta-taxonomy="metaTaxonomy"
-                               on-select-taxonomy="$ctrl.onSelectTaxonomy(target, taxonomy)"
-                               show-taxonomy-panel="$ctrl.showTaxonomyPanel">
+                               show-taxonomy-panel="$ctrl.showTaxonomyPanel"
+                               rql-query="$ctrl.rqlQuery"
+                               on-select-taxonomy="$ctrl.onSelectTaxonomy(target, taxonomy)">
     </meta-taxonomy-filter-list>
   </uib-accordion>
 </div>

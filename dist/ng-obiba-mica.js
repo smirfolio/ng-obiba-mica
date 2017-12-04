@@ -2234,7 +2234,13 @@ ngObibaMica.search
         return '<p>' + d;
       })[2];
     };
-  });;/*
+  })
+
+  .filter('renderableTargets', ['RqlQueryService', function(RqlQueryService) {
+    return function(targets) {
+      return RqlQueryService.getRenderableTargetCriteria(targets);
+    };
+  }]);;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
@@ -3415,8 +3421,24 @@ ngObibaMica.search
       this.findQueryInTargetByVocabulary = findQueryInTargetByVocabulary;
       this.findQueryInTargetByTaxonomyVocabulary = findQueryInTargetByTaxonomyVocabulary;
 
-      function isLeafCriteria(item) {
-        switch (item.type) {
+      function isFreeTextMatch(query) {
+        return query.name === RQL_NODE.MATCH && query.args.length === 1;
+      }
+
+      function isOperator(name) {
+        switch (name) {
+          case RQL_NODE.AND:
+          case RQL_NODE.NAND:
+          case RQL_NODE.OR:
+          case RQL_NODE.NOR:
+            return true;
+        }
+
+        return false;
+      }
+
+      function isLeaf(name) {
+        switch (name) {
           case RQL_NODE.CONTAINS:
           case RQL_NODE.IN:
           case RQL_NODE.OUT:
@@ -3433,6 +3455,10 @@ ngObibaMica.search
         }
 
         return false;
+      }
+
+      function isLeafCriteria(item) {
+        return isLeaf(item.type);
       }
 
       function deleteNode(item) {
@@ -3524,6 +3550,43 @@ ngObibaMica.search
         }
 
       }
+
+      /**
+       * NOTE: once the FreeTextMatch has a UI this is no longer needed.
+       *
+       * @param query
+       * @returns boolean if target has more than a FreeTextMatch
+       */
+      function queryHasCriteria(query) {
+        if (query && query.args) {
+          var leafQueries = query.args.filter(function(arg) {
+            return isLeaf(arg.name) || isOperator(arg.name);
+          });
+
+          if (leafQueries.length === 1 && isFreeTextMatch(leafQueries[0])) {
+            return false;
+          }
+
+          return leafQueries.length > 0;
+        }
+
+        return false;
+      }
+
+      function getRenderableTargetCriteria(targets) {
+        return (targets || []).filter(function(target){
+          return queryHasCriteria(target.rqlQuery);
+        });
+      }
+
+      function getRenderableTargetCriteriaFromRoot(rootCriteria) {
+        return rootCriteria ?
+          getRenderableTargetCriteria(rootCriteria.children) :
+          [];
+      }
+
+      this.getRenderableTargetCriteria = getRenderableTargetCriteria;
+      this.getRenderableTargetCriteriaFromRoot = getRenderableTargetCriteriaFromRoot;
 
       this.parseQuery = function(query) {
         try {
@@ -5795,6 +5858,90 @@ ngObibaMica.search
         CLASSIFICATION: 'classification'
       };
 
+      // TODO refractor these two suggestion functions
+      function searchSuggestion(target, suggestion) {
+        var rqlQuery = angular.copy($scope.search.rqlQuery);
+        var targetQuery = RqlQueryService.findTargetQuery(target, rqlQuery);
+
+        if (!targetQuery) {
+          targetQuery = new RqlQuery(target);
+          rqlQuery.args.push(targetQuery);
+        }
+
+        var matchQuery = null;
+        var trimmedQuery = suggestion.trim();
+        if (trimmedQuery.length) {
+          // add filter as match criteria
+          var query = new RqlQuery(RQL_NODE.MATCH);
+          query.args.push([trimmedQuery]);
+          matchQuery = {
+            target: $scope.target,
+            rqlQuery: query
+          };
+        }
+
+        var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
+        if (foundFulltextMatchQuery.length === 1) {
+          if (matchQuery) {
+            foundFulltextMatchQuery.pop().args = matchQuery.rqlQuery.args;
+          } else {
+            // remove existing match
+            targetQuery.args = targetQuery.args.filter(function (arg) {
+              return arg.name !== RQL_NODE.MATCH;
+            });
+          }
+        } else if (matchQuery) {
+          targetQuery.args.push(matchQuery.rqlQuery);
+        }
+
+        $scope.search.rqlQuery = rqlQuery;
+        refreshQuery();
+      }
+
+      function searchSuggestionForListing(target, searchFilter) {
+        var matchQuery = null;
+
+        var trimmedQuery = searchFilter.trim();
+        if (trimmedQuery.length) {
+          // add filter as match criteria
+          var rqlQuery = new RqlQuery(RQL_NODE.MATCH);
+          rqlQuery.args.push([trimmedQuery]);
+          matchQuery = {
+            target: target,
+            rqlQuery: rqlQuery
+          };
+        }
+
+        var targetQuery = RqlQueryService.findTargetQuery(target, $scope.search.rqlQuery);
+
+        var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
+        if (foundFulltextMatchQuery.length === 1) {
+          if (matchQuery) {
+            foundFulltextMatchQuery.pop().args = matchQuery.rqlQuery.args;
+          } else {
+            // remove existing match
+            targetQuery.args = targetQuery.args.filter(function (arg) {
+              return arg.name !== RQL_NODE.MATCH;
+            });
+          }
+        } else {
+          targetQuery.args.push(matchQuery.rqlQuery);
+        }
+
+        // change the sort for relevance
+        $scope.search.rqlQuery = RqlQueryService.prepareSearchQueryNoFields(
+          $scope.search.display,
+          $scope.search.type,
+          $scope.search.rqlQuery,
+          $scope.search.pagination,
+          $scope.lang,
+          '-_score'
+        );
+
+        refreshQuery();
+      }
+
+      $scope.searchSuggestion = searchSuggestion;
       $scope.goToSearch = function () {
         $scope.viewMode = VIEW_MODES.SEARCH;
         $location.search('taxonomy', null);
@@ -5902,57 +6049,19 @@ ngObibaMica.search
           $scope.search.display,
           $scope.search.type,
           $scope.search.rqlQuery,
-          $scope.search.pagination,
+          null,
           $scope.lang,
           sort
         );
         refreshQuery();
       });
 
-      //@TODO Need some work to better build the text search query using an match-multifield (match((text1,text2,..))
-      // it may be an Rql part out of facet match string query
-      $rootScope.$on('ngObibaMicaSearch.searchChange', function (event, searchFilter) {
-
-        var matchQuery = null;
-
-        var trimmedQuery = searchFilter.trim();
-        if (trimmedQuery.length) {
-          // add filter as match criteria
-          var rqlQuery = new RqlQuery(RQL_NODE.MATCH);
-          rqlQuery.args.push([trimmedQuery]);
-          matchQuery = {
-              target: $scope.target,
-              rqlQuery: rqlQuery
-            };
-        }
-
-        var targetQuery = RqlQueryService.findTargetQuery($scope.target, $scope.search.rqlQuery);
-
-        var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
-        if (foundFulltextMatchQuery.length === 1) {
-          if (matchQuery) {
-            foundFulltextMatchQuery.pop().args = matchQuery.rqlQuery.args;
-          } else {
-            // remove existing match
-            targetQuery.args = targetQuery.args.filter(function (arg) {
-              return arg.name !== RQL_NODE.MATCH;
-            });
-          }
+      $rootScope.$on('ngObibaMicaSearch.searchSuggestion', function (event, suggestion, target) {
+        if (target) {
+          searchSuggestion(target, suggestion);
         } else {
-          targetQuery.args.push(matchQuery.rqlQuery);
+          searchSuggestionForListing($scope.target, suggestion);
         }
-
-        // change the sort for relevance
-        $scope.search.rqlQuery = RqlQueryService.prepareSearchQueryNoFields(
-          $scope.search.display,
-          $scope.search.type,
-          $scope.search.rqlQuery,
-          $scope.search.pagination,
-          $scope.lang,
-          '-_score'
-        );
-
-        refreshQuery();
       });
 
       function init() {
@@ -6512,8 +6621,13 @@ ngObibaMica.search
       $scope.closeDropdown = closeDropdown;
       $scope.RqlQueryUtils = RqlQueryUtils;
     }])
-  .controller('searchCriteriaRegionController', ['$scope', function ($scope) {
+  .controller('searchCriteriaRegionController', ['$scope', 'RqlQueryService', function ($scope,RqlQueryService) {
     var canShow = false;
+
+    $scope.$watchCollection('search.criteria', function () {
+        $scope.renderableTargets = RqlQueryService.getRenderableTargetCriteriaFromRoot($scope.search.criteria);
+    });
+
     $scope.$watchCollection('search.criteriaItemMap', function () {
       if ($scope.search.criteriaItemMap) {
         canShow = Object.keys($scope.search.criteriaItemMap).length > 1;
@@ -8608,7 +8722,11 @@ ngObibaMica.search
 'use strict';
 
 (function() {
-  ngObibaMica.search.EntitySuggestionService = function($translate, DocumentSuggestionResource) {
+  ngObibaMica.search.EntitySuggestionService = function($rootScope,
+                                                        $location,
+                                                        $translate,
+                                                        DocumentSuggestionResource,
+                                                        RqlQueryService) {
 
     function suggest(entityType, query) {
       if (entityType && query && query.length > 1) {
@@ -8628,13 +8746,38 @@ ngObibaMica.search
       }
     }
 
+    function getCurrentSuggestion(target, query) {
+
+      if (query) {
+        var targetQuery = RqlQueryService.findTargetQuery(target, query);
+        if (targetQuery) {
+          var matchQuery = targetQuery.args.filter(function (arg) {
+            return arg.name === RQL_NODE.MATCH && arg.args.length === 1;
+          }).pop();
+
+          return matchQuery && matchQuery.args ? matchQuery.args[0][0] : '';
+        }
+      }
+
+      return '';
+    }
+
+    function selectSuggestion(target, suggestion) {
+      $rootScope.$new().$emit('ngObibaMicaSearch.searchSuggestion', suggestion, target);
+    }
+
+    this.getCurrentSuggestion = getCurrentSuggestion;
     this.suggest = suggest;
+    this.selectSuggestion = selectSuggestion;
   };
 
   ngObibaMica.search
     .service('EntitySuggestionService', [
+      '$rootScope',
+      '$location',
       '$translate',
       'DocumentSuggestionResource',
+      'RqlQueryService',
       ngObibaMica.search.EntitySuggestionService
     ]);
 
@@ -8983,19 +9126,50 @@ ngObibaMica.search
 
   ngObibaMica.search.Controller = function (EntitySuggestionService) {
 
+    function init() {
+      ctrl.model = EntitySuggestionService.getCurrentSuggestion(ctrl.target, ctrl.rqlQuery) || '';
+    }
+
     function suggest(query) {
       return EntitySuggestionService.suggest(ctrl.entityType, query);
+    }
+
+    function select(suggestion) {
+      EntitySuggestionService.selectSuggestion(ctrl.target, suggestion);
+    }
+
+    function onKeyUp(event) {
+      if (event.keyCode === 13) {
+        select(ctrl.model);
+      }
+    }
+
+    function clear() {
+      ctrl.model = '';
+      select('');
+    }
+
+    function onChanges(changedObjects) {
+      if (changedObjects.rqlQuery.currentValue) {
+        init();
+      }
     }
 
     var ctrl = this;
     ctrl.model = '';
     ctrl.suggest = suggest;
+    ctrl.select = select;
+    ctrl.clear = clear;
+    ctrl.onKeyUp = onKeyUp;
+    ctrl.$onChanges = onChanges;
   };
 
   ngObibaMica.search
     .component('entitySearchTypeahead', {
       bindings: {
+        target: '<',
         entityType: '<',
+        rqlQuery: '<',
         placeholderText: '@'
       },
       templateUrl: 'search/components/entity-search-typeahead/component.html',
@@ -9076,6 +9250,7 @@ ngObibaMica.search
       bindings: {
         metaTaxonomy: '<',
         showTaxonomyPanel: '<',
+        rqlQuery: '<',
         onSelectTaxonomy: '&'
       },
       templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html',
@@ -9098,6 +9273,15 @@ ngObibaMica.search
 
   ngObibaMica.search.Controller = function (MetaTaxonomyService, TaxonomyService) {
 
+    /**
+     * Retrieves all meta taxonomies
+     */
+    function init() {
+      MetaTaxonomyService.getMetaTaxonomyForTargets(ctrl.tabs).then(function (metaTaxonomies) {
+        ctrl.metaTaxonomies = metaTaxonomies;
+      });
+    }
+
     function onSelectTaxonomy(target, selectedTaxonomy) {
       if (ctrl.selectedTaxonomy !== selectedTaxonomy) {
         if (ctrl.selectedTaxonomy) {
@@ -9113,24 +9297,15 @@ ngObibaMica.search
           TaxonomyService.getTaxonomies(target, selectedTaxonomy.info.names || selectedTaxonomy.info.name)
             .then(function (taxonomy) {
               ctrl.selectedTaxonomy.state.loaded();
-              ctrl.onToggle(target, taxonomy);
+              ctrl.onToggle({target: target, taxonomy: taxonomy});
             });
         });
 
       } else {
         ctrl.selectedTaxonomy.state.none();
         ctrl.selectedTaxonomy = null;
-        ctrl.onToggle(target, ctrl.selectedTaxonomy);
+        ctrl.onToggle({target: target, taxonomy: ctrl.selectedTaxonomy});
       }
-    }
-
-    /**
-     * Retrieves all meta taxonomies
-     */
-    function init() {
-      MetaTaxonomyService.getMetaTaxonomyForTargets(ctrl.tabs).then(function (metaTaxonomies) {
-        ctrl.metaTaxonomies = metaTaxonomies;
-      });
     }
 
     function onChanges(changed) {
@@ -9153,7 +9328,8 @@ ngObibaMica.search
       bindings: {
         tabs: '<',
         showTaxonomyPanel: '<',
-        onToggle: '<'
+        onToggle: '&',
+        rqlQuery: '<'
       },
       templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html',
       controller: ['MetaTaxonomyService', 'TaxonomyService', ngObibaMica.search.Controller]
@@ -12810,15 +12986,18 @@ angular.module("search/components/entity-counts/component.html", []).run(["$temp
 
 angular.module("search/components/entity-search-typeahead/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/entity-search-typeahead/component.html",
-    "<div class=\"input-group\">\n" +
-    "  <input type=\"text\" ng-model=\"model\"\n" +
+    "<div class=\"form-group has-feedback \">\n" +
+    "  <input type=\"search\" ng-model=\"$ctrl.model\"\n" +
     "         ng-attr-placeholder=\"{{$ctrl.placeholderText | translate}}\"\n" +
     "         uib-typeahead=\"suggestion for suggestion in $ctrl.suggest($viewValue)\"\n" +
-    "         typeahead-wait-ms=\"250\"\n" +
     "         typeahead-focus-first=\"false\"\n" +
-    "         typeahead-on-select=\"select($item)\"\n" +
+    "         typeahead-on-select=\"$ctrl.select($item)\"\n" +
+    "         ng-keyup=\"$ctrl.onKeyUp($event)\"\n" +
     "         class=\"form-control\">\n" +
-    "  <span class=\"input-group-addon\" id=\"basic-addon2\"><i class=\"fa fa-search\"></i></span>\n" +
+    "  <span ng-if=\"$ctrl.model\"\n" +
+    "        ng-click=\"$ctrl.clear()\"\n" +
+    "        class=\"form-control-feedback form-control-clear width-initial height-initial\"><i class=\"fa fa-times\"></i>\n" +
+    "  </span>\n" +
     "</div>");
 }]);
 
@@ -12840,7 +13019,11 @@ angular.module("search/components/input-search-filter/component.html", []).run([
 angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html",
     "<div uib-accordion-group class=\"panel-default\" heading=\"{{$ctrl.metaTaxonomy.title | localizedString}}\" is-open=\"$ctrl.status.isFirstOpen\">\n" +
-    "  <entity-search-typeahead placeholder-text=\"global.list-search-placeholder\" entity-type=\"$ctrl.entityType\"></entity-search-typeahead>\n" +
+    "  <entity-search-typeahead\n" +
+    "    placeholder-text=\"global.list-search-placeholder\"\n" +
+    "    target=\"$ctrl.metaTaxonomy.name\"\n" +
+    "    rql-query=\"$ctrl.rqlQuery\"\n" +
+    "    entity-type=\"$ctrl.entityType\"></entity-search-typeahead>\n" +
     "\n" +
     "  <ul class=\"nav nav-pills nav-stacked voffset1\">\n" +
     "    <li role=\"presentation\" ng-repeat=\"taxonomy in $ctrl.metaTaxonomy.taxonomies\" ng-class=\"{'active': taxonomy.state.isActive() && $ctrl.showTaxonomyPanel}\">\n" +
@@ -12861,8 +13044,9 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-panel/compo
     "  <uib-accordion close-others=\"false\" is-disabled=\"false\">\n" +
     "    <meta-taxonomy-filter-list ng-repeat=\"metaTaxonomy in $ctrl.metaTaxonomies\"\n" +
     "                               meta-taxonomy=\"metaTaxonomy\"\n" +
-    "                               on-select-taxonomy=\"$ctrl.onSelectTaxonomy(target, taxonomy)\"\n" +
-    "                               show-taxonomy-panel=\"$ctrl.showTaxonomyPanel\">\n" +
+    "                               show-taxonomy-panel=\"$ctrl.showTaxonomyPanel\"\n" +
+    "                               rql-query=\"$ctrl.rqlQuery\"\n" +
+    "                               on-select-taxonomy=\"$ctrl.onSelectTaxonomy(target, taxonomy)\">\n" +
     "    </meta-taxonomy-filter-list>\n" +
     "  </uib-accordion>\n" +
     "</div>\n" +
@@ -13765,7 +13949,7 @@ angular.module("search/views/criteria/criteria-node-template.html", []).run(["$t
 angular.module("search/views/criteria/criteria-root-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criteria-root-template.html",
     "<div class=\"form-inline\">\n" +
-    "  <div ng-repeat=\"child in item.children\" class=\"inline\">\n" +
+    "  <div ng-repeat=\"child in item.children | renderableTargets\" class=\"inline\">\n" +
     "    <div class=\"inline hoffset2\" ng-if=\"$index>0\">+</div>\n" +
     "    <criteria-target item=\"child\" query=\"$parent.query\" advanced=\"$parent.advanced\" class=\"inline\"></criteria-target>\n" +
     "  </div>\n" +
@@ -13970,7 +14154,7 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
 
 angular.module("search/views/criteria/search-criteria-region-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/search-criteria-region-template.html",
-    "<div id=\"search-criteria-region\" class=\"panel panel-default\" ng-if=\"search.criteria.children && search.criteria.children.length>0\">\n" +
+    "<div id=\"search-criteria-region\" ng-class=\"options.showSearchBox || options.showSearchBrowser ? 'voffset2' : ''\" class=\"panel panel-default\" ng-if=\"renderableTargets && renderableTargets.length > 0\">\n" +
     "    <div class=\"panel-body\">\n" +
     "        <table style=\"border:none\">\n" +
     "            <tbody>\n" +
@@ -14857,7 +15041,8 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "      <meta-taxonomy-filter-panel\n" +
     "              show-taxonomy-panel=\"search.showTaxonomyPanel\"\n" +
     "              tabs=\"targetTabsOrder\"\n" +
-    "              on-toggle=\"onTaxonomyFilterPanelToggleVisibility\"></meta-taxonomy-filter-panel>\n" +
+    "              rql-query=\"search.rqlQuery\"\n" +
+    "              on-toggle=\"onTaxonomyFilterPanelToggleVisibility(target, taxonomy)\"></meta-taxonomy-filter-panel>\n" +
     "    </div>\n" +
     "    <div class=\"col-md-9\">\n" +
     "      <div ng-if=\"hasFacetedTaxonomies && hasFacetedNavigationHelp && !(search.criteria.children && search.criteria.children.length > 0)\">\n" +

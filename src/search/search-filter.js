@@ -73,4 +73,10 @@ ngObibaMica.search
         return '<p>' + d;
       })[2];
     };
-  });
+  })
+
+  .filter('renderableTargets', ['RqlQueryService', function(RqlQueryService) {
+    return function(targets) {
+      return RqlQueryService.getRenderableTargetCriteria(targets);
+    };
+  }]);

@@ -1315,6 +1315,90 @@ ngObibaMica.search
         CLASSIFICATION: 'classification'
       };
 
+      // TODO refractor these two suggestion functions
+      function searchSuggestion(target, suggestion) {
+        var rqlQuery = angular.copy($scope.search.rqlQuery);
+        var targetQuery = RqlQueryService.findTargetQuery(target, rqlQuery);
+
+        if (!targetQuery) {
+          targetQuery = new RqlQuery(target);
+          rqlQuery.args.push(targetQuery);
+        }
+
+        var matchQuery = null;
+        var trimmedQuery = suggestion.trim();
+        if (trimmedQuery.length) {
+          // add filter as match criteria
+          var query = new RqlQuery(RQL_NODE.MATCH);
+          query.args.push([trimmedQuery]);
+          matchQuery = {
+            target: $scope.target,
+            rqlQuery: query
+          };
+        }
+
+        var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
+        if (foundFulltextMatchQuery.length === 1) {
+          if (matchQuery) {
+            foundFulltextMatchQuery.pop().args = matchQuery.rqlQuery.args;
+          } else {
+            // remove existing match
+            targetQuery.args = targetQuery.args.filter(function (arg) {
+              return arg.name !== RQL_NODE.MATCH;
+            });
+          }
+        } else if (matchQuery) {
+          targetQuery.args.push(matchQuery.rqlQuery);
+        }
+
+        $scope.search.rqlQuery = rqlQuery;
+        refreshQuery();
+      }
+
+      function searchSuggestionForListing(target, searchFilter) {
+        var matchQuery = null;
+
+        var trimmedQuery = searchFilter.trim();
+        if (trimmedQuery.length) {
+          // add filter as match criteria
+          var rqlQuery = new RqlQuery(RQL_NODE.MATCH);
+          rqlQuery.args.push([trimmedQuery]);
+          matchQuery = {
+            target: target,
+            rqlQuery: rqlQuery
+          };
+        }
+
+        var targetQuery = RqlQueryService.findTargetQuery(target, $scope.search.rqlQuery);
+
+        var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
+        if (foundFulltextMatchQuery.length === 1) {
+          if (matchQuery) {
+            foundFulltextMatchQuery.pop().args = matchQuery.rqlQuery.args;
+          } else {
+            // remove existing match
+            targetQuery.args = targetQuery.args.filter(function (arg) {
+              return arg.name !== RQL_NODE.MATCH;
+            });
+          }
+        } else {
+          targetQuery.args.push(matchQuery.rqlQuery);
+        }
+
+        // change the sort for relevance
+        $scope.search.rqlQuery = RqlQueryService.prepareSearchQueryNoFields(
+          $scope.search.display,
+          $scope.search.type,
+          $scope.search.rqlQuery,
+          $scope.search.pagination,
+          $scope.lang,
+          '-_score'
+        );
+
+        refreshQuery();
+      }
+
+      $scope.searchSuggestion = searchSuggestion;
       $scope.goToSearch = function () {
         $scope.viewMode = VIEW_MODES.SEARCH;
         $location.search('taxonomy', null);
@@ -1422,57 +1506,19 @@ ngObibaMica.search
           $scope.search.display,
           $scope.search.type,
           $scope.search.rqlQuery,
-          $scope.search.pagination,
+          null,
           $scope.lang,
           sort
         );
         refreshQuery();
       });
 
-      //@TODO Need some work to better build the text search query using an match-multifield (match((text1,text2,..))
-      // it may be an Rql part out of facet match string query
-      $rootScope.$on('ngObibaMicaSearch.searchChange', function (event, searchFilter) {
-
-        var matchQuery = null;
-
-        var trimmedQuery = searchFilter.trim();
-        if (trimmedQuery.length) {
-          // add filter as match criteria
-          var rqlQuery = new RqlQuery(RQL_NODE.MATCH);
-          rqlQuery.args.push([trimmedQuery]);
-          matchQuery = {
-              target: $scope.target,
-              rqlQuery: rqlQuery
-            };
-        }
-
-        var targetQuery = RqlQueryService.findTargetQuery($scope.target, $scope.search.rqlQuery);
-
-        var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
-        if (foundFulltextMatchQuery.length === 1) {
-          if (matchQuery) {
-            foundFulltextMatchQuery.pop().args = matchQuery.rqlQuery.args;
-          } else {
-            // remove existing match
-            targetQuery.args = targetQuery.args.filter(function (arg) {
-              return arg.name !== RQL_NODE.MATCH;
-            });
-          }
+      $rootScope.$on('ngObibaMicaSearch.searchSuggestion', function (event, suggestion, target) {
+        if (target) {
+          searchSuggestion(target, suggestion);
         } else {
-          targetQuery.args.push(matchQuery.rqlQuery);
+          searchSuggestionForListing($scope.target, suggestion);
         }
-
-        // change the sort for relevance
-        $scope.search.rqlQuery = RqlQueryService.prepareSearchQueryNoFields(
-          $scope.search.display,
-          $scope.search.type,
-          $scope.search.rqlQuery,
-          $scope.search.pagination,
-          $scope.lang,
-          '-_score'
-        );
-
-        refreshQuery();
       });
 
       function init() {
@@ -2032,8 +2078,13 @@ ngObibaMica.search
       $scope.closeDropdown = closeDropdown;
       $scope.RqlQueryUtils = RqlQueryUtils;
     }])
-  .controller('searchCriteriaRegionController', ['$scope', function ($scope) {
+  .controller('searchCriteriaRegionController', ['$scope', 'RqlQueryService', function ($scope,RqlQueryService) {
     var canShow = false;
+
+    $scope.$watchCollection('search.criteria', function () {
+        $scope.renderableTargets = RqlQueryService.getRenderableTargetCriteriaFromRoot($scope.search.criteria);
+    });
+
     $scope.$watchCollection('search.criteriaItemMap', function () {
       if ($scope.search.criteriaItemMap) {
         canShow = Object.keys($scope.search.criteriaItemMap).length > 1;

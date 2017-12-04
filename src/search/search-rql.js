@@ -1179,8 +1179,24 @@ ngObibaMica.search
       this.findQueryInTargetByVocabulary = findQueryInTargetByVocabulary;
       this.findQueryInTargetByTaxonomyVocabulary = findQueryInTargetByTaxonomyVocabulary;
 
-      function isLeafCriteria(item) {
-        switch (item.type) {
+      function isFreeTextMatch(query) {
+        return query.name === RQL_NODE.MATCH && query.args.length === 1;
+      }
+
+      function isOperator(name) {
+        switch (name) {
+          case RQL_NODE.AND:
+          case RQL_NODE.NAND:
+          case RQL_NODE.OR:
+          case RQL_NODE.NOR:
+            return true;
+        }
+
+        return false;
+      }
+
+      function isLeaf(name) {
+        switch (name) {
           case RQL_NODE.CONTAINS:
           case RQL_NODE.IN:
           case RQL_NODE.OUT:
@@ -1197,6 +1213,10 @@ ngObibaMica.search
         }
 
         return false;
+      }
+
+      function isLeafCriteria(item) {
+        return isLeaf(item.type);
       }
 
       function deleteNode(item) {
@@ -1288,6 +1308,43 @@ ngObibaMica.search
         }
 
       }
+
+      /**
+       * NOTE: once the FreeTextMatch has a UI this is no longer needed.
+       *
+       * @param query
+       * @returns boolean if target has more than a FreeTextMatch
+       */
+      function queryHasCriteria(query) {
+        if (query && query.args) {
+          var leafQueries = query.args.filter(function(arg) {
+            return isLeaf(arg.name) || isOperator(arg.name);
+          });
+
+          if (leafQueries.length === 1 && isFreeTextMatch(leafQueries[0])) {
+            return false;
+          }
+
+          return leafQueries.length > 0;
+        }
+
+        return false;
+      }
+
+      function getRenderableTargetCriteria(targets) {
+        return (targets || []).filter(function(target){
+          return queryHasCriteria(target.rqlQuery);
+        });
+      }
+
+      function getRenderableTargetCriteriaFromRoot(rootCriteria) {
+        return rootCriteria ?
+          getRenderableTargetCriteria(rootCriteria.children) :
+          [];
+      }
+
+      this.getRenderableTargetCriteria = getRenderableTargetCriteria;
+      this.getRenderableTargetCriteriaFromRoot = getRenderableTargetCriteriaFromRoot;
 
       this.parseQuery = function(query) {
         try {
