@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-12-01
+ * Date: 2017-12-04
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8718,7 +8718,7 @@ ngObibaMica.search
 
     function filter(vocabularies, queryString) {
       if(queryString){
-        return vocabularies.filter(function(vocabulary){
+        return (vocabularies || []).filter(function(vocabulary){
           vocabulary.filteredTerms =  (vocabulary.terms || []).filter(function(term){
             if(translateTitle(term.title).toLowerCase().indexOf(queryString.toLowerCase()) >= 0){
               return term.name;
@@ -8882,7 +8882,7 @@ ngObibaMica.search
     }
 
     ctrl.$onChanges = onChanges;
-    ctrl.constantLimitNumber = 6;
+    ctrl.constantLimitNumber = 12;
     ctrl.limitNumber = ctrl.constantLimitNumber;
     ctrl.clickCheckbox = clickCheckbox;
   };
@@ -12701,7 +12701,7 @@ angular.module("search/components/criteria/numeric-vocabulary-filter-detail/comp
     "           ng-value=\"$ctrl.vocabulary.existingItem.getRangeTerms().to\"\n" +
     "           name=\"to\">\n" +
     "  </label>\n" +
-    "  <button type=\"submit\" class=\"btn btn-default btn-xs\">GO</button>\n" +
+    "  <button type=\"submit\" class=\"btn btn-default btn-xs\"><i class=\"fa fa-chevron-right\"></i></button>\n" +
     "</form>\n" +
     "\n" +
     "");
@@ -12709,8 +12709,8 @@ angular.module("search/components/criteria/numeric-vocabulary-filter-detail/comp
 
 angular.module("search/components/criteria/terms-vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/terms-vocabulary-filter-detail/component.html",
-    "<div ng-class=\"{'row': ($index + 1) % 6 === 0}\" ng-repeat=\"term in $ctrl.vocabulary.filteredTerms | limitTo:$ctrl.limitNumber\">\n" +
-    "  <div class=\"col-md-2\">\n" +
+    "<div ng-class=\"{'row': ($index + 1) % 4 === 0}\" ng-repeat=\"term in $ctrl.vocabulary.filteredTerms | limitTo:$ctrl.limitNumber\">\n" +
+    "  <div class=\"col-md-3\">\n" +
     "    <div class=\"checkbox\">\n" +
     "      <label for=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\">\n" +
     "        <input id=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\"\n" +
@@ -12727,12 +12727,12 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
     "  <div class=\"btn-group pull-right\">\n" +
     "    <button type=\"button\" ng-if=\"$ctrl.limitNumber > $ctrl.constantLimitNumber\"\n" +
     "            class=\"btn btn-xs btn-primary\"\n" +
-    "            ng-click=\"$ctrl.limitNumber = $ctrl.limitNumber - $ctrl.constantLimitNumber\">\n" +
+    "            ng-click=\"$ctrl.limitNumber = $ctrl.constantLimitNumber\">\n" +
     "      Less\n" +
     "    </button>\n" +
     "    <button type=\"button\" ng-if=\"$ctrl.vocabulary.filteredTerms.length > $ctrl.limitNumber\"\n" +
     "            class=\"btn btn-xs btn-primary\"\n" +
-    "            ng-click=\"$ctrl.limitNumber = $ctrl.limitNumber + $ctrl.constantLimitNumber\">\n" +
+    "            ng-click=\"$ctrl.limitNumber = $ctrl.vocabulary.filteredTerms.length\">\n" +
     "      More\n" +
     "    </button>\n" +
     "  </div>\n" +

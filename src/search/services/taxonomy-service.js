@@ -19,7 +19,7 @@
 
     function filter(vocabularies, queryString) {
       if(queryString){
-        return vocabularies.filter(function(vocabulary){
+        return (vocabularies || []).filter(function(vocabulary){
           vocabulary.filteredTerms =  (vocabulary.terms || []).filter(function(term){
             if(translateTitle(term.title).toLowerCase().indexOf(queryString.toLowerCase()) >= 0){
               return term.name;
