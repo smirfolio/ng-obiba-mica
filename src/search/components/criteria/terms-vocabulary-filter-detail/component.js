@@ -19,13 +19,6 @@
       ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
     }
 
-    function onChanges(changesObj) {
-      if (changesObj.vocabulary && ctrl.vocabulary.existingItem && ctrl.vocabulary.existingItem.type === 'exists') {
-        ctrl.vocabulary.terms.forEach(function (term) { term.selected = true; });
-      }
-    }
-
-    ctrl.$onChanges = onChanges;
     ctrl.constantLimitNumber = 12;
     ctrl.limitNumber = ctrl.constantLimitNumber;
     ctrl.clickCheckbox = clickCheckbox;

@@ -6,6 +6,7 @@
       <a href="" ng-click="$ctrl.removeCriterion()" ng-if="$ctrl.vocabulary.existingItem">{{'clear' | translate}}</a>
 
       <a href=""
+         class="hoffset2"
          ng-if="$ctrl.criterionType === 'string-terms' && $ctrl.vocabulary.existingItem.type !== 'exists'"
          ng-click="$ctrl.selectVocabularyArgs(null)">
         {{'select-all' | translate}}
