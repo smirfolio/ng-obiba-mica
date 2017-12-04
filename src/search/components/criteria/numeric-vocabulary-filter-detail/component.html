@@ -1,14 +1,12 @@
 <form ng-submit="$ctrl.setRangeValue($event)">
   <label>{{'global.from' | translate}}
     <input type="number"
-           ng-value="$ctrl.vocabulary.existingItem.getRangeTerms().from"
-           name="from">
+           ng-model="$ctrl.vocabulary.rangeTerms.from">
   </label>
 
   <label> {{'global.to' | translate}}
     <input type="number"
-           ng-value="$ctrl.vocabulary.existingItem.getRangeTerms().to"
-           name="to">
+           ng-model="$ctrl.vocabulary.rangeTerms.to">
   </label>
   <button type="submit" class="btn btn-default btn-xs"><i class="fa fa-chevron-right"></i></button>
 </form>

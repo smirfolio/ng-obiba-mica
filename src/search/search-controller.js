@@ -898,11 +898,22 @@ ngObibaMica.search
       function processTaxonomyVocabulary(target, taxonomy, taxonomyVocabulary) {
         function processExistingItem(existingItem) {
           if (existingItem) {
+            if (RqlQueryUtils.isNumericVocabulary(taxonomyVocabulary)) {
+              taxonomyVocabulary.rangeTerms = existingItem.getRangeTerms();
+            }
+
+            if (RqlQueryUtils.isMatchVocabulary(taxonomyVocabulary)) {
+              taxonomyVocabulary.matchString = existingItem.selectedTerms.join('');
+            }
+
             // when vocabulary has terms
             (taxonomyVocabulary.terms || []).forEach(function (term) {
               term.selected = existingItem.type === 'exists' || existingItem.selectedTerms.indexOf(term.name) > -1;
             });
           } else {
+            taxonomyVocabulary.rangeTerms = {};
+            taxonomyVocabulary.matchString = null;
+
             // when vocabulary has terms
             (taxonomyVocabulary.terms || []).forEach(function (term) {
               term.selected = false;
@@ -1295,6 +1306,8 @@ ngObibaMica.search
         if(criterion) {
           if (selected.length === 0) {
             RqlQueryService.removeCriteriaItem(criterion);
+          } else if (Object.keys(args).length === 0) {
+            RqlQueryService.updateCriteriaItem(criterion, RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, args && args.term, $scope.lang), true);
           } else {
             criterion.rqlQuery.name = RQL_NODE.IN;
             RqlQueryUtils.updateQuery(criterion.rqlQuery, selected);

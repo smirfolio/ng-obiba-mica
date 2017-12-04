@@ -5441,11 +5441,22 @@ ngObibaMica.search
       function processTaxonomyVocabulary(target, taxonomy, taxonomyVocabulary) {
         function processExistingItem(existingItem) {
           if (existingItem) {
+            if (RqlQueryUtils.isNumericVocabulary(taxonomyVocabulary)) {
+              taxonomyVocabulary.rangeTerms = existingItem.getRangeTerms();
+            }
+
+            if (RqlQueryUtils.isMatchVocabulary(taxonomyVocabulary)) {
+              taxonomyVocabulary.matchString = existingItem.selectedTerms.join('');
+            }
+
             // when vocabulary has terms
             (taxonomyVocabulary.terms || []).forEach(function (term) {
               term.selected = existingItem.type === 'exists' || existingItem.selectedTerms.indexOf(term.name) > -1;
             });
           } else {
+            taxonomyVocabulary.rangeTerms = {};
+            taxonomyVocabulary.matchString = null;
+
             // when vocabulary has terms
             (taxonomyVocabulary.terms || []).forEach(function (term) {
               term.selected = false;
@@ -5838,6 +5849,8 @@ ngObibaMica.search
         if(criterion) {
           if (selected.length === 0) {
             RqlQueryService.removeCriteriaItem(criterion);
+          } else if (Object.keys(args).length === 0) {
+            RqlQueryService.updateCriteriaItem(criterion, RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, args && args.term, $scope.lang), true);
           } else {
             criterion.rqlQuery.name = RQL_NODE.IN;
             RqlQueryUtils.updateQuery(criterion.rqlQuery, selected);
@@ -9052,13 +9065,6 @@ ngObibaMica.search
       ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
     }
 
-    function onChanges(changesObj) {
-      if (changesObj.vocabulary && ctrl.vocabulary.existingItem && ctrl.vocabulary.existingItem.type === 'exists') {
-        ctrl.vocabulary.terms.forEach(function (term) { term.selected = true; });
-      }
-    }
-
-    ctrl.$onChanges = onChanges;
     ctrl.constantLimitNumber = 12;
     ctrl.limitNumber = ctrl.constantLimitNumber;
     ctrl.clickCheckbox = clickCheckbox;
@@ -12915,7 +12921,7 @@ angular.module("search/components/criteria/match-vocabulary-filter-detail/compon
   $templateCache.put("search/components/criteria/match-vocabulary-filter-detail/component.html",
     "<input type=\"text\" class=\"form-control\"\n" +
     "       placeholder=\"{{'search.match.placeholder' | translate}}\"\n" +
-    "       ng-value=\"$ctrl.vocabulary.existingItem.selectedTerms.join('')\"\n" +
+    "       ng-model=\"$ctrl.vocabulary.matchString\"\n" +
     "       ng-keyup=\"$ctrl.enterText($event)\">");
 }]);
 
@@ -12924,14 +12930,12 @@ angular.module("search/components/criteria/numeric-vocabulary-filter-detail/comp
     "<form ng-submit=\"$ctrl.setRangeValue($event)\">\n" +
     "  <label>{{'global.from' | translate}}\n" +
     "    <input type=\"number\"\n" +
-    "           ng-value=\"$ctrl.vocabulary.existingItem.getRangeTerms().from\"\n" +
-    "           name=\"from\">\n" +
+    "           ng-model=\"$ctrl.vocabulary.rangeTerms.from\">\n" +
     "  </label>\n" +
     "\n" +
     "  <label> {{'global.to' | translate}}\n" +
     "    <input type=\"number\"\n" +
-    "           ng-value=\"$ctrl.vocabulary.existingItem.getRangeTerms().to\"\n" +
-    "           name=\"to\">\n" +
+    "           ng-model=\"$ctrl.vocabulary.rangeTerms.to\">\n" +
     "  </label>\n" +
     "  <button type=\"submit\" class=\"btn btn-default btn-xs\"><i class=\"fa fa-chevron-right\"></i></button>\n" +
     "</form>\n" +
@@ -13119,6 +13123,7 @@ angular.module("search/components/vocabulary/vocabulary-filter-detail/component.
     "      <a href=\"\" ng-click=\"$ctrl.removeCriterion()\" ng-if=\"$ctrl.vocabulary.existingItem\">{{'clear' | translate}}</a>\n" +
     "\n" +
     "      <a href=\"\"\n" +
+    "         class=\"hoffset2\"\n" +
     "         ng-if=\"$ctrl.criterionType === 'string-terms' && $ctrl.vocabulary.existingItem.type !== 'exists'\"\n" +
     "         ng-click=\"$ctrl.selectVocabularyArgs(null)\">\n" +
     "        {{'select-all' | translate}}\n" +
