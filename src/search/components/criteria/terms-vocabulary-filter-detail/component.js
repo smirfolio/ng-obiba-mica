@@ -26,7 +26,7 @@
     }
 
     ctrl.$onChanges = onChanges;
-    ctrl.constantLimitNumber = 6;
+    ctrl.constantLimitNumber = 12;
     ctrl.limitNumber = ctrl.constantLimitNumber;
     ctrl.clickCheckbox = clickCheckbox;
   };

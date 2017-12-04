@@ -1,5 +1,5 @@
-<div ng-class="{'row': ($index + 1) % 6 === 0}" ng-repeat="term in $ctrl.vocabulary.filteredTerms | limitTo:$ctrl.limitNumber">
-  <div class="col-md-2">
+<div ng-class="{'row': ($index + 1) % 4 === 0}" ng-repeat="term in $ctrl.vocabulary.filteredTerms | limitTo:$ctrl.limitNumber">
+  <div class="col-md-3">
     <div class="checkbox">
       <label for="term-{{$ctrl.vocabulary.name + '-' + $index}}">
         <input id="term-{{$ctrl.vocabulary.name + '-' + $index}}"
@@ -16,12 +16,12 @@
   <div class="btn-group pull-right">
     <button type="button" ng-if="$ctrl.limitNumber > $ctrl.constantLimitNumber"
             class="btn btn-xs btn-primary"
-            ng-click="$ctrl.limitNumber = $ctrl.limitNumber - $ctrl.constantLimitNumber">
+            ng-click="$ctrl.limitNumber = $ctrl.constantLimitNumber">
       Less
     </button>
     <button type="button" ng-if="$ctrl.vocabulary.filteredTerms.length > $ctrl.limitNumber"
             class="btn btn-xs btn-primary"
-            ng-click="$ctrl.limitNumber = $ctrl.limitNumber + $ctrl.constantLimitNumber">
+            ng-click="$ctrl.limitNumber = $ctrl.vocabulary.filteredTerms.length">
       More
     </button>
   </div>
