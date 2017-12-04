@@ -60,6 +60,7 @@
     .component('metaTaxonomyFilterPanel', {
       bindings: {
         tabs: '<',
+        showTaxonomyPanel: '<',
         onToggle: '<'
       },
       templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html',

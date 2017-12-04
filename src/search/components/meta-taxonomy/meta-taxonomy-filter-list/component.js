@@ -34,6 +34,7 @@
       transclude: true,
       bindings: {
         metaTaxonomy: '<',
+        showTaxonomyPanel: '<',
         onSelectTaxonomy: '&'
       },
       templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html',
