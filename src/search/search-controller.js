@@ -3035,7 +3035,7 @@ ngObibaMica.search
       });
     }])
 
-  .controller('SearchResultPaginationController', ['$scope', function ($scope) {
+  .controller('SearchResultPaginationController', ['$scope', 'ngObibaMicaSearch', function ($scope, ngObibaMicaSearch) {
 
     function updateMaxSize() {
       $scope.maxSize = Math.min(3, Math.ceil($scope.totalHits / $scope.pagination.selected.value));
@@ -3079,8 +3079,13 @@ ngObibaMica.search
       {label: '100', value: 100}
     ];
 
+    var listPageSize = ngObibaMicaSearch.getDefaultListPageSize($scope.target);
+    var initialTargetPageSize = $scope.pageSizes.filter(function(p) {
+      return p.value === listPageSize;
+    });
+
     $scope.pagination = {
-      selected: $scope.pageSizes[0],
+      selected: initialTargetPageSize.length>0 ? initialTargetPageSize[0] : $scope.pageSizes[0],
       currentPage: 1
     };
 

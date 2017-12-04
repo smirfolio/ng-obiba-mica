@@ -94,6 +94,7 @@ ngObibaMica.search
         hideSearch: ['studyId', 'dceId', 'datasetId', 'networkId'],
         variables: {
           showSearchTab: true,
+          listPageSize: 20,
           variablesColumn: {
             showVariablesTypeColumn: true,
             showVariablesStudiesColumn: true,
@@ -104,6 +105,7 @@ ngObibaMica.search
         },
         datasets: {
           showSearchTab: true,
+          listPageSize: 20,
           showDatasetsSearchFilter: true,
           datasetsColumn: {
             showDatasetsAcronymColumn: true,
@@ -129,6 +131,7 @@ ngObibaMica.search
         },
         studies: {
           showSearchTab: true,
+          listPageSize: 20,
           showStudiesSearchFilter: true,
           studiesColumn: {
             showStudiesDesignColumn: true,
@@ -154,6 +157,7 @@ ngObibaMica.search
         },
         networks: {
           showSearchTab: true,
+          listPageSize: 20,
           networksColumn: {
             showNetworksStudiesColumn: true,
             showNetworksStudyDatasetColumn: true,
@@ -261,6 +265,19 @@ ngObibaMica.search
           },
           getOptions: function() {
             return options;
+          },
+          getDefaultListPageSize: function(target) {
+            switch (target) {
+              case QUERY_TARGETS.VARIABLE:
+                return options.variables.listPageSize;
+              case QUERY_TARGETS.DATASET:
+                return options.datasets.listPageSize;
+              case QUERY_TARGETS.STUDY:
+                return options.studies.listPageSize;
+              case QUERY_TARGETS.NETWORK:
+                return options.networks.listPageSize;
+            }
+            return 20;
           },
           toggleHideSearchNavigate: function (vocabulary) {
             var index = options.hideNavigate.indexOf(vocabulary.name);
