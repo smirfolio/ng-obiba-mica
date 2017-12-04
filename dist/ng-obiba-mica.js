@@ -8740,13 +8740,25 @@ ngObibaMica.search
 
     function filter(vocabularies, queryString) {
       if(queryString){
-        return (vocabularies || []).filter(function(vocabulary){
+        var vocabulariesToFilter;
+        if(angular.isArray(vocabularies)){
+          vocabulariesToFilter = vocabularies;
+        }
+        else{
+          vocabulariesToFilter = vocabularies.vocabularies;
+        }
+        return (vocabulariesToFilter || []).filter(function(vocabulary){
           vocabulary.filteredTerms =  (vocabulary.terms || []).filter(function(term){
             if(translateTitle(term.title).toLowerCase().indexOf(queryString.toLowerCase()) >= 0){
               return term.name;
             }
           });
+          if(vocabulary.terms){
           return vocabulary.filteredTerms.length > 0;
+          }
+          else{
+            return vocabulary;
+          }
         });
 
       }
@@ -9228,7 +9240,10 @@ ngObibaMica.search
       ctrl.filteredVocabularies = {};
       if (queryString) {
         ctrl.taxonomy.forEach(function (subTaxonomy) {
-          ctrl.filteredVocabularies[subTaxonomy.name] = FilterVocabulariesByQueryString.filter(subTaxonomy, queryString);
+          var filtredSubVocabularies = FilterVocabulariesByQueryString.filter(subTaxonomy, queryString);
+          if(filtredSubVocabularies.length > 0){
+            ctrl.filteredVocabularies[subTaxonomy.name] = filtredSubVocabularies;
+          }
         });
       } else {
         ctrl.taxonomy.forEach(function (subTaxonomy) {
@@ -12898,6 +12913,7 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
     "    <div ng-if=\"$ctrl.taxonomyIsArray\" ng-repeat=\"subTaxonomy in $ctrl.taxonomy\">\n" +
     "\n" +
     "      <taxonomy-filter-detail taxonomy=\"subTaxonomy\"\n" +
+    "                              ng-if=\"$ctrl.filteredVocabularies[subTaxonomy.name]\"\n" +
     "                              vocabularies=\"$ctrl.filteredVocabularies[subTaxonomy.name]\"\n" +
     "                              on-select-taxonomy-term=\"$ctrl.selectTaxonomyVocabularyArgs(taxonomy, vocabulary, args)\"\n" +
     "                              on-remove-criterion=\"$ctrl.removeCriterion(item)\">\n" +

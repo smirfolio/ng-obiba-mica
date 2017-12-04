@@ -22,6 +22,7 @@
     <div ng-if="$ctrl.taxonomyIsArray" ng-repeat="subTaxonomy in $ctrl.taxonomy">
 
       <taxonomy-filter-detail taxonomy="subTaxonomy"
+                              ng-if="$ctrl.filteredVocabularies[subTaxonomy.name]"
                               vocabularies="$ctrl.filteredVocabularies[subTaxonomy.name]"
                               on-select-taxonomy-term="$ctrl.selectTaxonomyVocabularyArgs(taxonomy, vocabulary, args)"
                               on-remove-criterion="$ctrl.removeCriterion(item)">

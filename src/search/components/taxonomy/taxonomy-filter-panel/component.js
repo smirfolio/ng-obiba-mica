@@ -38,7 +38,10 @@
       ctrl.filteredVocabularies = {};
       if (queryString) {
         ctrl.taxonomy.forEach(function (subTaxonomy) {
-          ctrl.filteredVocabularies[subTaxonomy.name] = FilterVocabulariesByQueryString.filter(subTaxonomy, queryString);
+          var filtredSubVocabularies = FilterVocabulariesByQueryString.filter(subTaxonomy, queryString);
+          if(filtredSubVocabularies.length > 0){
+            ctrl.filteredVocabularies[subTaxonomy.name] = filtredSubVocabularies;
+          }
         });
       } else {
         ctrl.taxonomy.forEach(function (subTaxonomy) {
