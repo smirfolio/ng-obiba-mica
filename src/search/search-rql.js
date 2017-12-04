@@ -1556,7 +1556,7 @@ ngObibaMica.search
           rqlQuery.args.push(targetQuery);
         }
 
-        var limit = pagination[target] || {from: 0, size: 10};
+        var limit = pagination[target] || {from: 0, size: ngObibaMicaSearch.getDefaultListPageSize(target)};
         RqlQueryUtils.addLimit(targetQuery, RqlQueryUtils.limit(limit.from, limit.size));
 
         if(addFieldsQuery){
