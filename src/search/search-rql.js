@@ -685,6 +685,11 @@ ngObibaMica.search
       return query;
     };
 
+
+    this.isFreeTextMatch = function(query) {
+      return query.name === RQL_NODE.MATCH && query.args.length === 1;
+    };
+
     this.updateMatchQuery = function (query, queryString) {
       query.args[0] = queryString || '*';
       return query;
@@ -795,7 +800,7 @@ ngObibaMica.search
           if (!logicalOp && query.args && query.args.length > 0) {
             var targetTaxo = 'Mica_' + parentQuery.name;
 
-            if (query.args.length > 1) {
+            if (!self.isFreeTextMatch(query)) {
               var criteriaVocabulary = query.name === 'match' ? query.args[1] : query.args[0];
               logicalOp = criteriaVocabulary.startsWith(targetTaxo + '.') ? RQL_NODE.AND : RQL_NODE.OR;
             }
@@ -1179,10 +1184,6 @@ ngObibaMica.search
       this.findQueryInTargetByVocabulary = findQueryInTargetByVocabulary;
       this.findQueryInTargetByTaxonomyVocabulary = findQueryInTargetByTaxonomyVocabulary;
 
-      function isFreeTextMatch(query) {
-        return query.name === RQL_NODE.MATCH && query.args.length === 1;
-      }
-
       function isOperator(name) {
         switch (name) {
           case RQL_NODE.AND:
@@ -1321,7 +1322,7 @@ ngObibaMica.search
             return isLeaf(arg.name) || isOperator(arg.name);
           });
 
-          if (leafQueries.length === 1 && isFreeTextMatch(leafQueries[0])) {
+          if (leafQueries.length === 1 && RqlQueryUtils.isFreeTextMatch(leafQueries[0])) {
             return false;
           }
 
