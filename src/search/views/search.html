@@ -130,7 +130,7 @@
       <search-criteria-region options="options" search="search"> </search-criteria-region>
 
       <!-- Search Results region -->
-      <div id="search-result-region" class="voffset3 can-full-screen" ng-if="search.query" fullscreen="isFullscreen">
+      <div id="search-result-region" class="voffset3 can-full-screen" ng-if="canExecuteWithEmptyQuery()" fullscreen="isFullscreen">
         <div ng-if="searchTabsOrder.length > 1">
           <a href class="btn btn-sm btn-default pull-right" ng-click="toggleFullscreen()">
             <i class="glyphicon" ng-class="{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}"></i>
