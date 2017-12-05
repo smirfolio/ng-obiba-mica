@@ -8917,7 +8917,7 @@ ngObibaMica.search
   'use strict';
 
   ngObibaMica.search.FilterVocabulariesByQueryString = function($translate, LocalizedValues) {
-    function translateTitle(title) {
+    function translateField(title) {
       return LocalizedValues.forLocale(title, $translate.use());
     }
 
@@ -8932,7 +8932,10 @@ ngObibaMica.search
         }
         return (vocabulariesToFilter || []).filter(function(vocabulary){
           vocabulary.filteredTerms =  (vocabulary.terms || []).filter(function(term){
-            if(translateTitle(term.title).toLowerCase().indexOf(queryString.toLowerCase()) >= 0){
+            if(translateField(term.title).toLowerCase().indexOf(queryString.toLowerCase()) >= 0 ||
+              translateField(term.description).toLowerCase().indexOf(queryString.toLowerCase()) >= 0 ||
+              translateField(term.keywords).toLowerCase().indexOf(queryString.toLowerCase()) >= 0
+            ){
               return term.name;
             }
           });
@@ -9227,14 +9230,11 @@ ngObibaMica.search.InputSearchFilterController = function() {
 
   function change(){
     ctrl.onFilterChange({queryString:ctrl.queryString});
-    ctrl.model = true;
   }
   function clear(){
     ctrl.queryString = '';
     change();
-    ctrl.model = '';
   }
-  ctrl.model = '';
   ctrl.change = change;
   ctrl.clear = clear;
 };
@@ -13024,7 +13024,7 @@ angular.module("search/components/input-search-filter/component.html", []).run([
     "       </span>\n" +
     "        <input type=\"text\" ng-model=\"$ctrl.queryString\"  ng-attr-placeholder=\"{{'global.list-search-placeholder'  | translate}}\"\n" +
     "               class=\"input-search-filter form-control\" ng-change=\"$ctrl.change()\">\n" +
-    "        <span ng-if=\"$ctrl.model\"\n" +
+    "        <span ng-if=\"$ctrl.queryString\"\n" +
     "              ng-click=\"$ctrl.clear()\"\n" +
     "              class=\"form-control-feedback form-control-clear width-initial height-initial\"\n" +
     "              style=\"padding-right: 5px;\"><i class=\"fa fa-times\"></i></span>\n" +

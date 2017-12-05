@@ -13,7 +13,7 @@
   'use strict';
 
   ngObibaMica.search.FilterVocabulariesByQueryString = function($translate, LocalizedValues) {
-    function translateTitle(title) {
+    function translateField(title) {
       return LocalizedValues.forLocale(title, $translate.use());
     }
 
@@ -28,7 +28,10 @@
         }
         return (vocabulariesToFilter || []).filter(function(vocabulary){
           vocabulary.filteredTerms =  (vocabulary.terms || []).filter(function(term){
-            if(translateTitle(term.title).toLowerCase().indexOf(queryString.toLowerCase()) >= 0){
+            if(translateField(term.title).toLowerCase().indexOf(queryString.toLowerCase()) >= 0 ||
+              translateField(term.description).toLowerCase().indexOf(queryString.toLowerCase()) >= 0 ||
+              translateField(term.keywords).toLowerCase().indexOf(queryString.toLowerCase()) >= 0
+            ){
               return term.name;
             }
           });

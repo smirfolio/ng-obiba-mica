@@ -15,14 +15,11 @@ ngObibaMica.search.InputSearchFilterController = function() {
 
   function change(){
     ctrl.onFilterChange({queryString:ctrl.queryString});
-    ctrl.model = true;
   }
   function clear(){
     ctrl.queryString = '';
     change();
-    ctrl.model = '';
   }
-  ctrl.model = '';
   ctrl.change = change;
   ctrl.clear = clear;
 };
