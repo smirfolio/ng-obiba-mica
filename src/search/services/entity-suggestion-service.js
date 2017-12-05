@@ -18,14 +18,17 @@
                                                         RqlQueryService) {
 
     function suggest(entityType, query) {
-      if (entityType && query && query.length > 1) {
-        return DocumentSuggestionResource.query({locale: $translate.use(), documentType: entityType, query: query})
+      var obibaUtils = new obiba.utils.NgObibaStringUtils();
+      var cleanQuery = obibaUtils.cleanDoubleQuotesLeftUnclosed(query);
+
+      if (entityType && query && cleanQuery.length > 1) {
+        return DocumentSuggestionResource.query({locale: $translate.use(), documentType: entityType, query: cleanQuery})
           .$promise
           .then(function (response) {
             var parsedResponse = Array.isArray(response) ? response : [];
 
             for (var i = 0; i < parsedResponse.length; i++) {
-              parsedResponse[i] = parsedResponse[i].replace(/\/.*/, '');
+              parsedResponse[i] = obibaUtils.quoteQuery(parsedResponse[i].replace(/\/.*/, ''));
             }
 
             return parsedResponse;
@@ -33,6 +36,17 @@
       } else {
         return [];
       }
+    }
+
+    function suggestForTargetQuery(entityType, query) {
+      var rql = RqlQueryService.parseQuery($location.search().query);
+      var targetQuery = RqlQueryService.findTargetQuery(typeToTarget(entityType), rql);
+      var classNameQuery = RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className');
+      if (classNameQuery) {
+        query = 'className:' + classNameQuery.args[1] + ' AND (' + query.replace(/\/.*/, '') + ')';
+      }
+
+      return suggest(entityType, query);
     }
 
     function getCurrentSuggestion(target, query) {
@@ -58,6 +72,7 @@
     this.getCurrentSuggestion = getCurrentSuggestion;
     this.suggest = suggest;
     this.selectSuggestion = selectSuggestion;
+    this.suggestForTargetQuery = suggestForTargetQuery;
   };
 
   ngObibaMica.search

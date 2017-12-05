@@ -43,6 +43,7 @@
     "obiba": true,
     "RQL_NODE": true,
     "targetToType": true,
+    "typeToTarget": true,
     "QUERY_TARGETS": true
   }
 
