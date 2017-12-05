@@ -10,8 +10,6 @@
 
 'use strict';
 
-/* global typeToTarget */
-
 ngObibaMica.lists
   .directive('listSortWidget', [function () {
     return {
@@ -34,8 +32,8 @@ ngObibaMica.lists
     };
   }])
 
-  .directive('suggestionField', ['$location', 'DocumentSuggestionResource', '$translate','RqlQueryService',
-    function ($location, DocumentSuggestionResource, $translate, RqlQueryService) {
+  .directive('suggestionField', ['$location', 'DocumentSuggestionResource', '$translate', 'RqlQueryService', 'EntitySuggestionService',
+    function ($location, DocumentSuggestionResource, $translate, RqlQueryService, EntitySuggestionService) {
       return {
         restrict: 'EA',
         replace: true,
@@ -48,28 +46,7 @@ ngObibaMica.lists
         templateUrl: 'lists/views/input-search-widget/suggestion-field.html',
         link: function (scope) {
           scope.suggest = function (query) {
-            if (scope.documentType && query && query.length > 1) {
-              var rql = RqlQueryService.parseQuery($location.search().query);
-              var targetQuery = RqlQueryService.findTargetQuery(typeToTarget(scope.documentType), rql);
-              var classNameQuery = RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className');
-              if (classNameQuery) {
-                query = 'className:' + classNameQuery.args[1] + ' AND (' + query.replace(/\/.*/, '') + ')';
-              }
-
-              return DocumentSuggestionResource.query({locale: $translate.use(), documentType: scope.documentType, query: query})
-                  .$promise
-                  .then(function (response) {
-                      var parsedResponse = Array.isArray(response) ? response : [];
-
-                      for (var i = 0; i < parsedResponse.length; i++) {
-                        parsedResponse[i] = parsedResponse[i].replace(/\/.*/, '');
-                      }
-
-                      return parsedResponse;
-                  });
-            } else {
-              return [];
-            }
+            return EntitySuggestionService.suggestForTargetQuery(scope.documentType, query);
           };
         }
       };
