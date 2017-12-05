@@ -88,11 +88,11 @@ ngObibaMica.lists
       var emitter = $rootScope.$new();
 
       $scope.selectSuggestion = function (suggestion) {
-        emitter.$emit('ngObibaMicaSearch.searchChange', suggestion);
+        emitter.$emit('ngObibaMicaSearch.searchSuggestion', suggestion);
       };
 
       $scope.search = function() {
-        emitter.$emit('ngObibaMicaSearch.searchChange', $scope.searchFilter.replace(/\/.*/g, ''));
+        emitter.$emit('ngObibaMicaSearch.searchSuggestion', $scope.searchFilter.replace(/\/.*/g, ''));
       };
 
       initMatchInput();

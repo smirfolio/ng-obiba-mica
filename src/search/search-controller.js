@@ -674,6 +674,10 @@ ngObibaMica.search
         });
       }
 
+      function canExecuteWithEmptyQuery() {
+        return $scope.search.layout === 'new' || $scope.search.query;
+      }
+
       function validateType(type) {
         if (!type || !QUERY_TYPES[type.toUpperCase()]) {
           throw new Error('Invalid type: ' + type);
@@ -888,9 +892,9 @@ ngObibaMica.search
 
             $scope.search.criteriaItemMap = result.map;
 
-            if ($scope.search.query) {
+             if (canExecuteWithEmptyQuery()) {
               loadResults();
-            }
+             }
 
             if ($scope.search.selectedTarget && $scope.search.selectedTaxonomy) {
               findAndSetCriteriaItemForTaxonomyVocabularies($scope.search.selectedTarget, $scope.search.selectedTaxonomy);
@@ -1496,6 +1500,7 @@ ngObibaMica.search
       $scope.onSelectTerm = onSelectTerm;
       $scope.QUERY_TARGETS = QUERY_TARGETS;
       $scope.onPaginate = onPaginate;
+      $scope.canExecuteWithEmptyQuery = canExecuteWithEmptyQuery;
       $scope.inSearchMode = function() {
         return $scope.viewMode === VIEW_MODES.SEARCH;
       };

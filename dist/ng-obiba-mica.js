@@ -5217,6 +5217,10 @@ ngObibaMica.search
         });
       }
 
+      function canExecuteWithEmptyQuery() {
+        return $scope.search.layout === 'new' || $scope.search.query;
+      }
+
       function validateType(type) {
         if (!type || !QUERY_TYPES[type.toUpperCase()]) {
           throw new Error('Invalid type: ' + type);
@@ -5431,9 +5435,9 @@ ngObibaMica.search
 
             $scope.search.criteriaItemMap = result.map;
 
-            if ($scope.search.query) {
+             if (canExecuteWithEmptyQuery()) {
               loadResults();
-            }
+             }
 
             if ($scope.search.selectedTarget && $scope.search.selectedTaxonomy) {
               findAndSetCriteriaItemForTaxonomyVocabularies($scope.search.selectedTarget, $scope.search.selectedTaxonomy);
@@ -6039,6 +6043,7 @@ ngObibaMica.search
       $scope.onSelectTerm = onSelectTerm;
       $scope.QUERY_TARGETS = QUERY_TARGETS;
       $scope.onPaginate = onPaginate;
+      $scope.canExecuteWithEmptyQuery = canExecuteWithEmptyQuery;
       $scope.inSearchMode = function() {
         return $scope.viewMode === VIEW_MODES.SEARCH;
       };
@@ -9866,11 +9871,11 @@ ngObibaMica.lists
       var emitter = $rootScope.$new();
 
       $scope.selectSuggestion = function (suggestion) {
-        emitter.$emit('ngObibaMicaSearch.searchChange', suggestion);
+        emitter.$emit('ngObibaMicaSearch.searchSuggestion', suggestion);
       };
 
       $scope.search = function() {
-        emitter.$emit('ngObibaMicaSearch.searchChange', $scope.searchFilter.replace(/\/.*/g, ''));
+        emitter.$emit('ngObibaMicaSearch.searchSuggestion', $scope.searchFilter.replace(/\/.*/g, ''));
       };
 
       initMatchInput();
@@ -15004,7 +15009,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "      <search-criteria-region options=\"options\" search=\"search\"> </search-criteria-region>\n" +
     "\n" +
     "      <!-- Search Results region -->\n" +
-    "      <div id=\"search-result-region\" class=\"voffset3 can-full-screen\" ng-if=\"search.query\" fullscreen=\"isFullscreen\">\n" +
+    "      <div id=\"search-result-region\" class=\"voffset3 can-full-screen\" ng-if=\"canExecuteWithEmptyQuery()\" fullscreen=\"isFullscreen\">\n" +
     "        <div ng-if=\"searchTabsOrder.length > 1\">\n" +
     "          <a href class=\"btn btn-sm btn-default pull-right\" ng-click=\"toggleFullscreen()\">\n" +
     "            <i class=\"glyphicon\" ng-class=\"{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}\"></i>\n" +
@@ -15087,7 +15092,7 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "                  on-toggle=\"onTaxonomyFilterPanelToggleVisibility\"\n" +
     "          ></taxonomy-filter-panel>\n" +
     "          <div class=\"clearfix\"></div>\n" +
-    "          <div id=\"search-result-region\" class=\"voffset3 can-full-screen\" ng-if=\"search.query\" fullscreen=\"isFullscreen\">\n" +
+    "          <div id=\"search-result-region\" class=\"voffset3 can-full-screen\" ng-if=\"canExecuteWithEmptyQuery()\" fullscreen=\"isFullscreen\">\n" +
     "            <div ng-if=\"searchTabsOrder.length > 1\">\n" +
     "              <a href class=\"btn btn-sm btn-default pull-right\" ng-click=\"toggleFullscreen()\">\n" +
     "                <i class=\"glyphicon\" ng-class=\"{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}\"></i>\n" +
