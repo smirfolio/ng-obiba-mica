@@ -15,8 +15,7 @@ ngObibaMica.search
     function ($routeProvider) {
       $routeProvider
         .when('/search', {
-          // templateUrl: 'search/views/search.html',
-          templateUrl: 'search/views/search2.html',
+          templateUrl: 'search/views/search-layout.html',
           controller: 'SearchController',
           reloadOnSearch: false
         })

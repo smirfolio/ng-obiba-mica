@@ -9,16 +9,6 @@
   -->
 
 <div ng-show="inSearchMode()">
-  <div class="container alert-fixed-position">
-    <obiba-alert id="SearchController"></obiba-alert>
-  </div>
-
-  <div class="alert-growl-container">
-    <obiba-alert id="SearchControllerGrowl"></obiba-alert>
-  </div>
-
-  <div ng-if="searchHeaderTemplateUrl" ng-include="searchHeaderTemplateUrl"></div>
-
   <div class="row voffset2">
     <div class="col-md-3" ng-if="hasFacetedTaxonomies" >
       <!-- Search Facets region -->
