@@ -1,11 +1,13 @@
-<form>
-    <div class="form-group pull-right">
-        <div class="input-group ">
-            <span class="input-group-addon">
-                <i class="glyphicon glyphicon-filter"></i>
-            </span>
-            <input type="text" ng-model="$ctrl.queryString"  ng-attr-placeholder="{{'global.list-search-placeholder'  | translate}}"
-                   class="input-search-filter form-control" ng-change="$ctrl.change()">
-        </div>
+<div class=" pull-right">
+    <div class="input-group has-feedback">
+       <span class="input-group-addon">
+           <i class="glyphicon glyphicon-filter"></i>
+       </span>
+        <input type="text" ng-model="$ctrl.queryString"  ng-attr-placeholder="{{'global.list-search-placeholder'  | translate}}"
+               class="input-search-filter form-control" ng-change="$ctrl.change()">
+        <span ng-if="$ctrl.model"
+              ng-click="$ctrl.clear()"
+              class="form-control-feedback form-control-clear width-initial height-initial"
+              style="padding-right: 5px;"><i class="fa fa-times"></i></span>
     </div>
-</form>
+</div>

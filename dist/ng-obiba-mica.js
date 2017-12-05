@@ -9200,10 +9200,16 @@ ngObibaMica.search.InputSearchFilterController = function() {
 
   function change(){
     ctrl.onFilterChange({queryString:ctrl.queryString});
+    ctrl.model = true;
   }
-
-  ctrl.queryString = '';
+  function clear(){
+    ctrl.queryString = '';
+    change();
+    ctrl.model = '';
+  }
+  ctrl.model = '';
   ctrl.change = change;
+  ctrl.clear = clear;
 };
 
 
@@ -13007,17 +13013,19 @@ angular.module("search/components/entity-search-typeahead/component.html", []).r
 
 angular.module("search/components/input-search-filter/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/input-search-filter/component.html",
-    "<form>\n" +
-    "    <div class=\"form-group pull-right\">\n" +
-    "        <div class=\"input-group \">\n" +
-    "            <span class=\"input-group-addon\">\n" +
-    "                <i class=\"glyphicon glyphicon-filter\"></i>\n" +
-    "            </span>\n" +
-    "            <input type=\"text\" ng-model=\"$ctrl.queryString\"  ng-attr-placeholder=\"{{'global.list-search-placeholder'  | translate}}\"\n" +
-    "                   class=\"input-search-filter form-control\" ng-change=\"$ctrl.change()\">\n" +
-    "        </div>\n" +
+    "<div class=\" pull-right\">\n" +
+    "    <div class=\"input-group has-feedback\">\n" +
+    "       <span class=\"input-group-addon\">\n" +
+    "           <i class=\"glyphicon glyphicon-filter\"></i>\n" +
+    "       </span>\n" +
+    "        <input type=\"text\" ng-model=\"$ctrl.queryString\"  ng-attr-placeholder=\"{{'global.list-search-placeholder'  | translate}}\"\n" +
+    "               class=\"input-search-filter form-control\" ng-change=\"$ctrl.change()\">\n" +
+    "        <span ng-if=\"$ctrl.model\"\n" +
+    "              ng-click=\"$ctrl.clear()\"\n" +
+    "              class=\"form-control-feedback form-control-clear width-initial height-initial\"\n" +
+    "              style=\"padding-right: 5px;\"><i class=\"fa fa-times\"></i></span>\n" +
     "    </div>\n" +
-    "</form>");
+    "</div>");
 }]);
 
 angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html", []).run(["$templateCache", function($templateCache) {
