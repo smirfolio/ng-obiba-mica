@@ -9,15 +9,7 @@
   -->
 
 <div ng-show="inSearchMode()">
-  <div class="container alert-fixed-position">
-    <obiba-alert id="SearchController"></obiba-alert>
-  </div>
 
-  <div class="alert-growl-container">
-    <obiba-alert id="SearchControllerGrowl"></obiba-alert>
-  </div>
-
-  <div ng-if="searchHeaderTemplateUrl" ng-include="searchHeaderTemplateUrl"></div>
   <!-- Search criteria region -->
   <search-criteria-region options="options" search="search"> </search-criteria-region>
   <div class="row voffset2">

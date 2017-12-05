@@ -716,6 +716,8 @@ ngObibaMica.search
           $scope.search.display = display;
           $scope.search.query = query;
           $scope.search.rqlQuery = RqlQueryService.parseQuery(query);
+          // TODO remove or add to UI as admin config or user config
+          $scope.search.layout = setLayout(search.layout);
 
           return true;
         } catch (e) {
@@ -728,6 +730,10 @@ ngObibaMica.search
         }
 
         return false;
+      }
+
+      function setLayout(layout) {
+        return layout ? (['old', 'new'].indexOf(layout) > -1 ? layout : 'new') : 'new';
       }
 
       var clearSearchQuery = function () {
@@ -1437,6 +1443,7 @@ ngObibaMica.search
       $scope.BUCKET_TYPES = BUCKET_TYPES;
 
       $scope.search = {
+        layout: 'new',
         pagination: {},
         query: null,
         advanced: false,
