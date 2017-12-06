@@ -8,7 +8,14 @@
   <ul class="nav nav-pills nav-stacked voffset1">
     <li role="presentation" ng-repeat="taxonomy in $ctrl.metaTaxonomy.taxonomies" ng-class="{'active': taxonomy.state.isActive() && $ctrl.showTaxonomyPanel}">
       <a href ng-click="$ctrl.selectTaxonomy(taxonomy)">
-        {{taxonomy.info.title | translate}} <span ng-if="taxonomy.state.isLoading()" class="loading"></span>
+        <span
+        uib-popover="{{taxonomy.info.description ? taxonomy.info.description : null}}"
+        popover-title="{{taxonomy.info.description ? taxonomy.info.title : null}}"
+        popover-placement="bottom"
+        popover-trigger="'mouseenter'"
+        popover-popup-delay="1000">
+          {{taxonomy.info.title}}
+        </span> <span ng-if="taxonomy.state.isLoading()" class="loading"></span>
       </a>
     </li>
   </ul>

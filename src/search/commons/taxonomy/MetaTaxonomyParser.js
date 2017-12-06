@@ -97,7 +97,8 @@
         info: {
           name: scales.name,
           names: scales.terms.map(function(t){return t.name;}),
-          title: this.translateTitle(scales.title)
+          title: this.translateTitle(scales.title),
+          description: this.translateTitle(scales.description)
         },
         taxonomies: scales.terms
       });
