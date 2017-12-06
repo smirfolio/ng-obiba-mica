@@ -57,7 +57,8 @@
             </div>
 
           <div translate>{{'search.' + search.display + '-help'}}</div>
-          <result-panel display="search.display"
+          <result-panel ng-if="!search.showTaxonomyPanel"
+                        display="search.display"
                         type="search.type"
                         bucket="search.bucket"
                         criteria="search.criteria"

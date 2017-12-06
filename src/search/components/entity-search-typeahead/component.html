@@ -1,5 +1,6 @@
 <div class="form-group has-feedback ">
-  <input type="search" ng-model="$ctrl.model"
+  <input type="search"
+         ng-model="$ctrl.model"
          ng-attr-placeholder="{{$ctrl.placeholderText | translate}}"
          uib-typeahead="suggestion for suggestion in $ctrl.suggest($viewValue)"
          typeahead-focus-first="false"

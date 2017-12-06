@@ -12989,19 +12989,21 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
 
 angular.module("search/components/entity-counts/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/entity-counts/component.html",
-    "<div class=\"entity-counts voffset2\">\n" +
-    "<ul>\n" +
-    "    <li ng-class=\"{active: (entity === $ctrl.target)}\" ng-repeat=\"entity in $ctrl.resultTabsOrder\">\n" +
-    "        {{$ctrl.taxonomyTypeMap[entity] | translate}} {{$ctrl.getTotalHits(entity) | localizedNumber}}\n" +
-    "    </li>\n" +
-    "</ul>\n" +
-    "</div>");
+    "<ul class=\"list-no-style list-inline\">\n" +
+    "  <li ng-repeat=\"entity in $ctrl.resultTabsOrder\">\n" +
+    "    <span class=\"btn btn-sm no-pointer-events\"\n" +
+    "          ng-class=\"{'btn-default': (entity !== $ctrl.target), 'btn-primary': (entity === $ctrl.target)}\">\n" +
+    "        {{$ctrl.taxonomyTypeMap[entity] | translate}}   <span class=\"badge\">{{$ctrl.getTotalHits(entity) | localizedNumber}}</span>\n" +
+    "    </span>\n" +
+    "  </li>\n" +
+    "</ul>");
 }]);
 
 angular.module("search/components/entity-search-typeahead/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/entity-search-typeahead/component.html",
     "<div class=\"form-group has-feedback \">\n" +
-    "  <input type=\"search\" ng-model=\"$ctrl.model\"\n" +
+    "  <input type=\"search\"\n" +
+    "         ng-model=\"$ctrl.model\"\n" +
     "         ng-attr-placeholder=\"{{$ctrl.placeholderText | translate}}\"\n" +
     "         uib-typeahead=\"suggestion for suggestion in $ctrl.suggest($viewValue)\"\n" +
     "         typeahead-focus-first=\"false\"\n" +
@@ -13090,19 +13092,35 @@ angular.module("search/components/taxonomy/taxonomy-filter-detail/component.html
 angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/taxonomy/taxonomy-filter-panel/component.html",
     "<div class=\"vocabulary-filter-detail\">\n" +
-    "    <button type=\"button\" class=\"close\" data-dismiss=\"alert\" aria-label=\"Close\" ng-click=\"$ctrl.togglePannel()\"><span aria-hidden=\"true\">×</span></button>\n" +
-    "    <div class=\"ng-clearfix\"></div>\n" +
-    "<div class=\"vocabulary-filter-detail-heading\">\n" +
+    "  <button type=\"button\"\n" +
+    "          class=\"voffset1 close\"\n" +
+    "          data-dismiss=\"alert\"\n" +
+    "          aria-label=\"Close\"\n" +
+    "          ng-click=\"$ctrl.togglePannel()\"><span aria-hidden=\"true\">×</span>\n" +
+    "  </button>\n" +
+    "\n" +
+    "  <div class=\"ng-clearfix\"></div>\n" +
+    "\n" +
+    "  <div class=\"vocabulary-filter-detail-heading\">\n" +
     "    <div class=\"row\">\n" +
     "      <div class=\"col-md-4\">\n" +
-    "        <input-search-filter class=\"input-search-filter\" vocabularies=\"$ctrl.taxonomy.vocabularies\" on-filter-change=\"$ctrl.onFilterChange(queryString)\"></input-search-filter>\n" +
+    "        <input-search-filter class=\"input-search-filter\"\n" +
+    "                             vocabularies=\"$ctrl.taxonomy.vocabularies\"\n" +
+    "                             on-filter-change=\"$ctrl.onFilterChange(queryString)\">\n" +
+    "        </input-search-filter>\n" +
     "      </div>\n" +
     "      <div class=\"col-md-8\">\n" +
-    "        <entity-counts class=\"pull-right\" taxonomy-type-map=\"$ctrl.taxonomyTypeMap\" result-tabs-order=\"$ctrl.resultTabsOrder\" target=\"$ctrl.target\" result=\"$ctrl.result\"></entity-counts>\n" +
+    "        <entity-counts class=\"pull-right\"\n" +
+    "                       taxonomy-type-map=\"$ctrl.taxonomyTypeMap\"\n" +
+    "                       result-tabs-order=\"$ctrl.resultTabsOrder\"\n" +
+    "                       target=\"$ctrl.target\"\n" +
+    "                       result=\"$ctrl.result\">\n" +
+    "        </entity-counts>\n" +
     "      </div>\n" +
     "    </div>\n" +
-    "</div>\n" +
-    "<div class=\"vocabulary-filter-detail-container\">\n" +
+    "  </div>\n" +
+    "\n" +
+    "  <div class=\"vocabulary-filter-detail-container\">\n" +
     "    <vocabulary-filter-detail\n" +
     "            ng-if=\"!$ctrl.taxonomyIsArray\"\n" +
     "            on-select-vocabulary-args=\"$ctrl.selectTaxonomyVocabularyArgs($ctrl.taxonomy, vocabulary, args)\"\n" +
@@ -13110,8 +13128,8 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
     "            on-remove-criterion=\"$ctrl.removeCriterion(item)\"\n" +
     "            vocabulary=\"vocabulary\">\n" +
     "    </vocabulary-filter-detail>\n" +
-    "    <div ng-if=\"$ctrl.taxonomyIsArray\" ng-repeat=\"subTaxonomy in $ctrl.taxonomy\">\n" +
     "\n" +
+    "    <div ng-if=\"$ctrl.taxonomyIsArray\" ng-repeat=\"subTaxonomy in $ctrl.taxonomy\">\n" +
     "      <taxonomy-filter-detail taxonomy=\"subTaxonomy\"\n" +
     "                              ng-if=\"$ctrl.filteredVocabularies[subTaxonomy.name]\"\n" +
     "                              vocabularies=\"$ctrl.filteredVocabularies[subTaxonomy.name]\"\n" +
@@ -15098,7 +15116,8 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "            </div>\n" +
     "\n" +
     "          <div translate>{{'search.' + search.display + '-help'}}</div>\n" +
-    "          <result-panel display=\"search.display\"\n" +
+    "          <result-panel ng-if=\"!search.showTaxonomyPanel\"\n" +
+    "                        display=\"search.display\"\n" +
     "                        type=\"search.type\"\n" +
     "                        bucket=\"search.bucket\"\n" +
     "                        criteria=\"search.criteria\"\n" +
