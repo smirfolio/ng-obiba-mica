@@ -1,17 +1,33 @@
 <div class="vocabulary-filter-detail">
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close" ng-click="$ctrl.togglePannel()"><span aria-hidden="true">×</span></button>
-    <div class="ng-clearfix"></div>
-<div class="vocabulary-filter-detail-heading">
+  <button type="button"
+          class="voffset1 close"
+          data-dismiss="alert"
+          aria-label="Close"
+          ng-click="$ctrl.togglePannel()"><span aria-hidden="true">×</span>
+  </button>
+
+  <div class="ng-clearfix"></div>
+
+  <div class="vocabulary-filter-detail-heading">
     <div class="row">
       <div class="col-md-4">
-        <input-search-filter class="input-search-filter" vocabularies="$ctrl.taxonomy.vocabularies" on-filter-change="$ctrl.onFilterChange(queryString)"></input-search-filter>
+        <input-search-filter class="input-search-filter"
+                             vocabularies="$ctrl.taxonomy.vocabularies"
+                             on-filter-change="$ctrl.onFilterChange(queryString)">
+        </input-search-filter>
       </div>
       <div class="col-md-8">
-        <entity-counts class="pull-right" taxonomy-type-map="$ctrl.taxonomyTypeMap" result-tabs-order="$ctrl.resultTabsOrder" target="$ctrl.target" result="$ctrl.result"></entity-counts>
+        <entity-counts class="pull-right"
+                       taxonomy-type-map="$ctrl.taxonomyTypeMap"
+                       result-tabs-order="$ctrl.resultTabsOrder"
+                       target="$ctrl.target"
+                       result="$ctrl.result">
+        </entity-counts>
       </div>
     </div>
-</div>
-<div class="vocabulary-filter-detail-container">
+  </div>
+
+  <div class="vocabulary-filter-detail-container">
     <vocabulary-filter-detail
             ng-if="!$ctrl.taxonomyIsArray"
             on-select-vocabulary-args="$ctrl.selectTaxonomyVocabularyArgs($ctrl.taxonomy, vocabulary, args)"
@@ -19,8 +35,8 @@
             on-remove-criterion="$ctrl.removeCriterion(item)"
             vocabulary="vocabulary">
     </vocabulary-filter-detail>
-    <div ng-if="$ctrl.taxonomyIsArray" ng-repeat="subTaxonomy in $ctrl.taxonomy">
 
+    <div ng-if="$ctrl.taxonomyIsArray" ng-repeat="subTaxonomy in $ctrl.taxonomy">
       <taxonomy-filter-detail taxonomy="subTaxonomy"
                               ng-if="$ctrl.filteredVocabularies[subTaxonomy.name]"
                               vocabularies="$ctrl.filteredVocabularies[subTaxonomy.name]"

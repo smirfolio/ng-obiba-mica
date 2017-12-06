@@ -1,8 +1,8 @@
-
-<div class="entity-counts voffset2">
-<ul>
-    <li ng-class="{active: (entity === $ctrl.target)}" ng-repeat="entity in $ctrl.resultTabsOrder">
-        {{$ctrl.taxonomyTypeMap[entity] | translate}} {{$ctrl.getTotalHits(entity) | localizedNumber}}
-    </li>
+<ul class="list-no-style list-inline">
+  <li ng-repeat="entity in $ctrl.resultTabsOrder">
+    <span class="btn btn-sm no-pointer-events"
+          ng-class="{'btn-default': (entity !== $ctrl.target), 'btn-primary': (entity === $ctrl.target)}">
+        {{$ctrl.taxonomyTypeMap[entity] | translate}}   <span class="badge">{{$ctrl.getTotalHits(entity) | localizedNumber}}</span>
+    </span>
+  </li>
 </ul>
-</div>
