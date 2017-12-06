@@ -3155,6 +3155,7 @@ ngObibaMica.search
       switch (query.name) {
         case RQL_NODE.CONTAINS:
         case RQL_NODE.IN:
+        case RQL_NODE.OUT:
         case RQL_NODE.EXISTS:
         case RQL_NODE.MISSING:
           this.updateQueryInternal(query, values);
@@ -6629,8 +6630,9 @@ ngObibaMica.search
       };
       $scope.localizeCriterion = function () {
         var rqlQuery = $scope.criterion.rqlQuery;
-        if ((rqlQuery.name === RQL_NODE.IN || rqlQuery.name === RQL_NODE.CONTAINS) && $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.length > 0) {
+        if ((rqlQuery.name === RQL_NODE.IN || rqlQuery.name === RQL_NODE.OUT || rqlQuery.name === RQL_NODE.CONTAINS) && $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.length > 0) {
           var sep = rqlQuery.name === RQL_NODE.IN ? ' | ' : ' + ';
+          var prefix = rqlQuery.name === RQL_NODE.OUT ? '-' : '';
           return $scope.criterion.selectedTerms.map(function (t) {
             if (!$scope.criterion.vocabulary.terms) {
               return t;
@@ -6638,7 +6640,7 @@ ngObibaMica.search
             var found = $scope.criterion.vocabulary.terms.filter(function (arg) {
               return arg.name === t;
             }).pop();
-            return found ? LocalizedValues.forLocale(found.title, $scope.criterion.lang) : t;
+            return prefix + (found ? LocalizedValues.forLocale(found.title, $scope.criterion.lang) : t);
           }).join(sep);
         }
         var operation = rqlQuery.name;
@@ -6819,8 +6821,8 @@ ngObibaMica.search
         updateSelection();
       };
 
-      var isInFilter = function () {
-        return $scope.selectedFilter === RQL_NODE.IN;
+      var isInOutFilter = function () {
+        return $scope.selectedFilter === RQL_NODE.IN || $scope.selectedFilter === RQL_NODE.OUT;
       };
 
       var isContainsFilter = function () {
@@ -6859,7 +6861,7 @@ ngObibaMica.search
         return LocalizedValues.forLocale(values, $scope.criterion.lang);
       };
       $scope.truncate = StringUtils.truncate;
-      $scope.isInFilter = isInFilter;
+      $scope.isInOutFilter = isInOutFilter;
       $scope.isContainsFilter = isContainsFilter;
       $scope.updateSelection = updateSelection;
     }])
@@ -14239,6 +14241,12 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
     "          {{'search.in' | translate}}\n" +
     "        </label>\n" +
     "      </li>\n" +
+    "      <li>\n" +
+    "        <label title=\"{{'search.out-help' | translate}}\">\n" +
+    "          <input ng-click=\"updateFilter()\" type=\"radio\" ng-model=\"selectedFilter\" value=\"{{RQL_NODE.OUT}}\">\n" +
+    "          {{'search.out' | translate}}\n" +
+    "        </label>\n" +
+    "      </li>\n" +
     "      <li ng-show=\"criterion.vocabulary.repeatable\">\n" +
     "        <label title=\"{{'search.contains-help' | translate}}\">\n" +
     "          <input ng-click=\"updateFilter()\" type=\"radio\" ng-model=\"selectedFilter\" value=\"{{RQL_NODE.CONTAINS}}\">\n" +
@@ -14247,12 +14255,12 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
     "      </li>\n" +
     "    </ul>\n" +
     "  </li>\n" +
-    "  <li ng-show=\"isInFilter() || isContainsFilter()\" class='divider'></li>\n" +
+    "  <li ng-show=\"isInOutFilter() || isContainsFilter()\" class='divider'></li>\n" +
     "  <li class=\"criteria-list-item\" ng-show=\"state.loading\">\n" +
     "    <p class=\"voffset2 loading\">\n" +
     "    </p>\n" +
     "  </li>\n" +
-    "  <li ng-show=\"isInFilter() || isContainsFilter()\">\n" +
+    "  <li ng-show=\"isInOutFilter() || isContainsFilter()\">\n" +
     "    <ul ng-show=\"!state.loading\" class=\"no-padding criteria-list-terms\">\n" +
     "      <li class=\"criteria-list-item\" ng-show=\"terms && terms.length>10\">\n" +
     "        <span class=\"input-group input-group-sm no-padding-top\">\n" +
@@ -14262,7 +14270,7 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
     "      </li>\n" +
     "      <li ng-show=\"terms && terms.length>10\"></li>\n" +
     "      <li class=\"criteria-list-item\"\n" +
-    "        ng-show=\"isInFilter() || isContainsFilter()\"\n" +
+    "        ng-show=\"isInOutFilter() || isContainsFilter()\"\n" +
     "        ng-repeat=\"term in terms | regex:searchText:['key','title','description']\"\n" +
     "        uib-popover=\"{{term.description ? term.description : (truncate(term.title) === term.title ? null : term.title)}}\"\n" +
     "        popover-title=\"{{term.description ? term.title : null}}\"\n" +

@@ -20,6 +20,12 @@
           {{'search.in' | translate}}
         </label>
       </li>
+      <li>
+        <label title="{{'search.out-help' | translate}}">
+          <input ng-click="updateFilter()" type="radio" ng-model="selectedFilter" value="{{RQL_NODE.OUT}}">
+          {{'search.out' | translate}}
+        </label>
+      </li>
       <li ng-show="criterion.vocabulary.repeatable">
         <label title="{{'search.contains-help' | translate}}">
           <input ng-click="updateFilter()" type="radio" ng-model="selectedFilter" value="{{RQL_NODE.CONTAINS}}">
@@ -28,12 +34,12 @@
       </li>
     </ul>
   </li>
-  <li ng-show="isInFilter() || isContainsFilter()" class='divider'></li>
+  <li ng-show="isInOutFilter() || isContainsFilter()" class='divider'></li>
   <li class="criteria-list-item" ng-show="state.loading">
     <p class="voffset2 loading">
     </p>
   </li>
-  <li ng-show="isInFilter() || isContainsFilter()">
+  <li ng-show="isInOutFilter() || isContainsFilter()">
     <ul ng-show="!state.loading" class="no-padding criteria-list-terms">
       <li class="criteria-list-item" ng-show="terms && terms.length>10">
         <span class="input-group input-group-sm no-padding-top">
@@ -43,7 +49,7 @@
       </li>
       <li ng-show="terms && terms.length>10"></li>
       <li class="criteria-list-item"
-        ng-show="isInFilter() || isContainsFilter()"
+        ng-show="isInOutFilter() || isContainsFilter()"
         ng-repeat="term in terms | regex:searchText:['key','title','description']"
         uib-popover="{{term.description ? term.description : (truncate(term.title) === term.title ? null : term.title)}}"
         popover-title="{{term.description ? term.title : null}}"
