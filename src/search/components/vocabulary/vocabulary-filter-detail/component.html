@@ -1,20 +1,26 @@
 <div class="panel panel-default">
   <div class="panel-heading">
-    <div>
-        <span>{{$ctrl.vocabulary.title | localizedString}}</span>
-        <div class="pull-right">
-          <a href="" ng-click="$ctrl.removeCriterion()" ng-if="$ctrl.vocabulary.existingItem">{{'clear' | translate}}</a>
+    <label>
+      <input type="checkbox"
+             ng-click="$ctrl.toggleVocabularySelection($event, $ctrl.vocabulary.wholeVocabularyIsSelected)"
+             ng-model="$ctrl.vocabulary.wholeVocabularyIsSelected">
+      {{$ctrl.vocabulary.title | localizedString}}
+    </label>
 
-          <a href=""
-             class="hoffset2"
-             ng-if="$ctrl.criterionType === 'string-terms' && $ctrl.vocabulary.existingItem.type !== 'exists'"
-             ng-click="$ctrl.selectVocabularyArgs(null)">
-            {{'select-all' | translate}}
-          </a>
-        </div>
+    <span>
+      <div class="pull-right">
+        <a href="" ng-click="$ctrl.removeCriterion()" ng-if="$ctrl.vocabulary.existingItem">{{'clear' | translate}}</a>
+
+        <a href=""
+           class="hoffset2"
+           ng-click="$ctrl.selectAllFilteredVocabularyTerms($ctrl.vocabulary.filteredTerms)"
+           ng-if="$ctrl.criterionType === 'string-terms' && $ctrl.canStillSelectMore($ctrl.vocabulary.filteredTerms)">
+          {{'select-items' | translate}}
+        </a>
       </div>
-      <div class="clearfix"></div>
-      <small class="help-block">{{$ctrl.vocabulary.description | localizedString}}</small>
+
+      <span class="clearfix"></span>
+    </span>
   </div>
   <div class="panel-body">
     <div ng-switch on="$ctrl.criterionType">
