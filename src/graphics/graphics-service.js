@@ -13,11 +13,25 @@
 ngObibaMica.graphics
   .factory('GraphicChartsDataResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
-      return $resource(ngObibaMicaUrl.getUrl('JoinQuerySearchResource'), {}, {
+      var resourceUrl = ngObibaMicaUrl.getUrl('JoinQuerySearchResource');
+      var method = resourceUrl.indexOf(':query') === -1 ? 'POST' : 'GET';
+      var contentType = method === 'POST' ? 'application/x-www-form-urlencoded' : 'application/json';
+      var requestTransformer = function(obj) {
+        var str = [];
+        for(var p in obj) {
+          str.push(encodeURIComponent(p) + '=' + encodeURIComponent(obj[p]));
+        }
+        return str.join('&');
+      };
+      return $resource(resourceUrl, {}, {
         'studies': {
-          method: 'GET',
+          method: method,
+          headers: {
+            'Content-Type': contentType
+          },
           errorHandler: true,
-          params: {type: 'studies'}
+          params: {type: 'studies'},
+          transformRequest : requestTransformer
         }
       });
     }])
