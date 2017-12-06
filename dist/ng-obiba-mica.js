@@ -38,11 +38,11 @@ function NgObibaMicaUrlProvider() {
     'TaxonomiesResource': 'ws/taxonomies/_filter',
     'TaxonomyResource': 'ws/taxonomy/:taxonomy/_filter',
     'VocabularyResource': 'ws/taxonomy/:taxonomy/vocabulary/:vocabulary/_filter',
-    'JoinQuerySearchResource': 'ws/:type/_rql?query=:query',
+    'JoinQuerySearchResource': 'ws/:type/_rql',
     'JoinQuerySearchCsvResource': 'ws/:type/_rql_csv?query=:query',
     'JoinQuerySearchCsvReportResource': 'ws/:type/_report?query=:query',
     'JoinQuerySearchCsvReportByNetworkResource': 'ws/:type/_report_by_network?networkId=:networkId&locale=:locale',
-    'JoinQueryCoverageResource': 'ws/variables/_coverage?query=:query',
+    'JoinQueryCoverageResource': 'ws/variables/_coverage',
     'JoinQueryCoverageDownloadResource': 'ws/variables/_coverage_download?query=:query',
     'VariablePage': '',
     'NetworkPage': '#/network/:network',
@@ -4192,35 +4192,54 @@ ngObibaMica.search
 
   .factory('JoinQuerySearchResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
-      return $resource(ngObibaMicaUrl.getUrl('JoinQuerySearchResource'), {}, {
-        'variables': {
-          method: 'GET',
+      var resourceUrl = ngObibaMicaUrl.getUrl('JoinQuerySearchResource');
+      var actionFactory = function(type) {
+        var method = resourceUrl.indexOf(':query') === -1 ? 'POST' : 'GET';
+        var contentType = method === 'POST' ? 'application/x-www-form-urlencoded' : 'application/json';
+        var requestTransformer = function(obj) {
+          var str = [];
+          for(var p in obj) {
+            str.push(encodeURIComponent(p) + '=' + encodeURIComponent(obj[p]));
+          }
+          return str.join('&');
+        };
+        return {
+          method: method,
+          headers: {
+            'Content-Type': contentType
+          },
           errorHandler: true,
-          params: {type: 'variables'}
-        },
-        'studies': {
-          method: 'GET',
-          errorHandler: true,
-          params: {type: 'studies'}
-        },
-        'networks': {
-          method: 'GET',
-          errorHandler: true,
-          params: {type: 'networks'}
-        },
-        'datasets': {
-          method: 'GET',
-          errorHandler: true,
-          params: {type: 'datasets'}
-        }
+          params: {type: type},
+          transformRequest : requestTransformer
+        };
+      };
+      return $resource(resourceUrl, {}, {
+        'variables': actionFactory('variables'),
+        'studies': actionFactory('studies'),
+        'networks': actionFactory('networks'),
+        'datasets': actionFactory('datasets')
       });
     }])
 
   .factory('JoinQueryCoverageResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
-      return $resource(ngObibaMicaUrl.getUrl('JoinQueryCoverageResource'), {}, {
+      var resourceUrl = ngObibaMicaUrl.getUrl('JoinQueryCoverageResource');
+      var method = resourceUrl.indexOf(':query') === -1 ? 'POST' : 'GET';
+      var contentType = method === 'POST' ? 'application/x-www-form-urlencoded' : 'application/json';
+      var requestTransformer = function(obj) {
+        var str = [];
+        for(var p in obj) {
+          str.push(encodeURIComponent(p) + '=' + encodeURIComponent(obj[p]));
+        }
+        return str.join('&');
+      };
+      return $resource(resourceUrl, {}, {
         'get': {
-          method: 'GET',
+          method: method,
+          headers: {
+            'Content-Type': contentType
+          },
+          transformRequest : requestTransformer,
           errorHandler: true
         }
       });
@@ -10251,11 +10270,25 @@ ngObibaMica.graphics
 ngObibaMica.graphics
   .factory('GraphicChartsDataResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
-      return $resource(ngObibaMicaUrl.getUrl('JoinQuerySearchResource'), {}, {
+      var resourceUrl = ngObibaMicaUrl.getUrl('JoinQuerySearchResource');
+      var method = resourceUrl.indexOf(':query') === -1 ? 'POST' : 'GET';
+      var contentType = method === 'POST' ? 'application/x-www-form-urlencoded' : 'application/json';
+      var requestTransformer = function(obj) {
+        var str = [];
+        for(var p in obj) {
+          str.push(encodeURIComponent(p) + '=' + encodeURIComponent(obj[p]));
+        }
+        return str.join('&');
+      };
+      return $resource(resourceUrl, {}, {
         'studies': {
-          method: 'GET',
+          method: method,
+          headers: {
+            'Content-Type': contentType
+          },
           errorHandler: true,
-          params: {type: 'studies'}
+          params: {type: 'studies'},
+          transformRequest : requestTransformer
         }
       });
     }])
