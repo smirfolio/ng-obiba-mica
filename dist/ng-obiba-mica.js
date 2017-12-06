@@ -13113,13 +13113,13 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
     "\n" +
     "  <div class=\"panel-body vocabulary-filter-detail-heading\">\n" +
     "    <div class=\"row\">\n" +
-    "      <div class=\"col-md-4\">\n" +
+    "      <div class=\"col-md-3\">\n" +
     "        <input-search-filter class=\"input-search-filter\"\n" +
     "                             vocabularies=\"$ctrl.taxonomy.vocabularies\"\n" +
     "                             on-filter-change=\"$ctrl.onFilterChange(queryString)\">\n" +
     "        </input-search-filter>\n" +
     "      </div>\n" +
-    "      <div class=\"col-md-8\">\n" +
+    "      <div class=\"col-md-9\">\n" +
     "        <button type=\"button\"\n" +
     "                class=\"voffset1 hoffset2 pull-right close\"\n" +
     "                data-dismiss=\"alert\"\n" +
