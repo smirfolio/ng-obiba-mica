@@ -9602,6 +9602,9 @@ ngObibaMica.search
     }
 
     function canStillSelectMore(terms) {
+      if (!Array.isArray(terms)) {
+        return false;
+      }
       var selected = terms.filter(function (term) { return term.selected; });
       return selected.length < terms.length;
     }
