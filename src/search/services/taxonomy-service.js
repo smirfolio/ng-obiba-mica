@@ -28,10 +28,10 @@
         }
         return (vocabulariesToFilter || []).filter(function(vocabulary){
           vocabulary.filteredTerms =  (vocabulary.terms || []).filter(function(term){
-            if(translateField(term.title).toLowerCase().indexOf(queryString.toLowerCase()) >= 0 ||
-              translateField(term.description).toLowerCase().indexOf(queryString.toLowerCase()) >= 0 ||
-              translateField(term.keywords).toLowerCase().indexOf(queryString.toLowerCase()) >= 0
-            ){
+           if(translateField(term.title).toLowerCase().normalize('NFD').replace(/[^\w]/g, '').indexOf(queryString.toLowerCase().normalize('NFD').replace(/[^\w]/g, '')) >= 0 ||
+             translateField(term.description).toLowerCase().normalize('NFD').replace(/[^\w]/g, '').indexOf(queryString.toLowerCase().normalize('NFD').replace(/[^\w]/g, '')) >= 0 ||
+             translateField(term.keywords).toLowerCase().normalize('NFD').replace(/[^\w]/g, '').indexOf(queryString.toLowerCase().normalize('NFD').replace(/[^\w]/g, ''))  >= 0
+          ){
               return term.name;
             }
           });
