@@ -222,6 +222,8 @@ function CriteriaItemBuilder(LocalizedValues, useLang) {
     children: []
   };
 
+  var builder = this;
+
   this.type = function (value) {
     if (!RQL_NODE[value.toUpperCase()]) {
       throw new Error('Invalid node type:', value);
@@ -251,8 +253,12 @@ function CriteriaItemBuilder(LocalizedValues, useLang) {
   };
 
   this.term = function (value) {
-    criteria.term = value;
-    return this;
+    if (Array.isArray(value)) {
+      return builder.selectedTerms(value);
+    } else {
+      criteria.term = value;
+      return this;
+    }
   };
 
   this.rqlQuery = function (value) {
@@ -771,9 +777,16 @@ ngObibaMica.search
       } else if (this.isMatchVocabulary(item.vocabulary)) {
         return this.matchQuery(this.criteriaId(item.taxonomy, item.vocabulary), null);
       } else {
+        var args;
+        if (Array.isArray(item.selectedTerms) && item.selectedTerms.length > 0) {
+          args = item.selectedTerms;
+        } else if (item.term) {
+          args = item.term.name;
+        }
+
         return this.inQuery(
           this.criteriaId(item.taxonomy, item.vocabulary),
-          item.term ? item.term.name : undefined
+            args
         );
       }
     };

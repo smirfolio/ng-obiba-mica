@@ -32,6 +32,28 @@
       ctrl.onRemoveCriterion({item: ctrl.vocabulary.existingItem});
     }
 
+    function toggleVocabularySelection(checkboxClickEvent, modelValue) {
+      if (modelValue) {
+        selectVocabularyArgs(null);
+      } else {
+        removeCriterion();
+      }
+    }
+
+    function selectAllFilteredVocabularyTerms(terms) {
+      var processedTerms = terms.map(function (term) {
+        term.selected = true;
+        return term;
+      });
+
+      selectVocabularyArgs({term: processedTerms});
+    }
+
+    function canStillSelectMore(terms) {
+      var selected = terms.filter(function (term) { return term.selected; });
+      return selected.length < terms.length;
+    }
+
     function onChanges(changesObj) {
       if (changesObj.vocabulary) {
         checkAndSetCriterionType(ctrl.vocabulary);
@@ -39,6 +61,9 @@
     }
 
     ctrl.$onChanges = onChanges;
+    ctrl.canStillSelectMore = canStillSelectMore;
+    ctrl.toggleVocabularySelection = toggleVocabularySelection;
+    ctrl.selectAllFilteredVocabularyTerms = selectAllFilteredVocabularyTerms;
     ctrl.selectVocabularyArgs = selectVocabularyArgs;
     ctrl.removeCriterion = removeCriterion;
   };

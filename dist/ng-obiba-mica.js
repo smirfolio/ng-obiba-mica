@@ -2464,6 +2464,8 @@ function CriteriaItemBuilder(LocalizedValues, useLang) {
     children: []
   };
 
+  var builder = this;
+
   this.type = function (value) {
     if (!RQL_NODE[value.toUpperCase()]) {
       throw new Error('Invalid node type:', value);
@@ -2493,8 +2495,12 @@ function CriteriaItemBuilder(LocalizedValues, useLang) {
   };
 
   this.term = function (value) {
-    criteria.term = value;
-    return this;
+    if (Array.isArray(value)) {
+      return builder.selectedTerms(value);
+    } else {
+      criteria.term = value;
+      return this;
+    }
   };
 
   this.rqlQuery = function (value) {
@@ -3013,9 +3019,16 @@ ngObibaMica.search
       } else if (this.isMatchVocabulary(item.vocabulary)) {
         return this.matchQuery(this.criteriaId(item.taxonomy, item.vocabulary), null);
       } else {
+        var args;
+        if (Array.isArray(item.selectedTerms) && item.selectedTerms.length > 0) {
+          args = item.selectedTerms;
+        } else if (item.term) {
+          args = item.term.name;
+        }
+
         return this.inQuery(
           this.criteriaId(item.taxonomy, item.vocabulary),
-          item.term ? item.term.name : undefined
+            args
         );
       }
     };
@@ -5480,6 +5493,7 @@ ngObibaMica.search
             }
 
             // when vocabulary has terms
+            taxonomyVocabulary.wholeVocabularyIsSelected = existingItem.type === 'exists';
             (taxonomyVocabulary.terms || []).forEach(function (term) {
               term.selected = existingItem.type === 'exists' || existingItem.selectedTerms.indexOf(term.name) > -1;
             });
@@ -5488,6 +5502,7 @@ ngObibaMica.search
             taxonomyVocabulary.matchString = null;
 
             // when vocabulary has terms
+            taxonomyVocabulary.wholeVocabularyIsSelected = false;
             (taxonomyVocabulary.terms || []).forEach(function (term) {
               term.selected = false;
             });
@@ -9567,6 +9582,28 @@ ngObibaMica.search
       ctrl.onRemoveCriterion({item: ctrl.vocabulary.existingItem});
     }
 
+    function toggleVocabularySelection(checkboxClickEvent, modelValue) {
+      if (modelValue) {
+        selectVocabularyArgs(null);
+      } else {
+        removeCriterion();
+      }
+    }
+
+    function selectAllFilteredVocabularyTerms(terms) {
+      var processedTerms = terms.map(function (term) {
+        term.selected = true;
+        return term;
+      });
+
+      selectVocabularyArgs({term: processedTerms});
+    }
+
+    function canStillSelectMore(terms) {
+      var selected = terms.filter(function (term) { return term.selected; });
+      return selected.length < terms.length;
+    }
+
     function onChanges(changesObj) {
       if (changesObj.vocabulary) {
         checkAndSetCriterionType(ctrl.vocabulary);
@@ -9574,6 +9611,9 @@ ngObibaMica.search
     }
 
     ctrl.$onChanges = onChanges;
+    ctrl.canStillSelectMore = canStillSelectMore;
+    ctrl.toggleVocabularySelection = toggleVocabularySelection;
+    ctrl.selectAllFilteredVocabularyTerms = selectAllFilteredVocabularyTerms;
     ctrl.selectVocabularyArgs = selectVocabularyArgs;
     ctrl.removeCriterion = removeCriterion;
   };
@@ -13002,7 +13042,6 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
     "        <input id=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\"\n" +
     "               type=\"checkbox\"\n" +
     "               ng-model=\"term.selected\"\n" +
-    "               ng-model-options=\"{getterSetter: true}\"\n" +
     "               ng-click=\"$ctrl.clickCheckbox(term)\"> {{term.title | localizedString}}\n" +
     "      </label>\n" +
     "    </div>\n" +
@@ -13198,21 +13237,27 @@ angular.module("search/components/vocabulary/vocabulary-filter-detail/component.
   $templateCache.put("search/components/vocabulary/vocabulary-filter-detail/component.html",
     "<div class=\"panel panel-default\">\n" +
     "  <div class=\"panel-heading\">\n" +
-    "    <div>\n" +
-    "        <span>{{$ctrl.vocabulary.title | localizedString}}</span>\n" +
-    "        <div class=\"pull-right\">\n" +
-    "          <a href=\"\" ng-click=\"$ctrl.removeCriterion()\" ng-if=\"$ctrl.vocabulary.existingItem\">{{'clear' | translate}}</a>\n" +
+    "    <label>\n" +
+    "      <input type=\"checkbox\"\n" +
+    "             ng-click=\"$ctrl.toggleVocabularySelection($event, $ctrl.vocabulary.wholeVocabularyIsSelected)\"\n" +
+    "             ng-model=\"$ctrl.vocabulary.wholeVocabularyIsSelected\">\n" +
+    "      {{$ctrl.vocabulary.title | localizedString}}\n" +
+    "    </label>\n" +
     "\n" +
-    "          <a href=\"\"\n" +
-    "             class=\"hoffset2\"\n" +
-    "             ng-if=\"$ctrl.criterionType === 'string-terms' && $ctrl.vocabulary.existingItem.type !== 'exists'\"\n" +
-    "             ng-click=\"$ctrl.selectVocabularyArgs(null)\">\n" +
-    "            {{'select-all' | translate}}\n" +
-    "          </a>\n" +
-    "        </div>\n" +
+    "    <span>\n" +
+    "      <div class=\"pull-right\">\n" +
+    "        <a href=\"\" ng-click=\"$ctrl.removeCriterion()\" ng-if=\"$ctrl.vocabulary.existingItem\">{{'clear' | translate}}</a>\n" +
+    "\n" +
+    "        <a href=\"\"\n" +
+    "           class=\"hoffset2\"\n" +
+    "           ng-click=\"$ctrl.selectAllFilteredVocabularyTerms($ctrl.vocabulary.filteredTerms)\"\n" +
+    "           ng-if=\"$ctrl.criterionType === 'string-terms' && $ctrl.canStillSelectMore($ctrl.vocabulary.filteredTerms)\">\n" +
+    "          {{'select-items' | translate}}\n" +
+    "        </a>\n" +
     "      </div>\n" +
-    "      <div class=\"clearfix\"></div>\n" +
-    "      <small class=\"help-block\">{{$ctrl.vocabulary.description | localizedString}}</small>\n" +
+    "\n" +
+    "      <span class=\"clearfix\"></span>\n" +
+    "    </span>\n" +
     "  </div>\n" +
     "  <div class=\"panel-body\">\n" +
     "    <div ng-switch on=\"$ctrl.criterionType\">\n" +

@@ -11,7 +11,6 @@
         <input id="term-{{$ctrl.vocabulary.name + '-' + $index}}"
                type="checkbox"
                ng-model="term.selected"
-               ng-model-options="{getterSetter: true}"
                ng-click="$ctrl.clickCheckbox(term)"> {{term.title | localizedString}}
       </label>
     </div>

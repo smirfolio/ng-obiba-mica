@@ -917,6 +917,7 @@ ngObibaMica.search
             }
 
             // when vocabulary has terms
+            taxonomyVocabulary.wholeVocabularyIsSelected = existingItem.type === 'exists';
             (taxonomyVocabulary.terms || []).forEach(function (term) {
               term.selected = existingItem.type === 'exists' || existingItem.selectedTerms.indexOf(term.name) > -1;
             });
@@ -925,6 +926,7 @@ ngObibaMica.search
             taxonomyVocabulary.matchString = null;
 
             // when vocabulary has terms
+            taxonomyVocabulary.wholeVocabularyIsSelected = false;
             (taxonomyVocabulary.terms || []).forEach(function (term) {
               term.selected = false;
             });
