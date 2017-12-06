@@ -13107,16 +13107,11 @@ angular.module("search/components/taxonomy/taxonomy-filter-detail/component.html
 angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/taxonomy/taxonomy-filter-panel/component.html",
     "<div class=\"vocabulary-filter-detail\">\n" +
-    "  <button type=\"button\"\n" +
-    "          class=\"voffset1 close\"\n" +
-    "          data-dismiss=\"alert\"\n" +
-    "          aria-label=\"Close\"\n" +
-    "          ng-click=\"$ctrl.togglePannel()\"><span aria-hidden=\"true\">×</span>\n" +
-    "  </button>\n" +
+    "\n" +
     "\n" +
     "  <div class=\"ng-clearfix\"></div>\n" +
     "\n" +
-    "  <div class=\"vocabulary-filter-detail-heading\">\n" +
+    "  <div class=\"panel-body vocabulary-filter-detail-heading\">\n" +
     "    <div class=\"row\">\n" +
     "      <div class=\"col-md-4\">\n" +
     "        <input-search-filter class=\"input-search-filter\"\n" +
@@ -13125,6 +13120,12 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
     "        </input-search-filter>\n" +
     "      </div>\n" +
     "      <div class=\"col-md-8\">\n" +
+    "        <button type=\"button\"\n" +
+    "                class=\"voffset1 hoffset2 pull-right close\"\n" +
+    "                data-dismiss=\"alert\"\n" +
+    "                aria-label=\"Close\"\n" +
+    "                ng-click=\"$ctrl.togglePannel()\"><span aria-hidden=\"true\">×</span>\n" +
+    "        </button>\n" +
     "        <entity-counts class=\"pull-right\"\n" +
     "                       taxonomy-type-map=\"$ctrl.taxonomyTypeMap\"\n" +
     "                       result-tabs-order=\"$ctrl.resultTabsOrder\"\n" +
@@ -13135,7 +13136,7 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
     "    </div>\n" +
     "  </div>\n" +
     "\n" +
-    "  <div class=\"vocabulary-filter-detail-container\">\n" +
+    "  <div class=\"panel-body vocabulary-filter-detail-container\">\n" +
     "    <vocabulary-filter-detail\n" +
     "            ng-if=\"!$ctrl.taxonomyIsArray\"\n" +
     "            on-select-vocabulary-args=\"$ctrl.selectTaxonomyVocabularyArgs($ctrl.taxonomy, vocabulary, args)\"\n" +
@@ -13163,20 +13164,20 @@ angular.module("search/components/vocabulary/vocabulary-filter-detail/component.
     "<div class=\"panel panel-default\">\n" +
     "  <div class=\"panel-heading\">\n" +
     "    <div>\n" +
-    "      <div>{{$ctrl.vocabulary.title | localizedString}}</div>\n" +
-    "      <small>{{$ctrl.vocabulary.description | localizedString}}</small>\n" +
-    "    </div>\n" +
-    "    <div class=\"pull-right\">\n" +
-    "      <a href=\"\" ng-click=\"$ctrl.removeCriterion()\" ng-if=\"$ctrl.vocabulary.existingItem\">{{'clear' | translate}}</a>\n" +
+    "        <span>{{$ctrl.vocabulary.title | localizedString}}</span>\n" +
+    "        <div class=\"pull-right\">\n" +
+    "          <a href=\"\" ng-click=\"$ctrl.removeCriterion()\" ng-if=\"$ctrl.vocabulary.existingItem\">{{'clear' | translate}}</a>\n" +
     "\n" +
-    "      <a href=\"\"\n" +
-    "         class=\"hoffset2\"\n" +
-    "         ng-if=\"$ctrl.criterionType === 'string-terms' && $ctrl.vocabulary.existingItem.type !== 'exists'\"\n" +
-    "         ng-click=\"$ctrl.selectVocabularyArgs(null)\">\n" +
-    "        {{'select-all' | translate}}\n" +
-    "      </a>\n" +
-    "    </div>\n" +
-    "    <div class=\"clearfix\"></div>\n" +
+    "          <a href=\"\"\n" +
+    "             class=\"hoffset2\"\n" +
+    "             ng-if=\"$ctrl.criterionType === 'string-terms' && $ctrl.vocabulary.existingItem.type !== 'exists'\"\n" +
+    "             ng-click=\"$ctrl.selectVocabularyArgs(null)\">\n" +
+    "            {{'select-all' | translate}}\n" +
+    "          </a>\n" +
+    "        </div>\n" +
+    "      </div>\n" +
+    "      <div class=\"clearfix\"></div>\n" +
+    "      <small class=\"help-block\">{{$ctrl.vocabulary.description | localizedString}}</small>\n" +
     "  </div>\n" +
     "  <div class=\"panel-body\">\n" +
     "    <div ng-switch on=\"$ctrl.criterionType\">\n" +

@@ -1,14 +1,9 @@
 <div class="vocabulary-filter-detail">
-  <button type="button"
-          class="voffset1 close"
-          data-dismiss="alert"
-          aria-label="Close"
-          ng-click="$ctrl.togglePannel()"><span aria-hidden="true">×</span>
-  </button>
+
 
   <div class="ng-clearfix"></div>
 
-  <div class="vocabulary-filter-detail-heading">
+  <div class="panel-body vocabulary-filter-detail-heading">
     <div class="row">
       <div class="col-md-4">
         <input-search-filter class="input-search-filter"
@@ -17,6 +12,12 @@
         </input-search-filter>
       </div>
       <div class="col-md-8">
+        <button type="button"
+                class="voffset1 hoffset2 pull-right close"
+                data-dismiss="alert"
+                aria-label="Close"
+                ng-click="$ctrl.togglePannel()"><span aria-hidden="true">×</span>
+        </button>
         <entity-counts class="pull-right"
                        taxonomy-type-map="$ctrl.taxonomyTypeMap"
                        result-tabs-order="$ctrl.resultTabsOrder"
@@ -27,7 +28,7 @@
     </div>
   </div>
 
-  <div class="vocabulary-filter-detail-container">
+  <div class="panel-body vocabulary-filter-detail-container">
     <vocabulary-filter-detail
             ng-if="!$ctrl.taxonomyIsArray"
             on-select-vocabulary-args="$ctrl.selectTaxonomyVocabularyArgs($ctrl.taxonomy, vocabulary, args)"
