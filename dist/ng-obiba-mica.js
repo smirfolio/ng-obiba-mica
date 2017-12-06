@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-12-05
+ * Date: 2017-12-06
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8669,7 +8669,8 @@ ngObibaMica.search
         info: {
           name: scales.name,
           names: scales.terms.map(function(t){return t.name;}),
-          title: this.translateTitle(scales.title)
+          title: this.translateTitle(scales.title),
+          description: this.translateTitle(scales.description)
         },
         taxonomies: scales.terms
       });
@@ -8932,10 +8933,10 @@ ngObibaMica.search
         }
         return (vocabulariesToFilter || []).filter(function(vocabulary){
           vocabulary.filteredTerms =  (vocabulary.terms || []).filter(function(term){
-            if(translateField(term.title).toLowerCase().indexOf(queryString.toLowerCase()) >= 0 ||
-              translateField(term.description).toLowerCase().indexOf(queryString.toLowerCase()) >= 0 ||
-              translateField(term.keywords).toLowerCase().indexOf(queryString.toLowerCase()) >= 0
-            ){
+           if(translateField(term.title).toLowerCase().normalize('NFD').replace(/[^\w]/g, '').indexOf(queryString.toLowerCase().normalize('NFD').replace(/[^\w]/g, '')) >= 0 ||
+             translateField(term.description).toLowerCase().normalize('NFD').replace(/[^\w]/g, '').indexOf(queryString.toLowerCase().normalize('NFD').replace(/[^\w]/g, '')) >= 0 ||
+             translateField(term.keywords).toLowerCase().normalize('NFD').replace(/[^\w]/g, '').indexOf(queryString.toLowerCase().normalize('NFD').replace(/[^\w]/g, ''))  >= 0
+          ){
               return term.name;
             }
           });
@@ -12958,7 +12959,13 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
     "<div ng-class=\"{'row': ($index + 1) % 4 === 0}\" ng-repeat=\"term in $ctrl.vocabulary.filteredTerms | limitTo:$ctrl.limitNumber\">\n" +
     "  <div class=\"col-md-3\">\n" +
     "    <div class=\"checkbox\">\n" +
-    "      <label for=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\">\n" +
+    "      <label  uib-popover=\"{{term.description ? term.description : term.title | localizedString}}\"\n" +
+    "              popover-title=\"{{term.description ? term.title : null | localizedString}}\"\n" +
+    "              popover-placement=\"bottom\"\n" +
+    "              popover-trigger=\"'mouseenter'\"\n" +
+    "              popover-popup-delay=\"1000\"\n" +
+    "              popover-class=\"right-panel-popover\"\n" +
+    "              for=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\">\n" +
     "        <input id=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\"\n" +
     "               type=\"checkbox\"\n" +
     "               ng-model=\"term.selected\"\n" +
@@ -13046,7 +13053,14 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/compon
     "  <ul class=\"nav nav-pills nav-stacked voffset1\">\n" +
     "    <li role=\"presentation\" ng-repeat=\"taxonomy in $ctrl.metaTaxonomy.taxonomies\" ng-class=\"{'active': taxonomy.state.isActive() && $ctrl.showTaxonomyPanel}\">\n" +
     "      <a href ng-click=\"$ctrl.selectTaxonomy(taxonomy)\">\n" +
-    "        {{taxonomy.info.title | translate}} <span ng-if=\"taxonomy.state.isLoading()\" class=\"loading\"></span>\n" +
+    "        <span\n" +
+    "        uib-popover=\"{{taxonomy.info.description ? taxonomy.info.description : null}}\"\n" +
+    "        popover-title=\"{{taxonomy.info.description ? taxonomy.info.title : null}}\"\n" +
+    "        popover-placement=\"bottom\"\n" +
+    "        popover-trigger=\"'mouseenter'\"\n" +
+    "        popover-popup-delay=\"1000\">\n" +
+    "          {{taxonomy.info.title}}\n" +
+    "        </span> <span ng-if=\"taxonomy.state.isLoading()\" class=\"loading\"></span>\n" +
     "      </a>\n" +
     "    </li>\n" +
     "  </ul>\n" +
@@ -13075,7 +13089,8 @@ angular.module("search/components/taxonomy/taxonomy-filter-detail/component.html
   $templateCache.put("search/components/taxonomy/taxonomy-filter-detail/component.html",
     "<div class=\"panel panel-primary\">\n" +
     "  <div class=\"panel-heading\">\n" +
-    "    {{$ctrl.taxonomy.title | localizedString}}\n" +
+    "    <div><strong>{{$ctrl.taxonomy.title | localizedString}}</strong></div>\n" +
+    "    <small>{{$ctrl.taxonomy.description | localizedString}}</small>\n" +
     "  </div>\n" +
     "\n" +
     "  <div class=\"panel-body\">\n" +
@@ -13147,9 +13162,11 @@ angular.module("search/components/vocabulary/vocabulary-filter-detail/component.
   $templateCache.put("search/components/vocabulary/vocabulary-filter-detail/component.html",
     "<div class=\"panel panel-default\">\n" +
     "  <div class=\"panel-heading\">\n" +
-    "    <span>{{$ctrl.vocabulary.title | localizedString}}</span>\n" +
-    "\n" +
-    "    <span class=\"pull-right\">\n" +
+    "    <div>\n" +
+    "      <div>{{$ctrl.vocabulary.title | localizedString}}</div>\n" +
+    "      <small>{{$ctrl.vocabulary.description | localizedString}}</small>\n" +
+    "    </div>\n" +
+    "    <div class=\"pull-right\">\n" +
     "      <a href=\"\" ng-click=\"$ctrl.removeCriterion()\" ng-if=\"$ctrl.vocabulary.existingItem\">{{'clear' | translate}}</a>\n" +
     "\n" +
     "      <a href=\"\"\n" +
@@ -13158,7 +13175,8 @@ angular.module("search/components/vocabulary/vocabulary-filter-detail/component.
     "         ng-click=\"$ctrl.selectVocabularyArgs(null)\">\n" +
     "        {{'select-all' | translate}}\n" +
     "      </a>\n" +
-    "    </span>\n" +
+    "    </div>\n" +
+    "    <div class=\"clearfix\"></div>\n" +
     "  </div>\n" +
     "  <div class=\"panel-body\">\n" +
     "    <div ng-switch on=\"$ctrl.criterionType\">\n" +

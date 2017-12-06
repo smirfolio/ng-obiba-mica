@@ -1,8 +1,10 @@
 <div class="panel panel-default">
   <div class="panel-heading">
-    <span>{{$ctrl.vocabulary.title | localizedString}}</span>
-
-    <span class="pull-right">
+    <div>
+      <div>{{$ctrl.vocabulary.title | localizedString}}</div>
+      <small>{{$ctrl.vocabulary.description | localizedString}}</small>
+    </div>
+    <div class="pull-right">
       <a href="" ng-click="$ctrl.removeCriterion()" ng-if="$ctrl.vocabulary.existingItem">{{'clear' | translate}}</a>
 
       <a href=""
@@ -11,7 +13,8 @@
          ng-click="$ctrl.selectVocabularyArgs(null)">
         {{'select-all' | translate}}
       </a>
-    </span>
+    </div>
+    <div class="clearfix"></div>
   </div>
   <div class="panel-body">
     <div ng-switch on="$ctrl.criterionType">
