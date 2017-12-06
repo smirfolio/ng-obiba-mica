@@ -2053,8 +2053,9 @@ ngObibaMica.search
       };
       $scope.localizeCriterion = function () {
         var rqlQuery = $scope.criterion.rqlQuery;
-        if ((rqlQuery.name === RQL_NODE.IN || rqlQuery.name === RQL_NODE.CONTAINS) && $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.length > 0) {
+        if ((rqlQuery.name === RQL_NODE.IN || rqlQuery.name === RQL_NODE.OUT || rqlQuery.name === RQL_NODE.CONTAINS) && $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.length > 0) {
           var sep = rqlQuery.name === RQL_NODE.IN ? ' | ' : ' + ';
+          var prefix = rqlQuery.name === RQL_NODE.OUT ? '-' : '';
           return $scope.criterion.selectedTerms.map(function (t) {
             if (!$scope.criterion.vocabulary.terms) {
               return t;
@@ -2062,7 +2063,7 @@ ngObibaMica.search
             var found = $scope.criterion.vocabulary.terms.filter(function (arg) {
               return arg.name === t;
             }).pop();
-            return found ? LocalizedValues.forLocale(found.title, $scope.criterion.lang) : t;
+            return prefix + (found ? LocalizedValues.forLocale(found.title, $scope.criterion.lang) : t);
           }).join(sep);
         }
         var operation = rqlQuery.name;
@@ -2243,8 +2244,8 @@ ngObibaMica.search
         updateSelection();
       };
 
-      var isInFilter = function () {
-        return $scope.selectedFilter === RQL_NODE.IN;
+      var isInOutFilter = function () {
+        return $scope.selectedFilter === RQL_NODE.IN || $scope.selectedFilter === RQL_NODE.OUT;
       };
 
       var isContainsFilter = function () {
@@ -2283,7 +2284,7 @@ ngObibaMica.search
         return LocalizedValues.forLocale(values, $scope.criterion.lang);
       };
       $scope.truncate = StringUtils.truncate;
-      $scope.isInFilter = isInFilter;
+      $scope.isInOutFilter = isInOutFilter;
       $scope.isContainsFilter = isContainsFilter;
       $scope.updateSelection = updateSelection;
     }])

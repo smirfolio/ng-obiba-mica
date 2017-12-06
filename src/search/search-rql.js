@@ -913,6 +913,7 @@ ngObibaMica.search
       switch (query.name) {
         case RQL_NODE.CONTAINS:
         case RQL_NODE.IN:
+        case RQL_NODE.OUT:
         case RQL_NODE.EXISTS:
         case RQL_NODE.MISSING:
           this.updateQueryInternal(query, values);
