@@ -12998,9 +12998,9 @@ angular.module("search/components/entity-counts/component.html", []).run(["$temp
   $templateCache.put("search/components/entity-counts/component.html",
     "<ul class=\"list-no-style list-inline\">\n" +
     "  <li ng-repeat=\"entity in $ctrl.resultTabsOrder\">\n" +
-    "    <span class=\"btn btn-sm no-pointer-events\"\n" +
-    "          ng-class=\"{'btn-default': (entity !== $ctrl.target), 'btn-primary': (entity === $ctrl.target)}\">\n" +
-    "        {{$ctrl.taxonomyTypeMap[entity] | translate}}   <span class=\"badge\">{{$ctrl.getTotalHits(entity) | localizedNumber}}</span>\n" +
+    "    <span class=\"label no-pointer-events\"\n" +
+    "          ng-class=\"{'label-default': (entity !== $ctrl.target), 'label-primary': (entity === $ctrl.target)}\">\n" +
+    "        {{$ctrl.taxonomyTypeMap[entity] | translate}} <span>{{$ctrl.getTotalHits(entity) | localizedNumber}}</span>\n" +
     "    </span>\n" +
     "  </li>\n" +
     "</ul>");
@@ -13113,25 +13113,27 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
     "\n" +
     "  <div class=\"panel-body vocabulary-filter-detail-heading\">\n" +
     "    <div class=\"row\">\n" +
-    "      <div class=\"col-md-3\">\n" +
+    "      <div class=\"col-md-4\">\n" +
     "        <input-search-filter class=\"input-search-filter\"\n" +
     "                             vocabularies=\"$ctrl.taxonomy.vocabularies\"\n" +
     "                             on-filter-change=\"$ctrl.onFilterChange(queryString)\">\n" +
     "        </input-search-filter>\n" +
     "      </div>\n" +
-    "      <div class=\"col-md-9\">\n" +
+    "        <div class=\"col-md-7 voffset1\">\n" +
+    "            <entity-counts\n" +
+    "                           taxonomy-type-map=\"$ctrl.taxonomyTypeMap\"\n" +
+    "                           result-tabs-order=\"$ctrl.resultTabsOrder\"\n" +
+    "                           target=\"$ctrl.target\"\n" +
+    "                           result=\"$ctrl.result\">\n" +
+    "            </entity-counts>\n" +
+    "        </div>\n" +
+    "      <div class=\"col-md-1\">\n" +
     "        <button type=\"button\"\n" +
-    "                class=\"voffset1 hoffset2 pull-right close\"\n" +
+    "                class=\"voffset1 pull-right close\"\n" +
     "                data-dismiss=\"alert\"\n" +
     "                aria-label=\"Close\"\n" +
     "                ng-click=\"$ctrl.togglePannel()\"><span aria-hidden=\"true\">×</span>\n" +
     "        </button>\n" +
-    "        <entity-counts class=\"pull-right\"\n" +
-    "                       taxonomy-type-map=\"$ctrl.taxonomyTypeMap\"\n" +
-    "                       result-tabs-order=\"$ctrl.resultTabsOrder\"\n" +
-    "                       target=\"$ctrl.target\"\n" +
-    "                       result=\"$ctrl.result\">\n" +
-    "        </entity-counts>\n" +
     "      </div>\n" +
     "    </div>\n" +
     "  </div>\n" +
