@@ -61,9 +61,9 @@ ngObibaMica.search
     };
   })
 
-  .filter('visibleVocabularies', ['TaxonomyUtils', function(TaxonomyUtils) {
+  .filter('visibleVocabularies', ['VocabularyService', function(VocabularyService) {
     return function(vocabularies) {
-      return TaxonomyUtils.visibleVocabularies(vocabularies);
+      return VocabularyService.visibleVocabularies(vocabularies);
     };
   }])
 
