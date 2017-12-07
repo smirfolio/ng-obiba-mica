@@ -1,13 +1,14 @@
-<div ng-class="{'row': ($index + 1) % 4 === 0}" ng-repeat="term in $ctrl.vocabulary.filteredTerms | limitTo:$ctrl.limitNumber">
+<div ng-class="{'row': ($index + 1) % 4 === 0}"
+     ng-repeat="term in $ctrl.vocabulary.filteredTerms | limitTo:$ctrl.limitNumber">
   <div class="col-md-3">
     <div class="checkbox">
-      <label  uib-popover="{{term.description ? term.description : term.title | localizedString}}"
-              popover-title="{{term.description ? term.title : null | localizedString}}"
-              popover-placement="bottom"
-              popover-trigger="'mouseenter'"
-              popover-popup-delay="1000"
-              popover-class="right-panel-popover"
-              for="term-{{$ctrl.vocabulary.name + '-' + $index}}">
+      <label uib-popover="{{term.description ? term.description : term.title | localizedString}}"
+             popover-title="{{term.description ? term.title : null | localizedString}}"
+             popover-placement="bottom"
+             popover-trigger="'mouseenter'"
+             popover-popup-delay="1000"
+             popover-class="right-panel-popover"
+             for="term-{{$ctrl.vocabulary.name + '-' + $index}}">
         <input id="term-{{$ctrl.vocabulary.name + '-' + $index}}"
                type="checkbox"
                ng-model="term.selected"
@@ -18,17 +19,19 @@
 </div>
 <span class="clearfix"></span>
 <div class="row">
-  <div class="btn-group pull-right">
-    <button type="button" ng-if="$ctrl.limitNumber > $ctrl.constantLimitNumber"
-            class="btn btn-xs btn-primary"
-            ng-click="$ctrl.limitNumber = $ctrl.constantLimitNumber">
-      Less
-    </button>
-    <button type="button" ng-if="$ctrl.vocabulary.filteredTerms.length > $ctrl.limitNumber"
-            class="btn btn-xs btn-primary"
-            ng-click="$ctrl.limitNumber = $ctrl.vocabulary.filteredTerms.length">
-      More
-    </button>
+  <div class="col-md-12">
+    <div class="btn-group pull-right">
+      <button type="button" ng-if="$ctrl.limitNumber > $ctrl.constantLimitNumber"
+              class="btn btn-xs btn-primary"
+              ng-click="$ctrl.limitNumber = $ctrl.constantLimitNumber">
+        Less
+      </button>
+      <button type="button" ng-if="$ctrl.vocabulary.filteredTerms.length > $ctrl.limitNumber"
+              class="btn btn-xs btn-primary"
+              ng-click="$ctrl.limitNumber = $ctrl.vocabulary.filteredTerms.length">
+        More
+      </button>
+    </div>
   </div>
 </div>
 

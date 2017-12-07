@@ -2867,6 +2867,7 @@ ngObibaMica.search
               }
             }
           });
+          console.log('selected=' + Math.round(selected.length*100/$scope.table.rows.length) + '%');
         }
         updateFilterCriteriaInternal(selected, true);
       };

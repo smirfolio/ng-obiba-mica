@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-12-06
+ * Date: 2017-12-07
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -7444,6 +7444,7 @@ ngObibaMica.search
               }
             }
           });
+          console.log('selected=' + Math.round(selected.length*100/$scope.table.rows.length) + '%');
         }
         updateFilterCriteriaInternal(selected, true);
       };
@@ -13034,16 +13035,17 @@ angular.module("search/components/criteria/numeric-vocabulary-filter-detail/comp
 
 angular.module("search/components/criteria/terms-vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/terms-vocabulary-filter-detail/component.html",
-    "<div ng-class=\"{'row': ($index + 1) % 4 === 0}\" ng-repeat=\"term in $ctrl.vocabulary.filteredTerms | limitTo:$ctrl.limitNumber\">\n" +
+    "<div ng-class=\"{'row': ($index + 1) % 4 === 0}\"\n" +
+    "     ng-repeat=\"term in $ctrl.vocabulary.filteredTerms | limitTo:$ctrl.limitNumber\">\n" +
     "  <div class=\"col-md-3\">\n" +
     "    <div class=\"checkbox\">\n" +
-    "      <label  uib-popover=\"{{term.description ? term.description : term.title | localizedString}}\"\n" +
-    "              popover-title=\"{{term.description ? term.title : null | localizedString}}\"\n" +
-    "              popover-placement=\"bottom\"\n" +
-    "              popover-trigger=\"'mouseenter'\"\n" +
-    "              popover-popup-delay=\"1000\"\n" +
-    "              popover-class=\"right-panel-popover\"\n" +
-    "              for=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\">\n" +
+    "      <label uib-popover=\"{{term.description ? term.description : term.title | localizedString}}\"\n" +
+    "             popover-title=\"{{term.description ? term.title : null | localizedString}}\"\n" +
+    "             popover-placement=\"bottom\"\n" +
+    "             popover-trigger=\"'mouseenter'\"\n" +
+    "             popover-popup-delay=\"1000\"\n" +
+    "             popover-class=\"right-panel-popover\"\n" +
+    "             for=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\">\n" +
     "        <input id=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\"\n" +
     "               type=\"checkbox\"\n" +
     "               ng-model=\"term.selected\"\n" +
@@ -13054,17 +13056,19 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
     "</div>\n" +
     "<span class=\"clearfix\"></span>\n" +
     "<div class=\"row\">\n" +
-    "  <div class=\"btn-group pull-right\">\n" +
-    "    <button type=\"button\" ng-if=\"$ctrl.limitNumber > $ctrl.constantLimitNumber\"\n" +
-    "            class=\"btn btn-xs btn-primary\"\n" +
-    "            ng-click=\"$ctrl.limitNumber = $ctrl.constantLimitNumber\">\n" +
-    "      Less\n" +
-    "    </button>\n" +
-    "    <button type=\"button\" ng-if=\"$ctrl.vocabulary.filteredTerms.length > $ctrl.limitNumber\"\n" +
-    "            class=\"btn btn-xs btn-primary\"\n" +
-    "            ng-click=\"$ctrl.limitNumber = $ctrl.vocabulary.filteredTerms.length\">\n" +
-    "      More\n" +
-    "    </button>\n" +
+    "  <div class=\"col-md-12\">\n" +
+    "    <div class=\"btn-group pull-right\">\n" +
+    "      <button type=\"button\" ng-if=\"$ctrl.limitNumber > $ctrl.constantLimitNumber\"\n" +
+    "              class=\"btn btn-xs btn-primary\"\n" +
+    "              ng-click=\"$ctrl.limitNumber = $ctrl.constantLimitNumber\">\n" +
+    "        Less\n" +
+    "      </button>\n" +
+    "      <button type=\"button\" ng-if=\"$ctrl.vocabulary.filteredTerms.length > $ctrl.limitNumber\"\n" +
+    "              class=\"btn btn-xs btn-primary\"\n" +
+    "              ng-click=\"$ctrl.limitNumber = $ctrl.vocabulary.filteredTerms.length\">\n" +
+    "        More\n" +
+    "      </button>\n" +
+    "    </div>\n" +
     "  </div>\n" +
     "</div>\n" +
     "\n" +
@@ -15180,70 +15184,70 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "<div ng-show=\"inSearchMode()\">\n" +
     "\n" +
     "  <!-- Search criteria region -->\n" +
-    "  <search-criteria-region options=\"options\" search=\"search\"> </search-criteria-region>\n" +
+    "  <search-criteria-region options=\"options\" search=\"search\"></search-criteria-region>\n" +
     "  <div class=\"row voffset2\">\n" +
-    "    <div class=\"col-md-3\" ng-if=\"hasFacetedTaxonomies\" >\n" +
+    "    <div class=\"col-md-3\" ng-if=\"hasFacetedTaxonomies\">\n" +
     "      <!-- Search Facets region -->\n" +
-    "      <taxonomies-facets-panel id=\"search-facets-region\" faceted-taxonomies=\"facetedTaxonomies\" criteria=\"search.criteria\" on-select-term=\"onSelectTerm\"\n" +
-    "                    on-refresh=\"refreshQuery\" lang=\"lang\"></taxonomies-facets-panel>\n" +
+    "      <taxonomies-facets-panel id=\"search-facets-region\" faceted-taxonomies=\"facetedTaxonomies\"\n" +
+    "                               criteria=\"search.criteria\" on-select-term=\"onSelectTerm\"\n" +
+    "                               on-refresh=\"refreshQuery\" lang=\"lang\"></taxonomies-facets-panel>\n" +
     "    </div>\n" +
-    "    <div class=\"col-md-3\" ng-if=\"!hasFacetedTaxonomies\" >\n" +
+    "    <div class=\"col-md-3\" ng-if=\"!hasFacetedTaxonomies\">\n" +
     "      <!-- Search Facets region -->\n" +
     "      <meta-taxonomy-filter-panel\n" +
-    "              show-taxonomy-panel=\"search.showTaxonomyPanel\"\n" +
-    "              tabs=\"targetTabsOrder\"\n" +
-    "              rql-query=\"search.rqlQuery\"\n" +
-    "              on-toggle=\"onTaxonomyFilterPanelToggleVisibility(target, taxonomy)\"></meta-taxonomy-filter-panel>\n" +
+    "          show-taxonomy-panel=\"search.showTaxonomyPanel\"\n" +
+    "          tabs=\"targetTabsOrder\"\n" +
+    "          rql-query=\"search.rqlQuery\"\n" +
+    "          on-toggle=\"onTaxonomyFilterPanelToggleVisibility(target, taxonomy)\"></meta-taxonomy-filter-panel>\n" +
     "    </div>\n" +
     "    <div class=\"col-md-9\">\n" +
-    "      <div ng-if=\"hasFacetedTaxonomies && hasFacetedNavigationHelp && !(search.criteria.children && search.criteria.children.length > 0)\">\n" +
+    "      <div\n" +
+    "          ng-if=\"hasFacetedTaxonomies && hasFacetedNavigationHelp && !(search.criteria.children && search.criteria.children.length > 0)\">\n" +
     "        <p class=\"help-block\" translate>search.faceted-navigation-help</p>\n" +
     "      </div>\n" +
-    "          <!-- Search Results region -->\n" +
-    "        <div style=\"position: relative\">\n" +
-    "          <taxonomy-filter-panel\n" +
-    "                  result-tabs-order=\"resultTabsOrder\"\n" +
-    "                  taxonomy-type-map=\"taxonomyTypeMap\"\n" +
-    "                  result=\"search.result\"\n" +
-    "                  target=\"search.selectedTarget\"\n" +
-    "                  taxonomy=\"search.selectedTaxonomy\"\n" +
-    "                  on-select-term=\"onSelectTerm(target, taxonomy, vocabulary, args)\"\n" +
-    "                  on-remove-criterion=\"removeCriteriaItem(item)\"\n" +
-    "                  ng-if=\"search.showTaxonomyPanel\"\n" +
-    "                  on-toggle=\"onTaxonomyFilterPanelToggleVisibility\"\n" +
-    "          ></taxonomy-filter-panel>\n" +
-    "          <div class=\"clearfix\"></div>\n" +
-    "          <div id=\"search-result-region\" class=\"voffset3 can-full-screen\" ng-if=\"canExecuteWithEmptyQuery()\" fullscreen=\"isFullscreen\">\n" +
-    "            <div ng-if=\"searchTabsOrder.length > 1\">\n" +
-    "              <a href class=\"btn btn-sm btn-default pull-right\" ng-click=\"toggleFullscreen()\">\n" +
-    "                <i class=\"glyphicon\" ng-class=\"{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}\"></i>\n" +
-    "              </a>\n" +
-    "              <ul class=\"nav nav-tabs voffset2\">\n" +
-    "                <li role=\"presentation\" ng-repeat=\"tab in searchTabsOrder\" ng-class=\"{active: search.display === tab}\">\n" +
-    "                  <a href ng-click=\"selectDisplay(tab)\">{{ 'search.' + tab | translate}}</a>\n" +
-    "                </li>\n" +
-    "              </ul>\n" +
-    "            </div>\n" +
-    "\n" +
-    "          <div translate>{{'search.' + search.display + '-help'}}</div>\n" +
-    "          <result-panel ng-if=\"!search.showTaxonomyPanel\"\n" +
-    "                        display=\"search.display\"\n" +
-    "                        type=\"search.type\"\n" +
-    "                        bucket=\"search.bucket\"\n" +
-    "                        criteria=\"search.criteria\"\n" +
-    "                        query=\"search.executedQuery\"\n" +
-    "                        result=\"search.result\"\n" +
-    "                        loading=\"search.loading\"\n" +
-    "                        on-update-criteria=\"onUpdateCriteria\"\n" +
-    "                        on-remove-criteria=\"onRemoveCriteria\"\n" +
-    "                        on-type-changed=\"onTypeChanged\"\n" +
-    "                        on-bucket-changed=\"onBucketChanged\"\n" +
-    "                        on-paginate=\"onPaginate\"\n" +
-    "                        search-tabs-order=\"searchTabsOrder\"\n" +
-    "                        result-tabs-order=\"resultTabsOrder\"\n" +
-    "                        lang=\"lang\"></result-panel>\n" +
+    "      <!-- Search Results region -->\n" +
+    "      <div class=\"panel panel-default\" ng-if=\"search.showTaxonomyPanel\">\n" +
+    "        <taxonomy-filter-panel\n" +
+    "            result-tabs-order=\"resultTabsOrder\"\n" +
+    "            taxonomy-type-map=\"taxonomyTypeMap\"\n" +
+    "            result=\"search.result\"\n" +
+    "            target=\"search.selectedTarget\"\n" +
+    "            taxonomy=\"search.selectedTaxonomy\"\n" +
+    "            on-select-term=\"onSelectTerm(target, taxonomy, vocabulary, args)\"\n" +
+    "            on-remove-criterion=\"removeCriteriaItem(item)\"\n" +
+    "            on-toggle=\"onTaxonomyFilterPanelToggleVisibility\"></taxonomy-filter-panel>\n" +
+    "      </div>\n" +
+    "      <div class=\"clearfix\"></div>\n" +
+    "      <div id=\"search-result-region\" class=\"can-full-screen\"\n" +
+    "           ng-if=\"!search.showTaxonomyPanel && canExecuteWithEmptyQuery()\" fullscreen=\"isFullscreen\">\n" +
+    "        <div ng-if=\"searchTabsOrder.length > 1\">\n" +
+    "          <a href class=\"btn btn-sm btn-default pull-right\" ng-click=\"toggleFullscreen()\">\n" +
+    "            <i class=\"glyphicon\"\n" +
+    "               ng-class=\"{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}\"></i>\n" +
+    "          </a>\n" +
+    "          <ul class=\"nav nav-tabs\">\n" +
+    "            <li role=\"presentation\" ng-repeat=\"tab in searchTabsOrder\"\n" +
+    "                ng-class=\"{active: search.display === tab}\">\n" +
+    "              <a href ng-click=\"selectDisplay(tab)\">{{ 'search.' + tab | translate}}</a>\n" +
+    "            </li>\n" +
+    "          </ul>\n" +
     "        </div>\n" +
-    "\n" +
+    "        <div translate>{{'search.' + search.display + '-help'}}</div>\n" +
+    "        <result-panel display=\"search.display\"\n" +
+    "                      type=\"search.type\"\n" +
+    "                      bucket=\"search.bucket\"\n" +
+    "                      criteria=\"search.criteria\"\n" +
+    "                      query=\"search.executedQuery\"\n" +
+    "                      result=\"search.result\"\n" +
+    "                      loading=\"search.loading\"\n" +
+    "                      on-update-criteria=\"onUpdateCriteria\"\n" +
+    "                      on-remove-criteria=\"onRemoveCriteria\"\n" +
+    "                      on-type-changed=\"onTypeChanged\"\n" +
+    "                      on-bucket-changed=\"onBucketChanged\"\n" +
+    "                      on-paginate=\"onPaginate\"\n" +
+    "                      search-tabs-order=\"searchTabsOrder\"\n" +
+    "                      result-tabs-order=\"resultTabsOrder\"\n" +
+    "                      lang=\"lang\"></result-panel>\n" +
     "      </div>\n" +
     "\n" +
     "\n" +

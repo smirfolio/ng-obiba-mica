@@ -11,70 +11,70 @@
 <div ng-show="inSearchMode()">
 
   <!-- Search criteria region -->
-  <search-criteria-region options="options" search="search"> </search-criteria-region>
+  <search-criteria-region options="options" search="search"></search-criteria-region>
   <div class="row voffset2">
-    <div class="col-md-3" ng-if="hasFacetedTaxonomies" >
+    <div class="col-md-3" ng-if="hasFacetedTaxonomies">
       <!-- Search Facets region -->
-      <taxonomies-facets-panel id="search-facets-region" faceted-taxonomies="facetedTaxonomies" criteria="search.criteria" on-select-term="onSelectTerm"
-                    on-refresh="refreshQuery" lang="lang"></taxonomies-facets-panel>
+      <taxonomies-facets-panel id="search-facets-region" faceted-taxonomies="facetedTaxonomies"
+                               criteria="search.criteria" on-select-term="onSelectTerm"
+                               on-refresh="refreshQuery" lang="lang"></taxonomies-facets-panel>
     </div>
-    <div class="col-md-3" ng-if="!hasFacetedTaxonomies" >
+    <div class="col-md-3" ng-if="!hasFacetedTaxonomies">
       <!-- Search Facets region -->
       <meta-taxonomy-filter-panel
-              show-taxonomy-panel="search.showTaxonomyPanel"
-              tabs="targetTabsOrder"
-              rql-query="search.rqlQuery"
-              on-toggle="onTaxonomyFilterPanelToggleVisibility(target, taxonomy)"></meta-taxonomy-filter-panel>
+          show-taxonomy-panel="search.showTaxonomyPanel"
+          tabs="targetTabsOrder"
+          rql-query="search.rqlQuery"
+          on-toggle="onTaxonomyFilterPanelToggleVisibility(target, taxonomy)"></meta-taxonomy-filter-panel>
     </div>
     <div class="col-md-9">
-      <div ng-if="hasFacetedTaxonomies && hasFacetedNavigationHelp && !(search.criteria.children && search.criteria.children.length > 0)">
+      <div
+          ng-if="hasFacetedTaxonomies && hasFacetedNavigationHelp && !(search.criteria.children && search.criteria.children.length > 0)">
         <p class="help-block" translate>search.faceted-navigation-help</p>
       </div>
-          <!-- Search Results region -->
-        <div style="position: relative">
-          <taxonomy-filter-panel
-                  result-tabs-order="resultTabsOrder"
-                  taxonomy-type-map="taxonomyTypeMap"
-                  result="search.result"
-                  target="search.selectedTarget"
-                  taxonomy="search.selectedTaxonomy"
-                  on-select-term="onSelectTerm(target, taxonomy, vocabulary, args)"
-                  on-remove-criterion="removeCriteriaItem(item)"
-                  ng-if="search.showTaxonomyPanel"
-                  on-toggle="onTaxonomyFilterPanelToggleVisibility"
-          ></taxonomy-filter-panel>
-          <div class="clearfix"></div>
-          <div id="search-result-region" class="voffset3 can-full-screen" ng-if="canExecuteWithEmptyQuery()" fullscreen="isFullscreen">
-            <div ng-if="searchTabsOrder.length > 1">
-              <a href class="btn btn-sm btn-default pull-right" ng-click="toggleFullscreen()">
-                <i class="glyphicon" ng-class="{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}"></i>
-              </a>
-              <ul class="nav nav-tabs voffset2">
-                <li role="presentation" ng-repeat="tab in searchTabsOrder" ng-class="{active: search.display === tab}">
-                  <a href ng-click="selectDisplay(tab)">{{ 'search.' + tab | translate}}</a>
-                </li>
-              </ul>
-            </div>
-
-          <div translate>{{'search.' + search.display + '-help'}}</div>
-          <result-panel ng-if="!search.showTaxonomyPanel"
-                        display="search.display"
-                        type="search.type"
-                        bucket="search.bucket"
-                        criteria="search.criteria"
-                        query="search.executedQuery"
-                        result="search.result"
-                        loading="search.loading"
-                        on-update-criteria="onUpdateCriteria"
-                        on-remove-criteria="onRemoveCriteria"
-                        on-type-changed="onTypeChanged"
-                        on-bucket-changed="onBucketChanged"
-                        on-paginate="onPaginate"
-                        search-tabs-order="searchTabsOrder"
-                        result-tabs-order="resultTabsOrder"
-                        lang="lang"></result-panel>
+      <!-- Search Results region -->
+      <div class="panel panel-default" ng-if="search.showTaxonomyPanel">
+        <taxonomy-filter-panel
+            result-tabs-order="resultTabsOrder"
+            taxonomy-type-map="taxonomyTypeMap"
+            result="search.result"
+            target="search.selectedTarget"
+            taxonomy="search.selectedTaxonomy"
+            on-select-term="onSelectTerm(target, taxonomy, vocabulary, args)"
+            on-remove-criterion="removeCriteriaItem(item)"
+            on-toggle="onTaxonomyFilterPanelToggleVisibility"></taxonomy-filter-panel>
+      </div>
+      <div class="clearfix"></div>
+      <div id="search-result-region" class="can-full-screen"
+           ng-if="!search.showTaxonomyPanel && canExecuteWithEmptyQuery()" fullscreen="isFullscreen">
+        <div ng-if="searchTabsOrder.length > 1">
+          <a href class="btn btn-sm btn-default pull-right" ng-click="toggleFullscreen()">
+            <i class="glyphicon"
+               ng-class="{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}"></i>
+          </a>
+          <ul class="nav nav-tabs">
+            <li role="presentation" ng-repeat="tab in searchTabsOrder"
+                ng-class="{active: search.display === tab}">
+              <a href ng-click="selectDisplay(tab)">{{ 'search.' + tab | translate}}</a>
+            </li>
+          </ul>
         </div>
-
+        <div translate>{{'search.' + search.display + '-help'}}</div>
+        <result-panel display="search.display"
+                      type="search.type"
+                      bucket="search.bucket"
+                      criteria="search.criteria"
+                      query="search.executedQuery"
+                      result="search.result"
+                      loading="search.loading"
+                      on-update-criteria="onUpdateCriteria"
+                      on-remove-criteria="onRemoveCriteria"
+                      on-type-changed="onTypeChanged"
+                      on-bucket-changed="onBucketChanged"
+                      on-paginate="onPaginate"
+                      search-tabs-order="searchTabsOrder"
+                      result-tabs-order="resultTabsOrder"
+                      lang="lang"></result-panel>
       </div>
 
 

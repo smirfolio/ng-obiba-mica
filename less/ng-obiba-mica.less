@@ -361,12 +361,15 @@ span.loading {
   background: @gray-lighter;
 }
 
-.panel {
+.panel.panel-taxonomy {
   .panel {
     border: 0;
     .panel-heading {
       background: #fafafa;
     }
+  }
+  .panel-group .panel + .panel {
+    margin-top: 0px;
   }
 }
 
