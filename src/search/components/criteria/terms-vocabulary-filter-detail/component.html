@@ -8,7 +8,8 @@
              popover-trigger="'mouseenter'"
              popover-popup-delay="1000"
              popover-class="right-panel-popover"
-             for="term-{{$ctrl.vocabulary.name + '-' + $index}}">
+             for="term-{{$ctrl.vocabulary.name + '-' + $index}}"
+             class="word-break">
         <input id="term-{{$ctrl.vocabulary.name + '-' + $index}}"
                type="checkbox"
                ng-model="term.selected"
