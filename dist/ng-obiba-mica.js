@@ -8682,7 +8682,7 @@ ngObibaMica.search
   /**
    * Variable meta taxonomies need to be massaged a little more:
    * - extract Variable characteristics
-   * - extract Scales as onetaxonomy (there are four related taxonomies) into one
+   * - extract Scales as one taxonomy (there are four related taxonomies) into one
    * - sort them and return the list to the client code
    * @param metaVocabulary
    * @returns {{name, title, taxonomies}|*}
@@ -8707,7 +8707,7 @@ ngObibaMica.search
           name: scales.name,
           names: scales.terms.map(function(t){return t.name;}),
           title: this.translateTitle(scales.title),
-          description: this.translateTitle(scales.description)
+          description: scales.description || ''
         },
         taxonomies: scales.terms
       });
