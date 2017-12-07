@@ -6,8 +6,11 @@
   <div class="panel-body vocabulary-filter-detail-heading">
     <div class="row">
       <div class="col-md-4">
-        <input-search-filter class="input-search-filter"
-                             vocabularies="$ctrl.taxonomy.vocabularies"
+        <input-search-filter
+                             taxonomy-name="$ctrl.taxonomyName"
+                             taxonomies-query="$ctrl.taxonomiesQuery"
+                             class="input-search-filter"
+                             clear-query="$ctrl.clearQuery"
                              on-filter-change="$ctrl.onFilterChange(queryString)">
         </input-search-filter>
       </div>

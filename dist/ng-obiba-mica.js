@@ -9274,6 +9274,23 @@ ngObibaMica.search.InputSearchFilterController = function() {
     ctrl.queryString = '';
     change();
   }
+
+  function onChanges(changesObj) {
+    if(changesObj.taxonomyName){
+      var updateQueryString = false;
+      ctrl.taxonomiesQuery.forEach(function (taxonomy) {
+        if(taxonomy.name === ctrl.taxonomyName && taxonomy.queryString){
+          ctrl.queryString = taxonomy.queryString;
+          updateQueryString = true;
+        }
+      });
+      if(!updateQueryString){
+        ctrl.queryString = '';
+      }
+    }
+  }
+
+  ctrl.$onChanges = onChanges;
   ctrl.change = change;
   ctrl.clear = clear;
 };
@@ -9284,8 +9301,9 @@ ngObibaMica.search
   .component('inputSearchFilter', {
     transclude: true,
     bindings: {
+      taxonomiesQuery: '<',
+      taxonomyName: '<',
       queryString: '<',
-      vocabularies: '<',
       onFilterChange: '&'
     },
     templateUrl: 'search/components/input-search-filter/component.html',
@@ -9469,17 +9487,53 @@ ngObibaMica.search
 (function () {
   ngObibaMica.search.TaxonomyFilterPanelController = function(FilterVocabulariesByQueryString) {
     var ctrl = this;
+    ctrl.taxonomiesQuery = [];
+
+    function taxonomyArrayName(taxonomy){
+      return taxonomy.reduce(function (name, taxonomyItem) {
+        return (name || '').concat(taxonomyItem.name);
+      }, '');
+    }
+
+    function getStringQueryByTaxonomy(taxonomyName) {
+      var taxonomies = ctrl.taxonomiesQuery.filter(function(taxonomy){
+        return taxonomy.name === taxonomyName;
+      });
+      return taxonomies.length === 1 ? taxonomies[0].queryString : null;
+    }
+
+    function updateQueryString(taxonomy, queryString) {
+      var updated = false;
+      if (taxonomy !== undefined && queryString !== undefined) {
+        ctrl.taxonomiesQuery.forEach(function (taxonomyQuery) {
+          if (taxonomyQuery.name === taxonomy && taxonomyQuery.queryString !== undefined) {
+            taxonomyQuery.queryString = queryString;
+            updated = true;
+          }
+        });
+        if (!updated) {
+          ctrl.taxonomiesQuery.push({name: taxonomy, queryString: queryString});
+        }
+      }
+      ctrl.taxonomiesQuery.filter(function (taxonomyQuery) {
+        return taxonomyQuery.queryString;
+      });
+    }
 
     function selectTaxonomyVocabularyArgs(taxonomy, vocabulary, args) {
       ctrl.onSelectTerm({target: ctrl.target, taxonomy: taxonomy, vocabulary: vocabulary, args: args});
     }
 
     function onFilterChange(queryString) {
+      var taxoName;
       if (!ctrl.taxonomyIsArray) {
+        taxoName = ctrl.taxonomy.name;
         filterChangedForSingleTaxonomy(queryString);
       } else {
+        taxoName = taxonomyArrayName(ctrl.taxonomy);
         filterChangedForMultipleTaxonomies(queryString);
       }
+      updateQueryString(taxoName, queryString);
     }
 
     function filterChangedForSingleTaxonomy(queryString) {
@@ -9519,8 +9573,15 @@ ngObibaMica.search
 
     function onChanges(changesObj) {
       ctrl.taxonomyIsArray = Array.isArray(ctrl.taxonomy);
+      ctrl.taxonomyName = !ctrl.taxonomyIsArray ? ctrl.taxonomy.name : taxonomyArrayName(ctrl.taxonomy);
       if (changesObj.taxonomy) {
-        onFilterChange();
+        var queryString = getStringQueryByTaxonomy(ctrl.taxonomyName);
+        if (queryString) {
+          onFilterChange(queryString);
+        }
+        else {
+          onFilterChange();
+        }
       }
     }
 
@@ -13197,8 +13258,11 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
     "  <div class=\"panel-body vocabulary-filter-detail-heading\">\n" +
     "    <div class=\"row\">\n" +
     "      <div class=\"col-md-4\">\n" +
-    "        <input-search-filter class=\"input-search-filter\"\n" +
-    "                             vocabularies=\"$ctrl.taxonomy.vocabularies\"\n" +
+    "        <input-search-filter\n" +
+    "                             taxonomy-name=\"$ctrl.taxonomyName\"\n" +
+    "                             taxonomies-query=\"$ctrl.taxonomiesQuery\"\n" +
+    "                             class=\"input-search-filter\"\n" +
+    "                             clear-query=\"$ctrl.clearQuery\"\n" +
     "                             on-filter-change=\"$ctrl.onFilterChange(queryString)\">\n" +
     "        </input-search-filter>\n" +
     "      </div>\n" +
