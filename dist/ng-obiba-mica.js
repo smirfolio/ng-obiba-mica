@@ -2222,9 +2222,9 @@ ngObibaMica.search
     };
   })
 
-  .filter('visibleVocabularies', ['TaxonomyUtils', function(TaxonomyUtils) {
+  .filter('visibleVocabularies', ['VocabularyService', function(VocabularyService) {
     return function(vocabularies) {
-      return TaxonomyUtils.visibleVocabularies(vocabularies);
+      return VocabularyService.visibleVocabularies(vocabularies);
     };
   }])
 
@@ -4500,60 +4500,6 @@ ngObibaMica.search
 
   }])
 
-  .service('TaxonomyUtils', [ function() {
-
-    function isVocabularyVisible(vocabulary) {
-      if (!vocabulary) {
-        return false;
-      }
-
-      var hidden = vocabulary.attributes ? vocabulary.attributes.filter(function(a) {
-        return a.key === 'hidden';
-      }).pop() : null;
-
-      return !hidden || hidden.value === 'false';
-    }
-
-    function isFacetVocabularyVisible(vocabulary) {
-      if (!vocabulary || !vocabulary.attributes) {
-        return false;
-      }
-
-      var result = vocabulary.attributes.filter(function(attribute) {
-        return ['hidden' ,'facet'].indexOf(attribute.key) > -1;
-      }).reduce(function(a, i) {
-        a[i.key] = i.value;
-        return a;
-      }, {});
-
-      return 'true' === result.facet && (!result.hidden || 'false' === result.hidden);
-    }
-
-    function findVocabularyAttributes(vocabulary, pattern) {
-      return (vocabulary.attributes || []).filter(function(attribute){
-        return attribute.key.search(pattern) > -1;
-      }).reduce(function(a, i) {
-        a[i.key] = i.value;
-        return a;
-      }, {});
-    }
-
-    function visibleVocabularies(vocabularies) {
-      return (vocabularies || []).filter(isVocabularyVisible);
-    }
-
-    function visibleFacetVocabularies(vocabularies) {
-      return (vocabularies || []).filter(isFacetVocabularyVisible);
-    }
-
-    this.isVisibleVocabulary = isVocabularyVisible;
-    this.findVocabularyAttributes = findVocabularyAttributes;
-    this.visibleVocabularies = visibleVocabularies;
-    this.visibleFacetVocabularies = visibleFacetVocabularies;
-
-    return this;
-  }])
-
   .factory('CriteriaNodeCompileService', ['$templateCache', '$compile', function($templateCache, $compile){
 
     return {
@@ -4869,7 +4815,7 @@ function TaxonomiesPanelController($rootScope,
  * @param ngObibaMicaSearch
  * @param RqlQueryUtils
  * @param $cacheFactory
- * @param TaxonomyUtils
+ * @param VocabularyService
  * @constructor
  */
 function ClassificationPanelController($rootScope,
@@ -4881,7 +4827,7 @@ function ClassificationPanelController($rootScope,
                                        ngObibaMicaSearch,
                                        RqlQueryUtils,
                                        $cacheFactory,
-                                       TaxonomyUtils) {
+                                       VocabularyService) {
   BaseTaxonomiesController.call(this,
     $rootScope,
     $scope,
@@ -4896,7 +4842,7 @@ function ClassificationPanelController($rootScope,
   var groupTaxonomies = function (taxonomies, target) {
     var res = taxonomies.reduce(function (res, t) {
       if(target){
-        t.vocabularies = TaxonomyUtils.visibleVocabularies(t.vocabularies);
+        t.vocabularies = VocabularyService.visibleVocabularies(t.vocabularies);
         res[t.name] = t;
         return res;
       }
@@ -5011,7 +4957,7 @@ ngObibaMica.search
     'RqlQueryUtils',
     'SearchContext',
     'CoverageGroupByService',
-    'TaxonomyUtils',
+    'VocabularyService',
     'LocaleStringUtils',
     'StringUtils',
     function ($scope,
@@ -5037,7 +4983,7 @@ ngObibaMica.search
               RqlQueryUtils,
               SearchContext,
               CoverageGroupByService,
-              TaxonomyUtils,
+              VocabularyService,
               LocaleStringUtils,
               StringUtils) {
 
@@ -5634,7 +5580,7 @@ ngObibaMica.search
           var taxonomy = bundle.taxonomy;
           if (taxonomy.vocabularies) {
             taxonomy.vocabularies.filter(function (vocabulary) {
-              return TaxonomyUtils.isVisibleVocabulary(vocabulary) && canSearch(vocabulary, $scope.options.hideSearch);
+              return VocabularyService.isVisibleVocabulary(vocabulary) && canSearch(vocabulary, $scope.options.hideSearch);
             }).forEach(function (vocabulary) {
               if (vocabulary.terms) {
                 vocabulary.terms.filter(function (term) {
@@ -6363,7 +6309,7 @@ ngObibaMica.search
     'ngObibaMicaSearch',
     'RqlQueryUtils',
     '$cacheFactory',
-    'TaxonomyUtils',
+    'VocabularyService',
     ClassificationPanelController])
 
   .controller('TaxonomiesFacetsController', ['$scope',
@@ -6373,7 +6319,7 @@ ngObibaMica.search
     'LocalizedValues',
     'ngObibaMicaSearch',
     'RqlQueryUtils',
-    'TaxonomyUtils',
+    'VocabularyService',
     function ($scope,
       $timeout,
       TaxonomyResource,
@@ -6381,7 +6327,7 @@ ngObibaMica.search
       LocalizedValues,
       ngObibaMicaSearch,
       RqlQueryUtils,
-      TaxonomyUtils) {
+      VocabularyService) {
 
       $scope.options = ngObibaMicaSearch.getOptions();
       $scope.taxonomies = {};
@@ -6432,10 +6378,10 @@ ngObibaMica.search
             t.isOpen = false;
             t.vocabularies = 'Maelstrom Research' === t.author ?
               t.vocabularies :
-              TaxonomyUtils.visibleFacetVocabularies(t.vocabularies);
+              VocabularyService.visibleFacetVocabularies(t.vocabularies);
 
             t.vocabularies.map(function (v) {
-              var facetAttributes = TaxonomyUtils.findVocabularyAttributes(v, /^facet/i);
+              var facetAttributes = VocabularyService.findVocabularyAttributes(v, /^facet/i);
               v.isOpen = 'true' === facetAttributes.facetExpanded;
               v.position = parseInt(facetAttributes.facetPosition);
               v.limit = 10;
@@ -8988,7 +8934,7 @@ ngObibaMica.search
     this.filter = filter;
   };
 
-  ngObibaMica.search.TaxonomyService = function(TaxonomiesResource, TaxonomyResource) {
+  ngObibaMica.search.TaxonomyService = function($q, TaxonomiesResource, TaxonomyResource, VocabularyService) {
 
     /**
      * @returns Returns a taxonomy
@@ -9011,8 +8957,22 @@ ngObibaMica.search
      * @returns Returns a taxonomy for several names
      */
     function getTaxonomies(target, taxonomyNames) {
-      var func = Array.isArray(taxonomyNames) ? getTaxonomiesInternal : getTaxonomy;
-      return func(target, taxonomyNames);
+      var deferred = $q.defer();
+      if (Array.isArray(taxonomyNames)) {
+        getTaxonomiesInternal(target, taxonomyNames).then(function(taxonomies) {
+          taxonomies.forEach(function(taxonomy) {
+            taxonomy.vocabularies = VocabularyService.visibleVocabularies(taxonomy.vocabularies);
+          });
+          deferred.resolve(taxonomies);
+        });
+      } else {
+        getTaxonomy(target, taxonomyNames).then(function(taxonomy) {
+          taxonomy.vocabularies = VocabularyService.visibleVocabularies(taxonomy.vocabularies);
+          deferred.resolve(taxonomy);
+        });
+      }
+
+      return deferred.promise;
     }
 
     // exported functions
@@ -9022,8 +8982,79 @@ ngObibaMica.search
   };
 
   ngObibaMica.search
-    .service('TaxonomyService', ['TaxonomiesResource', 'TaxonomyResource', ngObibaMica.search.TaxonomyService])
+    .service('TaxonomyService',
+      ['$q', 'TaxonomiesResource', 'TaxonomyResource', 'VocabularyService', ngObibaMica.search.TaxonomyService])
     .service('FilterVocabulariesByQueryString', ['$translate','LocalizedValues',  ngObibaMica.search.FilterVocabulariesByQueryString]);
+
+})();;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+(function() {
+
+  ngObibaMica.search.VocabularyService = function() {
+
+    function isVocabularyVisible(vocabulary) {
+      if (!vocabulary) {
+        return false;
+      }
+
+      var hidden = vocabulary.attributes ? vocabulary.attributes.filter(function(a) {
+        return a.key === 'hidden';
+      }).pop() : null;
+
+      return !hidden || hidden.value === 'false';
+    }
+
+    function isFacetVocabularyVisible(vocabulary) {
+      if (!vocabulary || !vocabulary.attributes) {
+        return false;
+      }
+
+      var result = vocabulary.attributes.filter(function(attribute) {
+        return ['hidden' ,'facet'].indexOf(attribute.key) > -1;
+      }).reduce(function(a, i) {
+        a[i.key] = i.value;
+        return a;
+      }, {});
+
+      return 'true' === result.facet && (!result.hidden || 'false' === result.hidden);
+    }
+
+    function findVocabularyAttributes(vocabulary, pattern) {
+      return (vocabulary.attributes || []).filter(function(attribute){
+        return attribute.key.search(pattern) > -1;
+      }).reduce(function(a, i) {
+        a[i.key] = i.value;
+        return a;
+      }, {});
+    }
+
+    function visibleVocabularies(vocabularies) {
+      return (vocabularies || []).filter(isVocabularyVisible);
+    }
+
+    function visibleFacetVocabularies(vocabularies) {
+      return (vocabularies || []).filter(isFacetVocabularyVisible);
+    }
+
+    this.isVisibleVocabulary = isVocabularyVisible;
+    this.findVocabularyAttributes = findVocabularyAttributes;
+    this.visibleVocabularies = visibleVocabularies;
+    this.visibleFacetVocabularies = visibleFacetVocabularies;
+
+    return this;
+  };
+
+  ngObibaMica.search.service('VocabularyService', [ngObibaMica.search.VocabularyService]);
 
 })();;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.

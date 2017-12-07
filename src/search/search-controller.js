@@ -292,7 +292,7 @@ function TaxonomiesPanelController($rootScope,
  * @param ngObibaMicaSearch
  * @param RqlQueryUtils
  * @param $cacheFactory
- * @param TaxonomyUtils
+ * @param VocabularyService
  * @constructor
  */
 function ClassificationPanelController($rootScope,
@@ -304,7 +304,7 @@ function ClassificationPanelController($rootScope,
                                        ngObibaMicaSearch,
                                        RqlQueryUtils,
                                        $cacheFactory,
-                                       TaxonomyUtils) {
+                                       VocabularyService) {
   BaseTaxonomiesController.call(this,
     $rootScope,
     $scope,
@@ -319,7 +319,7 @@ function ClassificationPanelController($rootScope,
   var groupTaxonomies = function (taxonomies, target) {
     var res = taxonomies.reduce(function (res, t) {
       if(target){
-        t.vocabularies = TaxonomyUtils.visibleVocabularies(t.vocabularies);
+        t.vocabularies = VocabularyService.visibleVocabularies(t.vocabularies);
         res[t.name] = t;
         return res;
       }
@@ -434,7 +434,7 @@ ngObibaMica.search
     'RqlQueryUtils',
     'SearchContext',
     'CoverageGroupByService',
-    'TaxonomyUtils',
+    'VocabularyService',
     'LocaleStringUtils',
     'StringUtils',
     function ($scope,
@@ -460,7 +460,7 @@ ngObibaMica.search
               RqlQueryUtils,
               SearchContext,
               CoverageGroupByService,
-              TaxonomyUtils,
+              VocabularyService,
               LocaleStringUtils,
               StringUtils) {
 
@@ -1057,7 +1057,7 @@ ngObibaMica.search
           var taxonomy = bundle.taxonomy;
           if (taxonomy.vocabularies) {
             taxonomy.vocabularies.filter(function (vocabulary) {
-              return TaxonomyUtils.isVisibleVocabulary(vocabulary) && canSearch(vocabulary, $scope.options.hideSearch);
+              return VocabularyService.isVisibleVocabulary(vocabulary) && canSearch(vocabulary, $scope.options.hideSearch);
             }).forEach(function (vocabulary) {
               if (vocabulary.terms) {
                 vocabulary.terms.filter(function (term) {
@@ -1786,7 +1786,7 @@ ngObibaMica.search
     'ngObibaMicaSearch',
     'RqlQueryUtils',
     '$cacheFactory',
-    'TaxonomyUtils',
+    'VocabularyService',
     ClassificationPanelController])
 
   .controller('TaxonomiesFacetsController', ['$scope',
@@ -1796,7 +1796,7 @@ ngObibaMica.search
     'LocalizedValues',
     'ngObibaMicaSearch',
     'RqlQueryUtils',
-    'TaxonomyUtils',
+    'VocabularyService',
     function ($scope,
       $timeout,
       TaxonomyResource,
@@ -1804,7 +1804,7 @@ ngObibaMica.search
       LocalizedValues,
       ngObibaMicaSearch,
       RqlQueryUtils,
-      TaxonomyUtils) {
+      VocabularyService) {
 
       $scope.options = ngObibaMicaSearch.getOptions();
       $scope.taxonomies = {};
@@ -1855,10 +1855,10 @@ ngObibaMica.search
             t.isOpen = false;
             t.vocabularies = 'Maelstrom Research' === t.author ?
               t.vocabularies :
-              TaxonomyUtils.visibleFacetVocabularies(t.vocabularies);
+              VocabularyService.visibleFacetVocabularies(t.vocabularies);
 
             t.vocabularies.map(function (v) {
-              var facetAttributes = TaxonomyUtils.findVocabularyAttributes(v, /^facet/i);
+              var facetAttributes = VocabularyService.findVocabularyAttributes(v, /^facet/i);
               v.isOpen = 'true' === facetAttributes.facetExpanded;
               v.position = parseInt(facetAttributes.facetPosition);
               v.limit = 10;

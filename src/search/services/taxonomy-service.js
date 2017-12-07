@@ -45,7 +45,7 @@
     this.filter = filter;
   };
 
-  ngObibaMica.search.TaxonomyService = function(TaxonomiesResource, TaxonomyResource) {
+  ngObibaMica.search.TaxonomyService = function($q, TaxonomiesResource, TaxonomyResource, VocabularyService) {
 
     /**
      * @returns Returns a taxonomy
@@ -68,8 +68,22 @@
      * @returns Returns a taxonomy for several names
      */
     function getTaxonomies(target, taxonomyNames) {
-      var func = Array.isArray(taxonomyNames) ? getTaxonomiesInternal : getTaxonomy;
-      return func(target, taxonomyNames);
+      var deferred = $q.defer();
+      if (Array.isArray(taxonomyNames)) {
+        getTaxonomiesInternal(target, taxonomyNames).then(function(taxonomies) {
+          taxonomies.forEach(function(taxonomy) {
+            taxonomy.vocabularies = VocabularyService.visibleVocabularies(taxonomy.vocabularies);
+          });
+          deferred.resolve(taxonomies);
+        });
+      } else {
+        getTaxonomy(target, taxonomyNames).then(function(taxonomy) {
+          taxonomy.vocabularies = VocabularyService.visibleVocabularies(taxonomy.vocabularies);
+          deferred.resolve(taxonomy);
+        });
+      }
+
+      return deferred.promise;
     }
 
     // exported functions
@@ -79,7 +93,8 @@
   };
 
   ngObibaMica.search
-    .service('TaxonomyService', ['TaxonomiesResource', 'TaxonomyResource', ngObibaMica.search.TaxonomyService])
+    .service('TaxonomyService',
+      ['$q', 'TaxonomiesResource', 'TaxonomyResource', 'VocabularyService', ngObibaMica.search.TaxonomyService])
     .service('FilterVocabulariesByQueryString', ['$translate','LocalizedValues',  ngObibaMica.search.FilterVocabulariesByQueryString]);
 
 })();
