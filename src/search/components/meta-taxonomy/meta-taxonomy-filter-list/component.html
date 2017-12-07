@@ -9,12 +9,12 @@
     <li role="presentation" ng-repeat="taxonomy in $ctrl.metaTaxonomy.taxonomies" ng-class="{'active': taxonomy.state.isActive() && $ctrl.showTaxonomyPanel}">
       <a href ng-click="$ctrl.selectTaxonomy(taxonomy)">
         <span
-        uib-popover="{{taxonomy.info.description ? taxonomy.info.description : null}}"
-        popover-title="{{taxonomy.info.description ? taxonomy.info.title : null}}"
+        uib-popover="{{taxonomy.info.description | localizedString}}"
+        popover-title="{{taxonomy.info.title | translate}}"
         popover-placement="bottom"
         popover-trigger="'mouseenter'"
-        popover-popup-delay="1000">
-          {{taxonomy.info.title}}
+        popover-popup-delay="250">
+          {{taxonomy.info.title | translate}}
         </span> <span ng-if="taxonomy.state.isLoading()" class="loading"></span>
       </a>
     </li>

@@ -66,7 +66,8 @@
     }
 
     function selectSuggestion(target, suggestion) {
-      $rootScope.$new().$emit('ngObibaMicaSearch.searchSuggestion', suggestion, target);
+      $rootScope.$new().$emit('ngObibaMicaSearch.searchSuggestion',
+        new obiba.utils.NgObibaStringUtils().cleanDoubleQuotesLeftUnclosed(suggestion), target);
     }
 
     this.getCurrentSuggestion = getCurrentSuggestion;

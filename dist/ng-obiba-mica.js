@@ -8646,7 +8646,7 @@ ngObibaMica.search
         var title = targetConfig.taxonomies[taxonomy.name].trKey || translateTitle(taxonomy.title);
         return {
           state: new ngObibaMica.search.PanelTaxonomyState(index+''),
-          info: {name: taxonomy.name, title: title},
+          info: {name: taxonomy.name || '', title: title || '', description: taxonomy.description || ''},
           taxonomies: [taxonomy]
         };
       }); 
@@ -8840,7 +8840,8 @@ ngObibaMica.search
     }
 
     function selectSuggestion(target, suggestion) {
-      $rootScope.$new().$emit('ngObibaMicaSearch.searchSuggestion', suggestion, target);
+      $rootScope.$new().$emit('ngObibaMicaSearch.searchSuggestion',
+        new obiba.utils.NgObibaStringUtils().cleanDoubleQuotesLeftUnclosed(suggestion), target);
     }
 
     this.getCurrentSuggestion = getCurrentSuggestion;
@@ -13043,7 +13044,7 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
     "             popover-title=\"{{term.description ? term.title : null | localizedString}}\"\n" +
     "             popover-placement=\"bottom\"\n" +
     "             popover-trigger=\"'mouseenter'\"\n" +
-    "             popover-popup-delay=\"1000\"\n" +
+    "             popover-popup-delay=\"250\"\n" +
     "             popover-class=\"right-panel-popover\"\n" +
     "             for=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\"\n" +
     "             class=\"word-break\">\n" +
@@ -13136,12 +13137,12 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/compon
     "    <li role=\"presentation\" ng-repeat=\"taxonomy in $ctrl.metaTaxonomy.taxonomies\" ng-class=\"{'active': taxonomy.state.isActive() && $ctrl.showTaxonomyPanel}\">\n" +
     "      <a href ng-click=\"$ctrl.selectTaxonomy(taxonomy)\">\n" +
     "        <span\n" +
-    "        uib-popover=\"{{taxonomy.info.description ? taxonomy.info.description : null}}\"\n" +
-    "        popover-title=\"{{taxonomy.info.description ? taxonomy.info.title : null}}\"\n" +
+    "        uib-popover=\"{{taxonomy.info.description | localizedString}}\"\n" +
+    "        popover-title=\"{{taxonomy.info.title | translate}}\"\n" +
     "        popover-placement=\"bottom\"\n" +
     "        popover-trigger=\"'mouseenter'\"\n" +
-    "        popover-popup-delay=\"1000\">\n" +
-    "          {{taxonomy.info.title}}\n" +
+    "        popover-popup-delay=\"250\">\n" +
+    "          {{taxonomy.info.title | translate}}\n" +
     "        </span> <span ng-if=\"taxonomy.state.isLoading()\" class=\"loading\"></span>\n" +
     "      </a>\n" +
     "    </li>\n" +
