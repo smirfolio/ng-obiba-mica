@@ -37,7 +37,7 @@
         var title = targetConfig.taxonomies[taxonomy.name].trKey || translateTitle(taxonomy.title);
         return {
           state: new ngObibaMica.search.PanelTaxonomyState(index+''),
-          info: {name: taxonomy.name, title: title},
+          info: {name: taxonomy.name || '', title: title || '', description: taxonomy.description || ''},
           taxonomies: [taxonomy]
         };
       }); 
