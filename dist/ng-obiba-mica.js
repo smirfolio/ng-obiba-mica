@@ -8960,30 +8960,26 @@ ngObibaMica.search
       return LocalizedValues.forLocale(title, $translate.use());
     }
 
+    function asciiFold(text) {
+      return text.normalize('NFD').replace(/[^\w]/g, '');
+    }
+
+    function translateAndAsciiFold(text) {
+      return asciiFold(translateField(text).toLowerCase());
+    }
+
     function filter(vocabularies, queryString) {
       if(queryString){
-        var vocabulariesToFilter;
-        if(angular.isArray(vocabularies)){
-          vocabulariesToFilter = vocabularies;
-        }
-        else{
-          vocabulariesToFilter = vocabularies.vocabularies;
-        }
-        return (vocabulariesToFilter || []).filter(function(vocabulary){
+        var vocabulariesToFilter = angular.isArray(vocabularies) ? vocabularies : vocabularies.vocabularies;
+
+        return (vocabulariesToFilter || []).filter(function(vocabulary) {
           vocabulary.filteredTerms =  (vocabulary.terms || []).filter(function(term){
-           if(translateField(term.title).toLowerCase().normalize('NFD').replace(/[^\w]/g, '').indexOf(queryString.toLowerCase().normalize('NFD').replace(/[^\w]/g, '')) >= 0 ||
-             translateField(term.description).toLowerCase().normalize('NFD').replace(/[^\w]/g, '').indexOf(queryString.toLowerCase().normalize('NFD').replace(/[^\w]/g, '')) >= 0 ||
-             translateField(term.keywords).toLowerCase().normalize('NFD').replace(/[^\w]/g, '').indexOf(queryString.toLowerCase().normalize('NFD').replace(/[^\w]/g, ''))  >= 0
-          ){
-              return term.name;
-            }
+           return translateAndAsciiFold(term.title).indexOf(asciiFold(queryString.toLowerCase())) >= 0 ||
+             translateAndAsciiFold(term.description).indexOf(asciiFold(queryString.toLowerCase())) >= 0 ||
+             translateAndAsciiFold(term.keywords).indexOf(asciiFold(queryString.toLowerCase()))  >= 0;
           });
-          if(vocabulary.terms){
-          return vocabulary.filteredTerms.length > 0;
-          }
-          else{
-            return vocabulary;
-          }
+
+          return vocabulary.terms ? vocabulary.filteredTerms.length > 0 : true;
         });
 
       }
@@ -13163,7 +13159,7 @@ angular.module("search/components/entity-search-typeahead/component.html", []).r
     "         class=\"form-control\">\n" +
     "  <span ng-if=\"$ctrl.model\"\n" +
     "        ng-click=\"$ctrl.clear()\"\n" +
-    "        class=\"form-control-feedback form-control-clear width-initial height-initial\"><i class=\"fa fa-times\"></i>\n" +
+    "        class=\"form-control-feedback form-control-clear width-initial height-initial padding-right-5\"><i class=\"fa fa-times\"></i>\n" +
     "  </span>\n" +
     "</div>");
 }]);
@@ -13179,8 +13175,9 @@ angular.module("search/components/input-search-filter/component.html", []).run([
     "               class=\"input-search-filter form-control\" ng-change=\"$ctrl.change()\">\n" +
     "        <span ng-if=\"$ctrl.queryString\"\n" +
     "              ng-click=\"$ctrl.clear()\"\n" +
-    "              class=\"form-control-feedback form-control-clear width-initial height-initial\"\n" +
-    "              style=\"padding-right: 5px;\"><i class=\"fa fa-times\"></i></span>\n" +
+    "              class=\"form-control-feedback form-control-clear width-initial height-initial padding-right-5 \">\n" +
+    "          <i class=\"fa fa-times\"></i>\n" +
+    "        </span>\n" +
     "    </div>\n" +
     "</div>");
 }]);
