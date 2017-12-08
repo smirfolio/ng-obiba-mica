@@ -27,6 +27,8 @@ ngObibaMica.search = angular.module('obiba.mica.search', [
     'templates-ngObibaMica'
   ]);
 
+ngObibaMica.search.FIELDS_TO_FILTER = ['title', 'description', 'keywords'];
+
 ngObibaMica.search
   .config(['$provide', function ($provide) {
     $provide.provider('ngObibaMicaSearchTemplateUrl', new NgObibaMicaTemplateUrlFactory().create(
@@ -53,6 +55,7 @@ ngObibaMica.search
       }];
       var optionsResolver;
       var options = {
+        searchLayout: 'new',
         taxonomyPanelOptions: {
           network: {
             taxonomies: {'Mica_network': {trKey: 'properties'}}
@@ -70,7 +73,8 @@ ngObibaMica.search
               'Mlstr_additional': {weight: 2},
               'Mica_variable': {trKey: 'properties', weight: 3}
             }
-          }
+          },
+          fieldsToFilter : ngObibaMica.search.FIELDS_TO_FILTER
         },
         obibaListOptions: {
           countCaption: true,
@@ -189,6 +193,15 @@ ngObibaMica.search
         optionsResolver = resolver;
       };
 
+      function sanitizeFieldsToFilter(valueFieldsToFilter){
+        if (valueFieldsToFilter) {
+          return valueFieldsToFilter.filter(function(valueField) {
+            return ngObibaMica.search.FIELDS_TO_FILTER.indexOf(valueField) > -1;
+          });
+        }
+      return null;
+      }
+
       this.setOptions = function (value) {
         options = angular.merge(options, value);
         //NOTICE: angular.merge merges arrays by position. Overriding manually.
@@ -205,11 +218,15 @@ ngObibaMica.search
         options.studies.fields = value.studies && value.studies.fields || options.studies.fields;
         options.networks.fields = value.networks && value.networks.fields || options.networks.fields;
         options.datasets.fields = value.datasets && value.datasets.fields || options.datasets.fields;
+        if(value.taxonomyPanelOptions){
+          options.taxonomyPanelOptions.fieldsToFilter = sanitizeFieldsToFilter(value.taxonomyPanelOptions.fieldsToFilter) || options.taxonomyPanelOptions.fieldsToFilter;
+        }
         if(value.studies && value.studies.obibaListOptions){
           options.obibaListOptions.countCaption = value.studies.obibaListOptions.studiesCountCaption === 0  ? value.studies.obibaListOptions.studiesCountCaption : true;
           options.obibaListOptions.searchForm = value.studies.obibaListOptions.studiesSearchForm === 0 ? value.studies.obibaListOptions.studiesSearchForm : true;
           options.obibaListOptions.supplInfoDetails = value.studies.obibaListOptions.studiesSupplInfoDetails === 0 ? value.studies.obibaListOptions.studiesSupplInfoDetails : true;
           options.obibaListOptions.trimmedDescription = value.studies.obibaListOptions.studiesTrimmedDescription === 0 ? value.studies.obibaListOptions.studiesTrimmedDescription : true;
+          options.searchLayout = value.searchLayout ? value.searchLayout : options.searchLayout;
         }
       };
 
