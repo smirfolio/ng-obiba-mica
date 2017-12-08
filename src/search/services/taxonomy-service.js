@@ -18,22 +18,30 @@
     }
 
     function asciiFold(text) {
-      return text.normalize('NFD').replace(/[^\w]/g, '');
-    }
-
-    function translateAndAsciiFold(text) {
-      return asciiFold(translateField(text).toLowerCase());
+      return text.normalize('NFD').replace(/\//g, ' ').replace(/[^\w|^\s|^-]/g, '');
     }
 
     function filter(vocabularies, queryString) {
-      if(queryString){
+      if (queryString) {
+        var tokens = asciiFold(queryString).toLowerCase().split(' ').filter(function (token) {
+          return token.length > 2;
+        });
         var vocabulariesToFilter = angular.isArray(vocabularies) ? vocabularies : vocabularies.vocabularies;
 
-        return (vocabulariesToFilter || []).filter(function(vocabulary) {
-          vocabulary.filteredTerms =  (vocabulary.terms || []).filter(function(term){
-           return translateAndAsciiFold(term.title).indexOf(asciiFold(queryString.toLowerCase())) >= 0 ||
-             translateAndAsciiFold(term.description).indexOf(asciiFold(queryString.toLowerCase())) >= 0 ||
-             translateAndAsciiFold(term.keywords).indexOf(asciiFold(queryString.toLowerCase()))  >= 0;
+        return (vocabulariesToFilter || []).filter(function (vocabulary) {
+          vocabulary.filteredTerms = (vocabulary.terms || []).filter(function (term) {
+            // term is selected when each of the token is included
+            var toMatch = asciiFold(translateField(term.title) + ' ' + translateField(term.description) + ' ' + translateField(term.keywords)).trim();
+            return tokens.map(function (token) {
+              if (token.startsWith('-')) {
+                var ntoken = token.substr(1);
+                return toMatch.indexOf(ntoken) === -1;
+              }
+              return toMatch.indexOf(token) >= 0;
+            }).reduce(function(acc, val) {
+              return acc && val;
+            }, true);
+
           });
 
           return vocabulary.terms ? vocabulary.filteredTerms.length > 0 : true;
