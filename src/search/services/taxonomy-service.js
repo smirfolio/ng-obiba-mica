@@ -31,7 +31,7 @@
         return (vocabulariesToFilter || []).filter(function (vocabulary) {
           vocabulary.filteredTerms = (vocabulary.terms || []).filter(function (term) {
             // term is selected when each of the token is included
-            var toMatch = asciiFold(translateField(term.title) + ' ' + translateField(term.description) + ' ' + translateField(term.keywords)).trim();
+            var toMatch = asciiFold(translateField(term.title) + ' ' + translateField(term.description) + ' ' + translateField(term.keywords)).trim().toLowerCase();
             return tokens.map(function (token) {
               if (token.startsWith('-')) {
                 var ntoken = token.substr(1);
