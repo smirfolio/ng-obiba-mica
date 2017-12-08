@@ -12,7 +12,59 @@
 
 (function() {
 
-  ngObibaMica.search.VocabularyService = function() {
+  ngObibaMica.search.VocabularyService = function($translate, LocalizedValues, MetaTaxonomyService) {
+
+    function translateField(title) {
+      return LocalizedValues.forLocale(title, $translate.use());
+    }
+
+    function asciiFold(text) {
+      return text.normalize('NFD').replace(/\//g, ' ').replace(/[^\w|^\s|^-]/g, '');
+    }
+
+    /**
+     * Filters the list of vocabularies based on a query string. A leading '-' will negate the filter result.
+     *
+     * @param vocabularies
+     * @param queryString
+     * @returns filtered vocabularies
+     */
+    function filter(vocabularies, queryString) {
+      if (queryString) {
+        var tokens = asciiFold(queryString).toLowerCase().split(' ').filter(function (token) {
+          return token.length > 2;
+        });
+
+        var vocabulariesToFilter = Array.isArray(vocabularies) ? vocabularies : vocabularies.vocabularies;
+        var fieldsToFilter = MetaTaxonomyService.getTaxonomyPanelOptions().fieldsToFilter;
+
+        return (vocabulariesToFilter || []).filter(function (vocabulary) {
+          vocabulary.filteredTerms = (vocabulary.terms || []).filter(function (term) {
+            // Filter on configurable field
+            var toMatchField = fieldsToFilter.reduce(function(toMatchField, field){
+              return toMatchField + ' ' + translateField(term[field]);
+            },fieldsToFilter[0] );
+            // term is selected when each of the token is included
+            var toMatch = asciiFold(toMatchField).trim().toLowerCase();
+            return tokens.map(function (token) {
+              if (token.startsWith('-')) {
+                var ntoken = token.substr(1);
+                if (ntoken.length <= 2) {
+                  return true;
+                }
+                return toMatch.indexOf(ntoken) === -1;
+              }
+              return toMatch.indexOf(token) >= 0;
+            }).reduce(function(acc, val) {
+              return acc && val;
+            }, true);
+
+          });
+
+          return vocabulary.terms ? vocabulary.filteredTerms.length > 0 : true;
+        });
+      }
+    }
 
     function isVocabularyVisible(vocabulary) {
       if (!vocabulary) {
@@ -62,10 +114,12 @@
     this.findVocabularyAttributes = findVocabularyAttributes;
     this.visibleVocabularies = visibleVocabularies;
     this.visibleFacetVocabularies = visibleFacetVocabularies;
+    this.filter = filter;
 
     return this;
   };
 
-  ngObibaMica.search.service('VocabularyService', [ngObibaMica.search.VocabularyService]);
+  ngObibaMica.search.service('VocabularyService',
+    ['$translate','LocalizedValues', 'MetaTaxonomyService', ngObibaMica.search.VocabularyService]);
 
 })();

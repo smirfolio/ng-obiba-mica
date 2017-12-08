@@ -8925,57 +8925,9 @@ ngObibaMica.search
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+'use strict';
 
 (function() {
-  'use strict';
-
-  ngObibaMica.search.FilterVocabulariesByQueryString = function($translate, LocalizedValues, MetaTaxonomyService) {
-    function translateField(title) {
-      return LocalizedValues.forLocale(title, $translate.use());
-    }
-
-    function asciiFold(text) {
-      return text.normalize('NFD').replace(/\//g, ' ').replace(/[^\w|^\s|^-]/g, '');
-    }
-
-    function filter(vocabularies, queryString) {
-      if (queryString) {
-        var tokens = asciiFold(queryString).toLowerCase().split(' ').filter(function (token) {
-          return token.length > 2;
-        });
-        var vocabulariesToFilter = angular.isArray(vocabularies) ? vocabularies : vocabularies.vocabularies;
-        var fieldsToFilter = MetaTaxonomyService.getTaxonomyPanelOptions().fieldsToFilter;
-        return (vocabulariesToFilter || []).filter(function (vocabulary) {
-          vocabulary.filteredTerms = (vocabulary.terms || []).filter(function (term) {
-            // Filter on configurable field
-            var toMatchField = fieldsToFilter.reduce(function(toMatchField, field){
-              return toMatchField + ' ' + translateField(term[field]);
-            },fieldsToFilter[0] );
-            // term is selected when each of the token is included
-            var toMatch = asciiFold(toMatchField).trim().toLowerCase();
-            return tokens.map(function (token) {
-              if (token.startsWith('-')) {
-                var ntoken = token.substr(1);
-                if (ntoken.length <= 2) {
-                  return true;
-                }
-                return toMatch.indexOf(ntoken) === -1;
-              }
-              return toMatch.indexOf(token) >= 0;
-            }).reduce(function(acc, val) {
-              return acc && val;
-            }, true);
-
-          });
-
-          return vocabulary.terms ? vocabulary.filteredTerms.length > 0 : true;
-        });
-
-      }
-    }
-
-    this.filter = filter;
-  };
 
   ngObibaMica.search.TaxonomyService = function($q, TaxonomiesResource, TaxonomyResource, VocabularyService) {
 
@@ -9018,16 +8970,13 @@ ngObibaMica.search
       return deferred.promise;
     }
 
-    // exported functions
-
     this.getTaxonomy = getTaxonomy;
     this.getTaxonomies = getTaxonomies;
   };
 
   ngObibaMica.search
     .service('TaxonomyService',
-      ['$q', 'TaxonomiesResource', 'TaxonomyResource', 'VocabularyService', ngObibaMica.search.TaxonomyService])
-    .service('FilterVocabulariesByQueryString', ['$translate','LocalizedValues', 'MetaTaxonomyService', ngObibaMica.search.FilterVocabulariesByQueryString]);
+      ['$q', 'TaxonomiesResource', 'TaxonomyResource', 'VocabularyService', ngObibaMica.search.TaxonomyService]);
 
 })();;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -9043,7 +8992,59 @@ ngObibaMica.search
 
 (function() {
 
-  ngObibaMica.search.VocabularyService = function() {
+  ngObibaMica.search.VocabularyService = function($translate, LocalizedValues, MetaTaxonomyService) {
+
+    function translateField(title) {
+      return LocalizedValues.forLocale(title, $translate.use());
+    }
+
+    function asciiFold(text) {
+      return text.normalize('NFD').replace(/\//g, ' ').replace(/[^\w|^\s|^-]/g, '');
+    }
+
+    /**
+     * Filters the list of vocabularies based on a query string. A leading '-' will negate the filter result.
+     *
+     * @param vocabularies
+     * @param queryString
+     * @returns filtered vocabularies
+     */
+    function filter(vocabularies, queryString) {
+      if (queryString) {
+        var tokens = asciiFold(queryString).toLowerCase().split(' ').filter(function (token) {
+          return token.length > 2;
+        });
+
+        var vocabulariesToFilter = Array.isArray(vocabularies) ? vocabularies : vocabularies.vocabularies;
+        var fieldsToFilter = MetaTaxonomyService.getTaxonomyPanelOptions().fieldsToFilter;
+
+        return (vocabulariesToFilter || []).filter(function (vocabulary) {
+          vocabulary.filteredTerms = (vocabulary.terms || []).filter(function (term) {
+            // Filter on configurable field
+            var toMatchField = fieldsToFilter.reduce(function(toMatchField, field){
+              return toMatchField + ' ' + translateField(term[field]);
+            },fieldsToFilter[0] );
+            // term is selected when each of the token is included
+            var toMatch = asciiFold(toMatchField).trim().toLowerCase();
+            return tokens.map(function (token) {
+              if (token.startsWith('-')) {
+                var ntoken = token.substr(1);
+                if (ntoken.length <= 2) {
+                  return true;
+                }
+                return toMatch.indexOf(ntoken) === -1;
+              }
+              return toMatch.indexOf(token) >= 0;
+            }).reduce(function(acc, val) {
+              return acc && val;
+            }, true);
+
+          });
+
+          return vocabulary.terms ? vocabulary.filteredTerms.length > 0 : true;
+        });
+      }
+    }
 
     function isVocabularyVisible(vocabulary) {
       if (!vocabulary) {
@@ -9093,11 +9094,13 @@ ngObibaMica.search
     this.findVocabularyAttributes = findVocabularyAttributes;
     this.visibleVocabularies = visibleVocabularies;
     this.visibleFacetVocabularies = visibleFacetVocabularies;
+    this.filter = filter;
 
     return this;
   };
 
-  ngObibaMica.search.service('VocabularyService', [ngObibaMica.search.VocabularyService]);
+  ngObibaMica.search.service('VocabularyService',
+    ['$translate','LocalizedValues', 'MetaTaxonomyService', ngObibaMica.search.VocabularyService]);
 
 })();;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -9555,7 +9558,7 @@ ngObibaMica.search
 'use strict';
 
 (function () {
-  ngObibaMica.search.TaxonomyFilterPanelController = function(FilterVocabulariesByQueryString) {
+  ngObibaMica.search.TaxonomyFilterPanelController = function(VocabularyService) {
     var ctrl = this;
     ctrl.taxonomiesQuery = [];
 
@@ -9608,7 +9611,7 @@ ngObibaMica.search
 
     function filterChangedForSingleTaxonomy(queryString) {
       if (queryString) {
-        ctrl.filteredVocabularies = FilterVocabulariesByQueryString.filter(ctrl.taxonomy.vocabularies, queryString);
+        ctrl.filteredVocabularies = VocabularyService.filter(ctrl.taxonomy.vocabularies, queryString);
       } else {
         ctrl.filteredVocabularies = initFilteredVocabularies(ctrl.taxonomy);
       }
@@ -9618,7 +9621,7 @@ ngObibaMica.search
       ctrl.filteredVocabularies = {};
       if (queryString) {
         ctrl.taxonomy.forEach(function (subTaxonomy) {
-          var filtredSubVocabularies = FilterVocabulariesByQueryString.filter(subTaxonomy, queryString);
+          var filtredSubVocabularies = VocabularyService.filter(subTaxonomy, queryString);
           if(filtredSubVocabularies.length > 0){
             ctrl.filteredVocabularies[subTaxonomy.name] = filtredSubVocabularies;
           }
@@ -9680,7 +9683,7 @@ ngObibaMica.search
         onToggle: '<'
       },
       templateUrl: 'search/components/taxonomy/taxonomy-filter-panel/component.html',
-      controller: ['FilterVocabulariesByQueryString', ngObibaMica.search.TaxonomyFilterPanelController]
+      controller: ['VocabularyService', ngObibaMica.search.TaxonomyFilterPanelController]
     });
 })();
 ;/*
