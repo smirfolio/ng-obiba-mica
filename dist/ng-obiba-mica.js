@@ -5701,9 +5701,9 @@ ngObibaMica.search
           }
 
           refreshQuery();
-          $scope.selectedCriteria = null;
+          $scope.search.selectedCriteria = null;
         } else {
-          $scope.selectedCriteria = item.query;
+          $scope.search.selectedCriteria = item.query;
         }
       };
 
@@ -5972,6 +5972,7 @@ ngObibaMica.search
       $scope.BUCKET_TYPES = BUCKET_TYPES;
 
       $scope.search = {
+        selectedCriteria: null,
         layout: 'new',
         pagination: {},
         query: null,
@@ -15166,7 +15167,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "                </small>\n" +
     "              </a>\n" +
     "            </script>\n" +
-    "          <span class=\"input-group input-group-sm seach-block-imput\">\n" +
+    "          <span class=\"input-group input-group-sm\">\n" +
     "            <span class=\"input-group-btn\" uib-dropdown>\n" +
     "              <button type=\"button\" class=\"btn btn-primary\" uib-dropdown-toggle>\n" +
     "                {{'taxonomy.target.' + (documents.search.target ? documents.search.target : 'all')| translate}} <span\n" +
@@ -15180,7 +15181,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "                  + target | translate}}</a></li>\n" +
     "              </ul>\n" +
     "            </span>\n" +
-    "            <input type=\"text\" ng-model=\"$parent.selectedCriteria\"\n" +
+    "            <input type=\"text\" ng-model=\"search.selectedCriteria\"\n" +
     "                   placeholder=\"{{'search.placeholder.' + (documents.search.target ? documents.search.target : 'all') | translate}}\"\n" +
     "                   uib-typeahead=\"criteria for criteria in searchCriteria($viewValue)\"\n" +
     "                   typeahead-min-length=\"2\"\n" +

@@ -54,7 +54,7 @@
                 </small>
               </a>
             </script>
-          <span class="input-group input-group-sm seach-block-imput">
+          <span class="input-group input-group-sm">
             <span class="input-group-btn" uib-dropdown>
               <button type="button" class="btn btn-primary" uib-dropdown-toggle>
                 {{'taxonomy.target.' + (documents.search.target ? documents.search.target : 'all')| translate}} <span
@@ -68,7 +68,7 @@
                   + target | translate}}</a></li>
               </ul>
             </span>
-            <input type="text" ng-model="$parent.selectedCriteria"
+            <input type="text" ng-model="search.selectedCriteria"
                    placeholder="{{'search.placeholder.' + (documents.search.target ? documents.search.target : 'all') | translate}}"
                    uib-typeahead="criteria for criteria in searchCriteria($viewValue)"
                    typeahead-min-length="2"
