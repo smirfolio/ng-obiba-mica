@@ -1178,9 +1178,9 @@ ngObibaMica.search
           }
 
           refreshQuery();
-          $scope.selectedCriteria = null;
+          $scope.search.selectedCriteria = null;
         } else {
-          $scope.selectedCriteria = item.query;
+          $scope.search.selectedCriteria = item.query;
         }
       };
 
@@ -1449,6 +1449,7 @@ ngObibaMica.search
       $scope.BUCKET_TYPES = BUCKET_TYPES;
 
       $scope.search = {
+        selectedCriteria: null,
         layout: 'new',
         pagination: {},
         query: null,
