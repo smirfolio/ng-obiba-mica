@@ -1,40 +1,43 @@
-<div class="panel panel-default">
-  <div class="panel-heading">
-    <label>
-      <input type="checkbox"
-             ng-click="$ctrl.toggleVocabularySelection($event, $ctrl.vocabulary.wholeVocabularyIsSelected)"
-             ng-model="$ctrl.vocabulary.wholeVocabularyIsSelected">
-      {{$ctrl.vocabulary.title | localizedString}}
-    </label>
+<div class="panel-heading">
+  <label
+      uib-popover="{{$ctrl.vocabulary.description ? $ctrl.vocabulary.description : $ctrl.vocabulary.title | localizedString}}"
+      popover-title="{{$ctrl.vocabulary.description ? $ctrl.vocabulary.title : null | localizedString}}"
+      popover-placement="bottom"
+      popover-trigger="'mouseenter'"
+      popover-popup-delay="250"
+      popover-class="right-panel-popover">
+    <input type="checkbox"
+           ng-click="$ctrl.toggleVocabularySelection($event, $ctrl.vocabulary.wholeVocabularyIsSelected)"
+           ng-model="$ctrl.vocabulary.wholeVocabularyIsSelected">
+    {{$ctrl.vocabulary.title | localizedString}}
+  </label>
 
-    <span>
-      <div class="pull-right">
-        <a href="" ng-click="$ctrl.removeCriterion()" ng-if="$ctrl.vocabulary.existingItem">{{'clear' | translate}}</a>
-
-        <a href=""
-           class="hoffset2"
-           ng-click="$ctrl.selectAllFilteredVocabularyTerms($ctrl.vocabulary.filteredTerms)"
-           ng-if="$ctrl.criterionType === 'string-terms' && $ctrl.canStillSelectMore($ctrl.vocabulary.filteredTerms)">
-          {{'select-items' | translate}}
-        </a>
-      </div>
-
-      <span class="clearfix"></span>
-    </span>
+  <div class="pull-right">
+    <a href="" ng-click="$ctrl.removeCriterion()" ng-if="$ctrl.vocabulary.existingItem">{{'clear' | translate}}</a>
+    <a href=""
+       class="hoffset2"
+       ng-click="$ctrl.selectAllFilteredVocabularyTerms($ctrl.vocabulary.filteredTerms)"
+       ng-if="$ctrl.criterionType === 'string-terms' && $ctrl.canStillSelectMore($ctrl.vocabulary.filteredTerms)">
+      {{'select-items' | translate}}
+    </a>
   </div>
-  <div class="panel-body">
-    <div ng-switch on="$ctrl.criterionType">
-      <div ng-switch-when="string-terms">
-        <terms-vocabulary-filter-detail vocabulary="$ctrl.vocabulary" on-select-args="$ctrl.selectVocabularyArgs(args)"></terms-vocabulary-filter-detail>
-      </div>
 
-      <div ng-switch-when="numeric">
-        <numeric-vocabulary-filter-detail vocabulary="$ctrl.vocabulary" on-select-args="$ctrl.selectVocabularyArgs(args)"></numeric-vocabulary-filter-detail>
-      </div>
+</div>
+<div class="panel-body">
+  <div ng-switch on="$ctrl.criterionType">
+    <div ng-switch-when="string-terms">
+      <terms-vocabulary-filter-detail vocabulary="$ctrl.vocabulary"
+                                      on-select-args="$ctrl.selectVocabularyArgs(args)"></terms-vocabulary-filter-detail>
+    </div>
 
-      <div ng-switch-default>
-        <match-vocabulary-filter-detail vocabulary="$ctrl.vocabulary" on-select-args="$ctrl.selectVocabularyArgs(args)"></match-vocabulary-filter-detail>
-      </div>
+    <div ng-switch-when="numeric">
+      <numeric-vocabulary-filter-detail vocabulary="$ctrl.vocabulary"
+                                        on-select-args="$ctrl.selectVocabularyArgs(args)"></numeric-vocabulary-filter-detail>
+    </div>
+
+    <div ng-switch-default>
+      <match-vocabulary-filter-detail vocabulary="$ctrl.vocabulary"
+                                      on-select-args="$ctrl.selectVocabularyArgs(args)"></match-vocabulary-filter-detail>
     </div>
   </div>
 </div>

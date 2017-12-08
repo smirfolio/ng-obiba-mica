@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-12-07
+ * Date: 2017-12-08
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -13313,7 +13313,7 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
     "    </div>\n" +
     "  </div>\n" +
     "\n" +
-    "  <div class=\"panel-body vocabulary-filter-detail-container\">\n" +
+    "  <div class=\"vocabulary-filter-detail-container\">\n" +
     "    <vocabulary-filter-detail\n" +
     "            ng-if=\"!$ctrl.taxonomyIsArray\"\n" +
     "            on-select-vocabulary-args=\"$ctrl.selectTaxonomyVocabularyArgs($ctrl.taxonomy, vocabulary, args)\"\n" +
@@ -13338,43 +13338,46 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
 
 angular.module("search/components/vocabulary/vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/vocabulary/vocabulary-filter-detail/component.html",
-    "<div class=\"panel panel-default\">\n" +
-    "  <div class=\"panel-heading\">\n" +
-    "    <label>\n" +
-    "      <input type=\"checkbox\"\n" +
-    "             ng-click=\"$ctrl.toggleVocabularySelection($event, $ctrl.vocabulary.wholeVocabularyIsSelected)\"\n" +
-    "             ng-model=\"$ctrl.vocabulary.wholeVocabularyIsSelected\">\n" +
-    "      {{$ctrl.vocabulary.title | localizedString}}\n" +
-    "    </label>\n" +
+    "<div class=\"panel-heading\">\n" +
+    "  <label\n" +
+    "      uib-popover=\"{{$ctrl.vocabulary.description ? $ctrl.vocabulary.description : $ctrl.vocabulary.title | localizedString}}\"\n" +
+    "      popover-title=\"{{$ctrl.vocabulary.description ? $ctrl.vocabulary.title : null | localizedString}}\"\n" +
+    "      popover-placement=\"bottom\"\n" +
+    "      popover-trigger=\"'mouseenter'\"\n" +
+    "      popover-popup-delay=\"250\"\n" +
+    "      popover-class=\"right-panel-popover\">\n" +
+    "    <input type=\"checkbox\"\n" +
+    "           ng-click=\"$ctrl.toggleVocabularySelection($event, $ctrl.vocabulary.wholeVocabularyIsSelected)\"\n" +
+    "           ng-model=\"$ctrl.vocabulary.wholeVocabularyIsSelected\">\n" +
+    "    {{$ctrl.vocabulary.title | localizedString}}\n" +
+    "  </label>\n" +
     "\n" +
-    "    <span>\n" +
-    "      <div class=\"pull-right\">\n" +
-    "        <a href=\"\" ng-click=\"$ctrl.removeCriterion()\" ng-if=\"$ctrl.vocabulary.existingItem\">{{'clear' | translate}}</a>\n" +
-    "\n" +
-    "        <a href=\"\"\n" +
-    "           class=\"hoffset2\"\n" +
-    "           ng-click=\"$ctrl.selectAllFilteredVocabularyTerms($ctrl.vocabulary.filteredTerms)\"\n" +
-    "           ng-if=\"$ctrl.criterionType === 'string-terms' && $ctrl.canStillSelectMore($ctrl.vocabulary.filteredTerms)\">\n" +
-    "          {{'select-items' | translate}}\n" +
-    "        </a>\n" +
-    "      </div>\n" +
-    "\n" +
-    "      <span class=\"clearfix\"></span>\n" +
-    "    </span>\n" +
+    "  <div class=\"pull-right\">\n" +
+    "    <a href=\"\" ng-click=\"$ctrl.removeCriterion()\" ng-if=\"$ctrl.vocabulary.existingItem\">{{'clear' | translate}}</a>\n" +
+    "    <a href=\"\"\n" +
+    "       class=\"hoffset2\"\n" +
+    "       ng-click=\"$ctrl.selectAllFilteredVocabularyTerms($ctrl.vocabulary.filteredTerms)\"\n" +
+    "       ng-if=\"$ctrl.criterionType === 'string-terms' && $ctrl.canStillSelectMore($ctrl.vocabulary.filteredTerms)\">\n" +
+    "      {{'select-items' | translate}}\n" +
+    "    </a>\n" +
     "  </div>\n" +
-    "  <div class=\"panel-body\">\n" +
-    "    <div ng-switch on=\"$ctrl.criterionType\">\n" +
-    "      <div ng-switch-when=\"string-terms\">\n" +
-    "        <terms-vocabulary-filter-detail vocabulary=\"$ctrl.vocabulary\" on-select-args=\"$ctrl.selectVocabularyArgs(args)\"></terms-vocabulary-filter-detail>\n" +
-    "      </div>\n" +
     "\n" +
-    "      <div ng-switch-when=\"numeric\">\n" +
-    "        <numeric-vocabulary-filter-detail vocabulary=\"$ctrl.vocabulary\" on-select-args=\"$ctrl.selectVocabularyArgs(args)\"></numeric-vocabulary-filter-detail>\n" +
-    "      </div>\n" +
+    "</div>\n" +
+    "<div class=\"panel-body\">\n" +
+    "  <div ng-switch on=\"$ctrl.criterionType\">\n" +
+    "    <div ng-switch-when=\"string-terms\">\n" +
+    "      <terms-vocabulary-filter-detail vocabulary=\"$ctrl.vocabulary\"\n" +
+    "                                      on-select-args=\"$ctrl.selectVocabularyArgs(args)\"></terms-vocabulary-filter-detail>\n" +
+    "    </div>\n" +
     "\n" +
-    "      <div ng-switch-default>\n" +
-    "        <match-vocabulary-filter-detail vocabulary=\"$ctrl.vocabulary\" on-select-args=\"$ctrl.selectVocabularyArgs(args)\"></match-vocabulary-filter-detail>\n" +
-    "      </div>\n" +
+    "    <div ng-switch-when=\"numeric\">\n" +
+    "      <numeric-vocabulary-filter-detail vocabulary=\"$ctrl.vocabulary\"\n" +
+    "                                        on-select-args=\"$ctrl.selectVocabularyArgs(args)\"></numeric-vocabulary-filter-detail>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div ng-switch-default>\n" +
+    "      <match-vocabulary-filter-detail vocabulary=\"$ctrl.vocabulary\"\n" +
+    "                                      on-select-args=\"$ctrl.selectVocabularyArgs(args)\"></match-vocabulary-filter-detail>\n" +
     "    </div>\n" +
     "  </div>\n" +
     "</div>\n" +
