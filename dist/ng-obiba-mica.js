@@ -15082,7 +15082,7 @@ angular.module("search/views/search-result-list-template.html", []).run(["$templ
     "        <a target=\"_self\" ng-if=\"type=='studies'\" download class=\"btn btn-info\" ng-href=\"{{getStudySpecificReportUrl()}}\">\n" +
     "            <i class=\"fa fa-download\"></i> {{'report-group.study.button-name' | translate}}\n" +
     "        </a>\n" +
-    "        <a target=\"_self\" download class=\"btn btn-info\" ng-href=\"{{getReportUrl()}}\">\n" +
+    "        <a obiba-file-download url=\"getReportUrl()\" target=\"_self\" download class=\"btn btn-info\" href>\n" +
     "            <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
     "        </a>\n" +
     "    </div>\n" +
