@@ -8924,6 +8924,9 @@ ngObibaMica.search
             return tokens.map(function (token) {
               if (token.startsWith('-')) {
                 var ntoken = token.substr(1);
+                if (ntoken.length <= 2) {
+                  return true;
+                }
                 return toMatch.indexOf(ntoken) === -1;
               }
               return toMatch.indexOf(token) >= 0;
