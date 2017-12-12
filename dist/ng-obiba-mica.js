@@ -10009,31 +10009,7 @@ ngObibaMica.lists
  */
 
 'use strict';
-
-/* global RQL_NODE */
-/* global typeToTarget */
-function getSearchButtonLabel(type, className) {
-  var label = type;
-  if (className) {
-    label = className.args[1];
-  }
-  switch (label) {
-    case 'networks':
-      return 'networks';
-    case 'studies':
-      return 'studies';
-    case 'Study':
-      return 'global.individual-studies';
-    case 'HarmonizationStudy':
-      return 'global.harmonization-studies';
-    case 'datasets':
-      return 'datasets';
-    case 'StudyDataset':
-      return 'collected-datasets';
-    case 'HarmonizationDataset':
-      return 'harmonized-datasets';
-  }
-}
+(function () {
 
 ngObibaMica.lists
 
@@ -10041,17 +10017,8 @@ ngObibaMica.lists
     function ($scope, $rootScope, $location, RqlQueryService, ngObibaMicaUrl) {
       function initMatchInput() {
         $scope.query = $location.search().query;
-
-        if ($scope.query) {
-          var targetQuery = RqlQueryService.findTargetQuery(typeToTarget($scope.type), RqlQueryService.parseQuery($scope.query));
-          $scope.searchButtonLabel =  getSearchButtonLabel($scope.type, RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className'));
-          var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
-          if (foundFulltextMatchQuery.length === 1) {
-            $scope.searchFilter = foundFulltextMatchQuery[0].args[0][0];
-          } else {
-            $scope.searchFilter = null;
-          }
-        }
+        $scope.target = typeToTarget($scope.type);
+        $scope.rqlQuery = RqlQueryService.parseQuery($scope.query);
       }
 
       /**
@@ -10118,7 +10085,10 @@ ngObibaMica.lists
       function initSelectedOptions() {
         $scope.selected = sortWidgetService.getSortOrderOption(sortWidgetService.getSortArg());
       }
-    }]);;/*
+    }]);
+
+})();
+;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
@@ -11595,7 +11565,7 @@ ngObibaMica.fileBrowser
       }
     };
   }]);
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/input-search-widget/suggestion-field.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-facets-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/search-criteria-region-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/result-tabs-order-template-view.html', 'search/views/search-layout.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search-study-filter-template.html', 'search/views/search.html', 'search/views/search2.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/classifications-view.html', 'search/views/classifications/taxonomies-facets-view.html', 'search/views/classifications/taxonomies-view.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-panel-template.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/term-panel-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/classifications/vocabulary-panel-template.html', 'search/views/coverage/coverage-search-result-table-template.html', 'search/views/criteria/criteria-node-template.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-dropdown-template.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/criterion-match-template.html', 'search/views/criteria/criterion-numeric-template.html', 'search/views/criteria/criterion-string-terms-template.html', 'search/views/criteria/search-criteria-region-template.html', 'search/views/criteria/target-template.html', 'search/views/graphics/graphics-search-result-template.html', 'search/views/list/datasets-search-result-table-template.html', 'search/views/list/networks-search-result-table-template.html', 'search/views/list/pagination-template.html', 'search/views/list/search-result-pagination-template.html', 'search/views/list/studies-search-result-table-template.html', 'search/views/list/variables-search-result-table-template.html', 'search/views/result-tabs-order-template-view.html', 'search/views/search-layout.html', 'search/views/search-result-coverage-template.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search-result-panel-template.html', 'search/views/search-study-filter-template.html', 'search/views/search.html', 'search/views/search2.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/views/data-access-request-documents-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-documents-view.html",
@@ -12596,17 +12566,14 @@ angular.module("graphics/views/tables-directive.html", []).run(["$templateCache"
 angular.module("lists/views/input-search-widget/input-search-widget-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("lists/views/input-search-widget/input-search-widget-template.html",
     "<form class=\"list-search-widget\">\n" +
-    "    <div class=\"form-group pull-left\">\n" +
-    "      <div class=\"input-group\">\n" +
-    "        <suggestion-field document-type=\"type\" model=\"searchFilter\" placeholder-text=\"'global.list-search-placeholder'\"\n" +
-    "                          select=\"selectSuggestion\"></suggestion-field>\n" +
-    "        <span class=\"input-group-btn\">\n" +
-    "          <button type=\"submit\" class=\"btn btn-default\" ng-click=\"search()\">\n" +
-    "            <i class=\"fa fa-search\"></i>\n" +
-    "          </button>\n" +
-    "        </span>\n" +
+    "      <div class=\"form-group pull-left\">\n" +
+    "          <entity-search-typeahead\n" +
+    "            placeholder-text=\"global.list-search-placeholder\"\n" +
+    "            target=\"target\"\n" +
+    "            rql-query=\"rqlQuery\"\n" +
+    "            entity-type=\"type\"></entity-search-typeahead>\n" +
+    "        </div>\n" +
     "      </div>\n" +
-    "    </div>\n" +
     "    <div class=\"pull-left voffset2 hoffset2\">\n" +
     "      <small><a href ng-href=\"{{navigateToSearchPage()}}\">\n" +
     "        {{'search.advanced-button' | translate}}\n" +
@@ -12614,14 +12581,6 @@ angular.module("lists/views/input-search-widget/input-search-widget-template.htm
     "    </div>\n" +
     "</form>\n" +
     "");
-}]);
-
-angular.module("lists/views/input-search-widget/suggestion-field.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("lists/views/input-search-widget/suggestion-field.html",
-    "<input type=\"text\" ng-model=\"model\" ng-attr-placeholder=\"{{placeholderText | translate}}\"\n" +
-    "       uib-typeahead=\"suggestion for suggestion in suggest($viewValue)\"\n" +
-    "       typeahead-wait-ms=\"250\" typeahead-focus-first=\"false\" typeahead-on-select=\"select($item)\"\n" +
-    "       class=\"form-control\">");
 }]);
 
 angular.module("lists/views/list/datasets-search-result-table-template.html", []).run(["$templateCache", function($templateCache) {
@@ -13236,7 +13195,7 @@ angular.module("search/components/entity-search-typeahead/component.html", []).r
     "         class=\"form-control\">\n" +
     "  <span ng-if=\"$ctrl.model\"\n" +
     "        ng-click=\"$ctrl.clear()\"\n" +
-    "        class=\"form-control-feedback form-control-clear width-initial height-initial padding-right-5\"><i class=\"fa fa-times\"></i>\n" +
+    "        class=\"form-control-feedback form-control-clear width-initial height-initial padding-right-10\"><i class=\"fa fa-times\"></i>\n" +
     "  </span>\n" +
     "</div>");
 }]);

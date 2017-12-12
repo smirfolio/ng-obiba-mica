@@ -9,31 +9,7 @@
  */
 
 'use strict';
-
-/* global RQL_NODE */
-/* global typeToTarget */
-function getSearchButtonLabel(type, className) {
-  var label = type;
-  if (className) {
-    label = className.args[1];
-  }
-  switch (label) {
-    case 'networks':
-      return 'networks';
-    case 'studies':
-      return 'studies';
-    case 'Study':
-      return 'global.individual-studies';
-    case 'HarmonizationStudy':
-      return 'global.harmonization-studies';
-    case 'datasets':
-      return 'datasets';
-    case 'StudyDataset':
-      return 'collected-datasets';
-    case 'HarmonizationDataset':
-      return 'harmonized-datasets';
-  }
-}
+(function () {
 
 ngObibaMica.lists
 
@@ -41,17 +17,8 @@ ngObibaMica.lists
     function ($scope, $rootScope, $location, RqlQueryService, ngObibaMicaUrl) {
       function initMatchInput() {
         $scope.query = $location.search().query;
-
-        if ($scope.query) {
-          var targetQuery = RqlQueryService.findTargetQuery(typeToTarget($scope.type), RqlQueryService.parseQuery($scope.query));
-          $scope.searchButtonLabel =  getSearchButtonLabel($scope.type, RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className'));
-          var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
-          if (foundFulltextMatchQuery.length === 1) {
-            $scope.searchFilter = foundFulltextMatchQuery[0].args[0][0];
-          } else {
-            $scope.searchFilter = null;
-          }
-        }
+        $scope.target = typeToTarget($scope.type);
+        $scope.rqlQuery = RqlQueryService.parseQuery($scope.query);
       }
 
       /**
@@ -119,3 +86,5 @@ ngObibaMica.lists
         $scope.selected = sortWidgetService.getSortOrderOption(sortWidgetService.getSortArg());
       }
     }]);
+
+})();
