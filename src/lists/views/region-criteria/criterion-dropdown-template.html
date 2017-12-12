@@ -1,7 +1,7 @@
 <div id="{{criterion.id.replace('.','-')}}-dropdown-{{timestamp}}" class="{{'btn-group voffset1 btn-' + criterion.target}}" ng-class='{open: state.open}'
      ng-keyup="onKeyup($event)">
 
-  <span ng-if="RqlQueryUtils.isFacettedVocabulary(criterion.vocabulary)" ng-class='{open: state.open}'>
+  <span ng-if="VocabularyService.isFacettedVocabulary(criterion.vocabulary)" ng-class='{open: state.open}'>
   <button class="{{'btn btn-xs dropdown btn-' + criterion.target}}"
           ng-click="openDropdown()">
     <span uib-popover="{{localize(criterion.vocabulary.description ? criterion.vocabulary.description : criterion.vocabulary.title)}}"
@@ -19,14 +19,14 @@
     <span class='fa fa-times'></span>
   </button>
 
-  <match-criterion ng-if="RqlQueryUtils.isMatchVocabulary(criterion.vocabulary)" criterion="criterion" query="query"
+  <match-criterion ng-if="VocabularyService.isMatchVocabulary(criterion.vocabulary)" criterion="criterion" query="query"
                    state="state"></match-criterion>
 
   <string-criterion-terms
-          ng-if="RqlQueryUtils.isTermsVocabulary(criterion.vocabulary) || RqlQueryUtils.isRangeVocabulary(criterion.vocabulary)"
+          ng-if="VocabularyService.isTermsVocabulary(criterion.vocabulary) || VocabularyService.isRangeVocabulary(criterion.vocabulary)"
           criterion="criterion" query="query" state="state"></string-criterion-terms>
 
-  <numeric-criterion ng-if="RqlQueryUtils.isNumericVocabulary(criterion.vocabulary)" criterion="criterion" query="query"
+  <numeric-criterion ng-if="VocabularyService.isNumericVocabulary(criterion.vocabulary)" criterion="criterion" query="query"
                      state="state"></numeric-criterion>
 </span>
 </div>

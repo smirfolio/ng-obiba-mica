@@ -1,5 +1,5 @@
 <div ng-class="{'row': ($index + 1) % 4 === 0}"
-     ng-repeat="term in $ctrl.vocabulary.filteredTerms | limitTo:$ctrl.limitNumber">
+     ng-repeat="term in $ctrl.vocabulary.filteredTerms | sortTerms:$ctrl.vocabulary | limitTo:$ctrl.limitNumber">
   <div class="col-md-3">
     <div class="checkbox">
       <label uib-popover="{{term.description ? term.description : term.title | localizedString}}"

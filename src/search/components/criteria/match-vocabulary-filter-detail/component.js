@@ -15,7 +15,7 @@
     var ctrl = this;
 
     function enterText(keyUpEvent) {
-      var input = keyUpEvent.target.value;
+      var input = new obiba.utils.NgObibaStringUtils().cleanDoubleQuotesLeftUnclosed(keyUpEvent.target.value);
       var args = {text: input || '*'};
       if (keyUpEvent.keyCode === 13) {
         ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});

@@ -74,7 +74,8 @@ function BaseTaxonomiesController($rootScope,
                                   TaxonomiesResource,
                                   ngObibaMicaSearch,
                                   RqlQueryUtils,
-                                  $cacheFactory) {
+                                  $cacheFactory,
+                                  VocabularyService) {
 
   $scope.options = ngObibaMicaSearch.getOptions();
   $scope.RqlQueryUtils = RqlQueryUtils;
@@ -96,7 +97,7 @@ function BaseTaxonomiesController($rootScope,
 
   $rootScope.$on('$translateChangeSuccess', function () {
     if ($scope.taxonomies && $scope.taxonomies.vocabulary) {
-      RqlQueryUtils.sortVocabularyTerms($scope.taxonomies.vocabulary, $translate.use());
+      VocabularyService.sortVocabularyTerms($scope.taxonomies.vocabulary, $translate.use());
     }
   });
 
@@ -117,7 +118,7 @@ function BaseTaxonomiesController($rootScope,
       search.taxonomy = taxonomy ? taxonomy.name : null;
 
       if (vocabulary && search.vocabulary !== vocabulary.name) {
-        RqlQueryUtils.sortVocabularyTerms(vocabulary, $scope.lang);
+        VocabularyService.sortVocabularyTerms(vocabulary, $scope.lang);
         search.vocabulary = vocabulary.name;
       } else {
         search.vocabulary = null;
@@ -128,7 +129,7 @@ function BaseTaxonomiesController($rootScope,
       $scope.taxonomies.taxonomy = taxonomy;
 
       if (!$scope.taxonomies.vocabulary || $scope.taxonomies.vocabulary.name !== vocabulary.name) {
-        RqlQueryUtils.sortVocabularyTerms(vocabulary, $scope.lang);
+        VocabularyService.sortVocabularyTerms(vocabulary, $scope.lang);
       }
 
       $scope.taxonomies.vocabulary = vocabulary;
@@ -159,7 +160,7 @@ function BaseTaxonomiesController($rootScope,
       $scope.taxonomies.taxonomy = taxonomy;
 
       if(vocabulary) {
-        RqlQueryUtils.sortVocabularyTerms(vocabulary, $scope.lang);
+        VocabularyService.sortVocabularyTerms(vocabulary, $scope.lang);
       }
 
       $scope.taxonomies.vocabulary = vocabulary;
@@ -186,8 +187,8 @@ function BaseTaxonomiesController($rootScope,
   });
   $scope.$watch('taxonomies.vocabulary', function(value) {
     if(RqlQueryUtils && value) {
-      $scope.taxonomies.isNumericVocabulary = RqlQueryUtils.isNumericVocabulary($scope.taxonomies.vocabulary);
-      $scope.taxonomies.isMatchVocabulary = RqlQueryUtils.isMatchVocabulary($scope.taxonomies.vocabulary);
+      $scope.taxonomies.isNumericVocabulary = VocabularyService.isNumericVocabulary($scope.taxonomies.vocabulary);
+      $scope.taxonomies.isMatchVocabulary = VocabularyService.isMatchVocabulary($scope.taxonomies.vocabulary);
     } else {
       $scope.taxonomies.isNumericVocabulary = null;
       $scope.taxonomies.isMatchVocabulary = null;
@@ -224,7 +225,8 @@ function TaxonomiesPanelController($rootScope,
                                    RqlQueryUtils,
                                    $cacheFactory,
                                    AlertService,
-                                   ServerErrorUtils) {
+                                   ServerErrorUtils,
+                                   VocabularyService) {
   BaseTaxonomiesController.call(this,
     $rootScope,
     $scope,
@@ -234,7 +236,8 @@ function TaxonomiesPanelController($rootScope,
     TaxonomiesResource,
     ngObibaMicaSearch,
     RqlQueryUtils,
-    $cacheFactory);
+    $cacheFactory,
+    VocabularyService);
 
   function getPanelTaxonomies(target, taxonomyName) {
     TaxonomyResource.get({
@@ -314,7 +317,8 @@ function ClassificationPanelController($rootScope,
     TaxonomiesResource,
     ngObibaMicaSearch,
     RqlQueryUtils,
-    $cacheFactory);
+    $cacheFactory,
+    VocabularyService);
 
   var groupTaxonomies = function (taxonomies, target) {
     var res = taxonomies.reduce(function (res, t) {
@@ -911,11 +915,11 @@ ngObibaMica.search
       function processTaxonomyVocabulary(target, taxonomy, taxonomyVocabulary) {
         function processExistingItem(existingItem) {
           if (existingItem) {
-            if (RqlQueryUtils.isNumericVocabulary(taxonomyVocabulary)) {
+            if (VocabularyService.isNumericVocabulary(taxonomyVocabulary)) {
               taxonomyVocabulary.rangeTerms = existingItem.getRangeTerms();
             }
 
-            if (RqlQueryUtils.isMatchVocabulary(taxonomyVocabulary)) {
+            if (VocabularyService.isMatchVocabulary(taxonomyVocabulary)) {
               taxonomyVocabulary.matchString = existingItem.selectedTerms.join('');
             }
 
@@ -1288,7 +1292,7 @@ ngObibaMica.search
         args = args || {};
 
         if (args.text) {
-          args.text = args.text.replace(/[^a-zA-Z0-9 _-]/g, '');
+          args.text = args.text.replace(/[^a-zA-Z0-9" _-]/g, '');
         }
 
         if(angular.isString(args)) {
@@ -1297,14 +1301,14 @@ ngObibaMica.search
 
         if (vocabulary) {
           var item;
-          if (RqlQueryUtils.isNumericVocabulary(vocabulary)) {
+          if (VocabularyService.isNumericVocabulary(vocabulary)) {
             item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, $scope.lang);
             item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
             RqlQueryUtils.updateRangeQuery(item.rqlQuery, args.from, args.to);
             selectCriteria(item, null, true);
 
             return;
-          } else if(RqlQueryUtils.isMatchVocabulary(vocabulary)) {
+          } else if(VocabularyService.isMatchVocabulary(vocabulary)) {
             item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, $scope.lang);
             item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
             RqlQueryUtils.updateMatchQuery(item.rqlQuery, args.text);
@@ -1537,7 +1541,7 @@ ngObibaMica.search
           $scope.search.display,
           $scope.search.type,
           $scope.search.rqlQuery,
-          null,
+          {},
           $scope.lang,
           sort
         );
@@ -1779,6 +1783,7 @@ ngObibaMica.search
     '$cacheFactory',
     'AlertService',
     'ServerErrorUtils',
+    'VocabularyService',
     TaxonomiesPanelController])
 
   .controller('ClassificationPanelController', ['$rootScope',
@@ -1866,8 +1871,8 @@ ngObibaMica.search
               v.isOpen = 'true' === facetAttributes.facetExpanded;
               v.position = parseInt(facetAttributes.facetPosition);
               v.limit = 10;
-              v.isMatch = RqlQueryUtils.isMatchVocabulary(v);
-              v.isNumeric = RqlQueryUtils.isNumericVocabulary(v);
+              v.isMatch = VocabularyService.isMatchVocabulary(v);
+              v.isNumeric = VocabularyService.isNumericVocabulary(v);
 
               t.isOpen = t.isOpen || v.isOpen;
             });
@@ -2011,9 +2016,9 @@ ngObibaMica.search
     '$scope',
     '$filter',
     'LocalizedValues',
-    'RqlQueryUtils',
+    'VocabularyService',
     'StringUtils',
-    function ($scope, $filter, LocalizedValues, RqlQueryUtils, StringUtils) {
+    function ($scope, $filter, LocalizedValues, VocabularyService, StringUtils) {
       var closeDropdown = function () {
         if (!$scope.state.open) {
           return;
@@ -2100,15 +2105,13 @@ ngObibaMica.search
         }
         return LocalizedValues.forLocale($scope.criterion.vocabulary.title, $scope.criterion.lang) + operation;
       };
-      $scope.vocabularyType = function (vocabulary) {
-        return RqlQueryUtils.vocabularyType(vocabulary);
-      };
+      $scope.vocabularyType = VocabularyService.vocabularyType;
       $scope.onKeyup = onKeyup;
       $scope.truncate = StringUtils.truncate;
       $scope.remove = remove;
       $scope.openDropdown = openDropdown;
       $scope.closeDropdown = closeDropdown;
-      $scope.RqlQueryUtils = RqlQueryUtils;
+      $scope.VocabularyService = VocabularyService;
     }])
   .controller('searchCriteriaRegionController', ['$scope', 'RqlQueryService', function ($scope,RqlQueryService) {
     var canShow = false;

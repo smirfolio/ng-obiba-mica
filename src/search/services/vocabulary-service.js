@@ -14,6 +14,12 @@
 
   ngObibaMica.search.VocabularyService = function($translate, LocalizedValues, MetaTaxonomyService) {
 
+    var VOCABULARY_TYPES = {
+      STRING: 'string',
+      INTEGER: 'integer',
+      DECIMAL: 'decimal'
+    };
+
     function translateField(title) {
       return LocalizedValues.forLocale(title, $translate.use());
     }
@@ -102,6 +108,22 @@
       }, {});
     }
 
+    function vocabularyAttributeValue(vocabulary, key, defaultValue) {
+      var value = defaultValue;
+      if (vocabulary.attributes) {
+        vocabulary.attributes.some(function (attribute) {
+          if (attribute.key === key) {
+            value = attribute.value;
+            return true;
+          }
+
+          return false;
+        });
+      }
+
+      return value;
+    }
+
     function visibleVocabularies(vocabularies) {
       return (vocabularies || []).filter(isVocabularyVisible);
     }
@@ -110,11 +132,80 @@
       return (vocabularies || []).filter(isFacetVocabularyVisible);
     }
 
+    function vocabularyType(vocabulary) {
+      return vocabularyAttributeValue(vocabulary, 'type', VOCABULARY_TYPES.STRING);
+    }
+
+    function vocabularyField(vocabulary) {
+      return vocabularyAttributeValue(vocabulary, 'field', vocabulary.name);
+    }
+
+    function vocabularyAlias(vocabulary) {
+      return vocabularyAttributeValue(vocabulary, 'alias', vocabulary.name);
+    }
+
+    function vocabularyTermsSortKey(vocabulary) {
+      return vocabularyAttributeValue(vocabulary, 'termsSortKey', null);
+    }
+
+    function isTermsVocabulary(vocabulary) {
+      return vocabularyType(vocabulary) === VOCABULARY_TYPES.STRING && vocabulary.terms;
+    }
+
+    function isMatchVocabulary(vocabulary) {
+      return vocabularyType(vocabulary) === VOCABULARY_TYPES.STRING && !vocabulary.terms;
+    }
+
+    function isNumericVocabulary(vocabulary) {
+      return !vocabulary.terms && (vocabularyType(vocabulary) === VOCABULARY_TYPES.INTEGER || vocabularyType(vocabulary) === VOCABULARY_TYPES.DECIMAL);
+    }
+
+    function isRangeVocabulary(vocabulary) {
+      return vocabulary.terms && (vocabularyType(vocabulary) === VOCABULARY_TYPES.INTEGER || vocabularyType(vocabulary) === VOCABULARY_TYPES.DECIMAL);
+    }
+
+    function isFacettedVocabulary(vocabulary) {
+      return 'true' === vocabularyAttributeValue(vocabulary, 'facet', 'false');
+    }
+
+    function sortFilteredVocabularyTerms(vocabulary, terms, locale) {
+      var termsSortKey = vocabularyTermsSortKey(vocabulary);
+      if (termsSortKey && terms && terms.length > 0) {
+        switch (termsSortKey) {
+          case 'name':
+            terms.sort(function (a, b) {
+              return a[termsSortKey].localeCompare(b[termsSortKey]);
+            });
+            break;
+          case 'title':
+            terms.sort(function (a, b) {
+              var titleA = LocalizedValues.forLocale(a[termsSortKey], locale);
+              var titleB = LocalizedValues.forLocale(b[termsSortKey], locale);
+              return titleA.localeCompare(titleB);
+            });
+            break;
+        }
+      }
+    }
+
+    function sortVocabularyTerms(vocabulary, locale) {
+      sortFilteredVocabularyTerms(vocabulary.terms, locale ? locale : $translate.$use());
+    }
+
+    this.filter = filter;
     this.isVisibleVocabulary = isVocabularyVisible;
     this.findVocabularyAttributes = findVocabularyAttributes;
     this.visibleVocabularies = visibleVocabularies;
     this.visibleFacetVocabularies = visibleFacetVocabularies;
-    this.filter = filter;
+    this.isRangeVocabulary = isRangeVocabulary;
+    this.isTermsVocabulary = isTermsVocabulary;
+    this.isMatchVocabulary = isMatchVocabulary;
+    this.isNumericVocabulary = isNumericVocabulary;
+    this.isFacettedVocabulary = isFacettedVocabulary;
+    this.sortVocabularyTerms = sortVocabularyTerms;
+    this.sortFilteredVocabularyTerms = sortFilteredVocabularyTerms;
+    this.vocabularyAlias = vocabularyAlias;
+    this.vocabularyField= vocabularyField;
 
     return this;
   };
