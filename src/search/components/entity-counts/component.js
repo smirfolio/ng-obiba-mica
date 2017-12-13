@@ -18,7 +18,13 @@ ngObibaMica.search.EntityCountsController = function() {
     }
     return ctrl.result.list[entity + 'ResultDto'].totalHits;
   }
+
+  function selectType(entity) {
+    ctrl.onSelectType({type: targetToType(entity)});
+  }
+
   ctrl.getTotalHits = getTotalHits;
+  ctrl.selectType = selectType;
 };
 
 ngObibaMica.search
@@ -27,6 +33,7 @@ ngObibaMica.search
     bindings: {
       result: '<',
       target: '<',
+      onSelectType: '&',
       resultTabsOrder: '<',
       taxonomyTypeMap: '<'
     },
