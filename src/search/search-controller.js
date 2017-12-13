@@ -664,7 +664,6 @@ ngObibaMica.search
           });
           $scope.targetTabsOrder = tabOrderTodisplay;
         });
-
       }
 
       function onError(response) {
@@ -1347,7 +1346,6 @@ ngObibaMica.search
         CLASSIFICATION: 'classification'
       };
 
-      // TODO refractor these two suggestion functions
       function searchSuggestion(target, suggestion) {
         var rqlQuery = angular.copy($scope.search.rqlQuery);
         var targetQuery = RqlQueryService.findTargetQuery(target, rqlQuery);
@@ -1384,49 +1382,6 @@ ngObibaMica.search
         }
 
         $scope.search.rqlQuery = rqlQuery;
-        refreshQuery();
-      }
-
-      function searchSuggestionForListing(target, searchFilter) {
-        var matchQuery = null;
-
-        var trimmedQuery = searchFilter.trim();
-        if (trimmedQuery.length) {
-          // add filter as match criteria
-          var rqlQuery = new RqlQuery(RQL_NODE.MATCH);
-          rqlQuery.args.push([trimmedQuery]);
-          matchQuery = {
-            target: target,
-            rqlQuery: rqlQuery
-          };
-        }
-
-        var targetQuery = RqlQueryService.findTargetQuery(target, $scope.search.rqlQuery);
-
-        var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
-        if (foundFulltextMatchQuery.length === 1) {
-          if (matchQuery) {
-            foundFulltextMatchQuery.pop().args = matchQuery.rqlQuery.args;
-          } else {
-            // remove existing match
-            targetQuery.args = targetQuery.args.filter(function (arg) {
-              return arg.name !== RQL_NODE.MATCH;
-            });
-          }
-        } else {
-          targetQuery.args.push(matchQuery.rqlQuery);
-        }
-
-        // change the sort for relevance
-        $scope.search.rqlQuery = RqlQueryService.prepareSearchQueryNoFields(
-          $scope.search.display,
-          $scope.search.type,
-          $scope.search.rqlQuery,
-          $scope.search.pagination,
-          $scope.lang,
-          '-_score'
-        );
-
         refreshQuery();
       }
 
@@ -1549,11 +1504,7 @@ ngObibaMica.search
       });
 
       $rootScope.$on('ngObibaMicaSearch.searchSuggestion', function (event, suggestion, target) {
-        if (target) {
-          searchSuggestion(target, suggestion);
-        } else {
-          searchSuggestionForListing($scope.target, suggestion);
-        }
+        searchSuggestion(target, suggestion);
       });
 
       function init() {
