@@ -115,8 +115,14 @@
       ctrl.onRemoveCriterion({item: item});
     }
 
+    function selectType(type) {
+      togglePannel();
+      ctrl.onSelectType({type: type});
+    }
+
     ctrl.$onChanges = onChanges;
     ctrl.selectTaxonomyVocabularyArgs = selectTaxonomyVocabularyArgs;
+    ctrl.selectType = selectType;
     ctrl.onFilterChange = onFilterChange;
     ctrl.togglePannel = togglePannel;
     ctrl.removeCriterion = removeCriterion;
@@ -131,6 +137,7 @@
         taxonomyTypeMap: '<',
         target: '<',
         taxonomy: '<',
+        onSelectType: '&',
         onSelectTerm: '&',
         onRemoveCriterion: '&',
         onToggle: '<'

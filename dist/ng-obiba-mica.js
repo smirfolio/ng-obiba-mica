@@ -2816,7 +2816,6 @@ CriteriaBuilder.prototype.build = function () {
 
 ngObibaMica.search
 
-  // TODO merge with RqlQueryService or place all node manipularions here
   .service('RqlQueryUtils', ['VocabularyService', function (VocabularyService) {
     var self = this;
 
@@ -6381,7 +6380,7 @@ ngObibaMica.search
               RqlQueryUtils,
               ngObibaMicaSearchTemplateUrl) {
 
-      function updateTarget(type) {
+      function updateType(type) {
         Object.keys($scope.activeTarget).forEach(function (key) {
           $scope.activeTarget[key].active = type === key;
         });
@@ -6408,8 +6407,8 @@ ngObibaMica.search
         }
       };
 
-      $scope.selectTarget = function (type) {
-        updateTarget(type);
+      $scope.selectType = function (type) {
+        updateType(type);
         $scope.type = type;
         $scope.$parent.onTypeChanged(type);
       };
@@ -6466,7 +6465,7 @@ ngObibaMica.search
 
 
       $scope.$watch('type', function (type) {
-        updateTarget(type);
+        updateType(type);
       });
 
       $scope.DISPLAY_TYPES = DISPLAY_TYPES;
@@ -9291,7 +9290,13 @@ ngObibaMica.search.EntityCountsController = function() {
     }
     return ctrl.result.list[entity + 'ResultDto'].totalHits;
   }
+
+  function selectType(entity) {
+    ctrl.onSelectType({type: targetToType(entity)});
+  }
+
   ctrl.getTotalHits = getTotalHits;
+  ctrl.selectType = selectType;
 };
 
 ngObibaMica.search
@@ -9300,6 +9305,7 @@ ngObibaMica.search
     bindings: {
       result: '<',
       target: '<',
+      onSelectType: '&',
       resultTabsOrder: '<',
       taxonomyTypeMap: '<'
     },
@@ -9710,8 +9716,14 @@ ngObibaMica.search
       ctrl.onRemoveCriterion({item: item});
     }
 
+    function selectType(type) {
+      togglePannel();
+      ctrl.onSelectType({type: type});
+    }
+
     ctrl.$onChanges = onChanges;
     ctrl.selectTaxonomyVocabularyArgs = selectTaxonomyVocabularyArgs;
+    ctrl.selectType = selectType;
     ctrl.onFilterChange = onFilterChange;
     ctrl.togglePannel = togglePannel;
     ctrl.removeCriterion = removeCriterion;
@@ -9726,6 +9738,7 @@ ngObibaMica.search
         taxonomyTypeMap: '<',
         target: '<',
         taxonomy: '<',
+        onSelectType: '&',
         onSelectTerm: '&',
         onRemoveCriterion: '&',
         onToggle: '<'
@@ -13222,10 +13235,11 @@ angular.module("search/components/entity-counts/component.html", []).run(["$temp
   $templateCache.put("search/components/entity-counts/component.html",
     "<ul class=\"list-no-style list-inline\">\n" +
     "  <li ng-repeat=\"entity in $ctrl.resultTabsOrder\">\n" +
-    "    <span class=\"label no-pointer-events\"\n" +
-    "          ng-class=\"{'label-default': (entity !== $ctrl.target), 'label-primary': (entity === $ctrl.target)}\">\n" +
+    "    <a href ng-click=\"$ctrl.selectType(entity)\"\n" +
+    "        class=\"btn btn-xs\"\n" +
+    "        ng-class=\"{'btn-default': (entity !== $ctrl.target), 'btn-primary': (entity === $ctrl.target)}\">\n" +
     "        {{$ctrl.taxonomyTypeMap[entity] | translate}} <span>{{$ctrl.getTotalHits(entity) | localizedNumber}}</span>\n" +
-    "    </span>\n" +
+    "    </a>\n" +
     "  </li>\n" +
     "</ul>");
 }]);
@@ -13351,6 +13365,7 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
     "                           taxonomy-type-map=\"$ctrl.taxonomyTypeMap\"\n" +
     "                           result-tabs-order=\"$ctrl.resultTabsOrder\"\n" +
     "                           target=\"$ctrl.target\"\n" +
+    "                           on-select-type=\"$ctrl.selectType(type)\"\n" +
     "                           result=\"$ctrl.result\">\n" +
     "            </entity-counts>\n" +
     "        </div>\n" +
@@ -14929,7 +14944,7 @@ angular.module("search/views/result-tabs-order-template-view.html", []).run(["$t
     "            ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}\"\n" +
     "            ng-if=\"options[targetTypeMap[res]].showSearchTab\" class=\"{{targetTypeMap[res]}}\">\n" +
     "            <a href\n" +
-    "               ng-click=\"selectTarget(targetTypeMap[res])\" ng-if=\"resultTabsOrder.length > 1\">\n" +
+    "               ng-click=\"selectType(targetTypeMap[res])\" ng-if=\"resultTabsOrder.length > 1\">\n" +
     "                {{targetTypeMap[res] | translate}}\n" +
     "                <span class=\"badge hoffset1\" test-ref=\"{{targetTypeMap[res]}}\"><small>{{getTotalHits(res) | localizedNumber}}</small></span>\n" +
     "            </a>\n" +
@@ -15362,6 +15377,7 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "            result=\"search.result\"\n" +
     "            target=\"search.selectedTarget\"\n" +
     "            taxonomy=\"search.selectedTaxonomy\"\n" +
+    "            on-select-type=\"onTypeChanged(type)\"\n" +
     "            on-select-term=\"onSelectTerm(target, taxonomy, vocabulary, args)\"\n" +
     "            on-remove-criterion=\"removeCriteriaItem(item)\"\n" +
     "            on-toggle=\"onTaxonomyFilterPanelToggleVisibility\"></taxonomy-filter-panel>\n" +

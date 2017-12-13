@@ -4,7 +4,7 @@
             ng-class="{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}"
             ng-if="options[targetTypeMap[res]].showSearchTab" class="{{targetTypeMap[res]}}">
             <a href
-               ng-click="selectTarget(targetTypeMap[res])" ng-if="resultTabsOrder.length > 1">
+               ng-click="selectType(targetTypeMap[res])" ng-if="resultTabsOrder.length > 1">
                 {{targetTypeMap[res] | translate}}
                 <span class="badge hoffset1" test-ref="{{targetTypeMap[res]}}"><small>{{getTotalHits(res) | localizedNumber}}</small></span>
             </a>

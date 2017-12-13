@@ -1912,7 +1912,7 @@ ngObibaMica.search
               RqlQueryUtils,
               ngObibaMicaSearchTemplateUrl) {
 
-      function updateTarget(type) {
+      function updateType(type) {
         Object.keys($scope.activeTarget).forEach(function (key) {
           $scope.activeTarget[key].active = type === key;
         });
@@ -1939,8 +1939,8 @@ ngObibaMica.search
         }
       };
 
-      $scope.selectTarget = function (type) {
-        updateTarget(type);
+      $scope.selectType = function (type) {
+        updateType(type);
         $scope.type = type;
         $scope.$parent.onTypeChanged(type);
       };
@@ -1997,7 +1997,7 @@ ngObibaMica.search
 
 
       $scope.$watch('type', function (type) {
-        updateTarget(type);
+        updateType(type);
       });
 
       $scope.DISPLAY_TYPES = DISPLAY_TYPES;
