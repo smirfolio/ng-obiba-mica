@@ -5392,7 +5392,7 @@ ngObibaMica.search
             }
 
             // when vocabulary has terms
-            taxonomyVocabulary.wholeVocabularyIsSelected = existingItem.type === 'exists';
+            taxonomyVocabulary.wholeVocabularyIsSelected = ['exists','match'].indexOf(existingItem.type) > -1;
             (taxonomyVocabulary.terms || []).forEach(function (term) {
               term.selected = existingItem.type === 'exists' || existingItem.selectedTerms.indexOf(term.name) > -1;
             });
