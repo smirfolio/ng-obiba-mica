@@ -11,15 +11,15 @@
 'use strict';
 
 (function () {
-  ngObibaMica.search.VocabularyFilterDetailController = function (RqlQueryUtils) {
+  ngObibaMica.search.VocabularyFilterDetailController = function (VocabularyService) {
     var ctrl = this;
 
     function checkAndSetCriterionType(vocabulary) {
-      if (RqlQueryUtils.isTermsVocabulary(vocabulary) || RqlQueryUtils.isRangeVocabulary(vocabulary)) {
+      if (VocabularyService.isTermsVocabulary(vocabulary) || VocabularyService.isRangeVocabulary(vocabulary)) {
         ctrl.criterionType = 'string-terms';
-      } else if (RqlQueryUtils.isNumericVocabulary(vocabulary)) {
+      } else if (VocabularyService.isNumericVocabulary(vocabulary)) {
         ctrl.criterionType = 'numeric';
-      } else if (RqlQueryUtils.isMatchVocabulary(vocabulary)) {
+      } else if (VocabularyService.isMatchVocabulary(vocabulary)) {
         ctrl.criterionType = 'match';
       }
     }
@@ -80,6 +80,6 @@
         onRemoveCriterion: '&'
       },
       templateUrl: 'search/components/vocabulary/vocabulary-filter-detail/component.html',
-      controller: ['RqlQueryUtils', ngObibaMica.search.VocabularyFilterDetailController]
+      controller: ['VocabularyService', ngObibaMica.search.VocabularyFilterDetailController]
     });
 })();

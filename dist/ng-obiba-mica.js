@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-12-12
+ * Date: 2017-12-13
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -2391,13 +2391,6 @@ function typeToTarget(type) {
   throw new Error('Invalid type: ' + type);
 }
 
-/* exported VOCABULARY_TYPES */
-var VOCABULARY_TYPES = {
-  STRING: 'string',
-  INTEGER: 'integer',
-  DECIMAL: 'decimal'
-};
-
 /* exported CriteriaIdGenerator */
 var CriteriaIdGenerator = {
   generate: function (taxonomy, vocabulary, term) {
@@ -2824,7 +2817,7 @@ CriteriaBuilder.prototype.build = function () {
 ngObibaMica.search
 
   // TODO merge with RqlQueryService or place all node manipularions here
-  .service('RqlQueryUtils', ['LocalizedValues', function (LocalizedValues) {
+  .service('RqlQueryUtils', ['VocabularyService', function (VocabularyService) {
     var self = this;
 
     /**
@@ -3031,9 +3024,9 @@ ngObibaMica.search
      * @returns {RqlQuery}
      */
     this.buildRqlQuery = function (item) {
-      if (this.isNumericVocabulary(item.vocabulary)) {
+      if (VocabularyService.isNumericVocabulary(item.vocabulary)) {
         return this.rangeQuery(this.criteriaId(item.taxonomy, item.vocabulary), null, null);
-      } else if (this.isMatchVocabulary(item.vocabulary)) {
+      } else if (VocabularyService.isMatchVocabulary(item.vocabulary)) {
         return this.matchQuery(this.criteriaId(item.taxonomy, item.vocabulary), null);
       } else {
         var args;
@@ -3180,22 +3173,6 @@ ngObibaMica.search
       }
     };
 
-    function vocabularyAttributeValue(vocabulary, key, defaultValue) {
-      var value = defaultValue;
-      if (vocabulary.attributes) {
-        vocabulary.attributes.some(function (attribute) {
-          if (attribute.key === key) {
-            value = attribute.value;
-            return true;
-          }
-
-          return false;
-        });
-      }
-
-      return value;
-    }
-
     this.addLocaleQuery = function (rqlQuery, locale) {
       var found = rqlQuery.args.filter(function (arg) {
         return arg.name === RQL_NODE.LOCALE;
@@ -3265,62 +3242,6 @@ ngObibaMica.search
     this.criteriaId = function (taxonomy, vocabulary) {
       return taxonomy.name + '.' + vocabulary.name;
     };
-
-    this.vocabularyType = function (vocabulary) {
-      return vocabularyAttributeValue(vocabulary, 'type', VOCABULARY_TYPES.STRING);
-    };
-
-    this.vocabularyField = function (vocabulary) {
-      return vocabularyAttributeValue(vocabulary, 'field', vocabulary.name);
-    };
-
-    this.vocabularyAlias = function (vocabulary) {
-      return vocabularyAttributeValue(vocabulary, 'alias', vocabulary.name);
-    };
-
-    this.vocabularyTermsSortKey = function (vocabulary) {
-      return vocabularyAttributeValue(vocabulary, 'termsSortKey', null);
-    };
-
-    this.isTermsVocabulary = function (vocabulary) {
-      return self.vocabularyType(vocabulary) === VOCABULARY_TYPES.STRING && vocabulary.terms;
-    };
-
-    this.isMatchVocabulary = function (vocabulary) {
-      return self.vocabularyType(vocabulary) === VOCABULARY_TYPES.STRING && !vocabulary.terms;
-    };
-
-    this.isNumericVocabulary = function (vocabulary) {
-      return !vocabulary.terms && (self.vocabularyType(vocabulary) === VOCABULARY_TYPES.INTEGER || self.vocabularyType(vocabulary) === VOCABULARY_TYPES.DECIMAL);
-    };
-
-    this.isRangeVocabulary = function (vocabulary) {
-      return vocabulary.terms && (self.vocabularyType(vocabulary) === VOCABULARY_TYPES.INTEGER || self.vocabularyType(vocabulary) === VOCABULARY_TYPES.DECIMAL);
-    };
-
-    this.isFacettedVocabulary = function (vocabulary) {
-      return 'true' === vocabularyAttributeValue(vocabulary, 'facet', 'false');
-    };
-
-    this.sortVocabularyTerms = function(vocabulary, locale) {
-      var termsSortKey = self.vocabularyTermsSortKey(vocabulary);
-      if (termsSortKey && vocabulary.terms && vocabulary.terms.length > 0) {
-        switch (termsSortKey) {
-          case 'name':
-            vocabulary.terms.sort(function (a, b) {
-              return a[termsSortKey].localeCompare(b[termsSortKey]);
-            });
-            break;
-          case 'title':
-            vocabulary.terms.sort(function (a, b) {
-              var titleA = LocalizedValues.forLocale(a[termsSortKey], locale);
-              var titleB = LocalizedValues.forLocale(b[termsSortKey], locale);
-              return titleA.localeCompare(titleB);
-            });
-            break;
-        }
-      }
-    };
   }])
 
   .service('RqlQueryService', [
@@ -3330,8 +3251,16 @@ ngObibaMica.search
     'TaxonomyResource',
     'LocalizedValues',
     'RqlQueryUtils',
+    'VocabularyService',
     'ngObibaMicaSearch',
-    function ($q, $log, TaxonomiesResource, TaxonomyResource, LocalizedValues, RqlQueryUtils, ngObibaMicaSearch) {
+    function ($q,
+              $log,
+              TaxonomiesResource,
+              TaxonomyResource,
+              LocalizedValues,
+              RqlQueryUtils,
+              VocabularyService,
+              ngObibaMicaSearch) {
       var taxonomiesCache = {
         variable: null,
         dataset: null,
@@ -3666,7 +3595,7 @@ ngObibaMica.search
             taxonomy: taxonomy
           }).$promise.then(function (taxonomy) {
             vocabulary = taxonomy.vocabularies.filter(function (v) {
-              return v.name === vocabulary || RqlQueryUtils.vocabularyAlias(v) === vocabulary;
+              return v.name === vocabulary || VocabularyService.vocabularyAlias(v) === vocabulary;
             })[0];
             term = vocabulary && vocabulary.terms ?
               vocabulary.terms.filter(function (t) {return t.name === term; })[0] :
@@ -4109,7 +4038,7 @@ ngObibaMica.search
           return null;
         }
 
-        var alias = RqlQueryUtils.vocabularyAlias(criterion.vocabulary);
+        var alias = VocabularyService.vocabularyAlias(criterion.vocabulary);
         var targetResponse = joinQueryResponse[criterion.target + 'ResultDto'];
 
         if (targetResponse && targetResponse.aggs) {
@@ -4121,10 +4050,10 @@ ngObibaMica.search
 
           if (filteredAgg) {
             if (isProperty) {
-              if (RqlQueryUtils.isNumericVocabulary(criterion.vocabulary)) {
+              if (VocabularyService.isNumericVocabulary(criterion.vocabulary)) {
                 return filteredAgg['obiba.mica.StatsAggregationResultDto.stats'];
               } else {
-                return RqlQueryUtils.isRangeVocabulary(criterion.vocabulary) ?
+                return VocabularyService.isRangeVocabulary(criterion.vocabulary) ?
                   addMissingTerms(filteredAgg['obiba.mica.RangeAggregationResultDto.ranges'], criterion.vocabulary) :
                   addMissingTerms(filteredAgg['obiba.mica.TermsAggregationResultDto.terms'], criterion.vocabulary);
               }
@@ -4134,7 +4063,7 @@ ngObibaMica.search
               }).pop();
 
               if (vocabularyAgg) {
-                return RqlQueryUtils.isRangeVocabulary(criterion.vocabulary) ?
+                return VocabularyService.isRangeVocabulary(criterion.vocabulary) ?
                   addMissingTerms(getChildAggragations(filteredAgg, 'obiba.mica.RangeAggregationResultDto.ranges'), criterion.vocabulary) :
                   addMissingTerms(getChildAggragations(filteredAgg, 'obiba.mica.TermsAggregationResultDto.terms'), criterion.vocabulary);
               }
@@ -4614,7 +4543,8 @@ function BaseTaxonomiesController($rootScope,
                                   TaxonomiesResource,
                                   ngObibaMicaSearch,
                                   RqlQueryUtils,
-                                  $cacheFactory) {
+                                  $cacheFactory,
+                                  VocabularyService) {
 
   $scope.options = ngObibaMicaSearch.getOptions();
   $scope.RqlQueryUtils = RqlQueryUtils;
@@ -4636,7 +4566,7 @@ function BaseTaxonomiesController($rootScope,
 
   $rootScope.$on('$translateChangeSuccess', function () {
     if ($scope.taxonomies && $scope.taxonomies.vocabulary) {
-      RqlQueryUtils.sortVocabularyTerms($scope.taxonomies.vocabulary, $translate.use());
+      VocabularyService.sortVocabularyTerms($scope.taxonomies.vocabulary, $translate.use());
     }
   });
 
@@ -4657,7 +4587,7 @@ function BaseTaxonomiesController($rootScope,
       search.taxonomy = taxonomy ? taxonomy.name : null;
 
       if (vocabulary && search.vocabulary !== vocabulary.name) {
-        RqlQueryUtils.sortVocabularyTerms(vocabulary, $scope.lang);
+        VocabularyService.sortVocabularyTerms(vocabulary, $scope.lang);
         search.vocabulary = vocabulary.name;
       } else {
         search.vocabulary = null;
@@ -4668,7 +4598,7 @@ function BaseTaxonomiesController($rootScope,
       $scope.taxonomies.taxonomy = taxonomy;
 
       if (!$scope.taxonomies.vocabulary || $scope.taxonomies.vocabulary.name !== vocabulary.name) {
-        RqlQueryUtils.sortVocabularyTerms(vocabulary, $scope.lang);
+        VocabularyService.sortVocabularyTerms(vocabulary, $scope.lang);
       }
 
       $scope.taxonomies.vocabulary = vocabulary;
@@ -4699,7 +4629,7 @@ function BaseTaxonomiesController($rootScope,
       $scope.taxonomies.taxonomy = taxonomy;
 
       if(vocabulary) {
-        RqlQueryUtils.sortVocabularyTerms(vocabulary, $scope.lang);
+        VocabularyService.sortVocabularyTerms(vocabulary, $scope.lang);
       }
 
       $scope.taxonomies.vocabulary = vocabulary;
@@ -4726,8 +4656,8 @@ function BaseTaxonomiesController($rootScope,
   });
   $scope.$watch('taxonomies.vocabulary', function(value) {
     if(RqlQueryUtils && value) {
-      $scope.taxonomies.isNumericVocabulary = RqlQueryUtils.isNumericVocabulary($scope.taxonomies.vocabulary);
-      $scope.taxonomies.isMatchVocabulary = RqlQueryUtils.isMatchVocabulary($scope.taxonomies.vocabulary);
+      $scope.taxonomies.isNumericVocabulary = VocabularyService.isNumericVocabulary($scope.taxonomies.vocabulary);
+      $scope.taxonomies.isMatchVocabulary = VocabularyService.isMatchVocabulary($scope.taxonomies.vocabulary);
     } else {
       $scope.taxonomies.isNumericVocabulary = null;
       $scope.taxonomies.isMatchVocabulary = null;
@@ -4764,7 +4694,8 @@ function TaxonomiesPanelController($rootScope,
                                    RqlQueryUtils,
                                    $cacheFactory,
                                    AlertService,
-                                   ServerErrorUtils) {
+                                   ServerErrorUtils,
+                                   VocabularyService) {
   BaseTaxonomiesController.call(this,
     $rootScope,
     $scope,
@@ -4774,7 +4705,8 @@ function TaxonomiesPanelController($rootScope,
     TaxonomiesResource,
     ngObibaMicaSearch,
     RqlQueryUtils,
-    $cacheFactory);
+    $cacheFactory,
+    VocabularyService);
 
   function getPanelTaxonomies(target, taxonomyName) {
     TaxonomyResource.get({
@@ -4854,7 +4786,8 @@ function ClassificationPanelController($rootScope,
     TaxonomiesResource,
     ngObibaMicaSearch,
     RqlQueryUtils,
-    $cacheFactory);
+    $cacheFactory,
+    VocabularyService);
 
   var groupTaxonomies = function (taxonomies, target) {
     var res = taxonomies.reduce(function (res, t) {
@@ -5451,11 +5384,11 @@ ngObibaMica.search
       function processTaxonomyVocabulary(target, taxonomy, taxonomyVocabulary) {
         function processExistingItem(existingItem) {
           if (existingItem) {
-            if (RqlQueryUtils.isNumericVocabulary(taxonomyVocabulary)) {
+            if (VocabularyService.isNumericVocabulary(taxonomyVocabulary)) {
               taxonomyVocabulary.rangeTerms = existingItem.getRangeTerms();
             }
 
-            if (RqlQueryUtils.isMatchVocabulary(taxonomyVocabulary)) {
+            if (VocabularyService.isMatchVocabulary(taxonomyVocabulary)) {
               taxonomyVocabulary.matchString = existingItem.selectedTerms.join('');
             }
 
@@ -5828,7 +5761,7 @@ ngObibaMica.search
         args = args || {};
 
         if (args.text) {
-          args.text = args.text.replace(/[^a-zA-Z0-9 _-]/g, '');
+          args.text = args.text.replace(/[^a-zA-Z0-9" _-]/g, '');
         }
 
         if(angular.isString(args)) {
@@ -5837,14 +5770,14 @@ ngObibaMica.search
 
         if (vocabulary) {
           var item;
-          if (RqlQueryUtils.isNumericVocabulary(vocabulary)) {
+          if (VocabularyService.isNumericVocabulary(vocabulary)) {
             item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, $scope.lang);
             item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
             RqlQueryUtils.updateRangeQuery(item.rqlQuery, args.from, args.to);
             selectCriteria(item, null, true);
 
             return;
-          } else if(RqlQueryUtils.isMatchVocabulary(vocabulary)) {
+          } else if(VocabularyService.isMatchVocabulary(vocabulary)) {
             item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, $scope.lang);
             item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
             RqlQueryUtils.updateMatchQuery(item.rqlQuery, args.text);
@@ -6077,7 +6010,7 @@ ngObibaMica.search
           $scope.search.display,
           $scope.search.type,
           $scope.search.rqlQuery,
-          null,
+          {},
           $scope.lang,
           sort
         );
@@ -6319,6 +6252,7 @@ ngObibaMica.search
     '$cacheFactory',
     'AlertService',
     'ServerErrorUtils',
+    'VocabularyService',
     TaxonomiesPanelController])
 
   .controller('ClassificationPanelController', ['$rootScope',
@@ -6406,8 +6340,8 @@ ngObibaMica.search
               v.isOpen = 'true' === facetAttributes.facetExpanded;
               v.position = parseInt(facetAttributes.facetPosition);
               v.limit = 10;
-              v.isMatch = RqlQueryUtils.isMatchVocabulary(v);
-              v.isNumeric = RqlQueryUtils.isNumericVocabulary(v);
+              v.isMatch = VocabularyService.isMatchVocabulary(v);
+              v.isNumeric = VocabularyService.isNumericVocabulary(v);
 
               t.isOpen = t.isOpen || v.isOpen;
             });
@@ -6551,9 +6485,9 @@ ngObibaMica.search
     '$scope',
     '$filter',
     'LocalizedValues',
-    'RqlQueryUtils',
+    'VocabularyService',
     'StringUtils',
-    function ($scope, $filter, LocalizedValues, RqlQueryUtils, StringUtils) {
+    function ($scope, $filter, LocalizedValues, VocabularyService, StringUtils) {
       var closeDropdown = function () {
         if (!$scope.state.open) {
           return;
@@ -6640,15 +6574,13 @@ ngObibaMica.search
         }
         return LocalizedValues.forLocale($scope.criterion.vocabulary.title, $scope.criterion.lang) + operation;
       };
-      $scope.vocabularyType = function (vocabulary) {
-        return RqlQueryUtils.vocabularyType(vocabulary);
-      };
+      $scope.vocabularyType = VocabularyService.vocabularyType;
       $scope.onKeyup = onKeyup;
       $scope.truncate = StringUtils.truncate;
       $scope.remove = remove;
       $scope.openDropdown = openDropdown;
       $scope.closeDropdown = closeDropdown;
-      $scope.RqlQueryUtils = RqlQueryUtils;
+      $scope.VocabularyService = VocabularyService;
     }])
   .controller('searchCriteriaRegionController', ['$scope', 'RqlQueryService', function ($scope,RqlQueryService) {
     var canShow = false;
@@ -8994,6 +8926,12 @@ ngObibaMica.search
 
   ngObibaMica.search.VocabularyService = function($translate, LocalizedValues, MetaTaxonomyService) {
 
+    var VOCABULARY_TYPES = {
+      STRING: 'string',
+      INTEGER: 'integer',
+      DECIMAL: 'decimal'
+    };
+
     function translateField(title) {
       return LocalizedValues.forLocale(title, $translate.use());
     }
@@ -9082,6 +9020,22 @@ ngObibaMica.search
       }, {});
     }
 
+    function vocabularyAttributeValue(vocabulary, key, defaultValue) {
+      var value = defaultValue;
+      if (vocabulary.attributes) {
+        vocabulary.attributes.some(function (attribute) {
+          if (attribute.key === key) {
+            value = attribute.value;
+            return true;
+          }
+
+          return false;
+        });
+      }
+
+      return value;
+    }
+
     function visibleVocabularies(vocabularies) {
       return (vocabularies || []).filter(isVocabularyVisible);
     }
@@ -9090,11 +9044,80 @@ ngObibaMica.search
       return (vocabularies || []).filter(isFacetVocabularyVisible);
     }
 
+    function vocabularyType(vocabulary) {
+      return vocabularyAttributeValue(vocabulary, 'type', VOCABULARY_TYPES.STRING);
+    }
+
+    function vocabularyField(vocabulary) {
+      return vocabularyAttributeValue(vocabulary, 'field', vocabulary.name);
+    }
+
+    function vocabularyAlias(vocabulary) {
+      return vocabularyAttributeValue(vocabulary, 'alias', vocabulary.name);
+    }
+
+    function vocabularyTermsSortKey(vocabulary) {
+      return vocabularyAttributeValue(vocabulary, 'termsSortKey', null);
+    }
+
+    function isTermsVocabulary(vocabulary) {
+      return vocabularyType(vocabulary) === VOCABULARY_TYPES.STRING && vocabulary.terms;
+    }
+
+    function isMatchVocabulary(vocabulary) {
+      return vocabularyType(vocabulary) === VOCABULARY_TYPES.STRING && !vocabulary.terms;
+    }
+
+    function isNumericVocabulary(vocabulary) {
+      return !vocabulary.terms && (vocabularyType(vocabulary) === VOCABULARY_TYPES.INTEGER || vocabularyType(vocabulary) === VOCABULARY_TYPES.DECIMAL);
+    }
+
+    function isRangeVocabulary(vocabulary) {
+      return vocabulary.terms && (vocabularyType(vocabulary) === VOCABULARY_TYPES.INTEGER || vocabularyType(vocabulary) === VOCABULARY_TYPES.DECIMAL);
+    }
+
+    function isFacettedVocabulary(vocabulary) {
+      return 'true' === vocabularyAttributeValue(vocabulary, 'facet', 'false');
+    }
+
+    function sortFilteredVocabularyTerms(vocabulary, terms, locale) {
+      var termsSortKey = vocabularyTermsSortKey(vocabulary);
+      if (termsSortKey && terms && terms.length > 0) {
+        switch (termsSortKey) {
+          case 'name':
+            terms.sort(function (a, b) {
+              return a[termsSortKey].localeCompare(b[termsSortKey]);
+            });
+            break;
+          case 'title':
+            terms.sort(function (a, b) {
+              var titleA = LocalizedValues.forLocale(a[termsSortKey], locale);
+              var titleB = LocalizedValues.forLocale(b[termsSortKey], locale);
+              return titleA.localeCompare(titleB);
+            });
+            break;
+        }
+      }
+    }
+
+    function sortVocabularyTerms(vocabulary, locale) {
+      sortFilteredVocabularyTerms(vocabulary.terms, locale ? locale : $translate.$use());
+    }
+
+    this.filter = filter;
     this.isVisibleVocabulary = isVocabularyVisible;
     this.findVocabularyAttributes = findVocabularyAttributes;
     this.visibleVocabularies = visibleVocabularies;
     this.visibleFacetVocabularies = visibleFacetVocabularies;
-    this.filter = filter;
+    this.isRangeVocabulary = isRangeVocabulary;
+    this.isTermsVocabulary = isTermsVocabulary;
+    this.isMatchVocabulary = isMatchVocabulary;
+    this.isNumericVocabulary = isNumericVocabulary;
+    this.isFacettedVocabulary = isFacettedVocabulary;
+    this.sortVocabularyTerms = sortVocabularyTerms;
+    this.sortFilteredVocabularyTerms = sortFilteredVocabularyTerms;
+    this.vocabularyAlias = vocabularyAlias;
+    this.vocabularyField= vocabularyField;
 
     return this;
   };
@@ -9114,12 +9137,37 @@ ngObibaMica.search
 
 'use strict';
 
+(function() {
+
+  ngObibaMica.search.SortVocabularyTerms = function(VocabularyService) {
+    return function (terms, vocabulary) {
+      VocabularyService.sortFilteredVocabularyTerms(vocabulary, terms);
+      return terms;
+    };
+  };
+
+  ngObibaMica.search.filter('sortTerms', ['VocabularyService', ngObibaMica.search.SortVocabularyTerms]);
+
+})();
+
+;/*
+ * Copyright (c) 2017 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
 (function () {
   ngObibaMica.search.MatchVocabularyFilterDetailController = function() {
     var ctrl = this;
 
     function enterText(keyUpEvent) {
-      var input = keyUpEvent.target.value;
+      var input = new obiba.utils.NgObibaStringUtils().cleanDoubleQuotesLeftUnclosed(keyUpEvent.target.value);
       var args = {text: input || '*'};
       if (keyUpEvent.keyCode === 13) {
         ctrl.onSelectArgs({vocabulary: ctrl.vocabulary, args: args});
@@ -9699,15 +9747,15 @@ ngObibaMica.search
 'use strict';
 
 (function () {
-  ngObibaMica.search.VocabularyFilterDetailController = function (RqlQueryUtils) {
+  ngObibaMica.search.VocabularyFilterDetailController = function (VocabularyService) {
     var ctrl = this;
 
     function checkAndSetCriterionType(vocabulary) {
-      if (RqlQueryUtils.isTermsVocabulary(vocabulary) || RqlQueryUtils.isRangeVocabulary(vocabulary)) {
+      if (VocabularyService.isTermsVocabulary(vocabulary) || VocabularyService.isRangeVocabulary(vocabulary)) {
         ctrl.criterionType = 'string-terms';
-      } else if (RqlQueryUtils.isNumericVocabulary(vocabulary)) {
+      } else if (VocabularyService.isNumericVocabulary(vocabulary)) {
         ctrl.criterionType = 'numeric';
-      } else if (RqlQueryUtils.isMatchVocabulary(vocabulary)) {
+      } else if (VocabularyService.isMatchVocabulary(vocabulary)) {
         ctrl.criterionType = 'match';
       }
     }
@@ -9768,7 +9816,7 @@ ngObibaMica.search
         onRemoveCriterion: '&'
       },
       templateUrl: 'search/components/vocabulary/vocabulary-filter-detail/component.html',
-      controller: ['RqlQueryUtils', ngObibaMica.search.VocabularyFilterDetailController]
+      controller: ['VocabularyService', ngObibaMica.search.VocabularyFilterDetailController]
     });
 })();
 ;/*
@@ -10541,8 +10589,8 @@ ngObibaMica.graphics
     return factory;
 
   })
-  .service('GraphicChartsUtils', ['LocalizedValues', 'TaxonomyResource', 'RqlQueryUtils', '$q', '$translate',
-    function (LocalizedValues, TaxonomyResource, RqlQueryUtils, $q, $translate) {
+  .service('GraphicChartsUtils', ['LocalizedValues', 'TaxonomyResource', 'VocabularyService', '$q', '$translate',
+    function (LocalizedValues, TaxonomyResource, VocabularyService, $q, $translate) {
       var studyTaxonomy = {};
 
       studyTaxonomy.getTerms = function (aggregationName) {
@@ -10552,7 +10600,7 @@ ngObibaMica.graphics
           var terms = null;
           if (studyTaxonomy.vocabularies){
             angular.forEach(studyTaxonomy.vocabularies, function (vocabulary) {
-              if (RqlQueryUtils.vocabularyAlias(vocabulary) === aggregationName) {
+              if (VocabularyService.vocabularyAlias(vocabulary) === aggregationName) {
                 terms = vocabulary.terms;
               }
             });
@@ -12867,7 +12915,7 @@ angular.module("lists/views/region-criteria/criterion-dropdown-template.html", [
     "<div id=\"{{criterion.id.replace('.','-')}}-dropdown-{{timestamp}}\" class=\"{{'btn-group voffset1 btn-' + criterion.target}}\" ng-class='{open: state.open}'\n" +
     "     ng-keyup=\"onKeyup($event)\">\n" +
     "\n" +
-    "  <span ng-if=\"RqlQueryUtils.isFacettedVocabulary(criterion.vocabulary)\" ng-class='{open: state.open}'>\n" +
+    "  <span ng-if=\"VocabularyService.isFacettedVocabulary(criterion.vocabulary)\" ng-class='{open: state.open}'>\n" +
     "  <button class=\"{{'btn btn-xs dropdown btn-' + criterion.target}}\"\n" +
     "          ng-click=\"openDropdown()\">\n" +
     "    <span uib-popover=\"{{localize(criterion.vocabulary.description ? criterion.vocabulary.description : criterion.vocabulary.title)}}\"\n" +
@@ -12885,14 +12933,14 @@ angular.module("lists/views/region-criteria/criterion-dropdown-template.html", [
     "    <span class='fa fa-times'></span>\n" +
     "  </button>\n" +
     "\n" +
-    "  <match-criterion ng-if=\"RqlQueryUtils.isMatchVocabulary(criterion.vocabulary)\" criterion=\"criterion\" query=\"query\"\n" +
+    "  <match-criterion ng-if=\"VocabularyService.isMatchVocabulary(criterion.vocabulary)\" criterion=\"criterion\" query=\"query\"\n" +
     "                   state=\"state\"></match-criterion>\n" +
     "\n" +
     "  <string-criterion-terms\n" +
-    "          ng-if=\"RqlQueryUtils.isTermsVocabulary(criterion.vocabulary) || RqlQueryUtils.isRangeVocabulary(criterion.vocabulary)\"\n" +
+    "          ng-if=\"VocabularyService.isTermsVocabulary(criterion.vocabulary) || VocabularyService.isRangeVocabulary(criterion.vocabulary)\"\n" +
     "          criterion=\"criterion\" query=\"query\" state=\"state\"></string-criterion-terms>\n" +
     "\n" +
-    "  <numeric-criterion ng-if=\"RqlQueryUtils.isNumericVocabulary(criterion.vocabulary)\" criterion=\"criterion\" query=\"query\"\n" +
+    "  <numeric-criterion ng-if=\"VocabularyService.isNumericVocabulary(criterion.vocabulary)\" criterion=\"criterion\" query=\"query\"\n" +
     "                     state=\"state\"></numeric-criterion>\n" +
     "</span>\n" +
     "</div>");
@@ -13130,7 +13178,7 @@ angular.module("search/components/criteria/numeric-vocabulary-filter-detail/comp
 angular.module("search/components/criteria/terms-vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/terms-vocabulary-filter-detail/component.html",
     "<div ng-class=\"{'row': ($index + 1) % 4 === 0}\"\n" +
-    "     ng-repeat=\"term in $ctrl.vocabulary.filteredTerms | limitTo:$ctrl.limitNumber\">\n" +
+    "     ng-repeat=\"term in $ctrl.vocabulary.filteredTerms | sortTerms:$ctrl.vocabulary | limitTo:$ctrl.limitNumber\">\n" +
     "  <div class=\"col-md-3\">\n" +
     "    <div class=\"checkbox\">\n" +
     "      <label uib-popover=\"{{term.description ? term.description : term.title | localizedString}}\"\n" +
@@ -14233,14 +14281,14 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
     "    <span class='fa fa-times'></span>\n" +
     "  </button>\n" +
     "\n" +
-    "  <match-criterion ng-if=\"RqlQueryUtils.isMatchVocabulary(criterion.vocabulary)\" criterion=\"criterion\" query=\"query\"\n" +
+    "  <match-criterion ng-if=\"VocabularyService.isMatchVocabulary(criterion.vocabulary)\" criterion=\"criterion\" query=\"query\"\n" +
     "                  state=\"state\"></match-criterion>\n" +
     "\n" +
     "  <string-criterion-terms\n" +
-    "    ng-if=\"RqlQueryUtils.isTermsVocabulary(criterion.vocabulary) || RqlQueryUtils.isRangeVocabulary(criterion.vocabulary)\"\n" +
+    "    ng-if=\"VocabularyService.isTermsVocabulary(criterion.vocabulary) || VocabularyService.isRangeVocabulary(criterion.vocabulary)\"\n" +
     "    criterion=\"criterion\" query=\"query\" state=\"state\"></string-criterion-terms>\n" +
     "\n" +
-    "  <numeric-criterion ng-if=\"RqlQueryUtils.isNumericVocabulary(criterion.vocabulary)\" criterion=\"criterion\" query=\"query\"\n" +
+    "  <numeric-criterion ng-if=\"VocabularyService.isNumericVocabulary(criterion.vocabulary)\" criterion=\"criterion\" query=\"query\"\n" +
     "    state=\"state\"></numeric-criterion>\n" +
     "\n" +
     "</div>\n" +

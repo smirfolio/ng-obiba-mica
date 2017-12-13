@@ -133,8 +133,8 @@ ngObibaMica.graphics
     return factory;
 
   })
-  .service('GraphicChartsUtils', ['LocalizedValues', 'TaxonomyResource', 'RqlQueryUtils', '$q', '$translate',
-    function (LocalizedValues, TaxonomyResource, RqlQueryUtils, $q, $translate) {
+  .service('GraphicChartsUtils', ['LocalizedValues', 'TaxonomyResource', 'VocabularyService', '$q', '$translate',
+    function (LocalizedValues, TaxonomyResource, VocabularyService, $q, $translate) {
       var studyTaxonomy = {};
 
       studyTaxonomy.getTerms = function (aggregationName) {
@@ -144,7 +144,7 @@ ngObibaMica.graphics
           var terms = null;
           if (studyTaxonomy.vocabularies){
             angular.forEach(studyTaxonomy.vocabularies, function (vocabulary) {
-              if (RqlQueryUtils.vocabularyAlias(vocabulary) === aggregationName) {
+              if (VocabularyService.vocabularyAlias(vocabulary) === aggregationName) {
                 terms = vocabulary.terms;
               }
             });

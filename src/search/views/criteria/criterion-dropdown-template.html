@@ -18,14 +18,14 @@
     <span class='fa fa-times'></span>
   </button>
 
-  <match-criterion ng-if="RqlQueryUtils.isMatchVocabulary(criterion.vocabulary)" criterion="criterion" query="query"
+  <match-criterion ng-if="VocabularyService.isMatchVocabulary(criterion.vocabulary)" criterion="criterion" query="query"
                   state="state"></match-criterion>
 
   <string-criterion-terms
-    ng-if="RqlQueryUtils.isTermsVocabulary(criterion.vocabulary) || RqlQueryUtils.isRangeVocabulary(criterion.vocabulary)"
+    ng-if="VocabularyService.isTermsVocabulary(criterion.vocabulary) || VocabularyService.isRangeVocabulary(criterion.vocabulary)"
     criterion="criterion" query="query" state="state"></string-criterion-terms>
 
-  <numeric-criterion ng-if="RqlQueryUtils.isNumericVocabulary(criterion.vocabulary)" criterion="criterion" query="query"
+  <numeric-criterion ng-if="VocabularyService.isNumericVocabulary(criterion.vocabulary)" criterion="criterion" query="query"
     state="state"></numeric-criterion>
 
 </div>

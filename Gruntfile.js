@@ -41,6 +41,7 @@ module.exports = function (grunt) {
           'src/search/commons/**/*.js',
           'src/search/options/**/*.js',
           'src/search/services/**/*.js',
+          'src/search/filters/**/*.js',
           'src/search/components/**/*.js',
           'src/lists/lists.js',
           'src/lists/lists-service.js',
