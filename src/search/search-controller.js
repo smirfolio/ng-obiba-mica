@@ -875,14 +875,14 @@ ngObibaMica.search
             subTaxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
               taxonomyVocabulary.existingItem =
                   RqlQueryService.findCriteriaItemFromTreeById(target,
-                      CriteriaIdGenerator.generate(subTaxonomy, taxonomyVocabulary), $scope.search.criteria);
+                      CriteriaIdGenerator.generate(subTaxonomy, taxonomyVocabulary), $scope.search.criteria, true);
             });
           });
         } else {
           taxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
             taxonomyVocabulary.existingItem =
                 RqlQueryService.findCriteriaItemFromTreeById(target,
-                    CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria);
+                    CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria, true);
           });
         }
       }
@@ -948,7 +948,7 @@ ngObibaMica.search
 
         taxonomyVocabulary.existingItem =
             RqlQueryService.findCriteriaItemFromTreeById(target,
-                CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria);
+                CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria, true);
       }
 
       function onTaxonomyFilterPanelToggleVisibility(target, taxonomy) {
