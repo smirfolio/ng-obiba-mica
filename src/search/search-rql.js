@@ -1005,15 +1005,15 @@ ngObibaMica.search
 
       var self = this;
       var searchOptions = ngObibaMicaSearch.getOptions();
-      this.findItemNodeById = function(root, targetId, result) {
+      this.findItemNodeById = function(root, targetId, result, strict) {
         if (root && root.children && result) {
           return root.children.some(function(child) {
-            if (targetId.indexOf(child.id) > -1) {
+            if (strict ? targetId === child.id : targetId.indexOf(child.id) > -1) {
               result.item = child;
               return true;
             }
 
-            return self.findItemNodeById(child, targetId, result);
+            return self.findItemNodeById(child, targetId, result, strict);
           });
         }
 
@@ -1030,10 +1030,10 @@ ngObibaMica.search
         }).pop();
       }
 
-      function findCriteriaItemFromTreeById(target, targetId, rootCriteria) {
+      function findCriteriaItemFromTreeById(target, targetId, rootCriteria, strict) {
         var targetItem = findTargetCriteria(target, rootCriteria);
         var result = {};
-        if (self.findItemNodeById(targetItem, targetId, result)) {
+        if (self.findItemNodeById(targetItem, targetId, result, strict)) {
           return result.item;
         }
 
