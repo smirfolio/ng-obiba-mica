@@ -65,6 +65,7 @@ var RQL_NODE = {
   AGGREGATE: 'aggregate',
   BUCKET: 'bucket',
   FIELDS: 'fields',
+  FILTER: 'filter',
 
   /* leaf criteria nodes */
   CONTAINS: 'contains',
@@ -429,15 +430,7 @@ CriteriaBuilder.prototype.fieldToVocabulary = function (field) {
 CriteriaBuilder.prototype.visitLeaf = function (node, parentItem) {
   var match = RQL_NODE.MATCH === node.name;
 
-  if (match && node.args.length === 1) {
-    var matchItem = new CriteriaItemBuilder()
-        .type(node.name)
-        .target(parentItem.parent.type)
-        .rqlQuery(node)
-        .parent(parentItem);
-
-    parentItem.children.push(matchItem);
-  } else {
+  if (node.args.length > 1) {
     var field = node.args[match ? 1 : 0];
     var values = node.args[match ? 0 : 1];
 
@@ -540,6 +533,8 @@ CriteriaBuilder.prototype.visit = function (node, parentItem) {
     case RQL_NODE.MISSING:
     case RQL_NODE.MATCH:
       this.visitLeaf(node, parentItem);
+      break;
+    case RQL_NODE.FILTER:
       break;
     default:
   }
