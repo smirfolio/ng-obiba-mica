@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-12-13
+ * Date: 2017-12-14
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -2324,6 +2324,7 @@ var RQL_NODE = {
   AGGREGATE: 'aggregate',
   BUCKET: 'bucket',
   FIELDS: 'fields',
+  FILTER: 'filter',
 
   /* leaf criteria nodes */
   CONTAINS: 'contains',
@@ -2688,15 +2689,7 @@ CriteriaBuilder.prototype.fieldToVocabulary = function (field) {
 CriteriaBuilder.prototype.visitLeaf = function (node, parentItem) {
   var match = RQL_NODE.MATCH === node.name;
 
-  if (match && node.args.length === 1) {
-    var matchItem = new CriteriaItemBuilder()
-        .type(node.name)
-        .target(parentItem.parent.type)
-        .rqlQuery(node)
-        .parent(parentItem);
-
-    parentItem.children.push(matchItem);
-  } else {
+  if (node.args.length > 1) {
     var field = node.args[match ? 1 : 0];
     var values = node.args[match ? 0 : 1];
 
@@ -2799,6 +2792,8 @@ CriteriaBuilder.prototype.visit = function (node, parentItem) {
     case RQL_NODE.MISSING:
     case RQL_NODE.MATCH:
       this.visitLeaf(node, parentItem);
+      break;
+    case RQL_NODE.FILTER:
       break;
     default:
   }
@@ -4909,6 +4904,7 @@ ngObibaMica.search
     'VocabularyService',
     'LocaleStringUtils',
     'StringUtils',
+    'EntitySuggestionRqlUtilityService',
     function ($scope,
               $rootScope,
               $timeout,
@@ -4934,7 +4930,8 @@ ngObibaMica.search
               CoverageGroupByService,
               VocabularyService,
               LocaleStringUtils,
-              StringUtils) {
+              StringUtils,
+              EntitySuggestionRqlUtilityService) {
 
       $scope.options = ngObibaMicaSearch.getOptions();
       var cookiesSearchHelp = 'micaHideSearchHelpText';
@@ -5814,39 +5811,43 @@ ngObibaMica.search
         CLASSIFICATION: 'classification'
       };
 
-      function searchSuggestion(target, suggestion) {
+      const SUGGESTION_FIELDS_MAP = new Map([
+        [QUERY_TARGETS.NETWORK, ['acronym', 'name']],
+        [QUERY_TARGETS.STUDY, ['acronym', 'name']],
+        [QUERY_TARGETS.DATASET, ['acronym', 'name']],
+        [QUERY_TARGETS.VARIABLE, ['name', 'label']]
+      ]);
+
+      function searchSuggestion(target, suggestion, withSpecificFields) {
         var rqlQuery = angular.copy($scope.search.rqlQuery);
         var targetQuery = RqlQueryService.findTargetQuery(target, rqlQuery);
 
         if (!targetQuery) {
           targetQuery = new RqlQuery(target);
-          rqlQuery.args.push(targetQuery);
+          rqlQuery.push(targetQuery);
         }
 
-        var matchQuery = null;
-        var trimmedQuery = suggestion.trim();
-        if (trimmedQuery.length) {
-          // add filter as match criteria
-          var query = new RqlQuery(RQL_NODE.MATCH);
-          query.args.push([trimmedQuery]);
-          matchQuery = {
-            target: $scope.target,
-            rqlQuery: query
-          };
+        // get filter fields
+        var filterFields;
+        if (withSpecificFields) {
+          filterFields = SUGGESTION_FIELDS_MAP.get(target);
         }
 
-        var foundFulltextMatchQuery = targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.MATCH && arg.args.length === 1; });
-        if (foundFulltextMatchQuery.length === 1) {
-          if (matchQuery) {
-            foundFulltextMatchQuery.pop().args = matchQuery.rqlQuery.args;
+        var matchQuery = EntitySuggestionRqlUtilityService.createMatchQuery(suggestion, filterFields);
+        if (!matchQuery) {
+          EntitySuggestionRqlUtilityService.removeFilteredMatchQueryFromTargetQuery(targetQuery);
+        } else {
+          var filterQuery = EntitySuggestionRqlUtilityService.givenTargetQueryGetFilterQuery(targetQuery);
+          if (!filterQuery) {
+            targetQuery.push(new RqlQuery(RQL_NODE.FILTER).push(matchQuery));
           } else {
-            // remove existing match
-            targetQuery.args = targetQuery.args.filter(function (arg) {
-              return arg.name !== RQL_NODE.MATCH;
-            });
+            var currentMatchQuery = EntitySuggestionRqlUtilityService.givenFilterQueryGetMatchQuery(filterQuery);
+            if (currentMatchQuery) {
+              currentMatchQuery.args = matchQuery.args;
+            } else {
+              filterQuery.push(matchQuery);
+            }
           }
-        } else if (matchQuery) {
-          targetQuery.args.push(matchQuery.rqlQuery);
         }
 
         $scope.search.rqlQuery = rqlQuery;
@@ -5971,8 +5972,8 @@ ngObibaMica.search
         refreshQuery();
       });
 
-      $rootScope.$on('ngObibaMicaSearch.searchSuggestion', function (event, suggestion, target) {
-        searchSuggestion(target, suggestion);
+      $rootScope.$on('ngObibaMicaSearch.searchSuggestion', function (event, suggestion, target, withSpecificFields) {
+        searchSuggestion(target, suggestion, withSpecificFields);
       });
 
       function init() {
@@ -8638,7 +8639,8 @@ ngObibaMica.search
                                                         $location,
                                                         $translate,
                                                         DocumentSuggestionResource,
-                                                        RqlQueryService) {
+                                                        RqlQueryService,
+                                                        EntitySuggestionRqlUtilityService) {
 
     function suggest(entityType, query) {
       var obibaUtils = new obiba.utils.NgObibaStringUtils();
@@ -8673,13 +8675,12 @@ ngObibaMica.search
     }
 
     function getCurrentSuggestion(target, query) {
-
       if (query) {
         var targetQuery = RqlQueryService.findTargetQuery(target, query);
         if (targetQuery) {
-          var matchQuery = targetQuery.args.filter(function (arg) {
-            return arg.name === RQL_NODE.MATCH && arg.args.length === 1;
-          }).pop();
+          var matchQuery =
+              EntitySuggestionRqlUtilityService
+                  .givenFilterQueryGetMatchQuery(EntitySuggestionRqlUtilityService.givenTargetQueryGetFilterQuery(targetQuery));
 
           return matchQuery && matchQuery.args ? matchQuery.args[0][0] : '';
         }
@@ -8688,9 +8689,9 @@ ngObibaMica.search
       return '';
     }
 
-    function selectSuggestion(target, suggestion) {
+    function selectSuggestion(target, suggestion, withSpecificFields) {
       $rootScope.$new().$emit('ngObibaMicaSearch.searchSuggestion',
-        new obiba.utils.NgObibaStringUtils().cleanDoubleQuotesLeftUnclosed(suggestion), target);
+        new obiba.utils.NgObibaStringUtils().cleanDoubleQuotesLeftUnclosed(suggestion), target, withSpecificFields);
     }
 
     this.getCurrentSuggestion = getCurrentSuggestion;
@@ -8699,13 +8700,76 @@ ngObibaMica.search
     this.suggestForTargetQuery = suggestForTargetQuery;
   };
 
+  ngObibaMica.search.EntitySuggestionRqlUtilityService = function () {
+    function createMatchQueryArgs(suggestion, filterFields) {
+      var args = [];
+      args.push([suggestion]);
+
+      // add filterFields
+      if (Array.isArray(filterFields)) {
+        args.push(filterFields);
+      } else if (filterFields) {
+        args.push([filterFields]);
+      }
+
+      return args;
+    }
+
+    function createMatchQuery(suggestion, filterFields) {
+      var matchQuery = null;
+      var trimmedSuggestion = suggestion.trim();
+      if (trimmedSuggestion.length) {
+        // add filter as match criteria
+        matchQuery = new RqlQuery(RQL_NODE.MATCH);
+        matchQuery.args = createMatchQueryArgs(trimmedSuggestion, filterFields);
+      }
+
+      return matchQuery;
+    }
+
+    function givenTargetQueryGetFilterQuery(targetQuery) {
+      if (!targetQuery) {
+        return null;
+      }
+      return targetQuery.args.filter(function (arg) { return arg.name === RQL_NODE.FILTER; }).pop();
+    }
+
+    function givenFilterQueryGetMatchQuery(filterQuery) {
+      if (!filterQuery) {
+        return null;
+      }
+      return filterQuery.args.filter(function (arg) { return arg.name ===  RQL_NODE.MATCH; }).pop();
+    }
+
+    // use when suggestion is empty or null
+    function removeFilteredMatchQueryFromTargetQuery(targetQuery) {
+      var filterQuery = givenTargetQueryGetFilterQuery(targetQuery);
+      if (filterQuery.args.length === 1 && filterQuery.args[0].name === RQL_NODE.MATCH) {
+        targetQuery.args = targetQuery.args.filter(function (arg) {
+          return arg.name !== RQL_NODE.FILTER;
+        });
+      } else {
+        filterQuery.args = filterQuery.args.filter(function (arg) {
+          return arg.name !== RQL_NODE.MATCH;
+        });
+      }
+    }
+
+    this.createMatchQuery = createMatchQuery;
+    this.givenTargetQueryGetFilterQuery = givenTargetQueryGetFilterQuery;
+    this.givenFilterQueryGetMatchQuery = givenFilterQueryGetMatchQuery;
+    this.removeFilteredMatchQueryFromTargetQuery = removeFilteredMatchQueryFromTargetQuery;
+  };
+
+  ngObibaMica.search.service('EntitySuggestionRqlUtilityService', ngObibaMica.search.EntitySuggestionRqlUtilityService);
+
   ngObibaMica.search
     .service('EntitySuggestionService', [
       '$rootScope',
       '$location',
       '$translate',
       'DocumentSuggestionResource',
-      'RqlQueryService',
+      'RqlQueryService', 'EntitySuggestionRqlUtilityService',
       ngObibaMica.search.EntitySuggestionService
     ]);
 
@@ -9288,7 +9352,7 @@ ngObibaMica.search
     }
 
     function select(suggestion) {
-      EntitySuggestionService.selectSuggestion(ctrl.target, suggestion);
+      EntitySuggestionService.selectSuggestion(ctrl.target, suggestion, ctrl.withSpecificFields === 'true');
     }
 
     function onKeyUp(event) {
@@ -9323,6 +9387,7 @@ ngObibaMica.search
         target: '<',
         entityType: '<',
         rqlQuery: '<',
+        withSpecificFields: '@',
         placeholderText: '@'
       },
       templateUrl: 'search/components/entity-search-typeahead/component.html',
@@ -13236,6 +13301,7 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/compon
     "<div uib-accordion-group class=\"panel-default\" heading=\"{{$ctrl.metaTaxonomy.title | localizedString}}\" is-open=\"$ctrl.status.isFirstOpen\">\n" +
     "  <entity-search-typeahead\n" +
     "    placeholder-text=\"search.placeholder.meta-taxonomy-filter.{{$ctrl.entityType}}\"\n" +
+    "    with-specific-fields=\"true\"\n" +
     "    target=\"$ctrl.metaTaxonomy.name\"\n" +
     "    rql-query=\"$ctrl.rqlQuery\"\n" +
     "    entity-type=\"$ctrl.entityType\"></entity-search-typeahead>\n" +
