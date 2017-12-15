@@ -31,6 +31,12 @@
       }).$promise;
     }
 
+    function sortTaxonomies(order, taxonomies) {
+      taxonomies.sort(function(a, b) {
+        return order.indexOf(a.name) - order.indexOf(b.name);
+      });
+    }
+
     /**
      * @returns Returns a taxonomy for several names
      */
@@ -41,6 +47,7 @@
           taxonomies.forEach(function(taxonomy) {
             taxonomy.vocabularies = VocabularyService.visibleVocabularies(taxonomy.vocabularies);
           });
+          sortTaxonomies(taxonomyNames, taxonomies);
           deferred.resolve(taxonomies);
         });
       } else {

@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-12-14
+ * Date: 2017-12-15
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8894,6 +8894,12 @@ ngObibaMica.search
       }).$promise;
     }
 
+    function sortTaxonomies(order, taxonomies) {
+      taxonomies.sort(function(a, b) {
+        return order.indexOf(a.name) - order.indexOf(b.name);
+      });
+    }
+
     /**
      * @returns Returns a taxonomy for several names
      */
@@ -8904,6 +8910,7 @@ ngObibaMica.search
           taxonomies.forEach(function(taxonomy) {
             taxonomy.vocabularies = VocabularyService.visibleVocabularies(taxonomy.vocabularies);
           });
+          sortTaxonomies(taxonomyNames, taxonomies);
           deferred.resolve(taxonomies);
         });
       } else {
