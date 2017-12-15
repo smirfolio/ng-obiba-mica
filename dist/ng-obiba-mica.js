@@ -9635,10 +9635,10 @@ ngObibaMica.search
 'use strict';
 
 (function () {
-  ngObibaMica.search.TaxonomyFilterPanelController = function(VocabularyService) {
+  ngObibaMica.search.TaxonomyFilterPanelController = function(VocabularyService, $timeout) {
     var ctrl = this;
     ctrl.taxonomiesQuery = [];
-
+    ctrl.classClose = false;
     function taxonomyArrayName(taxonomy){
       return taxonomy.reduce(function (name, taxonomyItem) {
         return (name || '').concat(taxonomyItem.name);
@@ -9711,7 +9711,10 @@ ngObibaMica.search
     }
 
     function togglePannel(){
-      ctrl.onToggle(ctrl.target, null);
+      ctrl.classClose = true;
+      $timeout(function () {
+       ctrl.onToggle(ctrl.target, null);
+      }, 200);
     }
 
     function initFilteredVocabularies(taxonomy) {
@@ -9767,7 +9770,7 @@ ngObibaMica.search
         onToggle: '<'
       },
       templateUrl: 'search/components/taxonomy/taxonomy-filter-panel/component.html',
-      controller: ['VocabularyService', ngObibaMica.search.TaxonomyFilterPanelController]
+      controller: ['VocabularyService', '$timeout', ngObibaMica.search.TaxonomyFilterPanelController]
     });
 })();
 ;/*
@@ -13305,7 +13308,11 @@ angular.module("search/components/input-search-filter/component.html", []).run([
 
 angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html",
-    "<div uib-accordion-group class=\"panel-default\" heading=\"{{$ctrl.metaTaxonomy.title | localizedString}}\" is-open=\"$ctrl.status.isFirstOpen\">\n" +
+    "<div uib-accordion-group class=\"panel-default\" is-open=\"$ctrl.status.isFirstOpen\">\n" +
+    "  <div uib-accordion-heading >\n" +
+    "    {{$ctrl.metaTaxonomy.title | localizedString}} <span class=\"pull-right\"><i class=\"glyphicon\"\n" +
+    "                                                                              ng-class=\"{'glyphicon-minus': $ctrl.status.isFirstOpen, 'glyphicon-plus':!$ctrl.status.isFirstOpen}\"></i></span>\n" +
+    "  </div>\n" +
     "  <entity-search-typeahead\n" +
     "    placeholder-text=\"search.placeholder.meta-taxonomy-filter.{{$ctrl.entityType}}\"\n" +
     "    with-specific-fields=\"true\"\n" +
@@ -13323,7 +13330,8 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/compon
     "        popover-trigger=\"'mouseenter'\"\n" +
     "        popover-popup-delay=\"250\">\n" +
     "          {{taxonomy.info.title | translate}}\n" +
-    "        </span> <span ng-if=\"taxonomy.state.isLoading()\" class=\"loading\"></span>\n" +
+    "        </span> <span ng-if=\"taxonomy.state.isLoading()\" class=\"loading\"></span><span class=\"pull-right\"><i class=\"glyphicon glyphicon-chevron-right\"></i>\n" +
+    "</span>\n" +
     "      </a>\n" +
     "    </li>\n" +
     "  </ul>\n" +
@@ -13357,10 +13365,10 @@ angular.module("search/components/taxonomy/taxonomy-filter-detail/component.html
     "\n" +
     "  <div class=\"panel-body\">\n" +
     "    <vocabulary-filter-detail\n" +
-    "        ng-repeat=\"vocabulary in $ctrl.vocabularies\"\n" +
-    "        vocabulary=\"vocabulary\"\n" +
-    "        on-select-vocabulary-args=\"$ctrl.selectVocabularyArgs(vocabulary, args)\"\n" +
-    "        on-remove-criterion=\"$ctrl.removeCriterion(item)\">\n" +
+    "            ng-repeat=\"vocabulary in $ctrl.vocabularies\"\n" +
+    "            vocabulary=\"vocabulary\"\n" +
+    "            on-select-vocabulary-args=\"$ctrl.selectVocabularyArgs(vocabulary, args)\"\n" +
+    "            on-remove-criterion=\"$ctrl.removeCriterion(item)\">\n" +
     "    </vocabulary-filter-detail>\n" +
     "  </div>\n" +
     "</div>");
@@ -13368,11 +13376,8 @@ angular.module("search/components/taxonomy/taxonomy-filter-detail/component.html
 
 angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/taxonomy/taxonomy-filter-panel/component.html",
-    "<div class=\"vocabulary-filter-detail\">\n" +
-    "\n" +
-    "\n" +
+    "<div class=\"vocabulary-filter-detail\" ng-class=\"{'close_right':$ctrl.classClose}\">\n" +
     "  <div class=\"ng-clearfix\"></div>\n" +
-    "\n" +
     "  <div class=\"panel-body vocabulary-filter-detail-heading\">\n" +
     "    <div class=\"row\">\n" +
     "      <div class=\"col-md-4\">\n" +
