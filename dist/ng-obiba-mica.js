@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-12-15
+ * Date: 2017-12-17
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -13220,7 +13220,7 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
     "     ng-repeat=\"term in $ctrl.vocabulary.filteredTerms | sortTerms:$ctrl.vocabulary | limitTo:$ctrl.limitNumber\">\n" +
     "  <div class=\"col-md-3\">\n" +
     "    <div class=\"checkbox\">\n" +
-    "      <label uib-popover=\"{{term.description ? term.description : term.title | localizedString}}\"\n" +
+    "      <label uib-popover=\"{{term.description ? term.description : term.title | markdown:markdownIt | localizedString}}\"\n" +
     "             popover-title=\"{{term.description ? term.title : null | localizedString}}\"\n" +
     "             popover-placement=\"bottom\"\n" +
     "             popover-trigger=\"'mouseenter'\"\n" +
@@ -13358,26 +13358,27 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-panel/compo
 
 angular.module("search/components/taxonomy/taxonomy-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/taxonomy/taxonomy-filter-detail/component.html",
-    "<div class=\"panel panel-primary\">\n" +
+    "<div class=\"panel-primary\">\n" +
     "  <div class=\"panel-heading\">\n" +
     "    <div><strong>{{$ctrl.taxonomy.title | localizedString}}</strong></div>\n" +
     "  </div>\n" +
     "\n" +
-    "  <div class=\"panel-body\">\n" +
-    "    <vocabulary-filter-detail\n" +
-    "            ng-repeat=\"vocabulary in $ctrl.vocabularies\"\n" +
-    "            vocabulary=\"vocabulary\"\n" +
-    "            on-select-vocabulary-args=\"$ctrl.selectVocabularyArgs(vocabulary, args)\"\n" +
-    "            on-remove-criterion=\"$ctrl.removeCriterion(item)\">\n" +
-    "    </vocabulary-filter-detail>\n" +
-    "  </div>\n" +
+    "  <vocabulary-filter-detail\n" +
+    "      ng-repeat=\"vocabulary in $ctrl.vocabularies\"\n" +
+    "      vocabulary=\"vocabulary\"\n" +
+    "      on-select-vocabulary-args=\"$ctrl.selectVocabularyArgs(vocabulary, args)\"\n" +
+    "      on-remove-criterion=\"$ctrl.removeCriterion(item)\">\n" +
+    "  </vocabulary-filter-detail>\n" +
     "</div>");
 }]);
 
 angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/taxonomy/taxonomy-filter-panel/component.html",
     "<div class=\"vocabulary-filter-detail\" ng-class=\"{'close_right':$ctrl.classClose}\">\n" +
+    "\n" +
+    "\n" +
     "  <div class=\"ng-clearfix\"></div>\n" +
+    "\n" +
     "  <div class=\"panel-body vocabulary-filter-detail-heading\">\n" +
     "    <div class=\"row\">\n" +
     "      <div class=\"col-md-4\">\n" +
