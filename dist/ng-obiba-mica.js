@@ -2689,34 +2689,32 @@ CriteriaBuilder.prototype.fieldToVocabulary = function (field) {
 CriteriaBuilder.prototype.visitLeaf = function (node, parentItem) {
   var match = RQL_NODE.MATCH === node.name;
 
-  if (node.args.length > 1) {
-    var field = node.args[match ? 1 : 0];
-    var values = node.args[match ? 0 : 1];
+  var field = node.args[match ? 1 : 0];
+  var values = node.args[match ? 0 : 1];
 
-    var searchInfo = this.fieldToVocabulary(field);
-    var item =
-        this.buildLeafItem(searchInfo.taxonomy,
-            searchInfo.vocabulary,
-            values instanceof Array ? values : [values],
-            node,
-            parentItem);
+  var searchInfo = this.fieldToVocabulary(field);
+  var item =
+      this.buildLeafItem(searchInfo.taxonomy,
+          searchInfo.vocabulary,
+          values instanceof Array ? values : [values],
+          node,
+          parentItem);
 
-    var current = this.leafItemMap[item.id];
+  var current = this.leafItemMap[item.id];
 
-    if (current) {
-      if (current.isRepeatable()) {
-        current.addItem(item);
-      } else {
-        console.error('Non-repeatable criteria items must be unique,', current.id, 'will be overwritten.');
-        current = item;
-      }
+  if (current) {
+    if (current.isRepeatable()) {
+      current.addItem(item);
     } else {
-      current = item.vocabulary.repeatable ? new RepeatableCriteriaItem().addItem(item) : item;
+      console.error('Non-repeatable criteria items must be unique,', current.id, 'will be overwritten.');
+      current = item;
     }
-
-    this.leafItemMap[item.id] = current;
-    parentItem.children.push(item);
+  } else {
+    current = item.vocabulary.repeatable ? new RepeatableCriteriaItem().addItem(item) : item;
   }
+
+  this.leafItemMap[item.id] = current;
+  parentItem.children.push(item);
 };
 
 /**
