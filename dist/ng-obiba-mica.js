@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-12-17
+ * Date: 2017-12-18
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -13218,9 +13218,9 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
   $templateCache.put("search/components/criteria/terms-vocabulary-filter-detail/component.html",
     "<div ng-class=\"{'row': ($index + 1) % 4 === 0}\"\n" +
     "     ng-repeat=\"term in $ctrl.vocabulary.filteredTerms | sortTerms:$ctrl.vocabulary | limitTo:$ctrl.limitNumber\">\n" +
-    "  <div class=\"col-md-3\">\n" +
+    "  <div class=\"col-xs-3 col-md-3\">\n" +
     "    <div class=\"checkbox\">\n" +
-    "      <label uib-popover=\"{{term.description ? term.description : term.title | markdown:markdownIt | localizedString}}\"\n" +
+    "      <label uib-popover=\"{{term.description ? term.description : term.title | localizedString}}\"\n" +
     "             popover-title=\"{{term.description ? term.title : null | localizedString}}\"\n" +
     "             popover-placement=\"bottom\"\n" +
     "             popover-trigger=\"'mouseenter'\"\n" +
@@ -13293,7 +13293,7 @@ angular.module("search/components/input-search-filter/component.html", []).run([
     "<div class=\" pull-right\">\n" +
     "    <div class=\"input-group has-feedback\">\n" +
     "       <span class=\"input-group-addon\">\n" +
-    "           <i class=\"glyphicon glyphicon-filter\"></i>\n" +
+    "           <i class=\"fa fa-filter\"></i>\n" +
     "       </span>\n" +
     "        <input type=\"text\" ng-model=\"$ctrl.queryString\"  ng-attr-placeholder=\"{{'global.list-search-placeholder'  | translate}}\"\n" +
     "               class=\"input-search-filter form-control\" ng-change=\"$ctrl.change()\">\n" +
@@ -13310,8 +13310,10 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/compon
   $templateCache.put("search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html",
     "<div uib-accordion-group class=\"panel-default\" is-open=\"$ctrl.status.isFirstOpen\">\n" +
     "  <div uib-accordion-heading >\n" +
-    "    {{$ctrl.metaTaxonomy.title | localizedString}} <span class=\"pull-right\"><i class=\"glyphicon\"\n" +
-    "                                                                              ng-class=\"{'glyphicon-minus': $ctrl.status.isFirstOpen, 'glyphicon-plus':!$ctrl.status.isFirstOpen}\"></i></span>\n" +
+    "    <span>\n" +
+    "      <i class=\"fa\" ng-class=\"{'fa-caret-down': $ctrl.status.isFirstOpen, 'fa-caret-right':!$ctrl.status.isFirstOpen}\"></i>\n" +
+    "    </span>\n" +
+    "    {{$ctrl.metaTaxonomy.title | localizedString}}\n" +
     "  </div>\n" +
     "  <entity-search-typeahead\n" +
     "    placeholder-text=\"search.placeholder.meta-taxonomy-filter.{{$ctrl.entityType}}\"\n" +
@@ -13330,7 +13332,7 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/compon
     "        popover-trigger=\"'mouseenter'\"\n" +
     "        popover-popup-delay=\"250\">\n" +
     "          {{taxonomy.info.title | translate}}\n" +
-    "        </span> <span ng-if=\"taxonomy.state.isLoading()\" class=\"loading\"></span><span class=\"pull-right\"><i class=\"glyphicon glyphicon-chevron-right\"></i>\n" +
+    "        </span> <span ng-if=\"taxonomy.state.isLoading()\" class=\"loading\"></span><span class=\"pull-right\"><i class=\"fa fa-chevron-right\"></i>\n" +
     "</span>\n" +
     "      </a>\n" +
     "    </li>\n" +
