@@ -13383,7 +13383,7 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
     "\n" +
     "  <div class=\"panel-body vocabulary-filter-detail-heading\">\n" +
     "    <div class=\"row\">\n" +
-    "      <div class=\"col-md-4\">\n" +
+    "      <div class=\"col-xs-4 col-md-4\">\n" +
     "        <input-search-filter\n" +
     "                             taxonomy-name=\"$ctrl.taxonomyName\"\n" +
     "                             taxonomies-query=\"$ctrl.taxonomiesQuery\"\n" +
@@ -13392,7 +13392,7 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
     "                             on-filter-change=\"$ctrl.onFilterChange(queryString)\">\n" +
     "        </input-search-filter>\n" +
     "      </div>\n" +
-    "        <div class=\"col-md-7 voffset1\">\n" +
+    "        <div class=\"col-xs-7 col-md-7 voffset1\">\n" +
     "            <entity-counts\n" +
     "                           taxonomy-type-map=\"$ctrl.taxonomyTypeMap\"\n" +
     "                           result-tabs-order=\"$ctrl.resultTabsOrder\"\n" +
@@ -13401,7 +13401,7 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
     "                           result=\"$ctrl.result\">\n" +
     "            </entity-counts>\n" +
     "        </div>\n" +
-    "      <div class=\"col-md-1\">\n" +
+    "      <div class=\"col-xs-1 col-md-1\">\n" +
     "        <button type=\"button\"\n" +
     "                class=\"voffset1 pull-right close\"\n" +
     "                data-dismiss=\"alert\"\n" +
@@ -13722,7 +13722,7 @@ angular.module("search/views/classifications/taxonomies-facets-view.html", []).r
     "              <form novalidate class=\"form-inline\" ng-keypress=\"onKeypress($event)\">\n" +
     "                <div class=\"form-group form-group-sm\">\n" +
     "                  <input type=\"text\" class=\"form-control\" ng-model=\"text\" placeholder=\"{{'search.match.placeholder' | translate}}\">\n" +
-    "                  <button class=\"btn btn-sm btn-default\" ng-click=\"onKeypress($event)\" ><i class=\"glyphicon glyphicon-chevron-right\"></i></button>\n" +
+    "                  <button class=\"btn btn-sm btn-default\" ng-click=\"onKeypress($event)\" ><i class=\"fa fa-chevron-right\"></i></button>\n" +
     "                </div>\n" +
     "              </form>\n" +
     "            </div>\n" +
@@ -13733,7 +13733,7 @@ angular.module("search/views/classifications/taxonomies-facets-view.html", []).r
     "                  <input type=\"number\" class=\"form-control\" id=\"nav-{{vocabulary.name}}-from\" ng-model=\"from\" placeholder=\"{{min}}\" style=\"width:75px;\">\n" +
     "                  <label for=\"nav-{{vocabulary.name}}-to\" translate>to</label>\n" +
     "                  <input type=\"number\" class=\"form-control\" id=\"nav-{{vocabulary.name}}-to\" ng-model=\"to\" placeholder=\"{{max}}\" style=\"width:75px;\">\n" +
-    "                  <button class=\"btn btn-sm btn-default\" ng-click=\"onKeypress($event)\" ><i class=\"glyphicon glyphicon-chevron-right\"></i></button>\n" +
+    "                  <button class=\"btn btn-sm btn-default\" ng-click=\"onKeypress($event)\" ><i class=\"fa fa-chevron-right\"></i></button>\n" +
     "                </div>\n" +
     "              </form>\n" +
     "            </div>\n" +
@@ -14163,8 +14163,8 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "        <th rowspan=\"2\" width=\"50\" style=\"text-align: center\">\n" +
     "          <div class=\"btn-group voffset1\" uib-dropdown>\n" +
     "            <div uib-dropdown-toggle>\n" +
-    "              <small><i class=\"glyphicon glyphicon-unchecked\"></i></small>\n" +
-    "              <span class='fa fa-caret-down'></span>\n" +
+    "              <span class=\"fa fa-square-o\"></span>\n" +
+    "              <span class=\"fa fa-caret-down\"></span>\n" +
     "            </div>\n" +
     "            <ul uib-dropdown-menu role=\"menu\">\n" +
     "              <li role=\"menuitem\"><a href ng-click=\"selectAll()\" translate>search.coverage-select.all</a></li>\n" +
@@ -14468,7 +14468,7 @@ angular.module("search/views/criteria/criterion-string-terms-template.html", [])
     "      <li class=\"criteria-list-item\" ng-show=\"terms && terms.length>10\">\n" +
     "        <span class=\"input-group input-group-sm no-padding-top\">\n" +
     "          <input ng-model=\"searchText\" type=\"text\" class=\"form-control\" aria-describedby=\"term-search\">\n" +
-    "          <span class=\"input-group-addon\" id=\"term-search\"><i class=\"glyphicon glyphicon-search\"></i></span>\n" +
+    "          <span class=\"input-group-addon\" id=\"term-search\"><i class=\"fa fa-search\"></i></span>\n" +
     "        </span>\n" +
     "      </li>\n" +
     "      <li ng-show=\"terms && terms.length>10\"></li>\n" +
@@ -15276,10 +15276,10 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "                   typeahead-template-url=\"customTemplate.html\"\n" +
     "                   typeahead-on-select=\"selectCriteria($item)\"\n" +
     "                   class=\"form-control\">\n" +
-    "            <span class=\"input-group-addon\"><i class=\"glyphicon glyphicon-search\"></i></span>\n" +
+    "            <span class=\"input-group-addon\"><i class=\"fa fa-search\"></i></span>\n" +
     "            <span ng-if=\"options.SearchHelpLinkUrl\" class=\"input-group-btn\">\n" +
     "              <a type=\"button\" target=\"_blank\" class=\"btn btn-default\" href=\"{{options.SearchHelpLinkUrl}}\">\n" +
-    "                <span class=\"glyphicon glyphicon-question-sign\"></span> {{options.SearchHelpLinkLabel}}</a>\n" +
+    "                <span class=\"fa fa-question-circle\"></span> {{options.SearchHelpLinkLabel}}</a>\n" +
     "            </span>\n" +
     "          </span>\n" +
     "\n" +
@@ -15311,7 +15311,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "                <li>\n" +
     "                  <a href ng-click=\"goToClassifications()\" title=\"{{'search.classifications-show' | translate}}\">\n" +
     "                    <span ng-if=\"hasClassificationsLinkLabel\" translate>search.classifications-link</span>\n" +
-    "                    <i class=\"glyphicon glyphicon-option-horizontal\" ng-if=\"!hasClassificationsLinkLabel\"></i>\n" +
+    "                    <i class=\"fa fa-ellipsis-h\" ng-if=\"!hasClassificationsLinkLabel\"></i>\n" +
     "                  </a>\n" +
     "                </li>\n" +
     "              </ul>\n" +

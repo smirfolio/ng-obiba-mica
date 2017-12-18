@@ -76,10 +76,10 @@
                    typeahead-template-url="customTemplate.html"
                    typeahead-on-select="selectCriteria($item)"
                    class="form-control">
-            <span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
+            <span class="input-group-addon"><i class="fa fa-search"></i></span>
             <span ng-if="options.SearchHelpLinkUrl" class="input-group-btn">
               <a type="button" target="_blank" class="btn btn-default" href="{{options.SearchHelpLinkUrl}}">
-                <span class="glyphicon glyphicon-question-sign"></span> {{options.SearchHelpLinkLabel}}</a>
+                <span class="fa fa-question-circle"></span> {{options.SearchHelpLinkLabel}}</a>
             </span>
           </span>
 
@@ -111,7 +111,7 @@
                 <li>
                   <a href ng-click="goToClassifications()" title="{{'search.classifications-show' | translate}}">
                     <span ng-if="hasClassificationsLinkLabel" translate>search.classifications-link</span>
-                    <i class="glyphicon glyphicon-option-horizontal" ng-if="!hasClassificationsLinkLabel"></i>
+                    <i class="fa fa-ellipsis-h" ng-if="!hasClassificationsLinkLabel"></i>
                   </a>
                 </li>
               </ul>
