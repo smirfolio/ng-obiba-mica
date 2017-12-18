@@ -424,23 +424,3 @@ span.search-help {
   pointer-events: all !important;
   cursor: pointer !important;
 }
-
-div.vocabulary-filter-detail {
-  background-color: #ffffff;
-  position: relative;
-  animation-name: slide_right;
-  animation-duration: 0.5s;
-}
-@keyframes slide_right {
-  0%   { left:-1000px; }
-  100% { left: 0px;}
-}
-div.vocabulary-filter-detail.close_right {
-  animation-name: slide_left;
-  animation-duration: 0.4s;
-}
-
-@keyframes slide_left {
-  0%   { opacity:  1; }
-  100% { opacity: 0.1; }
-}
