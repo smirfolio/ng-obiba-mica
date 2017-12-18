@@ -21,6 +21,7 @@
     function suggest(entityType, query) {
       var obibaUtils = new obiba.utils.NgObibaStringUtils();
       var cleanQuery = obibaUtils.cleanDoubleQuotesLeftUnclosed(query);
+      cleanQuery = obibaUtils.cleanOrEscapeSpecialLuceneBrackets(cleanQuery);
 
       if (entityType && query && cleanQuery.length > 1) {
         return DocumentSuggestionResource.query({locale: $translate.use(), documentType: entityType, query: cleanQuery})
@@ -66,8 +67,12 @@
     }
 
     function selectSuggestion(target, suggestion, withSpecificFields) {
+      var obibaUtils = new obiba.utils.NgObibaStringUtils();
+      var cleanSuggestion = obibaUtils.cleanDoubleQuotesLeftUnclosed(suggestion);
+      cleanSuggestion = obibaUtils.cleanOrEscapeSpecialLuceneBrackets(cleanSuggestion);
+
       $rootScope.$new().$emit('ngObibaMicaSearch.searchSuggestion',
-        new obiba.utils.NgObibaStringUtils().cleanDoubleQuotesLeftUnclosed(suggestion), target, withSpecificFields);
+          cleanSuggestion, target, withSpecificFields);
     }
 
     this.getCurrentSuggestion = getCurrentSuggestion;
