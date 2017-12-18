@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-12-18
+ * Date: 2017-12-19
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -5282,6 +5282,28 @@ ngObibaMica.search
             $scope.lang,
             updateSortByType()
           );
+
+        function getCountResultFromJoinQuerySearchResponse(response) {
+          return {
+            studyTotalCount: {
+              total: response.studyResultDto.totalCount,
+              hits: response.studyResultDto.totalHits
+            },
+            datasetTotalCount: {
+              total: response.datasetResultDto.totalCount,
+              hits: response.datasetResultDto.totalHits
+            },
+            variableTotalCount: {
+              total: response.variableResultDto.totalCount,
+              hits: response.variableResultDto.totalHits
+            },
+            networkTotalCount: {
+              total: response.networkResultDto.totalCount,
+              hits: response.networkResultDto.totalHits
+            }
+          };
+        }
+
         switch ($scope.search.display) {
           case DISPLAY_TYPES.LIST:
             $scope.search.loading = true;
@@ -5290,6 +5312,7 @@ ngObibaMica.search
               function onSuccess(response) {
                 $scope.search.result.list = response;
                 $scope.search.loading = false;
+                $scope.search.countResult = getCountResultFromJoinQuerySearchResponse(response);
               },
               onError);
             break;
@@ -5307,6 +5330,7 @@ ngObibaMica.search
                 function onSuccess(response) {
                   $scope.search.result.coverage = response;
                   $scope.search.loading = false;
+                  $scope.search.countResult = response.totalCounts;
                 },
                 onError);
             } else {
@@ -5323,6 +5347,7 @@ ngObibaMica.search
               function onSuccess(response) {
                 $scope.search.result.graphics = response;
                 $scope.search.loading = false;
+                $scope.search.countResult = getCountResultFromJoinQuerySearchResponse(response);
               },
               onError);
             break;
@@ -5674,6 +5699,7 @@ ngObibaMica.search
           validateType(type);
           var search = $location.search();
           search.type = type;
+          search.display = DISPLAY_TYPES.LIST;
           $location.search(search);
         }
       };
@@ -9310,10 +9336,11 @@ ngObibaMica.search
 ngObibaMica.search.EntityCountsController = function() {
   var ctrl = this;
   function getTotalHits(entity){
-    if (!ctrl.result.list || !ctrl.result.list[entity + 'ResultDto']) {
+    if (!ctrl.result[entity + 'TotalCount']) {
       return '';
     }
-    return ctrl.result.list[entity + 'ResultDto'].totalHits;
+
+    return ctrl.result[entity + 'TotalCount'].hits;
   }
 
   function selectType(entity) {
@@ -15409,7 +15436,7 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "        <taxonomy-filter-panel\n" +
     "            result-tabs-order=\"resultTabsOrder\"\n" +
     "            taxonomy-type-map=\"taxonomyTypeMap\"\n" +
-    "            result=\"search.result\"\n" +
+    "            result=\"search.countResult\"\n" +
     "            target=\"search.selectedTarget\"\n" +
     "            taxonomy=\"search.selectedTaxonomy\"\n" +
     "            on-select-type=\"onTypeChanged(type)\"\n" +

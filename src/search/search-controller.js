@@ -821,6 +821,28 @@ ngObibaMica.search
             $scope.lang,
             updateSortByType()
           );
+
+        function getCountResultFromJoinQuerySearchResponse(response) {
+          return {
+            studyTotalCount: {
+              total: response.studyResultDto.totalCount,
+              hits: response.studyResultDto.totalHits
+            },
+            datasetTotalCount: {
+              total: response.datasetResultDto.totalCount,
+              hits: response.datasetResultDto.totalHits
+            },
+            variableTotalCount: {
+              total: response.variableResultDto.totalCount,
+              hits: response.variableResultDto.totalHits
+            },
+            networkTotalCount: {
+              total: response.networkResultDto.totalCount,
+              hits: response.networkResultDto.totalHits
+            }
+          };
+        }
+
         switch ($scope.search.display) {
           case DISPLAY_TYPES.LIST:
             $scope.search.loading = true;
@@ -829,6 +851,7 @@ ngObibaMica.search
               function onSuccess(response) {
                 $scope.search.result.list = response;
                 $scope.search.loading = false;
+                $scope.search.countResult = getCountResultFromJoinQuerySearchResponse(response);
               },
               onError);
             break;
@@ -846,6 +869,7 @@ ngObibaMica.search
                 function onSuccess(response) {
                   $scope.search.result.coverage = response;
                   $scope.search.loading = false;
+                  $scope.search.countResult = response.totalCounts;
                 },
                 onError);
             } else {
@@ -862,6 +886,7 @@ ngObibaMica.search
               function onSuccess(response) {
                 $scope.search.result.graphics = response;
                 $scope.search.loading = false;
+                $scope.search.countResult = getCountResultFromJoinQuerySearchResponse(response);
               },
               onError);
             break;
@@ -1213,6 +1238,7 @@ ngObibaMica.search
           validateType(type);
           var search = $location.search();
           search.type = type;
+          search.display = DISPLAY_TYPES.LIST;
           $location.search(search);
         }
       };
