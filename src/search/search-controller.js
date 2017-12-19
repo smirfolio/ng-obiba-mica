@@ -428,7 +428,7 @@ ngObibaMica.search
     'TaxonomyResource',
     'VocabularyResource',
     'ngObibaMicaSearchTemplateUrl',
-    'ngObibaMicaSearch',
+    'ObibaServerConfigResource',
     'JoinQuerySearchResource',
     'JoinQueryCoverageResource',
     'AlertService',
@@ -442,6 +442,7 @@ ngObibaMica.search
     'LocaleStringUtils',
     'StringUtils',
     'EntitySuggestionRqlUtilityService',
+    'options',
     function ($scope,
               $rootScope,
               $timeout,
@@ -455,7 +456,7 @@ ngObibaMica.search
               TaxonomyResource,
               VocabularyResource,
               ngObibaMicaSearchTemplateUrl,
-              ngObibaMicaSearch,
+              ObibaServerConfigResource,
               JoinQuerySearchResource,
               JoinQueryCoverageResource,
               AlertService,
@@ -468,9 +469,10 @@ ngObibaMica.search
               VocabularyService,
               LocaleStringUtils,
               StringUtils,
-              EntitySuggestionRqlUtilityService) {
+              EntitySuggestionRqlUtilityService,
+              options) {
 
-      $scope.options = ngObibaMicaSearch.getOptions();
+      $scope.options = options;
       var cookiesSearchHelp = 'micaHideSearchHelpText';
       var cookiesClassificationHelp = 'micaHideClassificationHelpBox';
 
@@ -1504,6 +1506,12 @@ ngObibaMica.search
       $scope.toggleFullscreen = function() {
         $scope.isFullscreen = !$scope.isFullscreen;
       };
+      $scope.isSearchAvailable = true;
+      ObibaServerConfigResource.get(function(micaConfig){
+        $scope.isSearchAvailable = !micaConfig.isSingleStudyEnabled ||
+          (micaConfig.isNetworkEnabled && !micaConfig.isSingleNetworkEnabled) ||
+          micaConfig.isCollectedDatasetEnabled || micaConfig.isHarmonizedDatasetEnabled;
+      });
 
       $scope.$on('$locationChangeSuccess', function (event, newLocation, oldLocation) {
         initSearchTabs();

@@ -9,6 +9,7 @@
  */
 
 'use strict';
+(function () {
 
 ngObibaMica.utils = angular.module('obiba.mica.utils', ['schemaForm']);
 
@@ -277,3 +278,4 @@ ngObibaMica.utils
         return form;
       });
     }]);
+})();

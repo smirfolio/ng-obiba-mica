@@ -17,7 +17,14 @@ ngObibaMica.search
         .when('/search', {
           templateUrl: 'search/views/search-layout.html',
           controller: 'SearchController',
-          reloadOnSearch: false
+          reloadOnSearch: false,
+          resolve: {
+            // This will delay the loading of the search config until the options are all resolved; the result is
+            // injected to the SearchController.
+            options: ['ngObibaMicaSearch', function (ngObibaMicaSearch) {
+              return ngObibaMicaSearch.getOptionsAsyn();
+            }]
+          }
         })
         .when('/classifications', {
           templateUrl: 'search/views/classifications.html',

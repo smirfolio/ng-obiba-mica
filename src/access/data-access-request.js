@@ -10,7 +10,6 @@
 
 'use strict';
 
-/*global NgObibaMicaTemplateUrlFactory */
 ngObibaMica.access = angular.module('obiba.mica.access', [
     'pascalprecht.translate',
     'obiba.alert',
@@ -23,7 +22,7 @@ ngObibaMica.access = angular.module('obiba.mica.access', [
 
 ngObibaMica.access
   .config(['$provide', function ($provide) {
-    $provide.provider('ngObibaMicaAccessTemplateUrl', new NgObibaMicaTemplateUrlFactory().create(
+    $provide.provider('ngObibaMicaAccessTemplateUrl', new ngObibaMica.NgObibaMicaTemplateUrlFactory().create(
       {
         list: {header: null, footer: null},
         view: {header: null, footer: null},

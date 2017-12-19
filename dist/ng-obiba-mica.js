@@ -17,142 +17,11 @@
 
 'use strict';
 
-function NgObibaMicaUrlProvider() {
-  var registry = {
-    'DataAccessClientDetailPath': '',
-    'DataAccessClientListPath': '',
-    'DataAccessFormConfigResource': 'ws/config/data-access-form',
-    'DataAccessRequestsResource': 'ws/data-access-requests',
-    'DataAccessRequestsExportCsvResource': 'ws/data-access-requests/csv?lang=:lang',
-    'DataAccessRequestResource': 'ws/data-access-request/:id',
-    'DataAccessRequestAttachmentsUpdateResource': '/ws/data-access-request/:id/_attachments',
-    'DataAccessRequestAttachmentDownloadResource': '/ws/data-access-request/:id/attachments/:attachmentId/_download',
-    'SchemaFormAttachmentDownloadResource': '/ws/:path/form/attachments/:attachmentName/:attachmentId/_download',
-    'DataAccessRequestDownloadPdfResource': '/ws/data-access-request/:id/_pdf',
-    'DataAccessRequestCommentsResource': 'ws/data-access-request/:id/comments',
-    'DataAccessRequestCommentResource': 'ws/data-access-request/:id/comment/:commentId',
-    'DataAccessRequestStatusResource': 'ws/data-access-request/:id/_status?to=:status',
-    'TempFileUploadResource': 'ws/files/temp',
-    'TempFileResource': 'ws/files/temp/:id',
-    'TaxonomiesSearchResource': 'ws/taxonomies/_search',
-    'TaxonomiesResource': 'ws/taxonomies/_filter',
-    'TaxonomyResource': 'ws/taxonomy/:taxonomy/_filter',
-    'VocabularyResource': 'ws/taxonomy/:taxonomy/vocabulary/:vocabulary/_filter',
-    'JoinQuerySearchResource': 'ws/:type/_rql',
-    'JoinQuerySearchCsvResource': 'ws/:type/_rql_csv?query=:query',
-    'JoinQuerySearchCsvReportResource': 'ws/:type/_report?query=:query',
-    'JoinQuerySearchCsvReportByNetworkResource': 'ws/:type/_report_by_network?networkId=:networkId&locale=:locale',
-    'JoinQueryCoverageResource': 'ws/variables/_coverage',
-    'JoinQueryCoverageDownloadResource': 'ws/variables/_coverage_download?query=:query',
-    'VariablePage': '',
-    'NetworkPage': '#/network/:network',
-    'StudyPage': '#/:type/:study',
-    'StudyPopulationsPage': '#/:type/:study',
-    'DatasetPage': '#/:type/:dataset',
-    'BaseUrl': '/',
-    'FileBrowserFileResource': 'ws/file/:path/',
-    'FileBrowserSearchResource': 'ws/files-search/:path',
-    'FileBrowserDownloadUrl': 'ws/draft/file-dl/:path?inline=:inline',
-    'SearchBaseUrl': '#/search',
-    'DocumentSuggestion': 'ws/:documentType/_suggest'
-  };
+var ngObibaMica;
 
-  function UrlProvider(registry) {
-    var urlRegistry = registry;
+(function () {
 
-    this.getUrl = function (resource) {
-      if (resource in urlRegistry) {
-        return urlRegistry[resource];
-      }
-
-      return null;
-    };
-  }
-
-  this.setUrl = function (key, url) {
-    if (key in registry) {
-      registry[key] = url;
-    }
-  };
-
-  this.$get = function () {
-    return new UrlProvider(registry);
-  };
-}
-
-/* exported NgObibaMicaTemplateUrlFactory */
-function NgObibaMicaTemplateUrlFactory() {
-  var templates = {
-    'searchStudiesResultTable' :'search/views/list/studies-search-result-table-template.html',
-    'searchNetworksResultTable' :'search/views/list/networks-search-result-table-template.html',
-    'searchDatasetsResultTable' :'search/views/list/datasets-search-result-table-template.html',
-    'searchCriteriaRegionTemplate' :'search/views/criteria/search-criteria-region-template.html',
-    'CriterionDropdownTemplate' :'search/views/criteria/criterion-dropdown-template.html',
-    'searchResultList' :'search/views/search-result-list-template.html',
-    'searchInputList' : 'lists/views/input-search-widget/input-search-widget-template.html',
-    'searchResultCoverage' :'search/views/search-result-coverage-template.html',
-    'searchResultGraphics' :'search/views/search-result-graphics-template.html'
-  };
-  var factory = {registry: null};
-
-  function TemplateUrlProvider(registry) {
-    var urlRegistry = registry;
-
-    this.getHeaderUrl = function (key) {
-      if (key in urlRegistry) {
-        return urlRegistry[key].header;
-      }
-
-      return null;
-    };
-
-    this.getFooterUrl = function (key) {
-      if (key in urlRegistry) {
-        return urlRegistry[key].footer;
-      }
-
-      return null;
-    };
-
-    this.getTemplateUrl = function (key) {
-      if (key in urlRegistry) {
-        return urlRegistry[key].template?urlRegistry[key].template:templates[key];
-      }
-
-      return null;
-    };
-  }
-
-
-  factory.setTemplateUrl = function (key, url) {
-    if (key in this.registry) {
-      this.registry[key].template = url;
-    }
-  };
-
-  factory.setHeaderUrl = function (key, url) {
-    if (key in this.registry) {
-      this.registry[key].header = url;
-    }
-  };
-
-  factory.setFooterUrl = function (key, url) {
-    if (key in this.registry) {
-      this.registry[key].footer = url;
-    }
-  };
-
-  factory.$get = function () {
-    return new TemplateUrlProvider(this.registry);
-  };
-
-  this.create = function (inputRegistry) {
-    factory.registry = inputRegistry;
-    return factory;
-  };
-}
-
-var ngObibaMica = angular.module('ngObibaMica', [
+  ngObibaMica = angular.module('ngObibaMica', [
     'schemaForm',
     'ngCookies',
     'obiba.mica.utils',
@@ -163,24 +32,180 @@ var ngObibaMica = angular.module('ngObibaMica', [
     'obiba.mica.graphics',
     'obiba.mica.localized',
     'obiba.mica.fileBrowser',
-    'angularUtils.directives.dirPagination',
+    'angularUtils.directives.dirPagination'
   ]);
 
-ngObibaMica
-  .constant('USER_ROLES', {
-    all: '*',
-    admin: 'mica-administrator',
-    reviewer: 'mica-reviewer',
-    editor: 'mica-editor',
-    user: 'mica-user',
-    dao: 'mica-data-access-officer'
-  })
-  .config(['$provide', 'paginationTemplateProvider', function ($provide, paginationTemplateProvider) {
-    $provide.provider('ngObibaMicaUrl', NgObibaMicaUrlProvider);
-    paginationTemplateProvider.setPath('views/pagination-template.html');
-  }]);
+  ngObibaMica.NgObibaMicaUrlProvider = function() {
+    var registry = {
+      'DataAccessClientDetailPath': '',
+      'DataAccessClientListPath': '',
+      'DataAccessFormConfigResource': 'ws/config/data-access-form',
+      'DataAccessRequestsResource': 'ws/data-access-requests',
+      'DataAccessRequestsExportCsvResource': 'ws/data-access-requests/csv?lang=:lang',
+      'DataAccessRequestResource': 'ws/data-access-request/:id',
+      'DataAccessRequestAttachmentsUpdateResource': '/ws/data-access-request/:id/_attachments',
+      'DataAccessRequestAttachmentDownloadResource': '/ws/data-access-request/:id/attachments/:attachmentId/_download',
+      'SchemaFormAttachmentDownloadResource': '/ws/:path/form/attachments/:attachmentName/:attachmentId/_download',
+      'DataAccessRequestDownloadPdfResource': '/ws/data-access-request/:id/_pdf',
+      'DataAccessRequestCommentsResource': 'ws/data-access-request/:id/comments',
+      'DataAccessRequestCommentResource': 'ws/data-access-request/:id/comment/:commentId',
+      'DataAccessRequestStatusResource': 'ws/data-access-request/:id/_status?to=:status',
+      'TempFileUploadResource': 'ws/files/temp',
+      'TempFileResource': 'ws/files/temp/:id',
+      'TaxonomiesSearchResource': 'ws/taxonomies/_search',
+      'TaxonomiesResource': 'ws/taxonomies/_filter',
+      'TaxonomyResource': 'ws/taxonomy/:taxonomy/_filter',
+      'VocabularyResource': 'ws/taxonomy/:taxonomy/vocabulary/:vocabulary/_filter',
+      'JoinQuerySearchResource': 'ws/:type/_rql',
+      'JoinQuerySearchCsvResource': 'ws/:type/_rql_csv?query=:query',
+      'JoinQuerySearchCsvReportResource': 'ws/:type/_report?query=:query',
+      'JoinQuerySearchCsvReportByNetworkResource': 'ws/:type/_report_by_network?networkId=:networkId&locale=:locale',
+      'JoinQueryCoverageResource': 'ws/variables/_coverage',
+      'JoinQueryCoverageDownloadResource': 'ws/variables/_coverage_download?query=:query',
+      'VariablePage': '',
+      'NetworkPage': '#/network/:network',
+      'StudyPage': '#/:type/:study',
+      'StudyPopulationsPage': '#/:type/:study',
+      'DatasetPage': '#/:type/:dataset',
+      'BaseUrl': '/',
+      'FileBrowserFileResource': 'ws/file/:path/',
+      'FileBrowserSearchResource': 'ws/files-search/:path',
+      'FileBrowserDownloadUrl': 'ws/draft/file-dl/:path?inline=:inline',
+      'SearchBaseUrl': '#/search',
+      'DocumentSuggestion': 'ws/:documentType/_suggest'
+    };
 
-;/*
+    function UrlProvider(registry) {
+      var urlRegistry = registry;
+
+      this.getUrl = function (resource) {
+        if (resource in urlRegistry) {
+          return urlRegistry[resource];
+        }
+
+        return null;
+      };
+    }
+
+    this.setUrl = function (key, url) {
+      if (key in registry) {
+        registry[key] = url;
+      }
+    };
+
+    this.$get = function () {
+      return new UrlProvider(registry);
+    };
+  };
+
+  ngObibaMica.NgObibaMicaTemplateUrlFactory = function(){
+    var templates = {
+      'searchStudiesResultTable': 'search/views/list/studies-search-result-table-template.html',
+      'searchNetworksResultTable': 'search/views/list/networks-search-result-table-template.html',
+      'searchDatasetsResultTable': 'search/views/list/datasets-search-result-table-template.html',
+      'searchCriteriaRegionTemplate': 'search/views/criteria/search-criteria-region-template.html',
+      'CriterionDropdownTemplate': 'search/views/criteria/criterion-dropdown-template.html',
+      'searchResultList': 'search/views/search-result-list-template.html',
+      'searchInputList': 'lists/views/input-search-widget/input-search-widget-template.html',
+      'searchResultCoverage': 'search/views/search-result-coverage-template.html',
+      'searchResultGraphics': 'search/views/search-result-graphics-template.html'
+    };
+    var factory = {registry: null};
+
+    function TemplateUrlProvider(registry) {
+      var urlRegistry = registry;
+
+      this.getHeaderUrl = function (key) {
+        if (key in urlRegistry) {
+          return urlRegistry[key].header;
+        }
+
+        return null;
+      };
+
+      this.getFooterUrl = function (key) {
+        if (key in urlRegistry) {
+          return urlRegistry[key].footer;
+        }
+
+        return null;
+      };
+
+      this.getTemplateUrl = function (key) {
+        if (key in urlRegistry) {
+          return urlRegistry[key].template ? urlRegistry[key].template : templates[key];
+        }
+
+        return null;
+      };
+    }
+
+
+    factory.setTemplateUrl = function (key, url) {
+      if (key in this.registry) {
+        this.registry[key].template = url;
+      }
+    };
+
+    factory.setHeaderUrl = function (key, url) {
+      if (key in this.registry) {
+        this.registry[key].header = url;
+      }
+    };
+
+    factory.setFooterUrl = function (key, url) {
+      if (key in this.registry) {
+        this.registry[key].footer = url;
+      }
+    };
+
+    factory.$get = function () {
+      return new TemplateUrlProvider(this.registry);
+    };
+
+    this.create = function (inputRegistry) {
+      factory.registry = inputRegistry;
+      return factory;
+    };
+  };
+
+  ngObibaMica.ServerConfigResourceProvider = function() {
+    var provider  = this;
+
+    function setFactory(value) {
+      provider.$get = value;
+    }
+
+    /**
+     * Default
+     */
+    provider.$get = function() {
+      throw new Error('The provider factory method $get() must be overridden by client code.');
+    };
+
+    /**
+     * Clients can override the $get() method to provide their MicaConfigResource object.
+     * @type {setFactory}
+     */
+    provider.setFactory = setFactory;
+  };
+
+  ngObibaMica
+    .constant('USER_ROLES', {
+      all: '*',
+      admin: 'mica-administrator',
+      reviewer: 'mica-reviewer',
+      editor: 'mica-editor',
+      user: 'mica-user',
+      dao: 'mica-data-access-officer'
+    })
+    .config(['$provide', 'paginationTemplateProvider', function ($provide, paginationTemplateProvider) {
+      $provide.provider('ngObibaMicaUrl', ngObibaMica.NgObibaMicaUrlProvider);
+      $provide.provider('ObibaServerConfigResource', ngObibaMica.ServerConfigResourceProvider);
+      paginationTemplateProvider.setPath('views/pagination-template.html');
+    }]);
+
+})();;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
@@ -191,6 +216,7 @@ ngObibaMica
  */
 
 'use strict';
+(function () {
 
 ngObibaMica.utils = angular.module('obiba.mica.utils', ['schemaForm']);
 
@@ -459,7 +485,7 @@ ngObibaMica.utils
         return form;
       });
     }]);
-;/*
+})();;/*
  * Copyright (c) 2017 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
@@ -686,7 +712,6 @@ ngObibaMica.attachment
 
 'use strict';
 
-/*global NgObibaMicaTemplateUrlFactory */
 ngObibaMica.access = angular.module('obiba.mica.access', [
     'pascalprecht.translate',
     'obiba.alert',
@@ -699,7 +724,7 @@ ngObibaMica.access = angular.module('obiba.mica.access', [
 
 ngObibaMica.access
   .config(['$provide', function ($provide) {
-    $provide.provider('ngObibaMicaAccessTemplateUrl', new NgObibaMicaTemplateUrlFactory().create(
+    $provide.provider('ngObibaMicaAccessTemplateUrl', new ngObibaMica.NgObibaMicaTemplateUrlFactory().create(
       {
         list: {header: null, footer: null},
         view: {header: null, footer: null},
@@ -1883,7 +1908,6 @@ var DISPLAY_TYPES = {
   GRAPHICS: 'graphics'
 };
 
-/*global NgObibaMicaTemplateUrlFactory */
 ngObibaMica.search = angular.module('obiba.mica.search', [
     'obiba.alert',
     'ui.bootstrap',
@@ -1893,9 +1917,332 @@ ngObibaMica.search = angular.module('obiba.mica.search', [
 
 ngObibaMica.search.FIELDS_TO_FILTER = ['title', 'description', 'keywords'];
 
+/**
+ * Defines the default search options, clients such as Drupal override these options.
+ * @constructor
+ */
+ngObibaMica.search.NgObibaMicaSearchOptionsWrapper = function() {
+  var options = {
+    searchLayout: 'new',
+    taxonomyPanelOptions: {
+      network: {
+        taxonomies: {'Mica_network': {trKey: 'properties'}}
+      },
+      study: {
+        taxonomies: {'Mica_study': {trKey: 'properties'}}
+      },
+      dataset: {
+        taxonomies: {'Mica_dataset': {trKey: 'properties'}}
+      },
+      variable : {
+        taxonomies: {
+          'Mlstr_area': {weight: 0},
+          'Scales': {weight: 1},
+          'Mlstr_additional': {weight: 2},
+          'Mica_variable': {trKey: 'properties', weight: 3}
+        }
+      },
+      fieldsToFilter : ngObibaMica.search.FIELDS_TO_FILTER
+    },
+    obibaListOptions: {
+      countCaption: true,
+      searchForm: true,
+      supplInfoDetails: true,
+      trimmedDescription: true
+    },
+    targetTabsOrder: [QUERY_TARGETS.VARIABLE, QUERY_TARGETS.DATASET, QUERY_TARGETS.STUDY, QUERY_TARGETS.NETWORK],
+    searchTabsOrder: [DISPLAY_TYPES.LIST, DISPLAY_TYPES.COVERAGE, DISPLAY_TYPES.GRAPHICS],
+    resultTabsOrder: [QUERY_TARGETS.VARIABLE, QUERY_TARGETS.DATASET, QUERY_TARGETS.STUDY, QUERY_TARGETS.NETWORK],
+    showAllFacetedTaxonomies: true,
+    showFacetTermsWithZeroCount: false,
+    showSearchBox: true,
+    showSearchBrowser: true,
+    showSearchRefreshButton: false,
+    variableTaxonomiesOrder: [],
+    studyTaxonomiesOrder: [],
+    datasetTaxonomiesOrder: [],
+    networkTaxonomiesOrder: [],
+    hideNavigate: [],
+    hideSearch: ['studyId', 'dceId', 'datasetId', 'networkId'],
+    variables: {
+      showSearchTab: true,
+      listPageSize: 20,
+      variablesColumn: {
+        showVariablesTypeColumn: true,
+        showVariablesStudiesColumn: true,
+        showVariablesDatasetsColumn: true,
+        showDatasetsStudiesColumn: true,
+        showDatasetsVariablesColumn: true
+      }
+    },
+    datasets: {
+      showSearchTab: true,
+      listPageSize: 20,
+      showDatasetsSearchFilter: true,
+      datasetsColumn: {
+        showDatasetsAcronymColumn: true,
+        showDatasetsTypeColumn: true,
+        showDatasetsNetworkColumn: true,
+        showDatasetsStudiesColumn: true,
+        showDatasetsVariablesColumn: true
+      },
+      fields: [
+        'acronym.*',
+        'name.*',
+        'variableType',
+        'studyTable.studyId',
+        'studyTable.project',
+        'studyTable.table',
+        'studyTable.populationId',
+        'studyTable.dataCollectionEventId',
+        'harmonizationTable.studyId',
+        'harmonizationTable.project',
+        'harmonizationTable.table',
+        'harmonizationTable.populationId'
+      ]
+    },
+    studies: {
+      showSearchTab: true,
+      listPageSize: 20,
+      showStudiesSearchFilter: true,
+      studiesColumn: {
+        showStudiesDesignColumn: true,
+        showStudiesQuestionnaireColumn: true,
+        showStudiesPmColumn: true,
+        showStudiesBioColumn: true,
+        showStudiesOtherColumn: true,
+        showStudiesParticipantsColumn: true,
+        showStudiesNetworksColumn: true,
+        showStudiesStudyDatasetsColumn: true,
+        showStudiesHarmonizationDatasetsColumn: true,
+        showStudiesVariablesColumn: false,
+        showStudiesStudyVariablesColumn: true,
+        showStudiesDataschemaVariablesColumn: true
+      },
+      fields: [
+        'acronym.*',
+        'name.*',
+        'model.methods.design',
+        'populations.dataCollectionEvents.model.dataSources',
+        'model.numberOfParticipants.participant'
+      ]
+    },
+    networks: {
+      showSearchTab: true,
+      listPageSize: 20,
+      networksColumn: {
+        showNetworksStudiesColumn: true,
+        showNetworksStudyDatasetColumn: true,
+        showNetworksHarmonizationDatasetColumn: true,
+        showNetworksVariablesColumn: false,
+        showNetworksStudyVariablesColumn: true,
+        showNetworksDataschemaVariablesColumn: true
+      },
+      fields: [
+        'acronym.*',
+        'name.*',
+        'studyIds'
+      ]
+    },
+    coverage: {
+      groupBy: {
+        study: true,
+        dce: true,
+        dataset: true
+      }
+    }
+  };
+
+  function sanitizeFieldsToFilter(valueFieldsToFilter){
+    if (valueFieldsToFilter) {
+      return valueFieldsToFilter.filter(function(valueField) {
+        return ngObibaMica.search.FIELDS_TO_FILTER.indexOf(valueField) > -1;
+      });
+    }
+    return null;
+  }
+
+  function setOptions(value) {
+    options = angular.merge(options, value);
+    //NOTICE: angular.merge merges arrays by position. Overriding manually.
+    options.targetTabsOrder = value.targetTabsOrder || options.targetTabsOrder;
+    options.searchTabsOrder = value.searchTabsOrder || options.searchTabsOrder;
+    options.resultTabsOrder = value.resultTabsOrder || options.resultTabsOrder;
+    options.variableTaxonomiesOrder = value.variableTaxonomiesOrder || options.variableTaxonomiesOrder;
+    options.studyTaxonomiesOrder = value.studyTaxonomiesOrder || options.studyTaxonomiesOrder;
+    options.datasetTaxonomiesOrder = value.datasetTaxonomiesOrder || options.datasetTaxonomiesOrder;
+    options.networkTaxonomiesOrder = value.networkTaxonomiesOrder || options.networkTaxonomiesOrder;
+    options.hideNavigate = value.hideNavigate || options.hideNavigate;
+    options.hideSearch = value.hideSearch || options.hideSearch;
+    //TODO: Needs a better mechanism for setting options
+    options.studies.fields = value.studies && value.studies.fields || options.studies.fields;
+    options.networks.fields = value.networks && value.networks.fields || options.networks.fields;
+    options.datasets.fields = value.datasets && value.datasets.fields || options.datasets.fields;
+    if(value.taxonomyPanelOptions){
+      options.taxonomyPanelOptions.fieldsToFilter = sanitizeFieldsToFilter(value.taxonomyPanelOptions.fieldsToFilter) || options.taxonomyPanelOptions.fieldsToFilter;
+    }
+    if(value.studies && value.studies.obibaListOptions){
+      options.obibaListOptions.countCaption = value.studies.obibaListOptions.studiesCountCaption === 0  ? value.studies.obibaListOptions.studiesCountCaption : true;
+      options.obibaListOptions.searchForm = value.studies.obibaListOptions.studiesSearchForm === 0 ? value.studies.obibaListOptions.studiesSearchForm : true;
+      options.obibaListOptions.supplInfoDetails = value.studies.obibaListOptions.studiesSupplInfoDetails === 0 ? value.studies.obibaListOptions.studiesSupplInfoDetails : true;
+      options.obibaListOptions.trimmedDescription = value.studies.obibaListOptions.studiesTrimmedDescription === 0 ? value.studies.obibaListOptions.studiesTrimmedDescription : true;
+      options.searchLayout = value.searchLayout ? value.searchLayout : options.searchLayout;
+    }
+  }
+
+  function getOptions() {
+    return angular.copy(options);
+  }
+
+  this.setOptions = setOptions;
+  this.getOptions = getOptions;
+};
+
+/**
+ * The Options service class.
+ *
+ * @param $q
+ * @param $translate
+ * @param optionsWrapper
+ * @param ObibaServerConfigResource
+ * @returns {{getLocale: getLocale, getOptionsAsyn: getOptionsAsyn, getOptions: getOptions, getDefaultListPageSize: getDefaultListPageSize}}
+ * @constructor
+ */
+ngObibaMica.search.ObibaMicaSearchOptionsService = function($q, $translate, optionsWrapper, ObibaServerConfigResource) {
+
+  var deferred = $q.defer();
+  var resolved = false;
+
+  function removeItemByValue(array, value) {
+    var index = array.indexOf(value);
+    if (index > -1) {
+      array.splice(index, 1);
+    }
+    return array;
+  }
+
+  function normalizeOptions() {
+    var options = optionsWrapper.getOptions();
+    options.coverage.groupBy.study = options.coverage.groupBy.study && options.studies.showSearchTab;
+    options.coverage.groupBy.dce = options.coverage.groupBy.study && options.coverage.groupBy.dce;
+    var canShowCoverage = Object.keys(options.coverage.groupBy).filter(function(canShow) {
+      return options.coverage.groupBy[canShow];
+    }).length > 0;
+
+    if (!canShowCoverage) {
+      removeItemByValue(options.searchTabsOrder, DISPLAY_TYPES.COVERAGE);
+    }
+
+    if (!options.networks.showSearchTab) {
+      removeItemByValue(options.targetTabsOrder, QUERY_TARGETS.NETWORK);
+      removeItemByValue(options.resultTabsOrder, QUERY_TARGETS.NETWORK);
+    }
+
+    if (!options.studies.showSearchTab) {
+      removeItemByValue(options.searchTabsOrder, DISPLAY_TYPES.GRAPHICS);
+      removeItemByValue(options.targetTabsOrder, QUERY_TARGETS.STUDY);
+      removeItemByValue(options.resultTabsOrder, QUERY_TARGETS.STUDY);
+    }
+  }
+
+  /**
+   * Resolves the option by retrieving the server config and overriding the corresponding options.
+   * @returns {*}
+   */
+  function resolveOptions() {
+
+    if (resolved) {
+      // in case the getOptionsAsyn() is already called.
+      return $q.when(optionsWrapper.getOptions());
+    } else {
+      ObibaServerConfigResource.get(function (micaConfig) {
+        var hasMultipleNetworks = micaConfig.isNetworkEnabled && !micaConfig.isSingleNetworkEnabled;
+        var hasMultipleStudies =  !micaConfig.isSingleStudyEnabled || micaConfig.isHarmonizedDatasetEnabled;
+        var hasMultipleDatasets = micaConfig.isCollectedDatasetEnabled || micaConfig.isHarmonizedDatasetEnabled;
+        var updatedOptions = {
+          locale: micaConfig.languages || $translate.use(),
+          showSearchRefreshButton: true,
+          networks: {
+            showSearchTab: hasMultipleNetworks
+          },
+          studies: {
+            showSearchTab: hasMultipleStudies,
+            studiesColumn: {
+              showStudiesNetworksColumn: hasMultipleNetworks,
+              showStudiesVariablesColumn: hasMultipleDatasets,
+              showStudiesStudyDatasetsColumn: hasMultipleDatasets && micaConfig.isCollectedDatasetEnabled,
+              showStudiesStudyVariablesColumn: hasMultipleDatasets && micaConfig.isCollectedDatasetEnabled,
+              showStudiesHarmonizationDatasetsColumn: hasMultipleDatasets && micaConfig.isHarmonizedDatasetEnabled,
+              showStudiesDataschemaVariablesColumn: hasMultipleDatasets && micaConfig.isHarmonizedDatasetEnabled
+            }
+          },
+          datasets: {
+            showSearchTab: hasMultipleDatasets,
+            datasetsColumn: {
+              showDatasetsTypeColumn: micaConfig.isCollectedDatasetEnabled && micaConfig.isHarmonizedDatasetEnabled,
+              showDatasetsNetworkColumn: hasMultipleNetworks,
+              showDatasetsStudiesColumn: hasMultipleStudies
+            }
+          },
+          variables: {
+            showSearchTab: hasMultipleDatasets,
+            variablesColumn: {
+              showVariablesTypeColumn: micaConfig.isCollectedDatasetEnabled && micaConfig.isHarmonizedDatasetEnabled,
+              showVariablesStudiesColumn: hasMultipleStudies
+            }
+          }
+        };
+        optionsWrapper.setOptions(updatedOptions);
+        normalizeOptions();
+
+        deferred.resolve(optionsWrapper.getOptions());
+        resolved = true;
+      });
+
+      return deferred.promise;
+    }
+  }
+
+  return {
+
+    /**
+     * This is the actual method to be called as it will override the defaults by server settings such as single Study
+     * or Network configs.
+     * @returns A promise that the client can use to retrieve the resolved options.
+     */
+    getOptionsAsyn: function() {
+      return resolveOptions();
+    },
+
+    /**
+     * Returns the options and if getOptionsAsyn() has never been called, the default options will be returned.
+     * @returns {*}
+     */
+    getOptions: function() {
+      return optionsWrapper.getOptions();
+    },
+
+    getDefaultListPageSize: function(target) {
+      var options = optionsWrapper.getOptions();
+      switch (target) {
+        case QUERY_TARGETS.VARIABLE:
+          return options.variables.listPageSize;
+        case QUERY_TARGETS.DATASET:
+          return options.datasets.listPageSize;
+        case QUERY_TARGETS.STUDY:
+          return options.studies.listPageSize;
+        case QUERY_TARGETS.NETWORK:
+          return options.networks.listPageSize;
+      }
+      return 20;
+    }
+
+  };
+};
+
 ngObibaMica.search
   .config(['$provide', function ($provide) {
-    $provide.provider('ngObibaMicaSearchTemplateUrl', new NgObibaMicaTemplateUrlFactory().create(
+    $provide.provider('ngObibaMicaSearchTemplateUrl', new ngObibaMica.NgObibaMicaTemplateUrlFactory().create(
       {
         search: {header: null, footer: null},
         searchStudiesResultTable: {template: null},
@@ -1911,264 +2258,18 @@ ngObibaMica.search
       }
     ));
   }])
-  .config(['$provide', '$injector', function ($provide) {
+  .config(['$provide', function ($provide) {
     $provide.provider('ngObibaMicaSearch', function () {
-      var parentThis = this;
-      var localeResolver = ['LocalizedValues', function (LocalizedValues) {
-        return LocalizedValues.getLocal();
-      }];
-      var optionsResolver;
-      var options = {
-        searchLayout: 'new',
-        taxonomyPanelOptions: {
-          network: {
-            taxonomies: {'Mica_network': {trKey: 'properties'}}
-          },
-          study: {
-            taxonomies: {'Mica_study': {trKey: 'properties'}}
-          },
-          dataset: {
-            taxonomies: {'Mica_dataset': {trKey: 'properties'}}
-          },
-          variable : {
-            taxonomies: {
-              'Mlstr_area': {weight: 0},
-              'Scales': {weight: 1},
-              'Mlstr_additional': {weight: 2},
-              'Mica_variable': {trKey: 'properties', weight: 3}
-            }
-          },
-          fieldsToFilter : ngObibaMica.search.FIELDS_TO_FILTER
-        },
-        obibaListOptions: {
-          countCaption: true,
-          searchForm: true,
-          supplInfoDetails: true,
-          trimmedDescription: true
-        },
-        targetTabsOrder: [QUERY_TARGETS.VARIABLE, QUERY_TARGETS.DATASET, QUERY_TARGETS.STUDY, QUERY_TARGETS.NETWORK],
-        searchTabsOrder: [DISPLAY_TYPES.LIST, DISPLAY_TYPES.COVERAGE, DISPLAY_TYPES.GRAPHICS],
-        resultTabsOrder: [QUERY_TARGETS.VARIABLE, QUERY_TARGETS.DATASET, QUERY_TARGETS.STUDY, QUERY_TARGETS.NETWORK],
-        showAllFacetedTaxonomies: true,
-        showFacetTermsWithZeroCount: false,
-        showSearchBox: true,
-        showSearchBrowser: true,
-        showSearchRefreshButton: false,
-        variableTaxonomiesOrder: [],
-        studyTaxonomiesOrder: [],
-        datasetTaxonomiesOrder: [],
-        networkTaxonomiesOrder: [],
-        hideNavigate: [],
-        hideSearch: ['studyId', 'dceId', 'datasetId', 'networkId'],
-        variables: {
-          showSearchTab: true,
-          listPageSize: 20,
-          variablesColumn: {
-            showVariablesTypeColumn: true,
-            showVariablesStudiesColumn: true,
-            showVariablesDatasetsColumn: true,
-            showDatasetsStudiesColumn: true,
-            showDatasetsVariablesColumn: true
-          }
-        },
-        datasets: {
-          showSearchTab: true,
-          listPageSize: 20,
-          showDatasetsSearchFilter: true,
-          datasetsColumn: {
-            showDatasetsAcronymColumn: true,
-            showDatasetsTypeColumn: true,
-            showDatasetsNetworkColumn: true,
-            showDatasetsStudiesColumn: true,
-            showDatasetsVariablesColumn: true
-          },
-          fields: [
-            'acronym.*',
-            'name.*',
-            'variableType',
-            'studyTable.studyId',
-            'studyTable.project',
-            'studyTable.table',
-            'studyTable.populationId',
-            'studyTable.dataCollectionEventId',
-            'harmonizationTable.studyId',
-            'harmonizationTable.project',
-            'harmonizationTable.table',
-            'harmonizationTable.populationId'
-          ]
-        },
-        studies: {
-          showSearchTab: true,
-          listPageSize: 20,
-          showStudiesSearchFilter: true,
-          studiesColumn: {
-            showStudiesDesignColumn: true,
-            showStudiesQuestionnaireColumn: true,
-            showStudiesPmColumn: true,
-            showStudiesBioColumn: true,
-            showStudiesOtherColumn: true,
-            showStudiesParticipantsColumn: true,
-            showStudiesNetworksColumn: true,
-            showStudiesStudyDatasetsColumn: true,
-            showStudiesHarmonizationDatasetsColumn: true,
-            showStudiesVariablesColumn: false,
-            showStudiesStudyVariablesColumn: true,
-            showStudiesDataschemaVariablesColumn: true
-          },
-          fields: [
-            'acronym.*',
-            'name.*',
-            'model.methods.design',
-            'populations.dataCollectionEvents.model.dataSources',
-            'model.numberOfParticipants.participant'
-          ]
-        },
-        networks: {
-          showSearchTab: true,
-          listPageSize: 20,
-          networksColumn: {
-            showNetworksStudiesColumn: true,
-            showNetworksStudyDatasetColumn: true,
-            showNetworksHarmonizationDatasetColumn: true,
-            showNetworksVariablesColumn: false,
-            showNetworksStudyVariablesColumn: true,
-            showNetworksDataschemaVariablesColumn: true
-          },
-          fields: [
-            'acronym.*',
-            'name.*',
-            'studyIds'
-          ]
-        },
-        coverage: {
-          groupBy: {
-            study: true,
-            dce: true,
-            dataset: true
-          }
-        }
-      };
+      var optionsWrapper = new ngObibaMica.search.NgObibaMicaSearchOptionsWrapper();
 
-      this.setLocaleResolver = function(resolver) {
-        localeResolver = resolver;
-      };
-
-      this.setOptionsResolver = function(resolver) {
-        optionsResolver = resolver;
-      };
-
-      function sanitizeFieldsToFilter(valueFieldsToFilter){
-        if (valueFieldsToFilter) {
-          return valueFieldsToFilter.filter(function(valueField) {
-            return ngObibaMica.search.FIELDS_TO_FILTER.indexOf(valueField) > -1;
-          });
-        }
-      return null;
+      function initialize(options) {
+        optionsWrapper.setOptions(options);
       }
 
-      this.setOptions = function (value) {
-        options = angular.merge(options, value);
-        //NOTICE: angular.merge merges arrays by position. Overriding manually.
-        options.targetTabsOrder = value.targetTabsOrder || options.targetTabsOrder;
-        options.searchTabsOrder = value.searchTabsOrder || options.searchTabsOrder;
-        options.resultTabsOrder = value.resultTabsOrder || options.resultTabsOrder;
-        options.variableTaxonomiesOrder = value.variableTaxonomiesOrder || options.variableTaxonomiesOrder;
-        options.studyTaxonomiesOrder = value.studyTaxonomiesOrder || options.studyTaxonomiesOrder;
-        options.datasetTaxonomiesOrder = value.datasetTaxonomiesOrder || options.datasetTaxonomiesOrder;
-        options.networkTaxonomiesOrder = value.networkTaxonomiesOrder || options.networkTaxonomiesOrder;
-        options.hideNavigate = value.hideNavigate || options.hideNavigate;
-        options.hideSearch = value.hideSearch || options.hideSearch;
-        //TODO: Needs a better mechanism for setting options
-        options.studies.fields = value.studies && value.studies.fields || options.studies.fields;
-        options.networks.fields = value.networks && value.networks.fields || options.networks.fields;
-        options.datasets.fields = value.datasets && value.datasets.fields || options.datasets.fields;
-        if(value.taxonomyPanelOptions){
-          options.taxonomyPanelOptions.fieldsToFilter = sanitizeFieldsToFilter(value.taxonomyPanelOptions.fieldsToFilter) || options.taxonomyPanelOptions.fieldsToFilter;
-        }
-        if(value.studies && value.studies.obibaListOptions){
-          options.obibaListOptions.countCaption = value.studies.obibaListOptions.studiesCountCaption === 0  ? value.studies.obibaListOptions.studiesCountCaption : true;
-          options.obibaListOptions.searchForm = value.studies.obibaListOptions.studiesSearchForm === 0 ? value.studies.obibaListOptions.studiesSearchForm : true;
-          options.obibaListOptions.supplInfoDetails = value.studies.obibaListOptions.studiesSupplInfoDetails === 0 ? value.studies.obibaListOptions.studiesSupplInfoDetails : true;
-          options.obibaListOptions.trimmedDescription = value.studies.obibaListOptions.studiesTrimmedDescription === 0 ? value.studies.obibaListOptions.studiesTrimmedDescription : true;
-          options.searchLayout = value.searchLayout ? value.searchLayout : options.searchLayout;
-        }
-      };
-
-      this.$get = ['$q', '$injector', function ngObibaMicaSearchFactory($q, $injector) {
-
-        function removeItemByValue(array, value) {
-          var index = array.indexOf(value);
-          if (index > -1) {
-            array.splice(index, 1);
-          }
-          return array;
-        }
-
-        function normalizeOptions() {
-          options.coverage.groupBy.study = options.coverage.groupBy.study && options.studies.showSearchTab;
-          options.coverage.groupBy.dce = options.coverage.groupBy.study && options.coverage.groupBy.dce;
-          var canShowCoverage = Object.keys(options.coverage.groupBy).filter(function(canShow) {
-              return options.coverage.groupBy[canShow];
-            }).length > 0;
-
-          if (!canShowCoverage) {
-            removeItemByValue(options.searchTabsOrder, DISPLAY_TYPES.COVERAGE);
-          }
-
-          if (!options.networks.showSearchTab) {
-            removeItemByValue(options.targetTabsOrder, QUERY_TARGETS.NETWORK);
-            removeItemByValue(options.resultTabsOrder, QUERY_TARGETS.NETWORK);
-          }
-
-          if (!options.studies.showSearchTab) {
-            removeItemByValue(options.searchTabsOrder, DISPLAY_TYPES.GRAPHICS);
-            removeItemByValue(options.targetTabsOrder, QUERY_TARGETS.STUDY);
-            removeItemByValue(options.resultTabsOrder, QUERY_TARGETS.STUDY);
-          }
-        }
-
-        function resolveOptions() {
-          $q.when($injector.invoke(optionsResolver), function (opts) {
-            parentThis.setOptions(opts);
-            normalizeOptions();
-          });
-        }
-
-        if (optionsResolver) {
-          resolveOptions();
-        } else {
-          normalizeOptions();
-        }
-
-        return {
-          getLocale: function(success, error) {
-            return $q.when($injector.invoke(localeResolver), success, error);
-          },
-          getOptions: function() {
-            return options;
-          },
-          getDefaultListPageSize: function(target) {
-            switch (target) {
-              case QUERY_TARGETS.VARIABLE:
-                return options.variables.listPageSize;
-              case QUERY_TARGETS.DATASET:
-                return options.datasets.listPageSize;
-              case QUERY_TARGETS.STUDY:
-                return options.studies.listPageSize;
-              case QUERY_TARGETS.NETWORK:
-                return options.networks.listPageSize;
-            }
-            return 20;
-          },
-          toggleHideSearchNavigate: function (vocabulary) {
-            var index = options.hideNavigate.indexOf(vocabulary.name);
-            if (index > -1) {
-              options.hideNavigate.splice(index, 1);
-            } else {
-              options.hideNavigate.push(vocabulary.name);
-            }
-          }
-        };
+      this.initialize = initialize;
+      this.$get = ['$q', '$translate', 'ObibaServerConfigResource',
+        function($q, $translate, ObibaServerConfigResource) {
+        return new ngObibaMica.search.ObibaMicaSearchOptionsService($q, $translate, optionsWrapper, ObibaServerConfigResource);
       }];
     });
   }])
@@ -4889,7 +4990,7 @@ ngObibaMica.search
     'TaxonomyResource',
     'VocabularyResource',
     'ngObibaMicaSearchTemplateUrl',
-    'ngObibaMicaSearch',
+    'ObibaServerConfigResource',
     'JoinQuerySearchResource',
     'JoinQueryCoverageResource',
     'AlertService',
@@ -4903,6 +5004,7 @@ ngObibaMica.search
     'LocaleStringUtils',
     'StringUtils',
     'EntitySuggestionRqlUtilityService',
+    'options',
     function ($scope,
               $rootScope,
               $timeout,
@@ -4916,7 +5018,7 @@ ngObibaMica.search
               TaxonomyResource,
               VocabularyResource,
               ngObibaMicaSearchTemplateUrl,
-              ngObibaMicaSearch,
+              ObibaServerConfigResource,
               JoinQuerySearchResource,
               JoinQueryCoverageResource,
               AlertService,
@@ -4929,9 +5031,10 @@ ngObibaMica.search
               VocabularyService,
               LocaleStringUtils,
               StringUtils,
-              EntitySuggestionRqlUtilityService) {
+              EntitySuggestionRqlUtilityService,
+              options) {
 
-      $scope.options = ngObibaMicaSearch.getOptions();
+      $scope.options = options;
       var cookiesSearchHelp = 'micaHideSearchHelpText';
       var cookiesClassificationHelp = 'micaHideClassificationHelpBox';
 
@@ -5965,6 +6068,12 @@ ngObibaMica.search
       $scope.toggleFullscreen = function() {
         $scope.isFullscreen = !$scope.isFullscreen;
       };
+      $scope.isSearchAvailable = true;
+      ObibaServerConfigResource.get(function(micaConfig){
+        $scope.isSearchAvailable = !micaConfig.isSingleStudyEnabled ||
+          (micaConfig.isNetworkEnabled && !micaConfig.isSingleNetworkEnabled) ||
+          micaConfig.isCollectedDatasetEnabled || micaConfig.isHarmonizedDatasetEnabled;
+      });
 
       $scope.$on('$locationChangeSuccess', function (event, newLocation, oldLocation) {
         initSearchTabs();
@@ -8473,7 +8582,14 @@ ngObibaMica.search
         .when('/search', {
           templateUrl: 'search/views/search-layout.html',
           controller: 'SearchController',
-          reloadOnSearch: false
+          reloadOnSearch: false,
+          resolve: {
+            // This will delay the loading of the search config until the options are all resolved; the result is
+            // injected to the SearchController.
+            options: ['ngObibaMicaSearch', function (ngObibaMicaSearch) {
+              return ngObibaMicaSearch.getOptionsAsyn();
+            }]
+          }
         })
         .when('/classifications', {
           templateUrl: 'search/views/classifications.html',
@@ -15023,22 +15139,27 @@ angular.module("search/views/result-tabs-order-template-view.html", []).run(["$t
 angular.module("search/views/search-layout.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-layout.html",
     "<div>\n" +
-    "  <div class=\"container alert-fixed-position\">\n" +
-    "    <obiba-alert id=\"SearchController\"></obiba-alert>\n" +
+    "  <div class=\"alert alert-warning\" ng-if=\"!isSearchAvailable\">\n" +
+    "    <span translate>search.search-not-available</span>\n" +
     "  </div>\n" +
-    "\n" +
-    "  <div class=\"alert-growl-container\">\n" +
-    "    <obiba-alert id=\"SearchControllerGrowl\"></obiba-alert>\n" +
-    "  </div>\n" +
-    "\n" +
-    "  <div ng-if=\"searchHeaderTemplateUrl\" ng-include=\"searchHeaderTemplateUrl\"></div>\n" +
-    "\n" +
-    "  <div ng-switch on=\"search.layout\">\n" +
-    "    <div ng-switch-when=\"old\">\n" +
-    "      <ng-include  src=\"'search/views/search.html'\"></ng-include>\n" +
+    "  <div ng-if=\"isSearchAvailable\">\n" +
+    "    <div class=\"container alert-fixed-position\">\n" +
+    "      <obiba-alert id=\"SearchController\"></obiba-alert>\n" +
     "    </div>\n" +
-    "    <div ng-switch-default>\n" +
-    "      <ng-include src=\"'search/views/search2.html'\"></ng-include>\n" +
+    "\n" +
+    "    <div class=\"alert-growl-container\">\n" +
+    "      <obiba-alert id=\"SearchControllerGrowl\"></obiba-alert>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div ng-if=\"searchHeaderTemplateUrl\" ng-include=\"searchHeaderTemplateUrl\"></div>\n" +
+    "\n" +
+    "    <div ng-switch on=\"search.layout\">\n" +
+    "      <div ng-switch-when=\"old\">\n" +
+    "        <ng-include  src=\"'search/views/search.html'\"></ng-include>\n" +
+    "      </div>\n" +
+    "      <div ng-switch-default>\n" +
+    "        <ng-include src=\"'search/views/search2.html'\"></ng-include>\n" +
+    "      </div>\n" +
     "    </div>\n" +
     "  </div>\n" +
     "</div>");
