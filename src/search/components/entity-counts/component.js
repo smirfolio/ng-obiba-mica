@@ -13,10 +13,11 @@
 ngObibaMica.search.EntityCountsController = function() {
   var ctrl = this;
   function getTotalHits(entity){
-    if (!ctrl.result.list || !ctrl.result.list[entity + 'ResultDto']) {
+    if (!ctrl.result[entity + 'TotalCount']) {
       return '';
     }
-    return ctrl.result.list[entity + 'ResultDto'].totalHits;
+
+    return ctrl.result[entity + 'TotalCount'].hits;
   }
 
   function selectType(entity) {
