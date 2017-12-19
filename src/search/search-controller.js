@@ -727,11 +727,7 @@ ngObibaMica.search
           $scope.search.display = display;
           $scope.search.query = query;
           $scope.search.rqlQuery = RqlQueryService.parseQuery(query);
-          // TODO remove or add to UI as admin config or user config
-          $scope.search.layout =
-            setLayout(search.layout ?
-              search.layout :
-              ($scope.options.searchLayout ? $scope.options.searchLayout : 'layout2'));
+          $scope.search.layout = setLayout(search.layout ? search.layout : $scope.options.resolveLayout());
 
           return true;
         } catch (e) {

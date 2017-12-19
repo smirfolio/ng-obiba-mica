@@ -2196,7 +2196,13 @@ ngObibaMica.search.ObibaMicaSearchOptionsService = function($q, $translate, opti
         optionsWrapper.setOptions(updatedOptions);
         normalizeOptions();
 
-        deferred.resolve(optionsWrapper.getOptions());
+        var resolvedOptions = optionsWrapper.getOptions();
+        resolvedOptions.resolveLayout = function() {
+          return resolvedOptions.listLayout ? resolvedOptions.listLayout :
+              resolvedOptions.searchLayout ? resolvedOptions.searchLayout : 'layout2';
+        };
+
+        deferred.resolve(resolvedOptions);
         resolved = true;
       });
 
@@ -5290,11 +5296,7 @@ ngObibaMica.search
           $scope.search.display = display;
           $scope.search.query = query;
           $scope.search.rqlQuery = RqlQueryService.parseQuery(query);
-          // TODO remove or add to UI as admin config or user config
-          $scope.search.layout =
-            setLayout(search.layout ?
-              search.layout :
-              ($scope.options.searchLayout ? $scope.options.searchLayout : 'layout2'));
+          $scope.search.layout = setLayout(search.layout ? search.layout : $scope.options.resolveLayout());
 
           return true;
         } catch (e) {
