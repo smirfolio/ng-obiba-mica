@@ -34,7 +34,7 @@ ngObibaMica.search.FIELDS_TO_FILTER = ['title', 'description', 'keywords'];
  */
 ngObibaMica.search.NgObibaMicaSearchOptionsWrapper = function() {
   var options = {
-    searchLayout: 'new',
+    searchLayout: 'layout2',
     taxonomyPanelOptions: {
       network: {
         taxonomies: {'Mica_network': {trKey: 'properties'}}
@@ -271,6 +271,7 @@ ngObibaMica.search.ObibaMicaSearchOptionsService = function($q, $translate, opti
         var hasMultipleStudies =  !micaConfig.isSingleStudyEnabled || micaConfig.isHarmonizedDatasetEnabled;
         var hasMultipleDatasets = micaConfig.isCollectedDatasetEnabled || micaConfig.isHarmonizedDatasetEnabled;
         var updatedOptions = {
+          searchLayout: micaConfig.searchLayout,
           locale: micaConfig.languages || $translate.use(),
           showSearchRefreshButton: true,
           networks: {

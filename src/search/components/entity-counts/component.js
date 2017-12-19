@@ -13,7 +13,7 @@
 ngObibaMica.search.EntityCountsController = function() {
   var ctrl = this;
   function getTotalHits(entity){
-    if (!ctrl.result[entity + 'TotalCount']) {
+    if (!ctrl.result || !ctrl.result[entity + 'TotalCount']) {
       return '';
     }
 
