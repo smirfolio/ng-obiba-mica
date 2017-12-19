@@ -22,6 +22,7 @@
       var obibaUtils = new obiba.utils.NgObibaStringUtils();
       var cleanQuery = obibaUtils.cleanDoubleQuotesLeftUnclosed(query);
       cleanQuery = obibaUtils.cleanOrEscapeSpecialLuceneBrackets(cleanQuery);
+      cleanQuery = obibaUtils.cleanSpecialLuceneCharacters(cleanQuery);
 
       if (entityType && query && cleanQuery.length > 1) {
         return DocumentSuggestionResource.query({locale: $translate.use(), documentType: entityType, query: cleanQuery})
@@ -70,6 +71,7 @@
       var obibaUtils = new obiba.utils.NgObibaStringUtils();
       var cleanSuggestion = obibaUtils.cleanDoubleQuotesLeftUnclosed(suggestion);
       cleanSuggestion = obibaUtils.cleanOrEscapeSpecialLuceneBrackets(cleanSuggestion);
+      cleanSuggestion = obibaUtils.cleanSpecialLuceneCharacters(cleanSuggestion);
 
       $rootScope.$new().$emit('ngObibaMicaSearch.searchSuggestion',
           cleanSuggestion, target, withSpecificFields);
