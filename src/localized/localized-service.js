@@ -12,8 +12,7 @@
 
 ngObibaMica.localized
 
-  .service('LocalizedValues',
-    function () {
+  .service('LocalizedValues',['$translate' ,function ($translate) {
       var self = this;
       this.for = function (values, lang, keyLang, keyValue) {
         if (angular.isArray(values)) {
@@ -33,13 +32,13 @@ ngObibaMica.localized
               return self.for(values, langs.length === 1 ? langs[0] : 'en', keyLang, keyValue);
             }
           }
-  
+
         } else if (angular.isObject(values)) {
           return self.for(Object.keys(values).map(function(k) {
             return {lang: k, value: values[k]};
           }), lang, keyLang, keyValue);
         }
-        
+
         return '';
       };
 
@@ -59,12 +58,8 @@ ngObibaMica.localized
         return rval;
       };
 
-      this.getLocal = function () {
-        return 'en';
-      };
-
       this.formatNumber = function (val) {
-        return (typeof val === 'undefined' && val === null && typeof val !== 'number') ? val : val.toLocaleString(this.getLocal());
+        return (typeof val === 'undefined' && val === null && typeof val !== 'number') ? val : val.toLocaleString($translate.use());
       };
 
       this.arrayToObject = function (values) {
@@ -92,7 +87,8 @@ ngObibaMica.localized
         }
         return rval.length === 0 ? undefined : rval;
       };
-    })
+    }]
+    )
 
   .service('LocalizedSchemaFormService', ['$filter', function ($filter) {
 
