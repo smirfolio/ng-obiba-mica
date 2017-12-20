@@ -13471,11 +13471,11 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/compon
     "      <a href ng-click=\"$ctrl.selectTaxonomy(taxonomy)\">\n" +
     "        <span\n" +
     "          uib-popover=\"{{taxonomy.info.description | localizedString}}\"\n" +
-    "          popover-title=\"{{taxonomy.info.title | translate}}\"\n" +
+    "          popover-title=\"{{taxonomy.info.trKey ? (taxonomy.info.trKey | translate) : (taxonomy.info.title | localizedString)}}\"\n" +
     "          popover-placement=\"bottom\"\n" +
     "          popover-trigger=\"'mouseenter'\"\n" +
     "          popover-popup-delay=\"250\">\n" +
-    "          {{taxonomy.info.trKey ? (taxonomy.info.trKey  | translate) : (taxonomy.info.title | localizedString)}}\n" +
+    "          {{taxonomy.info.trKey ? (taxonomy.info.trKey | translate) : (taxonomy.info.title | localizedString)}}\n" +
     "        </span>\n" +
     "        <span ng-if=\"taxonomy.state.isLoading()\" class=\"loading\"></span>\n" +
     "        <span class=\"pull-right\"><i class=\"fa fa-chevron-right\"></i></span>\n" +
