@@ -682,7 +682,7 @@ ngObibaMica.search
       }
 
       function canExecuteWithEmptyQuery() {
-        return $scope.search.layout === 'new' || $scope.search.query;
+        return $scope.search.layout === 'layout2' || $scope.search.query;
       }
 
       function validateType(type) {
@@ -727,11 +727,7 @@ ngObibaMica.search
           $scope.search.display = display;
           $scope.search.query = query;
           $scope.search.rqlQuery = RqlQueryService.parseQuery(query);
-          // TODO remove or add to UI as admin config or user config
-          $scope.search.layout =
-            setLayout(search.layout ?
-              search.layout :
-              ($scope.options.searchLayout ? $scope.options.searchLayout : 'new'));
+          $scope.search.layout = setLayout(search.layout ? search.layout : $scope.options.resolveLayout());
 
           return true;
         } catch (e) {
@@ -747,7 +743,7 @@ ngObibaMica.search
       }
 
       function setLayout(layout) {
-        return layout ? (['old', 'new'].indexOf(layout) > -1 ? layout : 'new') : 'new';
+        return layout ? (['layout1', 'layout2'].indexOf(layout) > -1 ? layout : 'layout2') : 'layout2';
       }
 
       var clearSearchQuery = function () {
@@ -1446,7 +1442,7 @@ ngObibaMica.search
 
       $scope.search = {
         selectedCriteria: null,
-        layout: 'new',
+        layout: 'layout2',
         pagination: {},
         query: null,
         advanced: false,

@@ -1923,7 +1923,7 @@ ngObibaMica.search.FIELDS_TO_FILTER = ['title', 'description', 'keywords'];
  */
 ngObibaMica.search.NgObibaMicaSearchOptionsWrapper = function() {
   var options = {
-    searchLayout: 'new',
+    searchLayout: 'layout2',
     taxonomyPanelOptions: {
       network: {
         taxonomies: {'Mica_network': {trKey: 'properties'}}
@@ -2160,6 +2160,7 @@ ngObibaMica.search.ObibaMicaSearchOptionsService = function($q, $translate, opti
         var hasMultipleStudies =  !micaConfig.isSingleStudyEnabled || micaConfig.isHarmonizedDatasetEnabled;
         var hasMultipleDatasets = micaConfig.isCollectedDatasetEnabled || micaConfig.isHarmonizedDatasetEnabled;
         var updatedOptions = {
+          searchLayout: micaConfig.searchLayout,
           locale: micaConfig.languages || $translate.use(),
           showSearchRefreshButton: true,
           networks: {
@@ -2195,7 +2196,13 @@ ngObibaMica.search.ObibaMicaSearchOptionsService = function($q, $translate, opti
         optionsWrapper.setOptions(updatedOptions);
         normalizeOptions();
 
-        deferred.resolve(optionsWrapper.getOptions());
+        var resolvedOptions = optionsWrapper.getOptions();
+        resolvedOptions.resolveLayout = function() {
+          return resolvedOptions.listLayout ? resolvedOptions.listLayout :
+              resolvedOptions.searchLayout ? resolvedOptions.searchLayout : 'layout2';
+        };
+
+        deferred.resolve(resolvedOptions);
         resolved = true;
       });
 
@@ -5244,7 +5251,7 @@ ngObibaMica.search
       }
 
       function canExecuteWithEmptyQuery() {
-        return $scope.search.layout === 'new' || $scope.search.query;
+        return $scope.search.layout === 'layout2' || $scope.search.query;
       }
 
       function validateType(type) {
@@ -5289,11 +5296,7 @@ ngObibaMica.search
           $scope.search.display = display;
           $scope.search.query = query;
           $scope.search.rqlQuery = RqlQueryService.parseQuery(query);
-          // TODO remove or add to UI as admin config or user config
-          $scope.search.layout =
-            setLayout(search.layout ?
-              search.layout :
-              ($scope.options.searchLayout ? $scope.options.searchLayout : 'new'));
+          $scope.search.layout = setLayout(search.layout ? search.layout : $scope.options.resolveLayout());
 
           return true;
         } catch (e) {
@@ -5309,7 +5312,7 @@ ngObibaMica.search
       }
 
       function setLayout(layout) {
-        return layout ? (['old', 'new'].indexOf(layout) > -1 ? layout : 'new') : 'new';
+        return layout ? (['layout1', 'layout2'].indexOf(layout) > -1 ? layout : 'layout2') : 'layout2';
       }
 
       var clearSearchQuery = function () {
@@ -6008,7 +6011,7 @@ ngObibaMica.search
 
       $scope.search = {
         selectedCriteria: null,
-        layout: 'new',
+        layout: 'layout2',
         pagination: {},
         query: null,
         advanced: false,
@@ -9454,7 +9457,7 @@ ngObibaMica.search
 ngObibaMica.search.EntityCountsController = function() {
   var ctrl = this;
   function getTotalHits(entity){
-    if (!ctrl.result[entity + 'TotalCount']) {
+    if (!ctrl.result || !ctrl.result[entity + 'TotalCount']) {
       return '';
     }
 
@@ -15156,7 +15159,7 @@ angular.module("search/views/search-layout.html", []).run(["$templateCache", fun
     "    <div ng-if=\"searchHeaderTemplateUrl\" ng-include=\"searchHeaderTemplateUrl\"></div>\n" +
     "\n" +
     "    <div ng-switch on=\"search.layout\">\n" +
-    "      <div ng-switch-when=\"old\">\n" +
+    "      <div ng-switch-when=\"layout1\">\n" +
     "        <ng-include  src=\"'search/views/search.html'\"></ng-include>\n" +
     "      </div>\n" +
     "      <div ng-switch-default>\n" +
