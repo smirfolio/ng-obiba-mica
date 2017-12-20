@@ -19,6 +19,6 @@ ngObibaMica.localized
   }])
   .filter('localizedString', ['$translate', 'LocalizedValues', function ($translate, LocalizedValues) {
     return function (input) {
-      return LocalizedValues.forLocale(input, $translate.use()) || $translate.instant(input);
+      return LocalizedValues.forLocale(input, $translate.use());
     };
   }]);
