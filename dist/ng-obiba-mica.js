@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-12-19
+ * Date: 2017-12-20
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8628,15 +8628,11 @@ ngObibaMica.search
    * ]
    * @constructor
    */
-  ngObibaMica.search.MetaTaxonomyParser = function(config, LocalizedValues, locale) {
-
-    function translateTitle(title) {
-      return LocalizedValues.forLocale(title, locale);
-    }
+  ngObibaMica.search.MetaTaxonomyParser = function(config) {
 
     function parseTerms(targetConfig, terms) {
       return terms.map(function(taxonomy, index) {
-        var title = targetConfig.taxonomies[taxonomy.name].trKey || translateTitle(taxonomy.title);
+        var title = targetConfig.taxonomies[taxonomy.name].trKey || taxonomy.title;
         return {
           state: new ngObibaMica.search.PanelTaxonomyState(index+''),
           info: {name: taxonomy.name || '', title: title || '', description: taxonomy.description || ''},
@@ -8661,7 +8657,6 @@ ngObibaMica.search
     }
 
     this.config = config;
-    this.translateTitle = translateTitle;
     this.parseTerms = parseTerms;
     this.createResultObject = createResultObject;
     this.sortTaxonomies = sortTaxonomies;
@@ -8936,13 +8931,9 @@ ngObibaMica.search
 'use strict';
 
 (function() {
-ngObibaMica.search.MetaTaxonomyService = function($q, $translate, TaxonomyResource, ngObibaMicaSearch, LocalizedValues) {
+ngObibaMica.search.MetaTaxonomyService = function($q, $translate, TaxonomyResource, ngObibaMicaSearch) {
   var taxonomyPanelOptions = ngObibaMicaSearch.getOptions().taxonomyPanelOptions;
-  var parser =
-    new ngObibaMica.search.MetaTaxonomyParser(
-      taxonomyPanelOptions,
-      LocalizedValues,
-      $translate.use());
+  var parser = new ngObibaMica.search.MetaTaxonomyParser(taxonomyPanelOptions);
 
 
   /**
@@ -9007,7 +8998,6 @@ ngObibaMica.search
     '$translate',
     'TaxonomyResource',
     'ngObibaMicaSearch',
-    'LocalizedValues',
     ngObibaMica.search.MetaTaxonomyService
   ]);
 
@@ -11278,7 +11268,7 @@ ngObibaMica.localized
   }])
   .filter('localizedString', ['$translate', 'LocalizedValues', function ($translate, LocalizedValues) {
     return function (input) {
-      return LocalizedValues.forLocale(input, $translate.use());
+      return LocalizedValues.forLocale(input, $translate.use()) || $translate.instant(input);
     };
   }]);
 ;/*
@@ -13482,7 +13472,7 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/compon
     "        popover-placement=\"bottom\"\n" +
     "        popover-trigger=\"'mouseenter'\"\n" +
     "        popover-popup-delay=\"250\">\n" +
-    "          {{taxonomy.info.title | translate}}\n" +
+    "          {{taxonomy.info.title | localizedString}}\n" +
     "        </span> <span ng-if=\"taxonomy.state.isLoading()\" class=\"loading\"></span><span class=\"pull-right\"><i class=\"fa fa-chevron-right\"></i>\n" +
     "</span>\n" +
     "      </a>\n" +

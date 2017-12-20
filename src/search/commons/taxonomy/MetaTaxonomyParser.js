@@ -26,15 +26,11 @@
    * ]
    * @constructor
    */
-  ngObibaMica.search.MetaTaxonomyParser = function(config, LocalizedValues, locale) {
-
-    function translateTitle(title) {
-      return LocalizedValues.forLocale(title, locale);
-    }
+  ngObibaMica.search.MetaTaxonomyParser = function(config) {
 
     function parseTerms(targetConfig, terms) {
       return terms.map(function(taxonomy, index) {
-        var title = targetConfig.taxonomies[taxonomy.name].trKey || translateTitle(taxonomy.title);
+        var title = targetConfig.taxonomies[taxonomy.name].trKey || taxonomy.title;
         return {
           state: new ngObibaMica.search.PanelTaxonomyState(index+''),
           info: {name: taxonomy.name || '', title: title || '', description: taxonomy.description || ''},
@@ -59,7 +55,6 @@
     }
 
     this.config = config;
-    this.translateTitle = translateTitle;
     this.parseTerms = parseTerms;
     this.createResultObject = createResultObject;
     this.sortTaxonomies = sortTaxonomies;
