@@ -17,7 +17,8 @@
                                                         DocumentSuggestionResource,
                                                         RqlQueryService,
                                                         EntitySuggestionRqlUtilityService,
-                                                        AlertBuilder) {
+                                                        AlertService,
+                                                        ServerErrorUtils) {
 
     function suggest(entityType, query) {
       var obibaUtils = new obiba.utils.NgObibaStringUtils();
@@ -37,7 +38,13 @@
 
             return parsedResponse;
           }, function(response) {
-            AlertBuilder.newBuilder().response(response).build();
+            AlertService.alert({
+              id: 'SearchController',
+              type: 'danger',
+              msg: ServerErrorUtils.buildMessage(response),
+              delay: 5000
+            });
+
           });
       } else {
         return [];
@@ -155,7 +162,9 @@
       '$location',
       '$translate',
       'DocumentSuggestionResource',
-      'RqlQueryService', 'EntitySuggestionRqlUtilityService', 'AlertBuilder',
+      'RqlQueryService', 'EntitySuggestionRqlUtilityService',
+      'AlertService',
+      'ServerErrorUtils',
       ngObibaMica.search.EntitySuggestionService
     ]);
 

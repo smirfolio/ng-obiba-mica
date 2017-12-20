@@ -59,7 +59,8 @@
         entityType: '<',
         rqlQuery: '<',
         withSpecificFields: '@',
-        placeholderText: '@'
+        placeholderText: '@',
+        showButton: '<'
       },
       templateUrl: 'search/components/entity-search-typeahead/component.html',
       controller: ['EntitySuggestionService', ngObibaMica.search.Controller]
