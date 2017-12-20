@@ -8632,12 +8632,19 @@ ngObibaMica.search
 
     function parseTerms(targetConfig, terms) {
       return terms.map(function(taxonomy, index) {
-        var title = targetConfig.taxonomies[taxonomy.name].trKey || taxonomy.title;
-        return {
+        var result = {
           state: new ngObibaMica.search.PanelTaxonomyState(index+''),
-          info: {name: taxonomy.name || '', title: title || '', description: taxonomy.description || ''},
+          info: {name: taxonomy.name || '', title: taxonomy.title || '', description: taxonomy.description || ''},
           taxonomies: [taxonomy]
         };
+
+        var taxonomyConfig = targetConfig.taxonomies[taxonomy.name];
+
+        if (taxonomyConfig.hasOwnProperty('trKey')) {
+          result.info.trKey = taxonomyConfig.trKey;
+        }
+
+        return result;
       }); 
     }
 
@@ -8694,7 +8701,7 @@ ngObibaMica.search
         info: {
           name: scales.name,
           names: scales.terms.map(function(t){return t.name;}),
-          title: this.translateTitle(scales.title),
+          title: scales.title,
           description: scales.description || ''
         },
         taxonomies: scales.terms
@@ -11264,7 +11271,7 @@ ngObibaMica.localized
   }])
   .filter('localizedString', ['$translate', 'LocalizedValues', function ($translate, LocalizedValues) {
     return function (input) {
-      return LocalizedValues.forLocale(input, $translate.use()) || $translate.instant(input);
+      return LocalizedValues.forLocale(input, $translate.use());
     };
   }]);
 ;/*
@@ -13463,14 +13470,15 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/compon
     "    <li role=\"presentation\" ng-repeat=\"taxonomy in $ctrl.metaTaxonomy.taxonomies\" ng-class=\"{'active': taxonomy.state.isActive() && $ctrl.showTaxonomyPanel}\">\n" +
     "      <a href ng-click=\"$ctrl.selectTaxonomy(taxonomy)\">\n" +
     "        <span\n" +
-    "        uib-popover=\"{{taxonomy.info.description | localizedString}}\"\n" +
-    "        popover-title=\"{{taxonomy.info.title | translate}}\"\n" +
-    "        popover-placement=\"bottom\"\n" +
-    "        popover-trigger=\"'mouseenter'\"\n" +
-    "        popover-popup-delay=\"250\">\n" +
-    "          {{taxonomy.info.title | localizedString}}\n" +
-    "        </span> <span ng-if=\"taxonomy.state.isLoading()\" class=\"loading\"></span><span class=\"pull-right\"><i class=\"fa fa-chevron-right\"></i>\n" +
-    "</span>\n" +
+    "          uib-popover=\"{{taxonomy.info.description | localizedString}}\"\n" +
+    "          popover-title=\"{{taxonomy.info.title | translate}}\"\n" +
+    "          popover-placement=\"bottom\"\n" +
+    "          popover-trigger=\"'mouseenter'\"\n" +
+    "          popover-popup-delay=\"250\">\n" +
+    "          {{taxonomy.info.trKey ? (taxonomy.info.trKey  | translate) : (taxonomy.info.title | localizedString)}}\n" +
+    "        </span>\n" +
+    "        <span ng-if=\"taxonomy.state.isLoading()\" class=\"loading\"></span>\n" +
+    "        <span class=\"pull-right\"><i class=\"fa fa-chevron-right\"></i></span>\n" +
     "      </a>\n" +
     "    </li>\n" +
     "  </ul>\n" +
