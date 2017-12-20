@@ -11,13 +11,9 @@
 'use strict';
 
 (function() {
-ngObibaMica.search.MetaTaxonomyService = function($q, $translate, TaxonomyResource, ngObibaMicaSearch, LocalizedValues) {
+ngObibaMica.search.MetaTaxonomyService = function($q, $translate, TaxonomyResource, ngObibaMicaSearch) {
   var taxonomyPanelOptions = ngObibaMicaSearch.getOptions().taxonomyPanelOptions;
-  var parser =
-    new ngObibaMica.search.MetaTaxonomyParser(
-      taxonomyPanelOptions,
-      LocalizedValues,
-      $translate.use());
+  var parser = new ngObibaMica.search.MetaTaxonomyParser(taxonomyPanelOptions);
 
 
   /**
@@ -82,7 +78,6 @@ ngObibaMica.search
     '$translate',
     'TaxonomyResource',
     'ngObibaMicaSearch',
-    'LocalizedValues',
     ngObibaMica.search.MetaTaxonomyService
   ]);
 
