@@ -189,7 +189,7 @@
     }
 
     function sortVocabularyTerms(vocabulary, locale) {
-      sortFilteredVocabularyTerms(vocabulary.terms, locale ? locale : $translate.$use());
+      sortFilteredVocabularyTerms(vocabulary, vocabulary.terms, locale ? locale : $translate.$use());
     }
 
     this.filter = filter;

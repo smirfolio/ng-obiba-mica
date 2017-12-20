@@ -306,14 +306,7 @@ ngObibaMica.search.ObibaMicaSearchOptionsService = function($q, $translate, opti
         };
         optionsWrapper.setOptions(updatedOptions);
         normalizeOptions();
-
-        var resolvedOptions = optionsWrapper.getOptions();
-        resolvedOptions.resolveLayout = function() {
-          return resolvedOptions.listLayout ? resolvedOptions.listLayout :
-              resolvedOptions.searchLayout ? resolvedOptions.searchLayout : 'layout2';
-        };
-
-        deferred.resolve(resolvedOptions);
+        deferred.resolve(optionsWrapper.getOptions());
         resolved = true;
       });
 

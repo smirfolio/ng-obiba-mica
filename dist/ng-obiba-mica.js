@@ -2195,14 +2195,7 @@ ngObibaMica.search.ObibaMicaSearchOptionsService = function($q, $translate, opti
         };
         optionsWrapper.setOptions(updatedOptions);
         normalizeOptions();
-
-        var resolvedOptions = optionsWrapper.getOptions();
-        resolvedOptions.resolveLayout = function() {
-          return resolvedOptions.listLayout ? resolvedOptions.listLayout :
-              resolvedOptions.searchLayout ? resolvedOptions.searchLayout : 'layout2';
-        };
-
-        deferred.resolve(resolvedOptions);
+        deferred.resolve(optionsWrapper.getOptions());
         resolved = true;
       });
 
@@ -4317,7 +4310,13 @@ ngObibaMica.search
 
   .factory('DocumentSuggestionResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
-      return $resource(ngObibaMicaUrl.getUrl('DocumentSuggestion'));
+      return $resource(ngObibaMicaUrl.getUrl('DocumentSuggestion'), {}, {
+        'query': {
+          method: 'GET',
+          errorHandler: true,
+          isArray: true
+        }
+      });
     }])
 
   .service('StudyFilterShortcutService', ['$q', '$location', '$translate', 'RqlQueryService',
@@ -5281,6 +5280,11 @@ ngObibaMica.search
         return $scope.searchTabsOrder[0] || DISPLAY_TYPES.LIST;
       }
 
+      function resolveLayout(resolvedOptions) {
+        return resolvedOptions.listLayout ? resolvedOptions.listLayout :
+            resolvedOptions.searchLayout ? resolvedOptions.searchLayout : 'layout2';
+      }
+
       function validateQueryData() {
         try {
           var search = $location.search();
@@ -5296,7 +5300,7 @@ ngObibaMica.search
           $scope.search.display = display;
           $scope.search.query = query;
           $scope.search.rqlQuery = RqlQueryService.parseQuery(query);
-          $scope.search.layout = setLayout(search.layout ? search.layout : $scope.options.resolveLayout());
+          $scope.search.layout = setLayout(search.layout ? search.layout : resolveLayout($scope.options));
 
           return true;
         } catch (e) {
@@ -8785,7 +8789,8 @@ ngObibaMica.search
                                                         $translate,
                                                         DocumentSuggestionResource,
                                                         RqlQueryService,
-                                                        EntitySuggestionRqlUtilityService) {
+                                                        EntitySuggestionRqlUtilityService,
+                                                        AlertBuilder) {
 
     function suggest(entityType, query) {
       var obibaUtils = new obiba.utils.NgObibaStringUtils();
@@ -8804,6 +8809,8 @@ ngObibaMica.search
             }
 
             return parsedResponse;
+          }, function(response) {
+            AlertBuilder.newBuilder().response(response).build();
           });
       } else {
         return [];
@@ -8921,7 +8928,7 @@ ngObibaMica.search
       '$location',
       '$translate',
       'DocumentSuggestionResource',
-      'RqlQueryService', 'EntitySuggestionRqlUtilityService',
+      'RqlQueryService', 'EntitySuggestionRqlUtilityService', 'AlertBuilder',
       ngObibaMica.search.EntitySuggestionService
     ]);
 
@@ -9269,7 +9276,7 @@ ngObibaMica.search
     }
 
     function sortVocabularyTerms(vocabulary, locale) {
-      sortFilteredVocabularyTerms(vocabulary.terms, locale ? locale : $translate.$use());
+      sortFilteredVocabularyTerms(vocabulary, vocabulary.terms, locale ? locale : $translate.$use());
     }
 
     this.filter = filter;
@@ -12802,7 +12809,8 @@ angular.module("lists/views/input-search-widget/input-search-widget-template.htm
     "                placeholder-text=\"global.list-search-placeholder\"\n" +
     "                target=\"target\"\n" +
     "                rql-query=\"rqlQuery\"\n" +
-    "                entity-type=\"type\"></entity-search-typeahead>\n" +
+    "                entity-type=\"type\">\n" +
+    "        </entity-search-typeahead>\n" +
     "    </div>\n" +
     "    <div class=\"pull-left voffset2 hoffset2\">\n" +
     "        <small><a href ng-href=\"{{navigateToSearchPage()}}\">\n" +
