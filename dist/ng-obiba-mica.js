@@ -8790,7 +8790,8 @@ ngObibaMica.search
                                                         DocumentSuggestionResource,
                                                         RqlQueryService,
                                                         EntitySuggestionRqlUtilityService,
-                                                        AlertBuilder) {
+                                                        AlertService,
+                                                        ServerErrorUtils) {
 
     function suggest(entityType, query) {
       var obibaUtils = new obiba.utils.NgObibaStringUtils();
@@ -8810,7 +8811,13 @@ ngObibaMica.search
 
             return parsedResponse;
           }, function(response) {
-            AlertBuilder.newBuilder().response(response).build();
+            AlertService.alert({
+              id: 'SearchController',
+              type: 'danger',
+              msg: ServerErrorUtils.buildMessage(response),
+              delay: 5000
+            });
+
           });
       } else {
         return [];
@@ -8928,7 +8935,9 @@ ngObibaMica.search
       '$location',
       '$translate',
       'DocumentSuggestionResource',
-      'RqlQueryService', 'EntitySuggestionRqlUtilityService', 'AlertBuilder',
+      'RqlQueryService', 'EntitySuggestionRqlUtilityService',
+      'AlertService',
+      'ServerErrorUtils',
       ngObibaMica.search.EntitySuggestionService
     ]);
 
@@ -9550,7 +9559,8 @@ ngObibaMica.search
         entityType: '<',
         rqlQuery: '<',
         withSpecificFields: '@',
-        placeholderText: '@'
+        placeholderText: '@',
+        showButton: '<'
       },
       templateUrl: 'search/components/entity-search-typeahead/component.html',
       controller: ['EntitySuggestionService', ngObibaMica.search.Controller]
@@ -13424,26 +13434,26 @@ angular.module("search/components/entity-counts/component.html", []).run(["$temp
 angular.module("search/components/entity-search-typeahead/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/entity-search-typeahead/component.html",
     "<div class=\"input-group\">\n" +
-    "    <div class=\"form-group has-feedback \">\n" +
-    "        <input type=\"search\"\n" +
-    "               ng-model=\"$ctrl.model\"\n" +
-    "               ng-attr-placeholder=\"{{$ctrl.placeholderText | translate}}\"\n" +
-    "               uib-typeahead=\"suggestion for suggestion in $ctrl.suggest($viewValue)\"\n" +
-    "               typeahead-focus-first=\"false\"\n" +
-    "               typeahead-on-select=\"$ctrl.select($item)\"\n" +
-    "               ng-keyup=\"$ctrl.onKeyUp($event)\"\n" +
-    "               class=\"form-control\">\n" +
-    "        <span ng-if=\"$ctrl.model\"\n" +
-    "              ng-click=\"$ctrl.clear()\"\n" +
-    "              class=\"form-control-feedback form-control-clear width-initial height-initial padding-right-10\"><i\n" +
-    "                class=\"fa fa-times\"></i>\n" +
+    "  <div class=\"form-group has-feedback \">\n" +
+    "    <input type=\"search\"\n" +
+    "           ng-model=\"$ctrl.model\"\n" +
+    "           ng-attr-placeholder=\"{{$ctrl.placeholderText | translate}}\"\n" +
+    "           uib-typeahead=\"suggestion for suggestion in $ctrl.suggest($viewValue)\"\n" +
+    "           typeahead-focus-first=\"false\"\n" +
+    "           typeahead-on-select=\"$ctrl.select($item)\"\n" +
+    "           ng-keyup=\"$ctrl.onKeyUp($event)\"\n" +
+    "           class=\"form-control\">\n" +
+    "    <span ng-if=\"$ctrl.model\"\n" +
+    "          ng-click=\"$ctrl.clear()\"\n" +
+    "          class=\"form-control-feedback form-control-clear width-initial height-initial padding-right-10\">\n" +
+    "        <i class=\"fa fa-times\"></i>\n" +
+    "    </span>\n" +
+    "  </div>\n" +
+    "  <span ng-if=\"$ctrl.showButton === true\" class=\"input-group-btn\">\n" +
+    "    <button type=\"submit\" class=\"btn btn-default\" ng-click=\"$ctrl.select($ctrl.model)\">\n" +
+    "      <i class=\"fa fa-search\"></i>\n" +
+    "    </button>\n" +
     "  </span>\n" +
-    "    </div>\n" +
-    "    <span class=\"input-group-btn\">\n" +
-    "            <button type=\"submit\" class=\"btn btn-default\" ng-click=\"search()\">\n" +
-    "              <i class=\"fa fa-search\"></i>\n" +
-    "            </button>\n" +
-    "          </span>\n" +
     "</div>");
 }]);
 
