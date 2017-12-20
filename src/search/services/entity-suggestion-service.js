@@ -16,7 +16,8 @@
                                                         $translate,
                                                         DocumentSuggestionResource,
                                                         RqlQueryService,
-                                                        EntitySuggestionRqlUtilityService) {
+                                                        EntitySuggestionRqlUtilityService,
+                                                        AlertBuilder) {
 
     function suggest(entityType, query) {
       var obibaUtils = new obiba.utils.NgObibaStringUtils();
@@ -35,6 +36,8 @@
             }
 
             return parsedResponse;
+          }, function(response) {
+            AlertBuilder.newBuilder().response(response).build();
           });
       } else {
         return [];
@@ -152,7 +155,7 @@
       '$location',
       '$translate',
       'DocumentSuggestionResource',
-      'RqlQueryService', 'EntitySuggestionRqlUtilityService',
+      'RqlQueryService', 'EntitySuggestionRqlUtilityService', 'AlertBuilder',
       ngObibaMica.search.EntitySuggestionService
     ]);
 

@@ -712,6 +712,11 @@ ngObibaMica.search
         return $scope.searchTabsOrder[0] || DISPLAY_TYPES.LIST;
       }
 
+      function resolveLayout(resolvedOptions) {
+        return resolvedOptions.listLayout ? resolvedOptions.listLayout :
+            resolvedOptions.searchLayout ? resolvedOptions.searchLayout : 'layout2';
+      }
+
       function validateQueryData() {
         try {
           var search = $location.search();
@@ -727,7 +732,7 @@ ngObibaMica.search
           $scope.search.display = display;
           $scope.search.query = query;
           $scope.search.rqlQuery = RqlQueryService.parseQuery(query);
-          $scope.search.layout = setLayout(search.layout ? search.layout : $scope.options.resolveLayout());
+          $scope.search.layout = setLayout(search.layout ? search.layout : resolveLayout($scope.options));
 
           return true;
         } catch (e) {

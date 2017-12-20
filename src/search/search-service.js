@@ -125,7 +125,13 @@ ngObibaMica.search
 
   .factory('DocumentSuggestionResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
-      return $resource(ngObibaMicaUrl.getUrl('DocumentSuggestion'));
+      return $resource(ngObibaMicaUrl.getUrl('DocumentSuggestion'), {}, {
+        'query': {
+          method: 'GET',
+          errorHandler: true,
+          isArray: true
+        }
+      });
     }])
 
   .service('StudyFilterShortcutService', ['$q', '$location', '$translate', 'RqlQueryService',
