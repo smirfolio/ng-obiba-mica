@@ -12797,18 +12797,17 @@ angular.module("graphics/views/tables-directive.html", []).run(["$templateCache"
 angular.module("lists/views/input-search-widget/input-search-widget-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("lists/views/input-search-widget/input-search-widget-template.html",
     "<form class=\"list-search-widget\">\n" +
-    "      <div class=\"form-group pull-left\">\n" +
-    "          <entity-search-typeahead\n" +
-    "            placeholder-text=\"global.list-search-placeholder\"\n" +
-    "            target=\"target\"\n" +
-    "            rql-query=\"rqlQuery\"\n" +
-    "            entity-type=\"type\"></entity-search-typeahead>\n" +
-    "        </div>\n" +
-    "      </div>\n" +
+    "    <div class=\"form-group pull-left\">\n" +
+    "        <entity-search-typeahead\n" +
+    "                placeholder-text=\"global.list-search-placeholder\"\n" +
+    "                target=\"target\"\n" +
+    "                rql-query=\"rqlQuery\"\n" +
+    "                entity-type=\"type\"></entity-search-typeahead>\n" +
+    "    </div>\n" +
     "    <div class=\"pull-left voffset2 hoffset2\">\n" +
-    "      <small><a href ng-href=\"{{navigateToSearchPage()}}\">\n" +
-    "        {{'search.advanced-button' | translate}}\n" +
-    "      </a></small>\n" +
+    "        <small><a href ng-href=\"{{navigateToSearchPage()}}\">\n" +
+    "            {{'search.advanced-button' | translate}}\n" +
+    "        </a></small>\n" +
     "    </div>\n" +
     "</form>\n" +
     "");
@@ -13416,19 +13415,27 @@ angular.module("search/components/entity-counts/component.html", []).run(["$temp
 
 angular.module("search/components/entity-search-typeahead/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/entity-search-typeahead/component.html",
-    "<div class=\"form-group has-feedback \">\n" +
-    "  <input type=\"search\"\n" +
-    "         ng-model=\"$ctrl.model\"\n" +
-    "         ng-attr-placeholder=\"{{$ctrl.placeholderText | translate}}\"\n" +
-    "         uib-typeahead=\"suggestion for suggestion in $ctrl.suggest($viewValue)\"\n" +
-    "         typeahead-focus-first=\"false\"\n" +
-    "         typeahead-on-select=\"$ctrl.select($item)\"\n" +
-    "         ng-keyup=\"$ctrl.onKeyUp($event)\"\n" +
-    "         class=\"form-control\">\n" +
-    "  <span ng-if=\"$ctrl.model\"\n" +
-    "        ng-click=\"$ctrl.clear()\"\n" +
-    "        class=\"form-control-feedback form-control-clear width-initial height-initial padding-right-10\"><i class=\"fa fa-times\"></i>\n" +
+    "<div class=\"input-group\">\n" +
+    "    <div class=\"form-group has-feedback \">\n" +
+    "        <input type=\"search\"\n" +
+    "               ng-model=\"$ctrl.model\"\n" +
+    "               ng-attr-placeholder=\"{{$ctrl.placeholderText | translate}}\"\n" +
+    "               uib-typeahead=\"suggestion for suggestion in $ctrl.suggest($viewValue)\"\n" +
+    "               typeahead-focus-first=\"false\"\n" +
+    "               typeahead-on-select=\"$ctrl.select($item)\"\n" +
+    "               ng-keyup=\"$ctrl.onKeyUp($event)\"\n" +
+    "               class=\"form-control\">\n" +
+    "        <span ng-if=\"$ctrl.model\"\n" +
+    "              ng-click=\"$ctrl.clear()\"\n" +
+    "              class=\"form-control-feedback form-control-clear width-initial height-initial padding-right-10\"><i\n" +
+    "                class=\"fa fa-times\"></i>\n" +
     "  </span>\n" +
+    "    </div>\n" +
+    "    <span class=\"input-group-btn\">\n" +
+    "            <button type=\"submit\" class=\"btn btn-default\" ng-click=\"search()\">\n" +
+    "              <i class=\"fa fa-search\"></i>\n" +
+    "            </button>\n" +
+    "          </span>\n" +
     "</div>");
 }]);
 
