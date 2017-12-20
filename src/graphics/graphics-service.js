@@ -243,7 +243,7 @@ ngObibaMica.graphics
       };
     }])
 
-  .service('GraphicChartsQuery', ['RqlQueryService', 'RqlQueryUtils','LocalizedValues', function (RqlQueryService, RqlQueryUtils,LocalizedValues) {
+  .service('GraphicChartsQuery', ['RqlQueryService', 'RqlQueryUtils','$translate', function (RqlQueryService, RqlQueryUtils, $translate) {
     this.queryDtoBuilder = function (entityIds, entityType) {
       var query;
       if (!(entityIds) || entityIds === 'NaN') {
@@ -253,7 +253,7 @@ ngObibaMica.graphics
         query =  entityType + '(in(Mica_'+ entityType +'.id,(' + entityIds + ')))';
       }
       var localizedRqlQuery = angular.copy(RqlQueryService.parseQuery(query));
-      RqlQueryUtils.addLocaleQuery(localizedRqlQuery, LocalizedValues.getLocal());
+      RqlQueryUtils.addLocaleQuery(localizedRqlQuery, $translate.use());
       var localizedQuery = new RqlQuery().serializeArgs(localizedRqlQuery.args);
       return RqlQueryService.prepareGraphicsQuery(localizedQuery,
         ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'],

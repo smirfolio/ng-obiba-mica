@@ -531,7 +531,7 @@ ngObibaMica.search
         return prev;
       }, {});
       $scope.targets = [];
-      $scope.lang = LocalizedValues.getLocal();
+      $scope.lang = $translate.use();
       $scope.metaTaxonomy = TaxonomyResource.get({
         target: 'taxonomy',
         taxonomy: 'Mica_taxonomy'

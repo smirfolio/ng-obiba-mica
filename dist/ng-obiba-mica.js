@@ -5100,7 +5100,7 @@ ngObibaMica.search
         return prev;
       }, {});
       $scope.targets = [];
-      $scope.lang = LocalizedValues.getLocal();
+      $scope.lang = $translate.use();
       $scope.metaTaxonomy = TaxonomyResource.get({
         target: 'taxonomy',
         taxonomy: 'Mica_taxonomy'
@@ -10879,7 +10879,7 @@ ngObibaMica.graphics
       };
     }])
 
-  .service('GraphicChartsQuery', ['RqlQueryService', 'RqlQueryUtils','LocalizedValues', function (RqlQueryService, RqlQueryUtils,LocalizedValues) {
+  .service('GraphicChartsQuery', ['RqlQueryService', 'RqlQueryUtils','$translate', function (RqlQueryService, RqlQueryUtils, $translate) {
     this.queryDtoBuilder = function (entityIds, entityType) {
       var query;
       if (!(entityIds) || entityIds === 'NaN') {
@@ -10889,7 +10889,7 @@ ngObibaMica.graphics
         query =  entityType + '(in(Mica_'+ entityType +'.id,(' + entityIds + ')))';
       }
       var localizedRqlQuery = angular.copy(RqlQueryService.parseQuery(query));
-      RqlQueryUtils.addLocaleQuery(localizedRqlQuery, LocalizedValues.getLocal());
+      RqlQueryUtils.addLocaleQuery(localizedRqlQuery, $translate.use());
       var localizedQuery = new RqlQuery().serializeArgs(localizedRqlQuery.args);
       return RqlQueryService.prepareGraphicsQuery(localizedQuery,
         ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'],
@@ -11106,8 +11106,7 @@ ngObibaMica.localized
 
 ngObibaMica.localized
 
-  .service('LocalizedValues',
-    function () {
+  .service('LocalizedValues',['$translate' ,function ($translate) {
       var self = this;
       this.for = function (values, lang, keyLang, keyValue) {
         if (angular.isArray(values)) {
@@ -11127,13 +11126,13 @@ ngObibaMica.localized
               return self.for(values, langs.length === 1 ? langs[0] : 'en', keyLang, keyValue);
             }
           }
-  
+
         } else if (angular.isObject(values)) {
           return self.for(Object.keys(values).map(function(k) {
             return {lang: k, value: values[k]};
           }), lang, keyLang, keyValue);
         }
-        
+
         return '';
       };
 
@@ -11153,12 +11152,8 @@ ngObibaMica.localized
         return rval;
       };
 
-      this.getLocal = function () {
-        return 'en';
-      };
-
       this.formatNumber = function (val) {
-        return (typeof val === 'undefined' && val === null && typeof val !== 'number') ? val : val.toLocaleString(this.getLocal());
+        return (typeof val === 'undefined' && val === null && typeof val !== 'number') ? val : val.toLocaleString($translate.use());
       };
 
       this.arrayToObject = function (values) {
@@ -11186,7 +11181,8 @@ ngObibaMica.localized
         }
         return rval.length === 0 ? undefined : rval;
       };
-    })
+    }]
+    )
 
   .service('LocalizedSchemaFormService', ['$filter', function ($filter) {
 
