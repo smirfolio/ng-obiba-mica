@@ -81,15 +81,15 @@ ngObibaMica.search
         templateUrl: ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchNetworksResultTable'),
         link: function(scope) {
           function setInitialStudyFilterSelection() {
-            StudyFilterShortcutService.getStudyClassNameChoices().then(function (result) {
-              angular.extend(scope, result); // adds choseAll, choseIndividual and choseHarmonization functions
+            var result = StudyFilterShortcutService.getStudyClassNameChoices();
 
-              /* jshint bitwise: false */
-              scope.colSpans = {
-                datasets: (scope.optionsCols.showNetworksStudyDatasetColumn & scope.choseIndividual()) + (scope.optionsCols.showNetworksHarmonizationDatasetColumn & scope.choseHarmonization()),
-                variables: (scope.optionsCols.showNetworksStudyVariablesColumn & scope.choseIndividual()) + (scope.optionsCols.showNetworksDataschemaVariablesColumn & scope.choseHarmonization())
-              };
-            });
+            angular.extend(scope, result); // adds choseAll, choseIndividual and choseHarmonization functions
+
+            /* jshint bitwise: false */
+            scope.colSpans = {
+              datasets: (scope.optionsCols.showNetworksStudyDatasetColumn & result.choseIndividual()) + (scope.optionsCols.showNetworksHarmonizationDatasetColumn & result.choseHarmonization()),
+              variables: (scope.optionsCols.showNetworksStudyVariablesColumn & result.choseIndividual()) + (scope.optionsCols.showNetworksDataschemaVariablesColumn & result.choseHarmonization())
+            };
           }
 
           scope.options = ngObibaMicaSearch.getOptions().networks;
@@ -226,15 +226,14 @@ ngObibaMica.search
           }
 
           function setChoice() {
-            StudyFilterShortcutService.getStudyClassNameChoices().then(function (result) {
-              if (result.choseAll()) {
-                scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.ALL_STUDIES;
-              } else if (result.choseIndividual()) {
-                scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES;
-              } else if (result.choseHarmonization()) {
-                scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
-              }
-            });
+            var result = StudyFilterShortcutService.getStudyClassNameChoices();
+            if (result.choseAll()) {
+              scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.ALL_STUDIES;
+            } else if (result.choseIndividual()) {
+              scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES;
+            } else if (result.choseHarmonization()) {
+              scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
+            }
           }
 
           scope.$on('$locationChangeSuccess', function () {
@@ -318,9 +317,8 @@ ngObibaMica.search
         }
 
         function setInitialStudyFilterSelection() {
-          StudyFilterShortcutService.getStudyClassNameChoices().then(function (result) {
-            angular.extend(scope, result); // adds choseAll, choseIndividual and choseHarmonization functions
-          });
+          var result = StudyFilterShortcutService.getStudyClassNameChoices();
+          angular.extend(scope, result); // adds choseAll, choseIndividual and choseHarmonization functions
         }
 
         function getDatasourceTitles() {

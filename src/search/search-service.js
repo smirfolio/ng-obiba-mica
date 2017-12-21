@@ -134,71 +134,99 @@ ngObibaMica.search
       });
     }])
 
-  .service('StudyFilterShortcutService', ['$q', '$location', '$translate', 'RqlQueryService',
-    function ($q, $location, $translate, RqlQueryService) {
-      this.filter = function (choice, lang) {
-        RqlQueryService.createCriteria(RqlQueryService.parseQuery($location.search().query), lang).then(function (criteria) {
-          var parsedQuery = criteria.root.rqlQuery;
-          var studyClassNameQuery;
-          var studyClassNameItem = RqlQueryService.findCriteriaItemFromTreeById('study', 'Mica_study.className', criteria.root);
+  .service('StudyFilterShortcutService', ['$location', 'RqlQueryService',
+    function ($location, RqlQueryService) {
+      function getCurrentClassName(rqlQuery) {
+        rqlQuery = rqlQuery || RqlQueryService.parseQuery($location.search().query);
+        var targetQuery = RqlQueryService.findTargetQuery(QUERY_TARGETS.STUDY, rqlQuery);
+        var className;
 
-          if (studyClassNameItem) {
-            studyClassNameQuery = studyClassNameItem.rqlQuery;
+        if (targetQuery) {
+          className = RqlQueryService.findQueryInTargetByVocabulary(targetQuery, 'className');
+        }
+
+        return className;
+      }
+
+      function classNameQueryHasArgValue(className, argValue) {
+        return !className ||
+            (Array.isArray(className.args[1]) ? className.args[1].indexOf(argValue) > -1 : className.args[1] === argValue);
+      }
+
+      function classNameQueryHasStudyArg(className) {
+        return classNameQueryHasArgValue(className, 'Study');
+      }
+
+      function classNameQueryHasHarmonizationStudyArg(className) {
+        return classNameQueryHasArgValue(className, 'HarmonizationStudy');
+      }
+
+      function classNameQueryIsExists(className) {
+        return !className ||
+            className.name === RQL_NODE.EXISTS ||
+            (classNameQueryHasStudyArg(className) && classNameQueryHasHarmonizationStudyArg(className));
+      }
+
+      this.filter = function (choice) {
+        var parsedQuery = RqlQueryService.parseQuery($location.search().query);
+        var foundStudyClassNameQuery = getCurrentClassName(parsedQuery);
+        var studyClassNameQuery;
+
+        if (foundStudyClassNameQuery) {
+          studyClassNameQuery = foundStudyClassNameQuery;
+          if (studyClassNameQuery.name === RQL_NODE.EXISTS) {
+            studyClassNameQuery.name = RQL_NODE.IN;
+          }
+        } else {
+          studyClassNameQuery = new RqlQuery(RQL_NODE.IN);
+        }
+
+        studyClassNameQuery.args = ['Mica_study.className'];
+
+        switch (choice) {
+          case STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES:
+            studyClassNameQuery.args.push('Study');
+            break;
+          case STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES:
+            studyClassNameQuery.args.push('HarmonizationStudy');
+            break;
+          case STUDY_FILTER_CHOICES.ALL_STUDIES:
+            studyClassNameQuery.args.push(['Study', 'HarmonizationStudy']);
+            break;
+        }
+
+        if (!foundStudyClassNameQuery) {
+          var study = RqlQueryService.findTargetQuery(QUERY_TARGETS.STUDY, parsedQuery);
+          if (!study) {
+            study = new RqlQuery(QUERY_TARGETS.STUDY);
+            parsedQuery.args.push(study);
+          }
+
+          if (study.args.length > 0) {
+            var andStudyClassName = new RqlQuery(RQL_NODE.AND);
+            study.args.forEach(function (arg) { andStudyClassName.args.push(arg); });
+            andStudyClassName.args.push(studyClassNameQuery);
+            study.args = [andStudyClassName];
           } else {
-            studyClassNameQuery = new RqlQuery('in');
+            study.args = [studyClassNameQuery];
           }
+        }
 
-          studyClassNameQuery.args = ['Mica_study.className'];
-
-          switch (choice) {
-            case STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES:
-              studyClassNameQuery.args.push('Study');
-              break;
-            case STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES:
-              studyClassNameQuery.args.push('HarmonizationStudy');
-              break;
-            case STUDY_FILTER_CHOICES.ALL_STUDIES:
-              studyClassNameQuery.args.push(['Study', 'HarmonizationStudy']);
-              break;
-          }
-
-          if (!studyClassNameItem) {
-            var study = RqlQueryService.findTargetQuery(QUERY_TARGETS.STUDY, parsedQuery);
-            if (!study) {
-              study = new RqlQuery(QUERY_TARGETS.STUDY);
-              parsedQuery.args.push(study);
-            }
-
-            if (study.args.length > 0) {
-              var andStudyClassName = new RqlQuery('and');
-              study.args.forEach(function (arg) { andStudyClassName.args.push(arg); });
-              andStudyClassName.args.push(studyClassNameQuery);
-              study.args = [andStudyClassName];
-            } else {
-              study.args = [studyClassNameQuery];
-            }
-          }
-
-          $location.search('query', new RqlQuery().serializeArgs(parsedQuery.args));
-        });
+        $location.search('query', new RqlQuery().serializeArgs(parsedQuery.args));
       };
 
       this.getStudyClassNameChoices = function () {
-        return RqlQueryService.createCriteria(RqlQueryService.parseQuery($location.search().query), $translate.use()).then(function (criteria) {
-          var foundCriteriaItem = RqlQueryService.findCriteriaItemFromTreeById('study', 'Mica_study.className', criteria.root);
-
-          return {
-            choseAll: function () {
-              return !foundCriteriaItem || foundCriteriaItem.type === RQL_NODE.EXISTS || (foundCriteriaItem.selectedTerms.indexOf('Study') > -1 && foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1);
-            },
-            choseIndividual: function () {
-              return !foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('Study') > -1;
-            },
-            choseHarmonization: function () {
-              return !foundCriteriaItem || foundCriteriaItem.selectedTerms.indexOf('HarmonizationStudy') > -1;
-            }
-          };
-        });
+        return {
+          choseAll: function () {
+            return classNameQueryIsExists(getCurrentClassName());
+          },
+          choseIndividual: function () {
+            return classNameQueryHasStudyArg(getCurrentClassName());
+          },
+          choseHarmonization: function () {
+            return classNameQueryHasHarmonizationStudyArg(getCurrentClassName());
+          }
+        };
       };
     }
   ])
