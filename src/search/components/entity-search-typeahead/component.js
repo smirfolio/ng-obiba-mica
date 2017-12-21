@@ -60,7 +60,7 @@
         rqlQuery: '<',
         withSpecificFields: '@',
         placeholderText: '@',
-        showButton: '<'
+        showButton: '@'
       },
       templateUrl: 'search/components/entity-search-typeahead/component.html',
       controller: ['EntitySuggestionService', ngObibaMica.search.Controller]
