@@ -37,6 +37,26 @@
       });
     }
 
+    function findVocabularyInTaxonomy(target, taxonomyName, vocabularyName) {
+      var deferred = $q.defer();
+      var foundVocabulary = null;
+      TaxonomyResource.get({
+        target: target,
+        taxonomy: taxonomyName
+      }).$promise.then(function (taxonomy) {
+        taxonomy.vocabularies.some(function (v) {
+          if (v.name === vocabularyName || VocabularyService.vocabularyAlias(v) === vocabularyName) {
+            foundVocabulary = v;
+            return true;
+          }
+        });
+
+        deferred.resolve(foundVocabulary);
+      });
+
+      return deferred.promise;
+    }
+
     /**
      * @returns Returns a taxonomy for several names
      */
@@ -60,6 +80,7 @@
       return deferred.promise;
     }
 
+    this.findVocabularyInTaxonomy = findVocabularyInTaxonomy;
     this.getTaxonomy = getTaxonomy;
     this.getTaxonomies = getTaxonomies;
   };
