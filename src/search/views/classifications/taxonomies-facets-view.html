@@ -55,9 +55,9 @@
             <div ng-if="vocabulary.isNumeric" ng-controller="NumericVocabularyFacetController" class="form-group">
               <form novalidate class="form-inline"  ng-keypress="onKeypress($event)">
                 <div class="form-group form-group-sm">
-                  <label for="nav-{{vocabulary.name}}-from" translate>from</label>
+                  <label for="nav-{{vocabulary.name}}-from" translate>global.from</label>
                   <input type="number" class="form-control" id="nav-{{vocabulary.name}}-from" ng-model="from" placeholder="{{min}}" style="width:75px;">
-                  <label for="nav-{{vocabulary.name}}-to" translate>to</label>
+                  <label for="nav-{{vocabulary.name}}-to" translate>global.to</label>
                   <input type="number" class="form-control" id="nav-{{vocabulary.name}}-to" ng-model="to" placeholder="{{max}}" style="width:75px;">
                   <button class="btn btn-sm btn-default" ng-click="onKeypress($event)" ><i class="fa fa-chevron-right"></i></button>
                 </div>

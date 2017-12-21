@@ -14,7 +14,7 @@
         <i class="fa fa-times"></i>
     </span>
   </div>
-  <span ng-if="$ctrl.showButton === true" class="input-group-btn">
+  <span ng-show="$ctrl.showButton" class="input-group-btn">
     <button type="submit" class="btn btn-default" ng-click="$ctrl.select($ctrl.model)">
       <i class="fa fa-search"></i>
     </button>

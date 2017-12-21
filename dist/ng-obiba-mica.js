@@ -9658,7 +9658,7 @@ ngObibaMica.search
         rqlQuery: '<',
         withSpecificFields: '@',
         placeholderText: '@',
-        showButton: '<'
+        showButton: '@'
       },
       templateUrl: 'search/components/entity-search-typeahead/component.html',
       controller: ['EntitySuggestionService', ngObibaMica.search.Controller]
@@ -13547,7 +13547,7 @@ angular.module("search/components/entity-search-typeahead/component.html", []).r
     "        <i class=\"fa fa-times\"></i>\n" +
     "    </span>\n" +
     "  </div>\n" +
-    "  <span ng-if=\"$ctrl.showButton === true\" class=\"input-group-btn\">\n" +
+    "  <span ng-show=\"$ctrl.showButton\" class=\"input-group-btn\">\n" +
     "    <button type=\"submit\" class=\"btn btn-default\" ng-click=\"$ctrl.select($ctrl.model)\">\n" +
     "      <i class=\"fa fa-search\"></i>\n" +
     "    </button>\n" +
@@ -13997,9 +13997,9 @@ angular.module("search/views/classifications/taxonomies-facets-view.html", []).r
     "            <div ng-if=\"vocabulary.isNumeric\" ng-controller=\"NumericVocabularyFacetController\" class=\"form-group\">\n" +
     "              <form novalidate class=\"form-inline\"  ng-keypress=\"onKeypress($event)\">\n" +
     "                <div class=\"form-group form-group-sm\">\n" +
-    "                  <label for=\"nav-{{vocabulary.name}}-from\" translate>from</label>\n" +
+    "                  <label for=\"nav-{{vocabulary.name}}-from\" translate>global.from</label>\n" +
     "                  <input type=\"number\" class=\"form-control\" id=\"nav-{{vocabulary.name}}-from\" ng-model=\"from\" placeholder=\"{{min}}\" style=\"width:75px;\">\n" +
-    "                  <label for=\"nav-{{vocabulary.name}}-to\" translate>to</label>\n" +
+    "                  <label for=\"nav-{{vocabulary.name}}-to\" translate>global.to</label>\n" +
     "                  <input type=\"number\" class=\"form-control\" id=\"nav-{{vocabulary.name}}-to\" ng-model=\"to\" placeholder=\"{{max}}\" style=\"width:75px;\">\n" +
     "                  <button class=\"btn btn-sm btn-default\" ng-click=\"onKeypress($event)\" ><i class=\"fa fa-chevron-right\"></i></button>\n" +
     "                </div>\n" +
