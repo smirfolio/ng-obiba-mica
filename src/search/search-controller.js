@@ -2292,12 +2292,29 @@ ngObibaMica.search
     '$scope',
     '$location',
     '$q',
+    '$translate',
+    '$filter',
+    'LocalizedValues',
     'PageUrlService',
     'RqlQueryUtils',
     'RqlQueryService',
     'CoverageGroupByService',
     'StudyFilterShortcutService',
-    function ($scope, $location, $q, PageUrlService, RqlQueryUtils, RqlQueryService, CoverageGroupByService, StudyFilterShortcutService) {
+    'TaxonomyService',
+    'AlertService',
+    function ($scope,
+              $location,
+              $q,
+              $translate,
+              $filter,
+              LocalizedValues,
+              PageUrlService,
+              RqlQueryUtils,
+              RqlQueryService,
+              CoverageGroupByService,
+              StudyFilterShortcutService,
+              TaxonomyService,
+              AlertService) {
       var targetMap = {}, vocabulariesTermsMap = {};
 
       targetMap[BUCKET_TYPES.NETWORK] = QUERY_TARGETS.NETWORK;
@@ -2437,26 +2454,59 @@ ngObibaMica.search
         return '';
       }
 
-      function updateFilterCriteriaInternal(selected, fullCoverage) {
+      function updateFilterCriteriaInternal(selected) {
         var vocabulary = $scope.bucket.startsWith('dce') ? 'dceId' : 'id';
-        $q.all(selected.map(function (r) {
-          return RqlQueryService.createCriteriaItem(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary, r.value);
-        })).then(function (items) {
-          if (!items.length) {
-            return;
+        var growlMsgKey = 'search.criterion.created';
+
+        var rqlQuery = RqlQueryService.parseQuery($location.search().query);
+        var targetQuery = RqlQueryService.findTargetQuery(targetMap[$scope.bucket], rqlQuery);
+        if (!targetQuery) {
+          targetQuery = new RqlQuery(targetMap[$scope.bucket]);
+          rqlQuery.args.push(targetQuery);
+        }
+
+        var foundVocabularyQuery = RqlQueryService.findQueryInTargetByVocabulary(targetQuery, vocabulary);
+        var vocabularyQuery;
+
+        if (foundVocabularyQuery) {
+          growlMsgKey = 'search.criterion.updated';
+          vocabularyQuery = foundVocabularyQuery;
+          if (vocabularyQuery.name === RQL_NODE.EXISTS) {
+            vocabularyQuery.name = RQL_NODE.IN;
           }
+        } else {
+          vocabularyQuery = new RqlQuery(RQL_NODE.IN);
+        }
 
-          var selectionItem = items.reduce(function (prev, item) {
-            if (prev) {
-              RqlQueryService.updateCriteriaItem(prev, item);
-              return prev;
-            }
+        vocabularyQuery.args = ['Mica_' + targetMap[$scope.bucket] + '.' + vocabulary];
+        vocabularyQuery.args.push(selected.map(function (selection) { return selection.value; }));
 
-            item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
-            return item;
-          }, null);
-          $scope.onUpdateCriteria(selectionItem, 'variables', true, undefined, undefined, fullCoverage);
-        });
+        if (!foundVocabularyQuery) {
+          if (targetQuery.args.length > 0) {
+            var andQuery = new RqlQuery(RQL_NODE.AND);
+            targetQuery.args.forEach(function (arg) { andQuery.args.push(arg); });
+            andQuery.args.push(vocabularyQuery);
+            targetQuery.args = [andQuery];
+          } else {
+            targetQuery.args = [vocabularyQuery];
+          }
+        }
+
+        $location.search('query', new RqlQuery().serializeArgs(rqlQuery.args));
+
+        TaxonomyService.findVocabularyInTaxonomy(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary)
+            .then(function (foundVocabulary) {
+              AlertService.growl({
+                id: 'SearchControllerGrowl',
+                type: 'info',
+                msgKey: growlMsgKey,
+                msgArgs: [foundVocabulary ?
+                    LocalizedValues.forLocale(foundVocabulary.title, $translate.use()) :
+                    vocabulary, $filter('translate')('taxonomy.target.' + targetMap[$scope.bucket])],
+                delay: 3000
+              });
+            });
+
       }
 
       function splitIds() {
