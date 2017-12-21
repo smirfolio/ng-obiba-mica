@@ -2360,17 +2360,17 @@ ngObibaMica.search
       }
 
       function setInitialFilter() {
-        StudyFilterShortcutService.getStudyClassNameChoices().then(function (result) {
-          if (result.choseAll()) {
-            $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.ALL_STUDIES;
-          } else if (result.choseIndividual()) {
-            $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES;
-          } else if (result.choseHarmonization()) {
-            $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
-          }
+        var result = StudyFilterShortcutService.getStudyClassNameChoices();
 
-          angular.extend($scope, result);
-        });
+        if (result.choseAll()) {
+          $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.ALL_STUDIES;
+        } else if (result.choseIndividual()) {
+          $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES;
+        } else if (result.choseHarmonization()) {
+          $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
+        }
+
+        angular.extend($scope, result);
 
         var bucket = $location.search().bucket;
         if (bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE) {
