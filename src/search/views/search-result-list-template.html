@@ -16,7 +16,7 @@
             target-type-map="targetTypeMap">
     </result-tabs-order-count>
     <div class="voffset2" ng-class="{'pull-right': options.studies.showSearchTab, 'pull-left': !options.studies.showSearchTab, 'hoffset2': !options.studies.showSearchTab}">
-        <a target="_self" ng-if="type=='studies'" download class="btn btn-info" ng-href="{{getStudySpecificReportUrl()}}">
+        <a obiba-file-download url="getStudySpecificReportUrl()" target="_self" ng-if="type=='studies'" download class="btn btn-info" href>
             <i class="fa fa-download"></i> {{'report-group.study.button-name' | translate}}
         </a>
         <a obiba-file-download url="getReportUrl()" target="_self" download class="btn btn-info" href>

@@ -14320,8 +14320,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "        <a href class=\"btn btn-info btn-responsive\" ng-click=\"selectFullAndFilter()\" ng-hide=\"isFullCoverageImpossibleOrCoverageAlreadyFull()\">\n" +
     "          {{'search.coverage-select.full' | translate}}\n" +
     "        </a>\n" +
-    "        <a target=\"_self\" class=\"btn btn-info btn-responsive\"\n" +
-    "           ng-href=\"{{downloadUrl()}}\">\n" +
+    "        <a obiba-file-download url=\"downloadUrl()\" target=\"_self\" download class=\"btn btn-info btn-responsive\" href>\n" +
     "          <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
     "        </a>\n" +
     "      </span>\n" +
@@ -15334,7 +15333,7 @@ angular.module("search/views/search-result-list-template.html", []).run(["$templ
     "            target-type-map=\"targetTypeMap\">\n" +
     "    </result-tabs-order-count>\n" +
     "    <div class=\"voffset2\" ng-class=\"{'pull-right': options.studies.showSearchTab, 'pull-left': !options.studies.showSearchTab, 'hoffset2': !options.studies.showSearchTab}\">\n" +
-    "        <a target=\"_self\" ng-if=\"type=='studies'\" download class=\"btn btn-info\" ng-href=\"{{getStudySpecificReportUrl()}}\">\n" +
+    "        <a obiba-file-download url=\"getStudySpecificReportUrl()\" target=\"_self\" ng-if=\"type=='studies'\" download class=\"btn btn-info\" href>\n" +
     "            <i class=\"fa fa-download\"></i> {{'report-group.study.button-name' | translate}}\n" +
     "        </a>\n" +
     "        <a obiba-file-download url=\"getReportUrl()\" target=\"_self\" download class=\"btn btn-info\" href>\n" +
