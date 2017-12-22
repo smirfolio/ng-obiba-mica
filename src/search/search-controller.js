@@ -2055,7 +2055,7 @@ ngObibaMica.search
       $scope.localizeCriterion = function () {
         var rqlQuery = $scope.criterion.rqlQuery;
         if ((rqlQuery.name === RQL_NODE.IN || rqlQuery.name === RQL_NODE.OUT || rqlQuery.name === RQL_NODE.CONTAINS) && $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.length > 0) {
-          var sep = rqlQuery.name === RQL_NODE.IN ? ' | ' : ' + ';
+          var sep = rqlQuery.name === RQL_NODE.IN ? ' | ' : ' ';
           var prefix = rqlQuery.name === RQL_NODE.OUT ? '-' : '';
           return $scope.criterion.selectedTerms.map(function (t) {
             if (!$scope.criterion.vocabulary.terms) {
