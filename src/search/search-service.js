@@ -218,15 +218,9 @@ ngObibaMica.search
 
       this.getStudyClassNameChoices = function () {
         return {
-          choseAll: function () {
-            return classNameQueryIsExists(getCurrentClassName());
-          },
-          choseIndividual: function () {
-            return classNameQueryHasStudyArg(getCurrentClassName());
-          },
-          choseHarmonization: function () {
-            return classNameQueryHasHarmonizationStudyArg(getCurrentClassName());
-          }
+          choseAll:classNameQueryIsExists(getCurrentClassName()),
+          choseIndividual: classNameQueryHasStudyArg(getCurrentClassName()),
+          choseHarmonization: classNameQueryHasHarmonizationStudyArg(getCurrentClassName())
         };
       };
     }

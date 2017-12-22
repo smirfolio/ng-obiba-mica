@@ -2379,11 +2379,11 @@ ngObibaMica.search
       function setInitialFilter() {
         var result = StudyFilterShortcutService.getStudyClassNameChoices();
 
-        if (result.choseAll()) {
+        if (result.choseAll) {
           $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.ALL_STUDIES;
-        } else if (result.choseIndividual()) {
+        } else if (result.choseIndividual) {
           $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES;
-        } else if (result.choseHarmonization()) {
+        } else if (result.choseHarmonization) {
           $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
         }
 
