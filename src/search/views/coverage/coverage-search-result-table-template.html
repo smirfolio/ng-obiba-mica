@@ -87,8 +87,8 @@
       </tr>
       <tr>
         <th ng-if="bucket.startsWith('dce')" translate>search.coverage-dce-cols.study</th>
-        <th ng-if="bucket.startsWith('dce')" colspan="{{choseHarmonization() && !choseAll() ? 2 : 1}}" translate>search.coverage-dce-cols.population</th>
-        <th ng-if="bucket.startsWith('dce')" ng-hide="choseHarmonization() && !choseAll()" translate>search.coverage-dce-cols.dce</th>
+        <th ng-if="bucket.startsWith('dce')" colspan="{{choseHarmonization && !choseAll ? 2 : 1}}" translate>search.coverage-dce-cols.population</th>
+        <th ng-if="bucket.startsWith('dce')" ng-hide="choseHarmonization && !choseAll" translate>search.coverage-dce-cols.dce</th>
         <th ng-repeat="header in table.termHeaders">
           <span
             uib-popover="{{header.entity.descriptions[0].value}}"
@@ -108,7 +108,7 @@
         <td style="text-align: center">
           <input type="checkbox" ng-model="row.selected">
         </td>
-        <td ng-repeat="col in table.cols.ids[row.value]" colspan="{{$middle && (choseHarmonization() && !choseAll()) ? 2 : 1}}" ng-hide="col.id === '-' && (choseHarmonization() && !choseAll())">
+        <td ng-repeat="col in table.cols.ids[row.value]" colspan="{{$middle && (choseHarmonization && !choseAll) ? 2 : 1}}" ng-hide="col.id === '-' && (choseHarmonization && !choseAll)">
           <span ng-if="col.id === '-'">-</span>
           <a ng-if="col.rowSpan > 0 && col.id !== '-'" href="{{col.url ? col.url : ''}}"
             uib-popover-html="col.description === col.title ? null : col.description"

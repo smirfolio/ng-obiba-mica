@@ -137,6 +137,10 @@
     // use when suggestion is empty or null
     function removeFilteredMatchQueryFromTargetQuery(targetQuery) {
       var filterQuery = givenTargetQueryGetFilterQuery(targetQuery);
+      if (!filterQuery) {
+        return;
+      }
+
       if (filterQuery.args.length === 1 && filterQuery.args[0].name === RQL_NODE.MATCH) {
         targetQuery.args = targetQuery.args.filter(function (arg) {
           return arg.name !== RQL_NODE.FILTER;

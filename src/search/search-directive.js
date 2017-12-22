@@ -87,8 +87,8 @@ ngObibaMica.search
 
             /* jshint bitwise: false */
             scope.colSpans = {
-              datasets: (scope.optionsCols.showNetworksStudyDatasetColumn & result.choseIndividual()) + (scope.optionsCols.showNetworksHarmonizationDatasetColumn & result.choseHarmonization()),
-              variables: (scope.optionsCols.showNetworksStudyVariablesColumn & result.choseIndividual()) + (scope.optionsCols.showNetworksDataschemaVariablesColumn & result.choseHarmonization())
+              datasets: (scope.optionsCols.showNetworksStudyDatasetColumn & result.choseIndividual) + (scope.optionsCols.showNetworksHarmonizationDatasetColumn & result.choseHarmonization),
+              variables: (scope.optionsCols.showNetworksStudyVariablesColumn & result.choseIndividual) + (scope.optionsCols.showNetworksDataschemaVariablesColumn & result.choseHarmonization)
             };
           }
 
@@ -227,11 +227,11 @@ ngObibaMica.search
 
           function setChoice() {
             var result = StudyFilterShortcutService.getStudyClassNameChoices();
-            if (result.choseAll()) {
+            if (result.choseAll) {
               scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.ALL_STUDIES;
-            } else if (result.choseIndividual()) {
+            } else if (result.choseIndividual) {
               scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES;
-            } else if (result.choseHarmonization()) {
+            } else if (result.choseHarmonization) {
               scope.studyFilterSelection._selection = STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
             }
           }
