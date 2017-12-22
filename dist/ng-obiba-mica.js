@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-12-21
+ * Date: 2017-12-22
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -8662,23 +8662,28 @@ ngObibaMica.search
 ngObibaMica.search
   .config(['$routeProvider',
     function ($routeProvider) {
+      // This will be used to delay the loading of the search config until the options are all resolved; the result is
+      // injected to the SearchController.
+      var optionsResolve = ['ngObibaMicaSearch', function (ngObibaMicaSearch) {
+        return ngObibaMicaSearch.getOptionsAsyn();
+      }];
+
       $routeProvider
         .when('/search', {
           templateUrl: 'search/views/search-layout.html',
           controller: 'SearchController',
           reloadOnSearch: false,
           resolve: {
-            // This will delay the loading of the search config until the options are all resolved; the result is
-            // injected to the SearchController.
-            options: ['ngObibaMicaSearch', function (ngObibaMicaSearch) {
-              return ngObibaMicaSearch.getOptionsAsyn();
-            }]
+            options: optionsResolve
           }
         })
         .when('/classifications', {
           templateUrl: 'search/views/classifications.html',
           controller: 'SearchController',
-          reloadOnSearch: false
+          reloadOnSearch: false,
+          resolve: {
+            options: optionsResolve
+          }
         });
     }]);
 ;/*
