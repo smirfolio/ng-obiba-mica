@@ -6990,6 +6990,7 @@ ngObibaMica.search
         var search = $location.search();
         if (search.display && search.display === DISPLAY_TYPES.COVERAGE) {
           $scope.bucket = search.bucket ? search.bucket : CoverageGroupByService.defaultBucket();
+          $scope.bucketStartsWithDce = $scope.bucket.startsWith('dce');
           setInitialFilter();
         }
       }
@@ -11258,7 +11259,7 @@ ngObibaMica.localized
           }), lang, keyLang, keyValue);
         }
 
-        return '';
+        return '0';
       };
 
       this.forLocale = function (values, lang) {
@@ -14377,7 +14378,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "  <div ng-if=\"hasVariableTarget()\">\n" +
     "    <ul class=\"nav nav-pills pull-left\">\n" +
     "      <li ng-if=\"groupByOptions.canShowStudy() && groupByOptions.canShowDataset()\"\n" +
-    "        ng-class=\"{'active': bucket.startsWith('study') || bucket.startsWith('dce')}\" class=\"studies\">\n" +
+    "        ng-class=\"{'active': bucket.startsWith('study') || bucketStartsWithDce}\" class=\"studies\">\n" +
     "        <a href ng-click=\"selectTab('study')\" translate>{{groupByOptions.studyTitle()}}</a>\n" +
     "      </li>\n" +
     "      <li ng-if=\"groupByOptions.canShowStudy() && groupByOptions.canShowDataset()\"\n" +
@@ -14443,7 +14444,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "            </ul>\n" +
     "          </div>\n" +
     "        </th>\n" +
-    "        <th rowspan=\"{{bucket.startsWith('dce') ? 1 : 2}}\" colspan=\"{{table.cols.colSpan}}\" translate>\n" +
+    "        <th rowspan=\"{{bucketStartsWithDce ? 1 : 2}}\" colspan=\"{{table.cols.colSpan}}\" translate>\n" +
     "          {{'search.coverage-buckets.' + bucket}}\n" +
     "        </th>\n" +
     "        <th ng-repeat=\"header in table.vocabularyHeaders\" colspan=\"{{header.termsCount}}\">\n" +
@@ -14460,10 +14461,10 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "        </th>\n" +
     "      </tr>\n" +
     "      <tr>\n" +
-    "        <th ng-if=\"bucket.startsWith('dce')\" translate>search.coverage-dce-cols.study</th>\n" +
-    "        <th ng-if=\"bucket.startsWith('dce')\" colspan=\"{{choseHarmonization && !choseAll ? 2 : 1}}\" translate>search.coverage-dce-cols.population</th>\n" +
-    "        <th ng-if=\"bucket.startsWith('dce')\" ng-hide=\"choseHarmonization && !choseAll\" translate>search.coverage-dce-cols.dce</th>\n" +
-    "        <th ng-repeat=\"header in table.termHeaders\">\n" +
+    "        <th ng-if=\"bucketStartsWithDce\" translate>search.coverage-dce-cols.study</th>\n" +
+    "        <th ng-if=\"bucketStartsWithDce\" colspan=\"{{choseHarmonization && !choseAll ? 2 : 1}}\" translate>search.coverage-dce-cols.population</th>\n" +
+    "        <th ng-if=\"bucketStartsWithDce\" ng-hide=\"choseHarmonization && !choseAll\" translate>search.coverage-dce-cols.dce</th>\n" +
+    "        <th ng-repeat=\"header in ::table.termHeaders track by header.entity.name\">\n" +
     "          <span\n" +
     "            uib-popover=\"{{header.entity.descriptions[0].value}}\"\n" +
     "            popover-title=\"{{header.entity.titles[0].value}}\"\n" +
@@ -14478,39 +14479,39 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "      </tr>\n" +
     "      </thead>\n" +
     "      <tbody>\n" +
-    "      <tr ng-repeat=\"row in table.rows\" ng-if=\"showMissing || table.termHeaders.length == keys(row.hits).length\">\n" +
+    "      <tr ng-repeat=\"row in ::table.rows track by row.value\" ng-if=\"showMissing || table.termHeaders.length == row.hits.length\">\n" +
     "        <td style=\"text-align: center\">\n" +
     "          <input type=\"checkbox\" ng-model=\"row.selected\">\n" +
     "        </td>\n" +
-    "        <td ng-repeat=\"col in table.cols.ids[row.value]\" colspan=\"{{$middle && (choseHarmonization && !choseAll) ? 2 : 1}}\" ng-hide=\"col.id === '-' && (choseHarmonization && !choseAll)\">\n" +
+    "        <td ng-repeat=\"col in ::table.cols.ids[row.value]\" colspan=\"{{$middle && (choseHarmonization && !choseAll) ? 2 : 1}}\" ng-hide=\"col.id === '-' && (choseHarmonization && !choseAll)\">\n" +
     "          <span ng-if=\"col.id === '-'\">-</span>\n" +
-    "          <a ng-if=\"col.rowSpan > 0 && col.id !== '-'\" href=\"{{col.url ? col.url : ''}}\"\n" +
+    "          <a ng-hide=\"col.rowSpan === 0  || col.id === '-'\" href=\"{{col.url}}\"\n" +
     "            uib-popover-html=\"col.description === col.title ? null : col.description\"\n" +
     "            popover-title=\"{{col.title}}\"\n" +
     "            popover-placement=\"bottom\"\n" +
     "            popover-trigger=\"'mouseenter'\">{{col.title}}</a>\n" +
-    "          <div style=\"text-align: center\" ng-if=\"col.start && bucket.startsWith('dce')\">\n" +
+    "          <div style=\"text-align: center\" ng-if=\"col.start && bucketStartsWithDce\">\n" +
     "            <div>\n" +
-    "              <small class=\"help-block no-margin\" ng-if=\"col.end\">\n" +
-    "                {{col.start}} {{'to' | translate}} {{col.end}}\n" +
+    "              <small class=\"help-block no-margin\" ng-if=\"::col.end\">\n" +
+    "                {{::col.start}} {{'to' | translate}} {{::col.end}}\n" +
     "              </small>\n" +
     "              <small class=\"help-block no-margin\" ng-if=\"!col.end\">\n" +
-    "                {{col.start}}, {{'search.coverage-end-date-ongoing' | translate | lowercase}}\n" +
+    "                {{::col.start}}, {{'search.coverage-end-date-ongoing' | translate | lowercase}}\n" +
     "              </small>\n" +
     "            </div>\n" +
     "            <div class=\"progress no-margin\">\n" +
     "              <div class=\"progress-bar progress-bar-transparent\" role=\"progressbar\"\n" +
-    "                aria-valuenow=\"{{col.start}}\" aria-valuemin=\"{{col.min}}\"\n" +
-    "                aria-valuemax=\"{{col.start}}\" style=\"{{'width: ' + col.progressStart + '%'}}\">\n" +
+    "                aria-valuenow=\"{{::col.start}}\" aria-valuemin=\"{{::col.min}}\"\n" +
+    "                aria-valuemax=\"{{::col.start}}\" style=\"{{'width: ' + col.progressStart + '%'}}\">\n" +
     "              </div>\n" +
     "              <div class=\"{{'progress-bar progress-bar-' + col.progressClass}}\" role=\"progressbar\"\n" +
-    "                aria-valuenow=\"{{col.current}}\" aria-valuemin=\"{{col.start}}\"\n" +
-    "                aria-valuemax=\"{{col.end ? col.end : col.current}}\" style=\"{{'width: ' + col.progress + '%'}}\">\n" +
+    "                aria-valuenow=\"{{col.current}}\" aria-valuemin=\"{{::col.start}}\"\n" +
+    "                aria-valuemax=\"{{::col.end ? col.end : col.current}}\" style=\"{{'width: ' + col.progress + '%'}}\">\n" +
     "              </div>\n" +
     "            </div>\n" +
     "          </div>\n" +
     "        </td>\n" +
-    "        <td ng-repeat=\"h in table.termHeaders\" title=\"{{h.entity.titles[0].value}}\">\n" +
+    "        <td ng-repeat=\"h in ::table.termHeaders track by h.entity.name\" title=\"{{h.entity.titles[0].value}}\">\n" +
     "          <a href ng-click=\"updateCriteria(row.value, h, $index, 'variables')\"><span class=\"label label-info\"\n" +
     "            ng-if=\"row.hits[$index]\"><localized-number value=\"row.hits[$index]\"></localized-number></span></a>\n" +
     "          <span ng-if=\"!row.hits[$index]\">0</span>\n" +
@@ -14521,7 +14522,7 @@ angular.module("search/views/coverage/coverage-search-result-table-template.html
     "      <tr>\n" +
     "        <th></th>\n" +
     "        <th colspan=\"{{table.cols.colSpan}}\" translate>all</th>\n" +
-    "        <th ng-repeat=\"header in table.termHeaders\" title=\"{{header.entity.descriptions[0].value}}\">\n" +
+    "        <th ng-repeat=\"header in ::table.termHeaders track by header.entity.name\" title=\"{{header.entity.descriptions[0].value}}\">\n" +
     "          <a href ng-click=\"updateCriteria(null, header, $index, 'variables')\"><localized-number value=\"header.hits\"></localized-number></a>\n" +
     "        </th>\n" +
     "      </tr>\n" +
