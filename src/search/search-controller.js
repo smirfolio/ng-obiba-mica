@@ -2399,6 +2399,7 @@ ngObibaMica.search
         var search = $location.search();
         if (search.display && search.display === DISPLAY_TYPES.COVERAGE) {
           $scope.bucket = search.bucket ? search.bucket : CoverageGroupByService.defaultBucket();
+          $scope.bucketStartsWithDce = $scope.bucket.startsWith('dce');
           setInitialFilter();
         }
       }
