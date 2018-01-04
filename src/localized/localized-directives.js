@@ -36,10 +36,10 @@ ngObibaMica.localized
     return {
       restrict: 'E',
       scope: {number: '=value'},
-      template: '{{LocalizedValues.formatNumber(number)}}',
-      link: function($scope) {
-        $scope.LocalizedValues = LocalizedValues;
-      }
+      template: '{{::localizedNumber}}',
+      controller: ['$scope', function ($scope) {
+        $scope.localizedNumber = LocalizedValues.formatNumber($scope.number);
+      }]
     };
   }])
 

@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2017-12-22
+ * Date: 2018-01-04
  */
 /*
  * Copyright (c) 2017 OBiBa. All rights reserved.
@@ -11077,10 +11077,10 @@ ngObibaMica.localized
     return {
       restrict: 'E',
       scope: {number: '=value'},
-      template: '{{LocalizedValues.formatNumber(number)}}',
-      link: function($scope) {
-        $scope.LocalizedValues = LocalizedValues;
-      }
+      template: '{{::localizedNumber}}',
+      controller: ['$scope', function ($scope) {
+        $scope.localizedNumber = LocalizedValues.formatNumber($scope.number);
+      }]
     };
   }])
 
