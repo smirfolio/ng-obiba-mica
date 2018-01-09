@@ -39,7 +39,7 @@ ngObibaMica.localized
           }), lang, keyLang, keyValue);
         }
 
-        return '0';
+        return values || '';
       };
 
       this.forLocale = function (values, lang) {
