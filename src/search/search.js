@@ -360,6 +360,7 @@ ngObibaMica.search
         searchNetworksResultTable: {template: null},
         searchDatasetsResultTable: {template: null},
         searchCriteriaRegionTemplate: {template: null},
+        vocabularyFilterDetailHeading: {template: null},
         CriterionDropdownTemplate: {template: null},
         searchResultList: {template: null},
         searchInputList: {template: null},
