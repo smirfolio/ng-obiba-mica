@@ -1916,7 +1916,7 @@ ngObibaMica.search = angular.module('obiba.mica.search', [
     'templates-ngObibaMica'
   ]);
 
-ngObibaMica.search.FIELDS_TO_FILTER = ['title', 'description', 'keywords'];
+ngObibaMica.search.FIELDS_TO_FILTER = ['name', 'title', 'description', 'keywords'];
 
 /**
  * Defines the default search options, clients such as Drupal override these options.
@@ -11323,7 +11323,7 @@ ngObibaMica.localized
           }), lang, keyLang, keyValue);
         }
 
-        return '0';
+        return values || '';
       };
 
       this.forLocale = function (values, lang) {
