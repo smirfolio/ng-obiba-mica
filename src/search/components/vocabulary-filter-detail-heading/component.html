@@ -1,6 +1,6 @@
 <div class="panel-body vocabulary-filter-detail-heading">
     <div class="row">
-        <div class="col-xs-4 col-md-4">
+        <div class="col-xs-12 col-sm-12 col-lg-4">
             <input-search-filter
                     taxonomy-name="$ctrl.taxonomyName"
                     taxonomies-query="$ctrl.taxonomiesQuery"
@@ -9,7 +9,7 @@
                     on-filter-change="$ctrl.filterChange(queryString)">
             </input-search-filter>
         </div>
-        <div class="col-xs-7 col-md-7 voffset1">
+        <div class="col-xs-12 col-sm-11 col-lg-7 voffset1">
             <entity-counts
                     taxonomy-type-map="$ctrl.taxonomyTypeMap"
                     result-tabs-order="$ctrl.resultTabsOrder"
@@ -18,7 +18,7 @@
                     result="$ctrl.result">
             </entity-counts>
         </div>
-        <div class="col-xs-1 col-md-1">
+        <div class="col-xs-12 col-sm-1 col-lg-1">
             <button type="button"
                     class="voffset1 pull-right close"
                     data-dismiss="alert"

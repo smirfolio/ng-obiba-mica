@@ -13757,7 +13757,7 @@ angular.module("search/components/vocabulary-filter-detail-heading/component.htm
   $templateCache.put("search/components/vocabulary-filter-detail-heading/component.html",
     "<div class=\"panel-body vocabulary-filter-detail-heading\">\n" +
     "    <div class=\"row\">\n" +
-    "        <div class=\"col-xs-4 col-md-4\">\n" +
+    "        <div class=\"col-xs-12 col-sm-12 col-lg-4\">\n" +
     "            <input-search-filter\n" +
     "                    taxonomy-name=\"$ctrl.taxonomyName\"\n" +
     "                    taxonomies-query=\"$ctrl.taxonomiesQuery\"\n" +
@@ -13766,7 +13766,7 @@ angular.module("search/components/vocabulary-filter-detail-heading/component.htm
     "                    on-filter-change=\"$ctrl.filterChange(queryString)\">\n" +
     "            </input-search-filter>\n" +
     "        </div>\n" +
-    "        <div class=\"col-xs-7 col-md-7 voffset1\">\n" +
+    "        <div class=\"col-xs-12 col-sm-11 col-lg-7 voffset1\">\n" +
     "            <entity-counts\n" +
     "                    taxonomy-type-map=\"$ctrl.taxonomyTypeMap\"\n" +
     "                    result-tabs-order=\"$ctrl.resultTabsOrder\"\n" +
@@ -13775,7 +13775,7 @@ angular.module("search/components/vocabulary-filter-detail-heading/component.htm
     "                    result=\"$ctrl.result\">\n" +
     "            </entity-counts>\n" +
     "        </div>\n" +
-    "        <div class=\"col-xs-1 col-md-1\">\n" +
+    "        <div class=\"col-xs-12 col-sm-1 col-lg-1\">\n" +
     "            <button type=\"button\"\n" +
     "                    class=\"voffset1 pull-right close\"\n" +
     "                    data-dismiss=\"alert\"\n" +
@@ -14651,7 +14651,7 @@ angular.module("search/views/criteria/criteria-root-template.html", []).run(["$t
 angular.module("search/views/criteria/criteria-target-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criteria-target-template.html",
     "<div>\n" +
-    "  <div class=\"form-group\" title=\"{{'search.' + item.target + '-where' | translate}}\">\n" +
+    "  <div class=\"hidden-xs form-group\" title=\"{{'search.' + item.target + '-where' | translate}}\">\n" +
     "    <i class=\"{{'i-obiba-x-large i-obiba-' + item.target + ' color-' + item.target}}\">&nbsp;</i>\n" +
     "  </div>\n" +
     "  <criteria-node ng-repeat=\"child in item.children\" item=\"child\" query=\"$parent.query\" advanced=\"$parent.advanced\"></criteria-node>\n" +
@@ -14906,7 +14906,7 @@ angular.module("search/views/graphics/graphics-search-result-template.html", [])
     "    </div>\n" +
     "    <div class=\"panel-body\">\n" +
     "      <div class=\"row\">\n" +
-    "        <div class=\"col-md-6\">\n" +
+    "        <div class=\"col-xs-12 col-lg-6\">\n" +
     "          <div ng-if=\"chart.chartObject.type === 'GeoChart'\">\n" +
     "            <obiba-geo config=\"chart.chartObject.d3Config\"></obiba-geo>\n" +
     "          </div>\n" +
@@ -14914,7 +14914,7 @@ angular.module("search/views/graphics/graphics-search-result-template.html", [])
     "            <obiba-nv-chart chart-config=\"chart.chartObject.d3Config\"></obiba-nv-chart>\n" +
     "          </div>\n" +
     "        </div>\n" +
-    "        <div class=\"col-md-6\">\n" +
+    "        <div class=\"col-xs-12 col-lg-6\">\n" +
     "          <div class=\"table-responsive\" ng-if=\"chart.getTable().data  &&  chart.getTable().data.length>1\">\n" +
     "            <table style=\"max-height: 400px;\" class=\"table table-bordered table-striped\" fixed-header=\"chart.getTable().data\">\n" +
     "              <thead>\n" +
