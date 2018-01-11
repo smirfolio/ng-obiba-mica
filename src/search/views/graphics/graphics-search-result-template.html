@@ -10,7 +10,7 @@
     </div>
     <div class="panel-body">
       <div class="row">
-        <div class="col-md-6">
+        <div class="col-xs-12 col-lg-6">
           <div ng-if="chart.chartObject.type === 'GeoChart'">
             <obiba-geo config="chart.chartObject.d3Config"></obiba-geo>
           </div>
@@ -18,7 +18,7 @@
             <obiba-nv-chart chart-config="chart.chartObject.d3Config"></obiba-nv-chart>
           </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-xs-12 col-lg-6">
           <div class="table-responsive" ng-if="chart.getTable().data  &&  chart.getTable().data.length>1">
             <table style="max-height: 400px;" class="table table-bordered table-striped" fixed-header="chart.getTable().data">
               <thead>
