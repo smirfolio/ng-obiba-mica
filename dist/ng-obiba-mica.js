@@ -3,10 +3,10 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2018-01-09
+ * Date: 2018-01-11
  */
 /*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -207,7 +207,7 @@ var ngObibaMica;
     }]);
 
 })();;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -487,7 +487,7 @@ ngObibaMica.utils
       });
     }]);
 })();;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -500,7 +500,7 @@ ngObibaMica.utils
 
 ngObibaMica.file = angular.module('obiba.mica.file', ['ngResource']);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -519,7 +519,7 @@ ngObibaMica.file
   });
 
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -540,7 +540,7 @@ ngObibaMica.file
     }])
 ;
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -559,7 +559,7 @@ ngObibaMica.attachment = angular.module('obiba.mica.attachment', [
   'templates-ngObibaMica'
 ]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -702,7 +702,7 @@ ngObibaMica.attachment
     }
   ]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -734,7 +734,7 @@ ngObibaMica.access
     ));
   }]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -1500,7 +1500,7 @@ ngObibaMica.access
 
     }]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -1533,7 +1533,7 @@ ngObibaMica.access
         });
     }]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -1869,7 +1869,7 @@ ngObibaMica.access
     };
   }]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -1889,7 +1889,7 @@ ngObibaMica.access
       templateUrl: 'access/views/data-access-request-print-preview.html'
     };
   }]);;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -2280,7 +2280,7 @@ ngObibaMica.search
     GraphicChartsConfigurations.setClientConfig();
   }]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -2361,7 +2361,7 @@ ngObibaMica.search
       return RqlQueryService.getRenderableTargetCriteria(targets);
     };
   }]);;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -4186,7 +4186,7 @@ ngObibaMica.search
       };
     }]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -4592,7 +4592,7 @@ ngObibaMica.search
   }]);
 
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -7832,7 +7832,7 @@ ngObibaMica.search
   }]);
 
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -8656,7 +8656,7 @@ ngObibaMica.search
     };
   }]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -8695,7 +8695,7 @@ ngObibaMica.search
         });
     }]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -8807,7 +8807,7 @@ ngObibaMica.search
   };
 
 })();;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -8862,7 +8862,7 @@ ngObibaMica.search
 
 })();
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -9036,7 +9036,7 @@ ngObibaMica.search
     ]);
 
 })();;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -9119,7 +9119,7 @@ ngObibaMica.search
   ]);
 
 })();;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -9210,7 +9210,7 @@ ngObibaMica.search
       ['$q', 'TaxonomiesResource', 'TaxonomyResource', 'VocabularyService', ngObibaMica.search.TaxonomyService]);
 
 })();;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -9425,7 +9425,7 @@ ngObibaMica.search
     ['$translate','LocalizedValues', 'MetaTaxonomyService', ngObibaMica.search.VocabularyService]);
 
 })();;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -9450,7 +9450,7 @@ ngObibaMica.search
 })();
 
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -9488,7 +9488,7 @@ ngObibaMica.search
     });
 })();
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -9534,7 +9534,7 @@ ngObibaMica.search
     });
 })();
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -9571,7 +9571,7 @@ ngObibaMica.search
     });
 })();
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -9614,7 +9614,7 @@ ngObibaMica.search
     controller: [ngObibaMica.search.EntityCountsController]
   });
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -9683,7 +9683,7 @@ ngObibaMica.search
 
 })();
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -9740,7 +9740,7 @@ ngObibaMica.search
     controller: [ngObibaMica.search.InputSearchFilterController]
   });
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -9784,7 +9784,7 @@ ngObibaMica.search
     });
 })();
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -9863,7 +9863,7 @@ ngObibaMica.search
 })();
 
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -9903,7 +9903,7 @@ ngObibaMica.search
     });
 })();
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -10054,7 +10054,7 @@ ngObibaMica.search
     });
 })();
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -10105,7 +10105,7 @@ ngObibaMica.search
     });
 })();
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -10190,7 +10190,7 @@ ngObibaMica.search
     });
 })();
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -10356,7 +10356,7 @@ ngObibaMica.lists
     };
   });
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -10417,7 +10417,7 @@ ngObibaMica.lists
         };
 
     }]);;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -10507,7 +10507,7 @@ ngObibaMica.lists
 
 })();
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -10560,7 +10560,7 @@ ngObibaMica.lists
       };
     }]
   );;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -10613,7 +10613,7 @@ ngObibaMica.graphics
     GraphicChartsConfigurations.setClientConfig();
   }]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -10668,7 +10668,7 @@ ngObibaMica.graphics
     controller: 'GraphicChartsController'
   };
 }]);;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -10825,7 +10825,7 @@ ngObibaMica.graphics
 
     }]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -11088,7 +11088,7 @@ ngObibaMica.graphics
     };
   }]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -11105,7 +11105,7 @@ ngObibaMica.localized = angular.module('obiba.mica.localized', [
   'templates-ngObibaMica'
 ]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -11283,7 +11283,7 @@ ngObibaMica.localized
     };
   }]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -11434,7 +11434,7 @@ ngObibaMica.localized
 
   }]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -11458,7 +11458,7 @@ ngObibaMica.localized
     };
   }]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -11498,7 +11498,7 @@ ngObibaMica.fileBrowser = angular.module('obiba.mica.fileBrowser', [
   $provide.provider('ngObibaMicaFileBrowserOptions', new NgObibaMicaFileBrowserOptionsProvider());
 }]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -11526,7 +11526,7 @@ ngObibaMica.fileBrowser
     };
   }]);
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -11831,7 +11831,7 @@ ngObibaMica.fileBrowser
     }]);
 
 ;/*
- * Copyright (c) 2017 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -11984,7 +11984,7 @@ ngObibaMica.fileBrowser
 angular.module("access/views/data-access-request-documents-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-documents-view.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -12032,7 +12032,7 @@ angular.module("access/views/data-access-request-documents-view.html", []).run([
 angular.module("access/views/data-access-request-form.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-form.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -12094,7 +12094,7 @@ angular.module("access/views/data-access-request-form.html", []).run(["$template
 angular.module("access/views/data-access-request-history-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-history-view.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -12132,7 +12132,7 @@ angular.module("access/views/data-access-request-history-view.html", []).run(["$
 angular.module("access/views/data-access-request-list.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-list.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -12299,7 +12299,7 @@ angular.module("access/views/data-access-request-print-preview.html", []).run(["
 angular.module("access/views/data-access-request-profile-user-modal.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-profile-user-modal.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -12364,7 +12364,7 @@ angular.module("access/views/data-access-request-submitted-modal.html", []).run(
     "\n" +
     "?>\n" +
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -12397,7 +12397,7 @@ angular.module("access/views/data-access-request-submitted-modal.html", []).run(
 angular.module("access/views/data-access-request-validation-modal.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-validation-modal.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -12435,7 +12435,7 @@ angular.module("access/views/data-access-request-validation-modal.html", []).run
 angular.module("access/views/data-access-request-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-view.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -12551,7 +12551,7 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
 angular.module("attachment/attachment-input-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("attachment/attachment-input-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -12606,7 +12606,7 @@ angular.module("attachment/attachment-input-template.html", []).run(["$templateC
 angular.module("attachment/attachment-list-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("attachment/attachment-list-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -12649,7 +12649,7 @@ angular.module("attachment/attachment-list-template.html", []).run(["$templateCa
 angular.module("file-browser/views/document-detail-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("file-browser/views/document-detail-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -12726,7 +12726,7 @@ angular.module("file-browser/views/document-detail-template.html", []).run(["$te
 angular.module("file-browser/views/documents-table-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("file-browser/views/documents-table-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -12874,7 +12874,7 @@ angular.module("file-browser/views/file-browser-template.html", []).run(["$templ
 angular.module("file-browser/views/toolbar-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("file-browser/views/toolbar-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -13333,7 +13333,7 @@ angular.module("lists/views/region-criteria/search-criteria-region-template.html
 angular.module("lists/views/search-result-list-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("lists/views/search-result-list-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -13416,7 +13416,7 @@ angular.module("lists/views/sort-widget/sort-widget-template.html", []).run(["$t
 angular.module("localized/localized-input-group-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("localized/localized-input-group-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -13447,7 +13447,7 @@ angular.module("localized/localized-input-group-template.html", []).run(["$templ
 angular.module("localized/localized-input-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("localized/localized-input-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -13473,7 +13473,7 @@ angular.module("localized/localized-input-template.html", []).run(["$templateCac
 angular.module("localized/localized-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("localized/localized-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -13487,7 +13487,7 @@ angular.module("localized/localized-template.html", []).run(["$templateCache", f
 angular.module("localized/localized-textarea-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("localized/localized-textarea-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -13630,7 +13630,7 @@ angular.module("search/components/input-search-filter/component.html", []).run([
     "       <span class=\"input-group-addon\">\n" +
     "           <i class=\"fa fa-filter\"></i>\n" +
     "       </span>\n" +
-    "        <input type=\"text\" ng-model=\"$ctrl.queryString\"  ng-attr-placeholder=\"{{'global.list-search-placeholder'  | translate}}\"\n" +
+    "        <input type=\"text\" ng-model=\"$ctrl.queryString\"  ng-attr-placeholder=\"{{'search.placeholder.vocabulary-filter'  | translate}}\"\n" +
     "               class=\"input-search-filter form-control\" ng-change=\"$ctrl.change()\">\n" +
     "        <span ng-if=\"$ctrl.queryString\"\n" +
     "              ng-click=\"$ctrl.clear()\"\n" +
@@ -13840,7 +13840,7 @@ angular.module("search/components/vocabulary/vocabulary-filter-detail/component.
 angular.module("search/views/classifications.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/classifications.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -14026,7 +14026,7 @@ angular.module("search/views/classifications/classifications-view.html", []).run
 angular.module("search/views/classifications/taxonomies-facets-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/classifications/taxonomies-facets-view.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -14315,7 +14315,7 @@ angular.module("search/views/classifications/taxonomies-view.html", []).run(["$t
 angular.module("search/views/classifications/taxonomy-accordion-group.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/classifications/taxonomy-accordion-group.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -14357,7 +14357,7 @@ angular.module("search/views/classifications/taxonomy-panel-template.html", []).
 angular.module("search/views/classifications/taxonomy-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/classifications/taxonomy-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -14407,7 +14407,7 @@ angular.module("search/views/classifications/term-panel-template.html", []).run(
 angular.module("search/views/classifications/vocabulary-accordion-group.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/classifications/vocabulary-accordion-group.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -14697,7 +14697,7 @@ angular.module("search/views/criteria/criterion-dropdown-template.html", []).run
 angular.module("search/views/criteria/criterion-header-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criterion-header-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -14880,7 +14880,7 @@ angular.module("search/views/criteria/search-criteria-region-template.html", [])
 angular.module("search/views/criteria/target-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/target-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -15076,7 +15076,7 @@ angular.module("search/views/list/networks-search-result-table-template.html", [
 angular.module("search/views/list/pagination-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/list/pagination-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -15374,7 +15374,7 @@ angular.module("search/views/search-layout.html", []).run(["$templateCache", fun
 angular.module("search/views/search-result-coverage-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-coverage-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -15400,7 +15400,7 @@ angular.module("search/views/search-result-coverage-template.html", []).run(["$t
 angular.module("search/views/search-result-graphics-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-graphics-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -15417,7 +15417,7 @@ angular.module("search/views/search-result-graphics-template.html", []).run(["$t
 angular.module("search/views/search-result-list-dataset-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-dataset-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -15436,7 +15436,7 @@ angular.module("search/views/search-result-list-dataset-template.html", []).run(
 angular.module("search/views/search-result-list-network-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-network-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -15455,7 +15455,7 @@ angular.module("search/views/search-result-list-network-template.html", []).run(
 angular.module("search/views/search-result-list-study-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-study-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -15473,7 +15473,7 @@ angular.module("search/views/search-result-list-study-template.html", []).run(["
 angular.module("search/views/search-result-list-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -15517,7 +15517,7 @@ angular.module("search/views/search-result-list-template.html", []).run(["$templ
 angular.module("search/views/search-result-list-variable-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search-result-list-variable-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -15556,7 +15556,7 @@ angular.module("search/views/search-study-filter-template.html", []).run(["$temp
 angular.module("search/views/search.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -15725,7 +15725,7 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
 angular.module("search/views/search2.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/search2.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -15814,7 +15814,7 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
 angular.module("utils/views/unsaved-modal.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("utils/views/unsaved-modal.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
@@ -15841,7 +15841,7 @@ angular.module("utils/views/unsaved-modal.html", []).run(["$templateCache", func
 angular.module("views/pagination-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("views/pagination-template.html",
     "<!--\n" +
-    "  ~ Copyright (c) 2017 OBiBa. All rights reserved.\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
     "  ~\n" +
     "  ~ This program and the accompanying materials\n" +
     "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
