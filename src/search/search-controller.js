@@ -1360,6 +1360,11 @@ ngObibaMica.search
           } else {
             criterion.rqlQuery.name = RQL_NODE.IN;
             RqlQueryUtils.updateQuery(criterion.rqlQuery, selected);
+            
+            if (vocabulary.terms.length > 1 && selected.length === vocabulary.terms.length) {
+              criterion.rqlQuery.name = RQL_NODE.EXISTS;
+              criterion.rqlQuery.args.pop();
+            }           
           }
 
           $scope.refreshQuery();
