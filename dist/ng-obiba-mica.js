@@ -13646,12 +13646,6 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/compon
     "    </span>\n" +
     "    {{$ctrl.metaTaxonomy.title | localizedString}}\n" +
     "  </div>\n" +
-    "  <entity-search-typeahead\n" +
-    "    placeholder-text=\"search.placeholder.meta-taxonomy-filter.{{$ctrl.entityType}}\"\n" +
-    "    with-specific-fields=\"true\"\n" +
-    "    target=\"$ctrl.metaTaxonomy.name\"\n" +
-    "    rql-query=\"$ctrl.rqlQuery\"\n" +
-    "    entity-type=\"$ctrl.entityType\"></entity-search-typeahead>\n" +
     "\n" +
     "  <ul class=\"nav nav-pills nav-stacked voffset1\">\n" +
     "    <li role=\"presentation\" ng-repeat=\"taxonomy in $ctrl.metaTaxonomy.taxonomies\" ng-class=\"{'active': taxonomy.state.isActive() && $ctrl.showTaxonomyPanel}\">\n" +
