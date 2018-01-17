@@ -6,7 +6,7 @@
     {{$ctrl.metaTaxonomy.title | localizedString}}
   </div>
 
-  <ul class="nav nav-pills nav-stacked voffset1">
+  <ul class="nav nav-pills nav-stacked">
     <li role="presentation" ng-repeat="taxonomy in $ctrl.metaTaxonomy.taxonomies" ng-class="{'active': taxonomy.state.isActive() && $ctrl.showTaxonomyPanel}">
       <a href ng-click="$ctrl.selectTaxonomy(taxonomy)">
         <span
