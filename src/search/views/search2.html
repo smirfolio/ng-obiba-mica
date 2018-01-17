@@ -12,7 +12,10 @@
 
   <!-- Search criteria region -->
   <search-criteria-region options="options" search="search"></search-criteria-region>
-  <div class="row voffset2">
+  <div ng-class="{'overlay-back-on': search.showTaxonomyPanel}">
+  </div>
+  <div ng-class="{'overlay-front-on': search.showTaxonomyPanel}">
+    <div class="row voffset2">
     <div class="col-md-3" ng-if="hasFacetedTaxonomies">
       <!-- Search Facets region -->
       <taxonomies-facets-panel id="search-facets-region" faceted-taxonomies="facetedTaxonomies"
@@ -35,6 +38,7 @@
       <!-- Search Results region -->
       <div class="panel panel-default" ng-if="search.showTaxonomyPanel">
         <taxonomy-filter-panel
+            show-taxonomy-panel="search.showTaxonomyPanel"
             result-tabs-order="resultTabsOrder"
             taxonomy-type-map="taxonomyTypeMap"
             result="search.countResult"
@@ -81,5 +85,5 @@
 
     </div>
   </div>
-
+  </div>
 </div>
