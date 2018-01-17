@@ -12,7 +12,7 @@
 
 (function() {
 
-  ngObibaMica.search.VocabularyFilterDetailHeading = function() {
+  ngObibaMica.search.VocabularyFilterDetailHeading = function($window) {
     var ctrl = this;
 
     function selectType(type){
@@ -23,29 +23,55 @@
       return ctrl.onFilterChange({queryString:queryString});
     }
 
-    ctrl.close = ctrl.togglePannel;
+    function closePanelWhenClickingElsewhere(event, callbackOnClose) {
+      var clickedElement = event.target;
+      if (!clickedElement && !ctrl.showTaxonomyPanel){
+        return;
+      }
+      var toggle = clickedElement.classList.contains('overlay-back-on');
+      if (toggle && ctrl.showTaxonomyPanel) {
+        event.preventDefault();
+        callbackOnClose();
+        $window.onclick = null;
+        return;
+      }
+    }
+
+    function initOverlay() {
+      if (ctrl.showTaxonomyPanel) {
+        $window.onclick = function (event) {
+          closePanelWhenClickingElsewhere(event, ctrl.togglePannel);
+        };
+      } else {
+        $window.onclick = null;
+      }
+    }
+    
     ctrl.selectType = selectType;
     ctrl.filterChange = onFilterChange;
+
+    initOverlay();
   };
 
   ngObibaMica.search
     .component('vocabularyFilterDetailHeading', {
       transclude: true,
       bindings: {
-        taxonomyName: '=',
-        taxonomiesQuery: '=',
-        clearQuery: '=',
+        showTaxonomyPanel: '<',
+        taxonomyName: '<',
+        taxonomiesQuery: '<',
+        clearQuery: '<',
         onFilterChange: '&',
-        taxonomyTypeMap: '=',
-        resultTabsOrder: '=',
-        target: '=',
+        taxonomyTypeMap: '<',
+        resultTabsOrder: '<',
+        target: '<',
         onSelectType: '&',
-        result: '=',
+        result: '<',
         togglePannel: '&'
       },
       templateUrl: ['ngObibaMicaSearchTemplateUrl', function(ngObibaMicaSearchTemplateUrl){
         return ngObibaMicaSearchTemplateUrl.getTemplateUrl('vocabularyFilterDetailHeading');
       }],
-      controller: ngObibaMica.search.VocabularyFilterDetailHeading
+      controller: ['$window', ngObibaMica.search.VocabularyFilterDetailHeading]
     });
 })();
