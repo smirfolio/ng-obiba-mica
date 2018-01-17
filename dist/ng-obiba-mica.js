@@ -10087,27 +10087,25 @@ ngObibaMica.search
       return ctrl.onFilterChange({queryString:queryString});
     }
 
-    function closePanelWhenClickingElsewhere(event, callbackOnClose) {
-      var clickedElement = event.target;
-      if (!clickedElement && !ctrl.showTaxonomyPanel){
-        return;
-      }
-      var toggle = clickedElement.classList.contains('overlay-back-on');
-      if (toggle && ctrl.showTaxonomyPanel) {
-        event.preventDefault();
-        callbackOnClose();
-        $window.onclick = null;
-        return;
-      }
+    function removeWindowEventHandlers() {
+      $window.onkeyup = null;    
+    }
+    
+    function addWindowEventHandlers() {
+      
+      $window.onkeyup = function(event) {
+        if (event.keyCode === 27) {
+          removeWindowEventHandlers();
+          ctrl.togglePannel();
+        }
+      };
     }
 
     function initOverlay() {
       if (ctrl.showTaxonomyPanel) {
-        $window.onclick = function (event) {
-          closePanelWhenClickingElsewhere(event, ctrl.togglePannel);
-        };
+        addWindowEventHandlers();
       } else {
-        $window.onclick = null;
+        removeWindowEventHandlers();
       }
     }
     
