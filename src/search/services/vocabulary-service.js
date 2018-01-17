@@ -14,6 +14,8 @@
 
   ngObibaMica.search.VocabularyService = function($translate, LocalizedValues, MetaTaxonomyService) {
 
+    const TOKEN_LENGTH = 1;
+
     var VOCABULARY_TYPES = {
       STRING: 'string',
       INTEGER: 'integer',
@@ -38,7 +40,7 @@
     function filter(vocabularies, queryString) {
       if (queryString) {
         var tokens = asciiFold(queryString).toLowerCase().split(' ').filter(function (token) {
-          return token.length > 2;
+          return token.length > TOKEN_LENGTH;
         });
 
         var vocabulariesToFilter = Array.isArray(vocabularies) ? vocabularies : vocabularies.vocabularies;
@@ -55,7 +57,7 @@
             return tokens.map(function (token) {
               if (token.startsWith('-')) {
                 var ntoken = token.substr(1);
-                if (ntoken.length <= 2) {
+                if (ntoken.length <= TOKEN_LENGTH) {
                   return true;
                 }
                 return toMatch.indexOf(ntoken) === -1;
