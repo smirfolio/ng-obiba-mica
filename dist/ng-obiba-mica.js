@@ -5962,7 +5962,8 @@ ngObibaMica.search
 
           $scope.refreshQuery();
         } else {
-          selectCriteria(RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, args && args.term, $scope.lang));
+          var setExists = vocabulary.terms.length > 1 && selected.length === vocabulary.terms.length;
+          selectCriteria(RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, !setExists && (args && args.term), $scope.lang));
         }
       };
 
