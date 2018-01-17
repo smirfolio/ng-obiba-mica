@@ -429,8 +429,6 @@ meta-taxonomy-filter-panel{
   .panel-group{
     .panel{
       border-radius: 0px !important;
-      //border-bottom-left-radius: 0px !important;
-      //border-bottom-right-radius: 0px !important;
     }
     meta-taxonomy-filter-list:first-child{
       .panel-default{
@@ -457,12 +455,12 @@ meta-taxonomy-filter-panel{
   bottom: 0;
   background-color: rgba(0,0,0,0.7);
   position: fixed;
-  z-index: 2;
+  z-index: @overlay-background;
 }
 
 .overlay-front-on {
   animation-duration: 1s;
   animation-fill-mode: both;
   position: relative;
-  z-index: 100;
+  z-index: @overlay-foreground;
 }

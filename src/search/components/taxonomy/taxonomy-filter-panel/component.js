@@ -135,7 +135,7 @@
     .component('taxonomyFilterPanel', {
       transclude: true,
       bindings: {
-        showTaxonomyPanel: '=',
+        showTaxonomyPanel: '<',
         result: '<',
         resultTabsOrder: '<',
         taxonomyTypeMap: '<',

@@ -10044,7 +10044,7 @@ ngObibaMica.search
     .component('taxonomyFilterPanel', {
       transclude: true,
       bindings: {
-        showTaxonomyPanel: '=',
+        showTaxonomyPanel: '<',
         result: '<',
         resultTabsOrder: '<',
         taxonomyTypeMap: '<',
@@ -10089,41 +10089,45 @@ ngObibaMica.search
       if (!clickedElement && !ctrl.showTaxonomyPanel){
         return;
       }
-      var toggle = clickedElement.classList.contains('overlay-back-on') || clickedElement.closest('header.navbar');
+      var toggle = clickedElement.classList.contains('overlay-back-on');
       if (toggle && ctrl.showTaxonomyPanel) {
         event.preventDefault();
         callbackOnClose();
-        ctrl.showTaxonomyPanel = false;
         $window.onclick = null;
         return;
       }
     }
 
-    if (ctrl.showTaxonomyPanel) {
-      $window.onclick = function (event) {
-        closePanelWhenClickingElsewhere(event, ctrl.togglePannel);
-      };
-    } else {
-      $window.onclick = null;
+    function initOverlay() {
+      if (ctrl.showTaxonomyPanel) {
+        $window.onclick = function (event) {
+          closePanelWhenClickingElsewhere(event, ctrl.togglePannel);
+        };
+      } else {
+        $window.onclick = null;
+      }
     }
+    
     ctrl.selectType = selectType;
     ctrl.filterChange = onFilterChange;
+
+    initOverlay();
   };
 
   ngObibaMica.search
     .component('vocabularyFilterDetailHeading', {
       transclude: true,
       bindings: {
-        showTaxonomyPanel: '=',
-        taxonomyName: '=',
-        taxonomiesQuery: '=',
-        clearQuery: '=',
+        showTaxonomyPanel: '<',
+        taxonomyName: '<',
+        taxonomiesQuery: '<',
+        clearQuery: '<',
         onFilterChange: '&',
-        taxonomyTypeMap: '=',
-        resultTabsOrder: '=',
-        target: '=',
+        taxonomyTypeMap: '<',
+        resultTabsOrder: '<',
+        target: '<',
         onSelectType: '&',
-        result: '=',
+        result: '<',
         togglePannel: '&'
       },
       templateUrl: ['ngObibaMicaSearchTemplateUrl', function(ngObibaMicaSearchTemplateUrl){
@@ -15753,75 +15757,75 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "  </div>\n" +
     "  <div ng-class=\"{'overlay-front-on': search.showTaxonomyPanel}\">\n" +
     "    <div class=\"row voffset2\">\n" +
-    "    <div class=\"col-md-3\" ng-if=\"hasFacetedTaxonomies\">\n" +
-    "      <!-- Search Facets region -->\n" +
-    "      <taxonomies-facets-panel id=\"search-facets-region\" faceted-taxonomies=\"facetedTaxonomies\"\n" +
-    "                               criteria=\"search.criteria\" on-select-term=\"onSelectTerm\"\n" +
-    "                               on-refresh=\"refreshQuery\" lang=\"lang\"></taxonomies-facets-panel>\n" +
-    "    </div>\n" +
-    "    <div class=\"col-md-3\" ng-if=\"!hasFacetedTaxonomies\">\n" +
-    "      <!-- Search Facets region -->\n" +
-    "      <meta-taxonomy-filter-panel\n" +
-    "          show-taxonomy-panel=\"search.showTaxonomyPanel\"\n" +
-    "          tabs=\"targetTabsOrder\"\n" +
-    "          rql-query=\"search.rqlQuery\"\n" +
-    "          on-toggle=\"onTaxonomyFilterPanelToggleVisibility(target, taxonomy)\"></meta-taxonomy-filter-panel>\n" +
-    "    </div>\n" +
-    "    <div class=\"col-md-9\">\n" +
-    "      <div\n" +
-    "          ng-if=\"hasFacetedTaxonomies && hasFacetedNavigationHelp && !(search.criteria.children && search.criteria.children.length > 0)\">\n" +
-    "        <p class=\"help-block\" translate>search.faceted-navigation-help</p>\n" +
+    "      <div class=\"col-md-3\" ng-if=\"hasFacetedTaxonomies\">\n" +
+    "        <!-- Search Facets region -->\n" +
+    "        <taxonomies-facets-panel id=\"search-facets-region\" faceted-taxonomies=\"facetedTaxonomies\"\n" +
+    "                                criteria=\"search.criteria\" on-select-term=\"onSelectTerm\"\n" +
+    "                                on-refresh=\"refreshQuery\" lang=\"lang\"></taxonomies-facets-panel>\n" +
     "      </div>\n" +
-    "      <!-- Search Results region -->\n" +
-    "      <div class=\"panel panel-default\" ng-if=\"search.showTaxonomyPanel\">\n" +
-    "        <taxonomy-filter-panel\n" +
+    "      <div class=\"col-md-3\" ng-if=\"!hasFacetedTaxonomies\">\n" +
+    "        <!-- Search Facets region -->\n" +
+    "        <meta-taxonomy-filter-panel\n" +
     "            show-taxonomy-panel=\"search.showTaxonomyPanel\"\n" +
-    "            result-tabs-order=\"resultTabsOrder\"\n" +
-    "            taxonomy-type-map=\"taxonomyTypeMap\"\n" +
-    "            result=\"search.countResult\"\n" +
-    "            target=\"search.selectedTarget\"\n" +
-    "            taxonomy=\"search.selectedTaxonomy\"\n" +
-    "            on-select-type=\"onTypeChanged(type)\"\n" +
-    "            on-select-term=\"onSelectTerm(target, taxonomy, vocabulary, args)\"\n" +
-    "            on-remove-criterion=\"removeCriteriaItem(item)\"\n" +
-    "            on-toggle=\"onTaxonomyFilterPanelToggleVisibility\"></taxonomy-filter-panel>\n" +
+    "            tabs=\"targetTabsOrder\"\n" +
+    "            rql-query=\"search.rqlQuery\"\n" +
+    "            on-toggle=\"onTaxonomyFilterPanelToggleVisibility(target, taxonomy)\"></meta-taxonomy-filter-panel>\n" +
     "      </div>\n" +
-    "      <div class=\"clearfix\"></div>\n" +
-    "      <div id=\"search-result-region\" class=\"can-full-screen\"\n" +
-    "           ng-if=\"!search.showTaxonomyPanel && canExecuteWithEmptyQuery()\" fullscreen=\"isFullscreen\">\n" +
-    "        <div ng-if=\"searchTabsOrder.length > 1\">\n" +
-    "          <a href class=\"btn btn-sm btn-default pull-right\" ng-click=\"toggleFullscreen()\">\n" +
-    "            <i class=\"glyphicon\"\n" +
-    "               ng-class=\"{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}\"></i>\n" +
-    "          </a>\n" +
-    "          <ul class=\"nav nav-tabs\">\n" +
-    "            <li role=\"presentation\" ng-repeat=\"tab in searchTabsOrder\"\n" +
-    "                ng-class=\"{active: search.display === tab}\">\n" +
-    "              <a href ng-click=\"selectDisplay(tab)\">{{ 'search.' + tab | translate}}</a>\n" +
-    "            </li>\n" +
-    "          </ul>\n" +
+    "      <div class=\"col-md-9\">\n" +
+    "        <div\n" +
+    "            ng-if=\"hasFacetedTaxonomies && hasFacetedNavigationHelp && !(search.criteria.children && search.criteria.children.length > 0)\">\n" +
+    "          <p class=\"help-block\" translate>search.faceted-navigation-help</p>\n" +
     "        </div>\n" +
-    "        <div translate>{{'search.' + search.display + '-help'}}</div>\n" +
-    "        <result-panel display=\"search.display\"\n" +
-    "                      type=\"search.type\"\n" +
-    "                      bucket=\"search.bucket\"\n" +
-    "                      criteria=\"search.criteria\"\n" +
-    "                      query=\"search.executedQuery\"\n" +
-    "                      result=\"search.result\"\n" +
-    "                      loading=\"search.loading\"\n" +
-    "                      on-update-criteria=\"onUpdateCriteria\"\n" +
-    "                      on-remove-criteria=\"onRemoveCriteria\"\n" +
-    "                      on-type-changed=\"onTypeChanged\"\n" +
-    "                      on-bucket-changed=\"onBucketChanged\"\n" +
-    "                      on-paginate=\"onPaginate\"\n" +
-    "                      search-tabs-order=\"searchTabsOrder\"\n" +
-    "                      result-tabs-order=\"resultTabsOrder\"\n" +
-    "                      lang=\"lang\"></result-panel>\n" +
+    "        <!-- Search Results region -->\n" +
+    "        <div class=\"panel panel-default\" ng-if=\"search.showTaxonomyPanel\">\n" +
+    "          <taxonomy-filter-panel\n" +
+    "              show-taxonomy-panel=\"search.showTaxonomyPanel\"\n" +
+    "              result-tabs-order=\"resultTabsOrder\"\n" +
+    "              taxonomy-type-map=\"taxonomyTypeMap\"\n" +
+    "              result=\"search.countResult\"\n" +
+    "              target=\"search.selectedTarget\"\n" +
+    "              taxonomy=\"search.selectedTaxonomy\"\n" +
+    "              on-select-type=\"onTypeChanged(type)\"\n" +
+    "              on-select-term=\"onSelectTerm(target, taxonomy, vocabulary, args)\"\n" +
+    "              on-remove-criterion=\"removeCriteriaItem(item)\"\n" +
+    "              on-toggle=\"onTaxonomyFilterPanelToggleVisibility\"></taxonomy-filter-panel>\n" +
+    "        </div>\n" +
+    "        <div class=\"clearfix\"></div>\n" +
+    "        <div id=\"search-result-region\" class=\"can-full-screen\"\n" +
+    "            ng-if=\"!search.showTaxonomyPanel && canExecuteWithEmptyQuery()\" fullscreen=\"isFullscreen\">\n" +
+    "          <div ng-if=\"searchTabsOrder.length > 1\">\n" +
+    "            <a href class=\"btn btn-sm btn-default pull-right\" ng-click=\"toggleFullscreen()\">\n" +
+    "              <i class=\"glyphicon\"\n" +
+    "                ng-class=\"{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}\"></i>\n" +
+    "            </a>\n" +
+    "            <ul class=\"nav nav-tabs\">\n" +
+    "              <li role=\"presentation\" ng-repeat=\"tab in searchTabsOrder\"\n" +
+    "                  ng-class=\"{active: search.display === tab}\">\n" +
+    "                <a href ng-click=\"selectDisplay(tab)\">{{ 'search.' + tab | translate}}</a>\n" +
+    "              </li>\n" +
+    "            </ul>\n" +
+    "          </div>\n" +
+    "          <div translate>{{'search.' + search.display + '-help'}}</div>\n" +
+    "          <result-panel display=\"search.display\"\n" +
+    "                        type=\"search.type\"\n" +
+    "                        bucket=\"search.bucket\"\n" +
+    "                        criteria=\"search.criteria\"\n" +
+    "                        query=\"search.executedQuery\"\n" +
+    "                        result=\"search.result\"\n" +
+    "                        loading=\"search.loading\"\n" +
+    "                        on-update-criteria=\"onUpdateCriteria\"\n" +
+    "                        on-remove-criteria=\"onRemoveCriteria\"\n" +
+    "                        on-type-changed=\"onTypeChanged\"\n" +
+    "                        on-bucket-changed=\"onBucketChanged\"\n" +
+    "                        on-paginate=\"onPaginate\"\n" +
+    "                        search-tabs-order=\"searchTabsOrder\"\n" +
+    "                        result-tabs-order=\"resultTabsOrder\"\n" +
+    "                        lang=\"lang\"></result-panel>\n" +
+    "        </div>\n" +
+    "\n" +
+    "\n" +
     "      </div>\n" +
-    "\n" +
-    "\n" +
     "    </div>\n" +
-    "  </div>\n" +
     "  </div>\n" +
     "</div>");
 }]);

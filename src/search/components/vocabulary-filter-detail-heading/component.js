@@ -28,41 +28,45 @@
       if (!clickedElement && !ctrl.showTaxonomyPanel){
         return;
       }
-      var toggle = clickedElement.classList.contains('overlay-back-on') || clickedElement.closest('header.navbar');
+      var toggle = clickedElement.classList.contains('overlay-back-on');
       if (toggle && ctrl.showTaxonomyPanel) {
         event.preventDefault();
         callbackOnClose();
-        ctrl.showTaxonomyPanel = false;
         $window.onclick = null;
         return;
       }
     }
 
-    if (ctrl.showTaxonomyPanel) {
-      $window.onclick = function (event) {
-        closePanelWhenClickingElsewhere(event, ctrl.togglePannel);
-      };
-    } else {
-      $window.onclick = null;
+    function initOverlay() {
+      if (ctrl.showTaxonomyPanel) {
+        $window.onclick = function (event) {
+          closePanelWhenClickingElsewhere(event, ctrl.togglePannel);
+        };
+      } else {
+        $window.onclick = null;
+      }
     }
+    
     ctrl.selectType = selectType;
     ctrl.filterChange = onFilterChange;
+
+    initOverlay();
   };
 
   ngObibaMica.search
     .component('vocabularyFilterDetailHeading', {
       transclude: true,
       bindings: {
-        showTaxonomyPanel: '=',
-        taxonomyName: '=',
-        taxonomiesQuery: '=',
-        clearQuery: '=',
+        showTaxonomyPanel: '<',
+        taxonomyName: '<',
+        taxonomiesQuery: '<',
+        clearQuery: '<',
         onFilterChange: '&',
-        taxonomyTypeMap: '=',
-        resultTabsOrder: '=',
-        target: '=',
+        taxonomyTypeMap: '<',
+        resultTabsOrder: '<',
+        target: '<',
         onSelectType: '&',
-        result: '=',
+        result: '<',
         togglePannel: '&'
       },
       templateUrl: ['ngObibaMicaSearchTemplateUrl', function(ngObibaMicaSearchTemplateUrl){
