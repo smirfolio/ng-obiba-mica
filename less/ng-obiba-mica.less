@@ -424,3 +424,45 @@ span.search-help {
   pointer-events: all !important;
   cursor: pointer !important;
 }
+
+meta-taxonomy-filter-panel{
+  .panel-group{
+    .panel{
+      border-radius: 0px !important;
+      //border-bottom-left-radius: 0px !important;
+      //border-bottom-right-radius: 0px !important;
+    }
+    meta-taxonomy-filter-list:first-child{
+      .panel-default{
+        border-top-left-radius: 4px !important;
+        border-top-right-radius: 4px !important;
+      }
+    }
+    meta-taxonomy-filter-list:last-child{
+      .panel-default{
+        border-bottom-left-radius: 4px !important;
+        border-bottom-right-radius: 4px !important;
+      }
+    }
+  }
+}
+
+.overlay-back-on {
+  display: inline;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.7);
+  position: fixed;
+  z-index: 2;
+}
+
+.overlay-front-on {
+  animation-duration: 1s;
+  animation-fill-mode: both;
+  position: relative;
+  z-index: 100;
+}

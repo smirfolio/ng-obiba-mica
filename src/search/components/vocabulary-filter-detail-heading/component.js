@@ -12,7 +12,7 @@
 
 (function() {
 
-  ngObibaMica.search.VocabularyFilterDetailHeading = function() {
+  ngObibaMica.search.VocabularyFilterDetailHeading = function($window) {
     var ctrl = this;
 
     function selectType(type){
@@ -23,7 +23,28 @@
       return ctrl.onFilterChange({queryString:queryString});
     }
 
-    ctrl.close = ctrl.togglePannel;
+    function closePanelWhenClickingElsewhere(event, callbackOnClose) {
+      var clickedElement = event.target;
+      if (!clickedElement && !ctrl.showTaxonomyPanel){
+        return;
+      }
+      var toggle = clickedElement.classList.contains('overlay-back-on') || clickedElement.closest('header.navbar');
+      if (toggle && ctrl.showTaxonomyPanel) {
+        event.preventDefault();
+        callbackOnClose();
+        ctrl.showTaxonomyPanel = false;
+        $window.onclick = null;
+        return;
+      }
+    }
+
+    if (ctrl.showTaxonomyPanel) {
+      $window.onclick = function (event) {
+        closePanelWhenClickingElsewhere(event, ctrl.togglePannel);
+      };
+    } else {
+      $window.onclick = null;
+    }
     ctrl.selectType = selectType;
     ctrl.filterChange = onFilterChange;
   };
@@ -32,6 +53,7 @@
     .component('vocabularyFilterDetailHeading', {
       transclude: true,
       bindings: {
+        showTaxonomyPanel: '=',
         taxonomyName: '=',
         taxonomiesQuery: '=',
         clearQuery: '=',
@@ -46,6 +68,6 @@
       templateUrl: ['ngObibaMicaSearchTemplateUrl', function(ngObibaMicaSearchTemplateUrl){
         return ngObibaMicaSearchTemplateUrl.getTemplateUrl('vocabularyFilterDetailHeading');
       }],
-      controller: ngObibaMica.search.VocabularyFilterDetailHeading
+      controller: ['$window', ngObibaMica.search.VocabularyFilterDetailHeading]
     });
 })();

@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2018-01-16
+ * Date: 2018-01-17
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -10044,6 +10044,7 @@ ngObibaMica.search
     .component('taxonomyFilterPanel', {
       transclude: true,
       bindings: {
+        showTaxonomyPanel: '=',
         result: '<',
         resultTabsOrder: '<',
         taxonomyTypeMap: '<',
@@ -10072,7 +10073,7 @@ ngObibaMica.search
 
 (function() {
 
-  ngObibaMica.search.VocabularyFilterDetailHeading = function() {
+  ngObibaMica.search.VocabularyFilterDetailHeading = function($window) {
     var ctrl = this;
 
     function selectType(type){
@@ -10083,7 +10084,28 @@ ngObibaMica.search
       return ctrl.onFilterChange({queryString:queryString});
     }
 
-    ctrl.close = ctrl.togglePannel;
+    function closePanelWhenClickingElsewhere(event, callbackOnClose) {
+      var clickedElement = event.target;
+      if (!clickedElement && !ctrl.showTaxonomyPanel){
+        return;
+      }
+      var toggle = clickedElement.classList.contains('overlay-back-on') || clickedElement.closest('header.navbar');
+      if (toggle && ctrl.showTaxonomyPanel) {
+        event.preventDefault();
+        callbackOnClose();
+        ctrl.showTaxonomyPanel = false;
+        $window.onclick = null;
+        return;
+      }
+    }
+
+    if (ctrl.showTaxonomyPanel) {
+      $window.onclick = function (event) {
+        closePanelWhenClickingElsewhere(event, ctrl.togglePannel);
+      };
+    } else {
+      $window.onclick = null;
+    }
     ctrl.selectType = selectType;
     ctrl.filterChange = onFilterChange;
   };
@@ -10092,6 +10114,7 @@ ngObibaMica.search
     .component('vocabularyFilterDetailHeading', {
       transclude: true,
       bindings: {
+        showTaxonomyPanel: '=',
         taxonomyName: '=',
         taxonomiesQuery: '=',
         clearQuery: '=',
@@ -10106,7 +10129,7 @@ ngObibaMica.search
       templateUrl: ['ngObibaMicaSearchTemplateUrl', function(ngObibaMicaSearchTemplateUrl){
         return ngObibaMicaSearchTemplateUrl.getTemplateUrl('vocabularyFilterDetailHeading');
       }],
-      controller: ngObibaMica.search.VocabularyFilterDetailHeading
+      controller: ['$window', ngObibaMica.search.VocabularyFilterDetailHeading]
     });
 })();
 ;/*
@@ -13708,6 +13731,7 @@ angular.module("search/components/taxonomy/taxonomy-filter-panel/component.html"
     "  <div class=\"ng-clearfix\"></div>\n" +
     "\n" +
     "  <vocabulary-filter-detail-heading\n" +
+    "          show-taxonomy-panel=\"$ctrl.showTaxonomyPanel\"\n" +
     "          taxonomy-name=\"$ctrl.taxonomyName\"\n" +
     "          taxonomies-query=\"$ctrl.taxonomiesQuery\"\n" +
     "          clear-query=\"$ctrl.clearQuery\"\n" +
@@ -15725,7 +15749,10 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "\n" +
     "  <!-- Search criteria region -->\n" +
     "  <search-criteria-region options=\"options\" search=\"search\"></search-criteria-region>\n" +
-    "  <div class=\"row voffset2\">\n" +
+    "  <div ng-class=\"{'overlay-back-on': search.showTaxonomyPanel}\">\n" +
+    "  </div>\n" +
+    "  <div ng-class=\"{'overlay-front-on': search.showTaxonomyPanel}\">\n" +
+    "    <div class=\"row voffset2\">\n" +
     "    <div class=\"col-md-3\" ng-if=\"hasFacetedTaxonomies\">\n" +
     "      <!-- Search Facets region -->\n" +
     "      <taxonomies-facets-panel id=\"search-facets-region\" faceted-taxonomies=\"facetedTaxonomies\"\n" +
@@ -15748,6 +15775,7 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "      <!-- Search Results region -->\n" +
     "      <div class=\"panel panel-default\" ng-if=\"search.showTaxonomyPanel\">\n" +
     "        <taxonomy-filter-panel\n" +
+    "            show-taxonomy-panel=\"search.showTaxonomyPanel\"\n" +
     "            result-tabs-order=\"resultTabsOrder\"\n" +
     "            taxonomy-type-map=\"taxonomyTypeMap\"\n" +
     "            result=\"search.countResult\"\n" +
@@ -15794,7 +15822,7 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "\n" +
     "    </div>\n" +
     "  </div>\n" +
-    "\n" +
+    "  </div>\n" +
     "</div>");
 }]);
 
