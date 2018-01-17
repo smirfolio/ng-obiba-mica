@@ -13675,7 +13675,7 @@ angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/compon
     "    {{$ctrl.metaTaxonomy.title | localizedString}}\n" +
     "  </div>\n" +
     "\n" +
-    "  <ul class=\"nav nav-pills nav-stacked voffset1\">\n" +
+    "  <ul class=\"nav nav-pills nav-stacked\">\n" +
     "    <li role=\"presentation\" ng-repeat=\"taxonomy in $ctrl.metaTaxonomy.taxonomies\" ng-class=\"{'active': taxonomy.state.isActive() && $ctrl.showTaxonomyPanel}\">\n" +
     "      <a href ng-click=\"$ctrl.selectTaxonomy(taxonomy)\">\n" +
     "        <span\n" +
