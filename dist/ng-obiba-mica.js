@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2018-01-17
+ * Date: 2018-01-18
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -15341,7 +15341,7 @@ angular.module("search/views/result-tabs-order-template-view.html", []).run(["$t
     "<div>\n" +
     "    <ul class=\"nav nav-pills pull-left voffset2\" test-ref=\"search-counts\">\n" +
     "        <li role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
-    "            ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length > 1, disabled: resultTabsOrder.length === 1}\"\n" +
+    "            ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length >= 1}\"\n" +
     "            ng-if=\"options[targetTypeMap[res]].showSearchTab\" class=\"{{targetTypeMap[res]}}\">\n" +
     "            <a href\n" +
     "               ng-click=\"selectType(targetTypeMap[res])\" ng-if=\"resultTabsOrder.length > 1\">\n" +
@@ -15349,9 +15349,8 @@ angular.module("search/views/result-tabs-order-template-view.html", []).run(["$t
     "                <span class=\"badge hoffset1\" test-ref=\"{{targetTypeMap[res]}}\"><small>{{getTotalHits(res) | localizedNumber}}</small></span>\n" +
     "            </a>\n" +
     "            <a href style=\"cursor: default;\" ng-if=\"resultTabsOrder.length === 1\">\n" +
-    "              <span class=\"text-primary\">\n" +
-    "                {{targetTypeMap[res] | translate}} (<small>{{getTotalHits(res) | localizedNumber}}</small>)\n" +
-    "              </span>\n" +
+    "                {{targetTypeMap[res] | translate}}\n" +
+    "                <span class=\"badge hoffset1\" test-ref=\"{{targetTypeMap[res]}}\"><small>{{getTotalHits(res) | localizedNumber}}</small></span>\n" +
     "            </a>\n" +
     "        </li>\n" +
     "    </ul>\n" +
