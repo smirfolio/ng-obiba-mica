@@ -7970,37 +7970,40 @@ ngObibaMica.search
 
 'use strict';
 
- function EntityCountsController() {
-  var ctrl = this;
-  function getTotalHits(entity){
-    if (!ctrl.result || !ctrl.result[entity + 'TotalCount']) {
-      return '';
+(function () {
+  function EntityCountsController() {
+    var ctrl = this;
+    function getTotalHits(entity) {
+      if (!ctrl.result || !ctrl.result[entity + 'TotalCount']) {
+        return '';
+      }
+
+      return ctrl.result[entity + 'TotalCount'].hits;
     }
 
-    return ctrl.result[entity + 'TotalCount'].hits;
+    function selectType(entity) {
+      ctrl.onSelectType({ type: targetToType(entity) });
+    }
+
+    ctrl.getTotalHits = getTotalHits;
+    ctrl.selectType = selectType;
   }
 
-  function selectType(entity) {
-    ctrl.onSelectType({type: targetToType(entity)});
-  }
+  ngObibaMica.search
+    .component('entityCounts', {
+      transclude: true,
+      bindings: {
+        result: '<',
+        target: '<',
+        onSelectType: '&',
+        resultTabsOrder: '<',
+        taxonomyTypeMap: '<'
+      },
+      templateUrl: 'search/components/entity-counts/component.html',
+      controller: [EntityCountsController]
+    });
 
-  ctrl.getTotalHits = getTotalHits;
-  ctrl.selectType = selectType;
-}
-
-ngObibaMica.search
-  .component('entityCounts', {
-    transclude: true,
-    bindings: {
-      result: '<',
-      target: '<',
-      onSelectType: '&',
-      resultTabsOrder: '<',
-      taxonomyTypeMap: '<'
-    },
-    templateUrl: 'search/components/entity-counts/component.html',
-    controller: [EntityCountsController]
-  });
+})();
 ;/*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
@@ -8400,51 +8403,51 @@ ngObibaMica.search
 
 'use strict';
 
-function InputSearchFilterController() {
-  var ctrl = this;
+(function () {
+  function InputSearchFilterController() {
+    var ctrl = this;
 
-  function change() {
-    ctrl.onFilterChange({ queryString: ctrl.queryString });
-  }
-  function clear() {
-    ctrl.queryString = '';
-    change();
-  }
+    function change() {
+      ctrl.onFilterChange({ queryString: ctrl.queryString });
+    }
+    function clear() {
+      ctrl.queryString = '';
+      change();
+    }
 
-  function onChanges(changesObj) {
-    if (changesObj.taxonomyName) {
-      var updateQueryString = false;
-      ctrl.taxonomiesQuery.forEach(function (taxonomy) {
-        if (taxonomy.name === ctrl.taxonomyName && taxonomy.queryString) {
-          ctrl.queryString = taxonomy.queryString;
-          updateQueryString = true;
+    function onChanges(changesObj) {
+      if (changesObj.taxonomyName) {
+        var updateQueryString = false;
+        ctrl.taxonomiesQuery.forEach(function (taxonomy) {
+          if (taxonomy.name === ctrl.taxonomyName && taxonomy.queryString) {
+            ctrl.queryString = taxonomy.queryString;
+            updateQueryString = true;
+          }
+        });
+        if (!updateQueryString) {
+          ctrl.queryString = '';
         }
-      });
-      if (!updateQueryString) {
-        ctrl.queryString = '';
       }
     }
+
+    ctrl.$onChanges = onChanges;
+    ctrl.change = change;
+    ctrl.clear = clear;
   }
 
-  ctrl.$onChanges = onChanges;
-  ctrl.change = change;
-  ctrl.clear = clear;
-}
-
-
-ngObibaMica.search
-
-  .component('inputSearchFilter', {
-    transclude: true,
-    bindings: {
-      taxonomiesQuery: '<',
-      taxonomyName: '<',
-      queryString: '<',
-      onFilterChange: '&'
-    },
-    templateUrl: 'search/components/input-search-filter/component.html',
-    controller: [InputSearchFilterController]
-  });
+  ngObibaMica.search
+    .component('inputSearchFilter', {
+      transclude: true,
+      bindings: {
+        taxonomiesQuery: '<',
+        taxonomyName: '<',
+        queryString: '<',
+        onFilterChange: '&'
+      },
+      templateUrl: 'search/components/input-search-filter/component.html',
+      controller: [InputSearchFilterController]
+    });
+})();
 ;/*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
@@ -10273,20 +10276,20 @@ ngObibaMica.search
 'use strict';
 
 (function () {
-  ngObibaMica.search.TaxonomyFilterDetailController = function() {
+  function TaxonomyFilterDetailController() {
     var ctrl = this;
 
     function selectVocabularyArgs(vocabulary, args) {
-      ctrl.onSelectTaxonomyTerm({taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args});
+      ctrl.onSelectTaxonomyTerm({ taxonomy: ctrl.taxonomy, vocabulary: vocabulary, args: args });
     }
 
     function removeCriterion(item) {
-      ctrl.onRemoveCriterion({item: item});
+      ctrl.onRemoveCriterion({ item: item });
     }
 
     ctrl.selectVocabularyArgs = selectVocabularyArgs;
     ctrl.removeCriterion = removeCriterion;
-  };
+  }
 
   ngObibaMica.search
     .component('taxonomyFilterDetail', {
@@ -10297,7 +10300,7 @@ ngObibaMica.search
         onRemoveCriterion: '&'
       },
       templateUrl: 'search/components/taxonomy/taxonomy-filter-detail/component.html',
-      controller: [ngObibaMica.search.TaxonomyFilterDetailController]
+      controller: [TaxonomyFilterDetailController]
     });
 })();
 ;/*
@@ -10313,18 +10316,18 @@ ngObibaMica.search
 'use strict';
 
 (function () {
-  ngObibaMica.search.TaxonomyFilterPanelController = function(VocabularyService, $timeout) {
+  function TaxonomyFilterPanelController(VocabularyService, $timeout) {
     var ctrl = this;
     ctrl.taxonomiesQuery = [];
     ctrl.classClose = false;
-    function taxonomyArrayName(taxonomy){
+    function taxonomyArrayName(taxonomy) {
       return taxonomy.reduce(function (name, taxonomyItem) {
         return (name || '').concat(taxonomyItem.name);
       }, '');
     }
 
     function getStringQueryByTaxonomy(taxonomyName) {
-      var taxonomies = ctrl.taxonomiesQuery.filter(function(taxonomy){
+      var taxonomies = ctrl.taxonomiesQuery.filter(function (taxonomy) {
         return taxonomy.name === taxonomyName;
       });
       return taxonomies.length === 1 ? taxonomies[0].queryString : null;
@@ -10340,7 +10343,7 @@ ngObibaMica.search
           }
         });
         if (!updated) {
-          ctrl.taxonomiesQuery.push({name: taxonomy, queryString: queryString});
+          ctrl.taxonomiesQuery.push({ name: taxonomy, queryString: queryString });
         }
       }
       ctrl.taxonomiesQuery.filter(function (taxonomyQuery) {
@@ -10349,7 +10352,7 @@ ngObibaMica.search
     }
 
     function selectTaxonomyVocabularyArgs(taxonomy, vocabulary, args) {
-      ctrl.onSelectTerm({target: ctrl.target, taxonomy: taxonomy, vocabulary: vocabulary, args: args});
+      ctrl.onSelectTerm({ target: ctrl.target, taxonomy: taxonomy, vocabulary: vocabulary, args: args });
     }
 
     function onFilterChange(queryString) {
@@ -10377,7 +10380,7 @@ ngObibaMica.search
       if (queryString) {
         ctrl.taxonomy.forEach(function (subTaxonomy) {
           var filtredSubVocabularies = VocabularyService.filter(subTaxonomy, queryString);
-          if(filtredSubVocabularies.length > 0){
+          if (filtredSubVocabularies.length > 0) {
             ctrl.filteredVocabularies[subTaxonomy.name] = filtredSubVocabularies;
           }
         });
@@ -10388,10 +10391,10 @@ ngObibaMica.search
       }
     }
 
-    function togglePannel(){
+    function togglePannel() {
       ctrl.classClose = true;
       $timeout(function () {
-       ctrl.onToggle(ctrl.target, null);
+        ctrl.onToggle(ctrl.target, null);
       }, 200);
     }
 
@@ -10417,12 +10420,12 @@ ngObibaMica.search
     }
 
     function removeCriterion(item) {
-      ctrl.onRemoveCriterion({item: item});
+      ctrl.onRemoveCriterion({ item: item });
     }
 
     function selectType(type) {
       togglePannel();
-      ctrl.onSelectType({type: type});
+      ctrl.onSelectType({ type: type });
     }
 
     ctrl.$onChanges = onChanges;
@@ -10431,7 +10434,7 @@ ngObibaMica.search
     ctrl.onFilterChange = onFilterChange;
     ctrl.togglePannel = togglePannel;
     ctrl.removeCriterion = removeCriterion;
-  };
+  }
 
   ngObibaMica.search
     .component('taxonomyFilterPanel', {
@@ -10449,7 +10452,7 @@ ngObibaMica.search
         onToggle: '<'
       },
       templateUrl: 'search/components/taxonomy/taxonomy-filter-panel/component.html',
-      controller: ['VocabularyService', '$timeout', ngObibaMica.search.TaxonomyFilterPanelController]
+      controller: ['VocabularyService', '$timeout', TaxonomyFilterPanelController]
     });
 })();
 ;/*
@@ -10466,7 +10469,7 @@ ngObibaMica.search
 
 (function () {
 
-  ngObibaMica.search.VocabularyFilterDetailHeading = function () {
+  function VocabularyFilterDetailHeading() {
     var ctrl = this;
     var bodyElement = document.querySelectorAll('body')[0];
 
@@ -10526,7 +10529,7 @@ ngObibaMica.search
     ctrl.$onDestroy = onDestroy;
 
     addWindowEventHandlers();
-  };
+  }
 
   ngObibaMica.search
     .component('vocabularyFilterDetailHeading', {
@@ -10547,7 +10550,7 @@ ngObibaMica.search
       templateUrl: ['ngObibaMicaSearchTemplateUrl', function (ngObibaMicaSearchTemplateUrl) {
         return ngObibaMicaSearchTemplateUrl.getTemplateUrl('vocabularyFilterDetailHeading');
       }],
-      controller: [ngObibaMica.search.VocabularyFilterDetailHeading]
+      controller: [VocabularyFilterDetailHeading]
     });
 })();
 ;/*
@@ -10563,7 +10566,7 @@ ngObibaMica.search
 'use strict';
 
 (function () {
-  ngObibaMica.search.VocabularyFilterDetailController = function (VocabularyService) {
+  function VocabularyFilterDetailController(VocabularyService) {
     var ctrl = this;
 
     function checkAndSetCriterionType(vocabulary) {
@@ -10612,7 +10615,7 @@ ngObibaMica.search
     ctrl.selectAllFilteredVocabularyTerms = selectAllFilteredVocabularyTerms;
     ctrl.selectVocabularyArgs = selectVocabularyArgs;
     ctrl.removeCriterion = removeCriterion;
-  };
+  }
 
   ngObibaMica.search
     .component('vocabularyFilterDetail', {
@@ -10623,7 +10626,7 @@ ngObibaMica.search
         onRemoveCriterion: '&'
       },
       templateUrl: 'search/components/vocabulary/vocabulary-filter-detail/component.html',
-      controller: ['VocabularyService', ngObibaMica.search.VocabularyFilterDetailController]
+      controller: ['VocabularyService', VocabularyFilterDetailController]
     });
 })();
 ;/*
