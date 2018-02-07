@@ -1900,7 +1900,6 @@ ngObibaMica.access
 
 'use strict';
 
-/* global QUERY_TARGETS */
 
 /* exported DISPLAY_TYPES */
 var DISPLAY_TYPES = {
@@ -1915,6 +1914,28 @@ ngObibaMica.search = angular.module('obiba.mica.search', [
   'pascalprecht.translate',
   'templates-ngObibaMica'
 ]);
+
+(function () {
+  ngObibaMica.search
+    .run(['GraphicChartsConfigurations',
+      function (GraphicChartsConfigurations) {
+        GraphicChartsConfigurations.setClientConfig();
+      }]);
+})();
+;/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+/* global QUERY_TARGETS */
+/* global DISPLAY_TYPES */
 
 (function () {
   var FIELDS_TO_FILTER = ['name', 'title', 'description', 'keywords'];
@@ -2241,6 +2262,36 @@ ngObibaMica.search = angular.module('obiba.mica.search', [
 
   ngObibaMica.search
     .config(['$provide', function ($provide) {
+      $provide.provider('ngObibaMicaSearch', function () {
+        var optionsWrapper = new NgObibaMicaSearchOptionsWrapper();
+
+        function initialize(options) {
+          optionsWrapper.setOptions(options);
+        }
+
+        this.initialize = initialize;
+        this.$get = ['$q', '$translate', 'ObibaServerConfigResource',
+          function ($q, $translate, ObibaServerConfigResource) {
+            return new ObibaMicaSearchOptionsService($q, $translate, optionsWrapper, ObibaServerConfigResource);
+          }];
+      });
+    }]);
+})();
+;/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+(function () {
+
+  ngObibaMica.search
+    .config(['$provide', function ($provide) {
       $provide.provider('ngObibaMicaSearchTemplateUrl', new ngObibaMica.NgObibaMicaTemplateUrlFactory().create(
         {
           search: { header: null, footer: null },
@@ -2257,26 +2308,9 @@ ngObibaMica.search = angular.module('obiba.mica.search', [
           classifications: { header: null, footer: null }
         }
       ));
-
-      $provide.provider('ngObibaMicaSearch', function () {
-        var optionsWrapper = new NgObibaMicaSearchOptionsWrapper();
-
-        function initialize(options) {
-          optionsWrapper.setOptions(options);
-        }
-
-        this.initialize = initialize;
-        this.$get = ['$q', '$translate', 'ObibaServerConfigResource',
-          function ($q, $translate, ObibaServerConfigResource) {
-            return new ObibaMicaSearchOptionsService($q, $translate, optionsWrapper, ObibaServerConfigResource);
-          }];
-      });
-    }])
-    .run(['GraphicChartsConfigurations',
-      function (GraphicChartsConfigurations) {
-        GraphicChartsConfigurations.setClientConfig();
-      }]);
+    }]);
 })();
+
 ;/*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
