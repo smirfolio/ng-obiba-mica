@@ -4428,162 +4428,6 @@ ngObibaMica.search
 
 'use strict';
 
-
-/* exported CRITERIA_ITEM_EVENT */
-var CRITERIA_ITEM_EVENT = {
-  deleted: 'event:delete-criteria-item',
-  refresh: 'event:refresh-criteria-item'
-};
-
-ngObibaMica.search  
-  .directive('includeReplace', function () {
-    return {
-      require: 'ngInclude',
-      link: function (scope, el) {
-        el.replaceWith(el.children());
-      }
-    };
-  })
-
-  .directive('scrollToTop', function(){
-    return {
-      restrict: 'A',
-      scope: {
-        trigger: '=scrollToTop'
-      },
-      link: function postLink(scope, elem) {
-        scope.$watch('trigger', function() {
-          elem[0].scrollTop = 0;
-        });
-      }
-    };
-  })
-
-  .directive('criteriaRoot', [function(){
-    return {
-      restrict: 'EA',
-      replace: true,
-      scope: {
-        item: '=',
-        query: '=',
-        advanced: '=',
-        onRemove: '=',
-        onRefresh: '=',
-        isFacetted: '='
-      },
-      templateUrl: 'search/views/criteria/criteria-root-template.html',
-      link: function($scope) {
-        $scope.$on(CRITERIA_ITEM_EVENT.deleted, function(event, item){
-          $scope.onRemove(item);
-        });
-
-        $scope.$on(CRITERIA_ITEM_EVENT.refresh, function(){
-          $scope.onRefresh();
-        });
-      }
-    };
-  }])
-
-  .directive('criteriaTarget', [function(){
-    return {
-      restrict: 'EA',
-      replace: true,
-      scope: {
-        item: '=',
-        query: '=',
-        advanced: '='
-      },
-      templateUrl: 'search/views/criteria/criteria-target-template.html'
-    };
-  }])
-
-  .factory('Fullscreen', ['$document', '$window', '$rootScope', function ($document, $window, $rootScope) {
-    // based on: https://github.com/fabiobiondi/angular-fullscreen
-    var document = $document[0];
-    var isKeyboardAvailbleOnFullScreen = (typeof $window.Element !== 'undefined' && 'ALLOW_KEYBOARD_INPUT' in $window.Element) && $window.Element.ALLOW_KEYBOARD_INPUT;
-    var emitter = $rootScope.$new();
-
-
-    var serviceInstance = {
-      $on: angular.bind(emitter, emitter.$on),
-      enable: function(element) {
-        if(element.requestFullScreen) {
-          element.requestFullScreen();
-        } else if(element.mozRequestFullScreen) {
-          element.mozRequestFullScreen();
-        } else if(element.webkitRequestFullscreen) {
-          // Safari temporary fix
-          if (/Version\/[\d]{1,2}(\.[\d]{1,2}){1}(\.(\d){1,2}){0,1} Safari/.test($window.navigator.userAgent)) {
-            element.webkitRequestFullscreen();
-          } else {
-            element.webkitRequestFullscreen(isKeyboardAvailbleOnFullScreen);
-          }
-        } else if (element.msRequestFullscreen) {
-          element.msRequestFullscreen();
-        }
-      },
-      cancel: function() {
-        if(document.cancelFullScreen) {
-          document.cancelFullScreen();
-        } else if(document.mozCancelFullScreen) {
-          document.mozCancelFullScreen();
-        } else if(document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) {
-          document.msExitFullscreen();
-        }
-      },
-      isEnabled: function(){
-        var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
-        return fullscreenElement ? true : false;
-      }
-    };
-
-    $document.on('fullscreenchange webkitfullscreenchange mozfullscreenchange MSFullscreenChange', function(){
-      emitter.$emit('ngObibaMicaSearch.fullscreenChange', serviceInstance.isEnabled());
-    });
-
-    return serviceInstance;
-  }])
-
-  .directive('fullscreen', ['Fullscreen', function(Fullscreen) {
-    return {
-      link : function ($scope, $element, $attrs) {
-        if ($attrs.fullscreen) {
-          $scope.$watch($attrs.fullscreen, function(value) {
-            var isEnabled = Fullscreen.isEnabled();
-            if (value && !isEnabled) {
-              Fullscreen.enable($element[0]);
-              $element.addClass('isInFullScreen');
-            } else if (!value && isEnabled) {
-              Fullscreen.cancel();
-              $element.removeClass('isInFullScreen');
-            }
-          });
-        }
-      }
-    };
-  }])
-  .directive('resultTabsOrderCount', [function(){
-    return {
-      restrict: 'EA',
-      replace: true,
-      controller: 'ResultTabsOrderCountController',
-      templateUrl: 'search/views/result-tabs-order-template-view.html'
-    };
-  }]);
-;/*
- * Copyright (c) 2018 OBiBa. All rights reserved.
- *
- * This program and the accompanying materials
- * are made available under the terms of the GNU Public License v3.0.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-'use strict';
-
 ngObibaMica.search
   .config(['$routeProvider',
     function ($routeProvider) {
@@ -4900,6 +4744,71 @@ ngObibaMica.search
     ]);
 
 })();;/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+(function () {
+
+  function FullScreenService($document, $window, $rootScope) {
+    // based on: https://github.com/fabiobiondi/angular-fullscreen
+    var document = $document[0];
+    var isKeyboardAvailbleOnFullScreen = (typeof $window.Element !== 'undefined' && 'ALLOW_KEYBOARD_INPUT' in $window.Element) && $window.Element.ALLOW_KEYBOARD_INPUT;
+    var emitter = $rootScope.$new();
+
+
+    var serviceInstance = {
+      $on: angular.bind(emitter, emitter.$on),
+      enable: function (element) {
+        if (element.requestFullScreen) {
+          element.requestFullScreen();
+        } else if (element.mozRequestFullScreen) {
+          element.mozRequestFullScreen();
+        } else if (element.webkitRequestFullscreen) {
+          // Safari temporary fix
+          if (/Version\/[\d]{1,2}(\.[\d]{1,2}){1}(\.(\d){1,2}){0,1} Safari/.test($window.navigator.userAgent)) {
+            element.webkitRequestFullscreen();
+          } else {
+            element.webkitRequestFullscreen(isKeyboardAvailbleOnFullScreen);
+          }
+        } else if (element.msRequestFullscreen) {
+          element.msRequestFullscreen();
+        }
+      },
+      cancel: function () {
+        if (document.cancelFullScreen) {
+          document.cancelFullScreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      },
+      isEnabled: function () {
+        var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+        return fullscreenElement ? true : false;
+      }
+    };
+
+    $document.on('fullscreenchange webkitfullscreenchange mozfullscreenchange MSFullscreenChange', function () {
+      emitter.$emit('ngObibaMicaSearch.fullscreenChange', serviceInstance.isEnabled());
+    });
+
+    return serviceInstance;
+  }
+
+  ngObibaMica.search.factory('FullScreenService', ['$document', '$window', '$rootScope', FullScreenService]);
+})();
+;/*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
@@ -7008,6 +6917,79 @@ ngObibaMica.search.service('RqlQueryService',
 
 })();
 
+;/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+/* exported CRITERIA_ITEM_EVENT */
+var CRITERIA_ITEM_EVENT = {
+  deleted: 'event:delete-criteria-item',
+  refresh: 'event:refresh-criteria-item'
+};
+
+(function () {  
+  function CriteriaRoot() {
+    return {
+      restrict: 'EA',
+      replace: true,
+      scope: {
+        item: '=',
+        query: '=',
+        advanced: '=',
+        onRemove: '=',
+        onRefresh: '=',
+        isFacetted: '='
+      },
+      templateUrl: 'search/components/criteria/criteria-root/component.html',
+      link: function ($scope) {
+        $scope.$on(CRITERIA_ITEM_EVENT.deleted, function (event, item) {
+          $scope.onRemove(item);
+        });
+
+        $scope.$on(CRITERIA_ITEM_EVENT.refresh, function () {
+          $scope.onRefresh();
+        });
+      }
+    };
+  }
+
+  ngObibaMica.search.directive('criteriaRoot', CriteriaRoot);
+})();
+;/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+(function () {
+  function CriteriaTarget() {
+    return {
+      restrict: 'EA',
+      replace: true,
+      scope: {
+        item: '=',
+        query: '=',
+        advanced: '='
+      },
+      templateUrl: 'search/components/criteria/criteria-target/component.html'
+    };
+  }
+
+  ngObibaMica.search.directive('criteriaTarget', CriteriaTarget);
+})();
 ;'use strict';
 
 /* global CRITERIA_ITEM_EVENT */
@@ -8056,6 +8038,65 @@ ngObibaMica.search
         }
       });
     }]);;/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+(function () {
+
+  function FullScreen(FullScreenService) {
+    return {
+      link : function ($scope, $element, $attrs) {
+        if ($attrs.fullscreen) {
+          $scope.$watch($attrs.fullscreen, function(value) {
+            var isEnabled = FullScreenService.isEnabled();
+            if (value && !isEnabled) {
+              FullScreenService.enable($element[0]);
+              $element.addClass('isInFullScreen');
+            } else if (!value && isEnabled) {
+              FullScreenService.cancel();
+              $element.removeClass('isInFullScreen');
+            }
+          });
+        }
+      }
+    };
+  }
+
+  ngObibaMica.search.directive('fullscreen', ['FullScreenService',FullScreen]);
+})();
+;/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+(function () {
+  function IncludeReplace() {
+    return {
+      require: 'ngInclude',
+      link: function (scope, el) {
+        el.replaceWith(el.children());
+      }
+    };
+  }
+
+  ngObibaMica.search.directive('includeReplace', IncludeReplace);
+})();
+;/*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
@@ -10278,6 +10319,31 @@ ngObibaMica.search
       StudiesResultTable
     ]);
 })();
+;
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+(function () {
+  function ResultTabsOrderCount() {
+    return {
+      restrict: 'EA',
+      replace: true,
+      controller: 'ResultTabsOrderCountController',
+      templateUrl: 'search/components/result/tabs-order-count/component.html'
+    };
+  }
+
+  ngObibaMica.search.directive('resultTabsOrderCount', ResultTabsOrderCount);
+})();
 ;/*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
@@ -10311,6 +10377,35 @@ ngObibaMica.search
   }
 
   ngObibaMica.search.directive('variablesResultTable', ['PageUrlService', 'ngObibaMicaSearch', VariablesResultTable]);
+})();
+;/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+(function () {
+  function ScrollToTop() {
+    return {
+      restrict: 'A',
+      scope: {
+        trigger: '=scrollToTop'
+      },
+      link: function postLink(scope, elem) {
+        scope.$watch('trigger', function () {
+          elem[0].scrollTop = 0;
+        });
+      }
+    };
+  }
+
+  ngObibaMica.search.directive('scrollToTop', ScrollToTop);
 })();
 ;/*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -12532,7 +12627,7 @@ ngObibaMica.fileBrowser
       }
     };
   }]);
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criteria-root-template.html', 'search/views/criteria/criteria-target-template.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/result-tabs-order-template-view.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/views/data-access-request-documents-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-documents-view.html",
@@ -14011,6 +14106,26 @@ angular.module("localized/localized-textarea-template.html", []).run(["$template
     "</div>");
 }]);
 
+angular.module("search/components/criteria/criteria-root/component.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/components/criteria/criteria-root/component.html",
+    "<div class=\"form-inline\">\n" +
+    "  <div ng-repeat=\"child in item.children | renderableTargets\" class=\"inline\">\n" +
+    "    <div class=\"inline hoffset2\" ng-if=\"$index>0\">+</div>\n" +
+    "    <criteria-target item=\"child\" query=\"$parent.query\" advanced=\"$parent.advanced\" class=\"inline\"></criteria-target>\n" +
+    "  </div>\n" +
+    "</div>");
+}]);
+
+angular.module("search/components/criteria/criteria-target/component.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/components/criteria/criteria-target/component.html",
+    "<div>\n" +
+    "  <div class=\"hidden-xs form-group\" title=\"{{'search.' + item.target + '-where' | translate}}\">\n" +
+    "    <i class=\"{{'i-obiba-x-large i-obiba-' + item.target + ' color-' + item.target}}\">&nbsp;</i>\n" +
+    "  </div>\n" +
+    "  <criteria-node ng-repeat=\"child in item.children\" item=\"child\" query=\"$parent.query\" advanced=\"$parent.advanced\"></criteria-node>\n" +
+    "</div>");
+}]);
+
 angular.module("search/components/criteria/item-region/dropdown/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/item-region/dropdown/component.html",
     "<div id=\"{{criterion.id.replace('.','-')}}-dropdown-{{timestamp}}\" class=\"{{'btn-group voffset1 btn-' + criterion.target}}\"\n" +
@@ -15471,6 +15586,29 @@ angular.module("search/components/result/studies-result-table/component.html", [
     "</div>");
 }]);
 
+angular.module("search/components/result/tabs-order-count/component.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/components/result/tabs-order-count/component.html",
+    "<div>\n" +
+    "  <ul class=\"nav nav-pills pull-left voffset2\" test-ref=\"search-counts\">\n" +
+    "    <li role=\"presentation\" ng-repeat=\"res in resultTabsOrder\" ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length >= 1}\"\n" +
+    "      ng-if=\"options[targetTypeMap[res]].showSearchTab\" class=\"{{targetTypeMap[res]}}\">\n" +
+    "      <a href ng-click=\"selectType(targetTypeMap[res])\" ng-if=\"resultTabsOrder.length > 1\">\n" +
+    "        {{targetTypeMap[res] | translate}}\n" +
+    "        <span class=\"badge hoffset1\" test-ref=\"{{targetTypeMap[res]}}\">\n" +
+    "          <small>{{getTotalHits(res) | localizedNumber}}</small>\n" +
+    "        </span>\n" +
+    "      </a>\n" +
+    "      <a href style=\"cursor: default;\" ng-if=\"resultTabsOrder.length === 1\">\n" +
+    "        {{targetTypeMap[res] | translate}}\n" +
+    "        <span class=\"badge hoffset1\" test-ref=\"{{targetTypeMap[res]}}\">\n" +
+    "          <small>{{getTotalHits(res) | localizedNumber}}</small>\n" +
+    "        </span>\n" +
+    "      </a>\n" +
+    "    </li>\n" +
+    "  </ul>\n" +
+    "</div>");
+}]);
+
 angular.module("search/components/result/variables-result-table/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/result/variables-result-table/component.html",
     "<div>\n" +
@@ -15769,27 +15907,6 @@ angular.module("search/views/classifications/vocabulary-accordion-group.html", [
     "</div>");
 }]);
 
-angular.module("search/views/criteria/criteria-root-template.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("search/views/criteria/criteria-root-template.html",
-    "<div class=\"form-inline\">\n" +
-    "  <div ng-repeat=\"child in item.children | renderableTargets\" class=\"inline\">\n" +
-    "    <div class=\"inline hoffset2\" ng-if=\"$index>0\">+</div>\n" +
-    "    <criteria-target item=\"child\" query=\"$parent.query\" advanced=\"$parent.advanced\" class=\"inline\"></criteria-target>\n" +
-    "  </div>\n" +
-    "</div>\n" +
-    "");
-}]);
-
-angular.module("search/views/criteria/criteria-target-template.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("search/views/criteria/criteria-target-template.html",
-    "<div>\n" +
-    "  <div class=\"hidden-xs form-group\" title=\"{{'search.' + item.target + '-where' | translate}}\">\n" +
-    "    <i class=\"{{'i-obiba-x-large i-obiba-' + item.target + ' color-' + item.target}}\">&nbsp;</i>\n" +
-    "  </div>\n" +
-    "  <criteria-node ng-repeat=\"child in item.children\" item=\"child\" query=\"$parent.query\" advanced=\"$parent.advanced\"></criteria-node>\n" +
-    "</div>");
-}]);
-
 angular.module("search/views/criteria/criterion-header-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/views/criteria/criterion-header-template.html",
     "<!--\n" +
@@ -15867,27 +15984,6 @@ angular.module("search/views/list/pagination-template.html", []).run(["$template
     "    </li>\n" +
     "  </ul>\n" +
     "</span>");
-}]);
-
-angular.module("search/views/result-tabs-order-template-view.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("search/views/result-tabs-order-template-view.html",
-    "<div>\n" +
-    "    <ul class=\"nav nav-pills pull-left voffset2\" test-ref=\"search-counts\">\n" +
-    "        <li role=\"presentation\" ng-repeat=\"res in resultTabsOrder\"\n" +
-    "            ng-class=\"{active: activeTarget[targetTypeMap[res]].active && resultTabsOrder.length >= 1}\"\n" +
-    "            ng-if=\"options[targetTypeMap[res]].showSearchTab\" class=\"{{targetTypeMap[res]}}\">\n" +
-    "            <a href\n" +
-    "               ng-click=\"selectType(targetTypeMap[res])\" ng-if=\"resultTabsOrder.length > 1\">\n" +
-    "                {{targetTypeMap[res] | translate}}\n" +
-    "                <span class=\"badge hoffset1\" test-ref=\"{{targetTypeMap[res]}}\"><small>{{getTotalHits(res) | localizedNumber}}</small></span>\n" +
-    "            </a>\n" +
-    "            <a href style=\"cursor: default;\" ng-if=\"resultTabsOrder.length === 1\">\n" +
-    "                {{targetTypeMap[res] | translate}}\n" +
-    "                <span class=\"badge hoffset1\" test-ref=\"{{targetTypeMap[res]}}\"><small>{{getTotalHits(res) | localizedNumber}}</small></span>\n" +
-    "            </a>\n" +
-    "        </li>\n" +
-    "    </ul>\n" +
-    "</div>");
 }]);
 
 angular.module("search/views/search-layout.html", []).run(["$templateCache", function($templateCache) {
