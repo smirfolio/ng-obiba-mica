@@ -93,16 +93,16 @@ var ngObibaMica;
 
   ngObibaMica.NgObibaMicaTemplateUrlFactory = function(){
     var templates = {
-      'searchStudiesResultTable': 'search/views/list/studies-search-result-table-template.html',
-      'searchNetworksResultTable': 'search/views/list/networks-search-result-table-template.html',
-      'searchDatasetsResultTable': 'search/views/list/datasets-search-result-table-template.html',
-      'searchCriteriaRegionTemplate': 'search/views/criteria/search-criteria-region-template.html',
+      'searchStudiesResultTable': 'search/components/result/studies-result-table/component.html',
+      'searchNetworksResultTable': 'search/components/result/networks-result-table/component.html',
+      'searchDatasetsResultTable': 'search/components/result/datasets-result-table/component.html',
+      'searchCriteriaRegionTemplate': 'search/components/criteria/item-region/region/component.html',
       'vocabularyFilterDetailHeading': 'search/components/vocabulary-filter-detail-heading/component.html',
-      'CriterionDropdownTemplate': 'search/views/criteria/criterion-dropdown-template.html',
-      'searchResultList': 'search/views/search-result-list-template.html',
+      'CriterionDropdownTemplate': 'search/components/criteria/item-region/dropdown/component.html',
+      'searchResultList': 'search/components/result/search-result/list.html',
       'searchInputList': 'lists/views/input-search-widget/input-search-widget-template.html',
-      'searchResultCoverage': 'search/views/search-result-coverage-template.html',
-      'searchResultGraphics': 'search/views/search-result-graphics-template.html'
+      'searchResultCoverage': 'search/components/result/search-result/coverage.html',
+      'searchResultGraphics': 'search/components/result/search-result/graphics.html'
     };
     var factory = {registry: null};
 

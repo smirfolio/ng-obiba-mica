@@ -10,3247 +10,1186 @@
 
 'use strict';
 
-/* global CRITERIA_ITEM_EVENT */
 /* global QUERY_TARGETS */
 /* global QUERY_TYPES */
 /* global BUCKET_TYPES */
 /* global RQL_NODE */
 /* global DISPLAY_TYPES */
 /* global CriteriaIdGenerator */
-/* global targetToType */
-/* global typeToTarget */
 /* global SORT_FIELDS */
-/* global STUDY_FILTER_CHOICES */
 
-/**
- * State shared between Criterion DropDown and its content directives
- *
- * @constructor
- */
-function CriterionState() {
-  var onOpenCallbacks = [];
-  var onCloseCallbacks = [];
+(function () {
+  function manageSearchHelpText($scope, $translate, $cookies) {
+    var cookiesSearchHelp = 'micaHideSearchHelpText';
+    var cookiesClassificationHelp = 'micaHideClassificationHelpBox';
 
-  this.dirty = false;
-  this.open = false;
-  this.loading = true;
-
-  this.addOnOpen = function (callback) {
-    onOpenCallbacks.push(callback);
-  };
-
-  this.addOnClose = function (callback) {
-    onCloseCallbacks.push(callback);
-  };
-
-  this.onOpen = function () {
-    onOpenCallbacks.forEach(function (callback) {
-      callback();
-    });
-  };
-
-  this.onClose = function () {
-    onCloseCallbacks.forEach(function (callback) {
-      callback();
-    });
-  };
-}
-
-/**
- * Base controller for taxonomies and classification panels.
- *
- * @param $scope
- * @param $location
- * @param TaxonomyResource
- * @param TaxonomiesResource
- * @param ngObibaMicaSearch
- * @constructor
- */
-function BaseTaxonomiesController($rootScope,
-                                  $scope,
-                                  $translate,
-                                  $location,
-                                  TaxonomyResource,
-                                  TaxonomiesResource,
-                                  ngObibaMicaSearch,
-                                  RqlQueryUtils,
-                                  $cacheFactory,
-                                  VocabularyService) {
-
-  $scope.options = ngObibaMicaSearch.getOptions();
-  $scope.RqlQueryUtils = RqlQueryUtils;
-  $scope.metaTaxonomy = TaxonomyResource.get({
-    target: 'taxonomy',
-    taxonomy: 'Mica_taxonomy'
-  });
-
-  $scope.taxonomies = {
-    all: [],
-    search: {
-      text: null,
-      active: false
-    },
-    target: $scope.target || 'variable',
-    taxonomy: null,
-    vocabulary: null
-  };
-
-  $rootScope.$on('$translateChangeSuccess', function () {
-    if ($scope.taxonomies && $scope.taxonomies.vocabulary) {
-      VocabularyService.sortVocabularyTerms($scope.taxonomies.vocabulary, $translate.use());
-    }
-  });
-
-  // vocabulary (or term) will appear in navigation iff it doesn't have the 'showNavigate' attribute
-  $scope.canNavigate = function(vocabulary) {
-    if ($scope.options.hideNavigate.indexOf(vocabulary.name) > -1) {
-      return false;
-    }
-
-    return (vocabulary.attributes || []).filter(function (attr) { return attr.key === 'showNavigate'; }).length === 0;
-  };
-
-  this.navigateTaxonomy = function (taxonomy, vocabulary, term) {
-    $scope.taxonomies.term = term;
-
-    if ($scope.isHistoryEnabled) {
-      var search = $location.search();
-      search.taxonomy = taxonomy ? taxonomy.name : null;
-
-      if (vocabulary && search.vocabulary !== vocabulary.name) {
-        VocabularyService.sortVocabularyTerms(vocabulary, $scope.lang);
-        search.vocabulary = vocabulary.name;
-      } else {
-        search.vocabulary = null;
-      }
-
-      $location.search(search);
-    } else {
-      $scope.taxonomies.taxonomy = taxonomy;
-
-      if (!$scope.taxonomies.vocabulary || $scope.taxonomies.vocabulary.name !== vocabulary.name) {
-        VocabularyService.sortVocabularyTerms(vocabulary, $scope.lang);
-      }
-
-      $scope.taxonomies.vocabulary = vocabulary;
-    }
-  };
-
-  this.updateStateFromLocation = function () {
-    var search = $location.search();
-    var taxonomyName = search.taxonomy,
-      vocabularyName = search.vocabulary, taxonomy = null, vocabulary = null;
-
-    if (!$scope.taxonomies.all) { //page loading
-      return;
-    }
-
-    $scope.taxonomies.all.forEach(function (t) {
-      if (t.name === taxonomyName) {
-        taxonomy = t;
-        t.vocabularies.forEach(function (v) {
-          if (v.name === vocabularyName) {
-            vocabulary = v;
-          }
-        });
-      }
-    });
-
-    if (!angular.equals($scope.taxonomies.taxonomy, taxonomy) || !angular.equals($scope.taxonomies.vocabulary, vocabulary)) {
-      $scope.taxonomies.taxonomy = taxonomy;
-
-      if(vocabulary) {
-        VocabularyService.sortVocabularyTerms(vocabulary, $scope.lang);
-      }
-
-      $scope.taxonomies.vocabulary = vocabulary;
-    }
-  };
-
-  this.selectTerm = function (target, taxonomy, vocabulary, args) {
-    $scope.onSelectTerm(target, taxonomy, vocabulary, args);
-  };
-
-  this.clearCache = function () {
-    var taxonomyResourceCache = $cacheFactory.get('taxonomyResource');
-    if (taxonomyResourceCache) {
-      taxonomyResourceCache.removeAll();
-    }
-  };
-
-  var self = this;
-
-  $scope.$on('$locationChangeSuccess', function () {
-    if ($scope.isHistoryEnabled) {
-      self.updateStateFromLocation();
-    }
-  });
-  $scope.$watch('taxonomies.vocabulary', function(value) {
-    if(RqlQueryUtils && value) {
-      $scope.taxonomies.isNumericVocabulary = VocabularyService.isNumericVocabulary($scope.taxonomies.vocabulary);
-      $scope.taxonomies.isMatchVocabulary = VocabularyService.isMatchVocabulary($scope.taxonomies.vocabulary);
-    } else {
-      $scope.taxonomies.isNumericVocabulary = null;
-      $scope.taxonomies.isMatchVocabulary = null;
-    }
-  });
-
-  $scope.navigateTaxonomy = this.navigateTaxonomy;
-  $scope.selectTerm = this.selectTerm;
-  $scope.clearCache = this.clearCache;
-}
-/**
- * TaxonomiesPanelController
- *
- * @param $rootScope
- * @param $scope
- * @param $translate
- * @param $location
- * @param TaxonomyResource
- * @param TaxonomiesResource
- * @param ngObibaMicaSearch
- * @param RqlQueryUtils
- * @param $cacheFactory
- * @param AlertService
- * @param ServerErrorUtils
- * @constructor
- */
-function TaxonomiesPanelController($rootScope,
-                                   $scope,
-                                   $translate,
-                                   $location,
-                                   TaxonomyResource,
-                                   TaxonomiesResource,
-                                   ngObibaMicaSearch,
-                                   RqlQueryUtils,
-                                   $cacheFactory,
-                                   AlertService,
-                                   ServerErrorUtils,
-                                   VocabularyService) {
-  BaseTaxonomiesController.call(this,
-    $rootScope,
-    $scope,
-    $translate,
-    $location,
-    TaxonomyResource,
-    TaxonomiesResource,
-    ngObibaMicaSearch,
-    RqlQueryUtils,
-    $cacheFactory,
-    VocabularyService);
-
-  function getPanelTaxonomies(target, taxonomyName) {
-    TaxonomyResource.get({
-      target: target,
-      taxonomy: taxonomyName
-    }, function onSuccess(response) {
-      $scope.taxonomies.taxonomy = response;
-      $scope.taxonomies.vocabulary = null;
-      $scope.taxonomies.term = null;
-      $scope.taxonomies.search.active = false;
-    }, function onError(response) {
-      $scope.taxonomies.search.active = false;
-
-      AlertService.alert({
-        id: 'SearchController',
-        type: 'danger',
-        msg: ServerErrorUtils.buildMessage(response),
-        delay: 5000
+    $translate(['search.help', 'search.coverage-help'])
+      .then(function (translation) {
+        if (!$scope.options.SearchHelpText && !$cookies.get(cookiesSearchHelp)) {
+          $scope.options.SearchHelpText = translation['search.help'];
+        }
+        if (!$scope.options.ClassificationHelpText && !$cookies.get(cookiesClassificationHelp)) {
+          $scope.options.ClassificationHelpText = translation['classifications.help'];
+        }
       });
-    });
+
+    // Close the Help search box and set the local cookies
+    $scope.closeHelpBox = function () {
+      $cookies.put(cookiesSearchHelp, true);
+      $scope.options.SearchHelpText = null;
+    };
+
+    // Close the Help classification box and set the local cookies
+    $scope.closeClassificationHelpBox = function () {
+      $cookies.put(cookiesClassificationHelp, true);
+      $scope.options.ClassificationHelpText = null;
+    };
+
+    // Retrieve from local cookies if user has disabled the Help Search Box and hide the box if true
+    if ($cookies.get(cookiesSearchHelp)) {
+      $scope.options.SearchHelpText = null;
+    }
+
+    // Retrieve from local cookies if user has disabled the Help Classification Box and hide the box if true
+    if ($cookies.get(cookiesClassificationHelp)) {
+      $scope.options.ClassificationHelpText = null;
+    }
   }
 
-  $scope.$watchGroup(['taxonomyName', 'target'], function (newVal) {
-    if (newVal[0] && newVal[1]) {
-      if ($scope.showTaxonomies) {
-        $scope.showTaxonomies();
-      }
-      $scope.taxonomies.target = newVal[1];
-      $scope.taxonomies.search.active = true;
-      $scope.taxonomies.all = null;
-      $scope.taxonomies.taxonomy = null;
-      $scope.taxonomies.vocabulary = null;
-      $scope.taxonomies.term = null;
+  ngObibaMica.search
 
-      getPanelTaxonomies(newVal[1], newVal[0]);
-    }
-  });
+    .controller('SearchController', [
+      '$scope',
+      '$rootScope',
+      '$timeout',
+      '$routeParams',
+      '$location',
+      '$translate',
+      '$filter',
+      '$cookies',
+      'TaxonomiesSearchResource',
+      'TaxonomiesResource',
+      'TaxonomyResource',
+      'VocabularyResource',
+      'ngObibaMicaSearchTemplateUrl',
+      'ObibaServerConfigResource',
+      'JoinQuerySearchResource',
+      'JoinQueryCoverageResource',
+      'AlertService',
+      'ServerErrorUtils',
+      'LocalizedValues',
+      'RqlQueryService',
+      'RqlQueryUtils',
+      'SearchContext',
+      'CoverageGroupByService',
+      'VocabularyService',
+      'LocaleStringUtils',
+      'StringUtils',
+      'EntitySuggestionRqlUtilityService',
+      'options',
+      function ($scope,
+        $rootScope,
+        $timeout,
+        $routeParams,
+        $location,
+        $translate,
+        $filter,
+        $cookies,
+        TaxonomiesSearchResource,
+        TaxonomiesResource,
+        TaxonomyResource,
+        VocabularyResource,
+        ngObibaMicaSearchTemplateUrl,
+        ObibaServerConfigResource,
+        JoinQuerySearchResource,
+        JoinQueryCoverageResource,
+        AlertService,
+        ServerErrorUtils,
+        LocalizedValues,
+        RqlQueryService,
+        RqlQueryUtils,
+        SearchContext,
+        CoverageGroupByService,
+        VocabularyService,
+        LocaleStringUtils,
+        StringUtils,
+        EntitySuggestionRqlUtilityService,
+        options) {
 
-  this.refreshTaxonomyCache = function (target, taxonomyName) {
-    $scope.clearCache();
-    getPanelTaxonomies(target, taxonomyName);
-  };
+        $scope.options = options;
+        manageSearchHelpText($scope, $translate, $cookies);
 
-  $scope.refreshTaxonomyCache = this.refreshTaxonomyCache;
-}
-/**
- * ClassificationPanelController
- *
- * @param $rootScope
- * @param $scope
- * @param $translate
- * @param $location
- * @param TaxonomyResource
- * @param TaxonomiesResource
- * @param ngObibaMicaSearch
- * @param RqlQueryUtils
- * @param $cacheFactory
- * @param VocabularyService
- * @constructor
- */
-function ClassificationPanelController($rootScope,
-                                       $scope,
-                                       $translate,
-                                       $location,
-                                       TaxonomyResource,
-                                       TaxonomiesResource,
-                                       ngObibaMicaSearch,
-                                       RqlQueryUtils,
-                                       $cacheFactory,
-                                       VocabularyService) {
-  BaseTaxonomiesController.call(this,
-    $rootScope,
-    $scope,
-    $translate,
-    $location,
-    TaxonomyResource,
-    TaxonomiesResource,
-    ngObibaMicaSearch,
-    RqlQueryUtils,
-    $cacheFactory,
-    VocabularyService);
-
-  var groupTaxonomies = function (taxonomies, target) {
-    var res = taxonomies.reduce(function (res, t) {
-      if(target){
-        t.vocabularies = VocabularyService.visibleVocabularies(t.vocabularies);
-        res[t.name] = t;
-        return res;
-      }
-    }, {});
-
-    return $scope.metaTaxonomy.$promise.then(function (metaTaxonomy) {
-      var targetVocabulary = metaTaxonomy.vocabularies.filter(function (v) {
-        return v.name === target;
-      })[0];
-
-      $scope.taxonomyGroups = targetVocabulary.terms.map(function (v) {
-        if (!v.terms) {
-          var taxonomy = res[v.name];
-
-          if (!taxonomy) {
-            return null;
-          }
-
-          taxonomy.title = v.title;
-          taxonomy.description = v.description;
-          return {title: null, taxonomies: [taxonomy]};
-        }
-
-        var taxonomies = v.terms.map(function (t) {
-          var taxonomy = res[t.name];
-
-          if (!taxonomy) {
-            return null;
-          }
-
-          taxonomy.title = t.title;
-          taxonomy.description = t.description;
-          return taxonomy;
-        }).filter(function (t) {
-          return t;
-        });
-        var title = v.title.filter(function (t) {
-          return t.locale === $scope.lang;
-        })[0];
-        var description = v.description ? v.description.filter(function (t) {
-          return t.locale === $scope.lang;
-        })[0] : undefined;
-
-        return {
-          title: title ? title.text : null,
-          description: description ? description.text : null,
-          taxonomies: taxonomies
+        $scope.taxonomyTypeMap = { //backwards compatibility for pluralized naming in configs.
+          variable: 'variables',
+          study: 'studies',
+          network: 'networks',
+          dataset: 'datasets'
         };
-      }).filter(function (t) {
-        return t;
-      });
-    });
-  };
 
-  var self = this;
+        $translate(['search.classifications-title', 'search.classifications-link', 'search.faceted-navigation-help'])
+          .then(function (translation) {
+            $scope.hasClassificationsTitle = translation['search.classifications-title'];
+            $scope.hasClassificationsLinkLabel = translation['search.classifications-link'];
+            $scope.hasFacetedNavigationHelp = translation['search.faceted-navigation-help'];
+          });
 
-  function getClassificationTaxonomies() {
-    TaxonomiesResource.get({
-      target: $scope.taxonomies.target
-    }, function onSuccess(taxonomies) {
-      $scope.taxonomies.all = taxonomies;
-      groupTaxonomies(taxonomies, $scope.taxonomies.target);
-      $scope.taxonomies.search.active = false;
-      self.updateStateFromLocation();
-    });
-  }
+        var searchTaxonomyDisplay = {
+          variable: $scope.options.variables.showSearchTab,
+          dataset: $scope.options.datasets.showSearchTab,
+          study: $scope.options.studies.showSearchTab,
+          network: $scope.options.networks.showSearchTab
+        };
 
-  $scope.$watch('target', function (newVal) {
-    if (newVal) {
-      $scope.taxonomies.target = newVal;
-      $scope.taxonomies.search.active = true;
-      $scope.taxonomies.all = null;
-      $scope.taxonomies.taxonomy = null;
-      $scope.taxonomies.vocabulary = null;
-      $scope.taxonomies.term = null;
-
-      getClassificationTaxonomies();
-    }
-  });
-
-  this.refreshTaxonomyCache = function () {
-    $scope.clearCache();
-    getClassificationTaxonomies();
-  };
-
-  $scope.refreshTaxonomyCache = this.refreshTaxonomyCache;
-}
-
-ngObibaMica.search
-
-  .controller('SearchController', [
-    '$scope',
-    '$rootScope',
-    '$timeout',
-    '$routeParams',
-    '$location',
-    '$translate',
-    '$filter',
-    '$cookies',
-    'TaxonomiesSearchResource',
-    'TaxonomiesResource',
-    'TaxonomyResource',
-    'VocabularyResource',
-    'ngObibaMicaSearchTemplateUrl',
-    'ObibaServerConfigResource',
-    'JoinQuerySearchResource',
-    'JoinQueryCoverageResource',
-    'AlertService',
-    'ServerErrorUtils',
-    'LocalizedValues',
-    'RqlQueryService',
-    'RqlQueryUtils',
-    'SearchContext',
-    'CoverageGroupByService',
-    'VocabularyService',
-    'LocaleStringUtils',
-    'StringUtils',
-    'EntitySuggestionRqlUtilityService',
-    'options',
-    function ($scope,
-              $rootScope,
-              $timeout,
-              $routeParams,
-              $location,
-              $translate,
-              $filter,
-              $cookies,
-              TaxonomiesSearchResource,
-              TaxonomiesResource,
-              TaxonomyResource,
-              VocabularyResource,
-              ngObibaMicaSearchTemplateUrl,
-              ObibaServerConfigResource,
-              JoinQuerySearchResource,
-              JoinQueryCoverageResource,
-              AlertService,
-              ServerErrorUtils,
-              LocalizedValues,
-              RqlQueryService,
-              RqlQueryUtils,
-              SearchContext,
-              CoverageGroupByService,
-              VocabularyService,
-              LocaleStringUtils,
-              StringUtils,
-              EntitySuggestionRqlUtilityService,
-              options) {
-
-      $scope.options = options;
-      var cookiesSearchHelp = 'micaHideSearchHelpText';
-      var cookiesClassificationHelp = 'micaHideClassificationHelpBox';
-
-      $translate(['search.help', 'search.coverage-help'])
-        .then(function (translation) {
-          if(!$scope.options.SearchHelpText && !$cookies.get(cookiesSearchHelp)){
-            $scope.options.SearchHelpText = translation['search.help'];
-          }
-          if(!$scope.options.ClassificationHelpText && !$cookies.get(cookiesClassificationHelp)){
-            $scope.options.ClassificationHelpText = translation['classifications.help'];
-          }
-        });
-      // Close the Help search box and set the local cookies
-      $scope.closeHelpBox = function () {
-        $cookies.put(cookiesSearchHelp, true);
-        $scope.options.SearchHelpText = null;
-      };
-
-      // Close the Help classification box and set the local cookies
-      $scope.closeClassificationHelpBox = function () {
-        $cookies.put(cookiesClassificationHelp, true);
-        $scope.options.ClassificationHelpText = null;
-      };
-
-      // Retrieve from local cookies if user has disabled the Help Search Box and hide the box if true
-      if ($cookies.get(cookiesSearchHelp)) {
-        $scope.options.SearchHelpText = null;
-      }
-      // Retrieve from local cookies if user has disabled the Help Classification Box and hide the box if true
-      if ($cookies.get(cookiesClassificationHelp)) {
-        $scope.options.ClassificationHelpText = null;
-      }
-
-      $scope.taxonomyTypeMap = { //backwards compatibility for pluralized naming in configs.
-        variable: 'variables',
-        study: 'studies',
-        network: 'networks',
-        dataset: 'datasets'
-      };
-
-      $translate(['search.classifications-title', 'search.classifications-link', 'search.faceted-navigation-help'])
-        .then(function (translation) {
-          $scope.hasClassificationsTitle = translation['search.classifications-title'];
-          $scope.hasClassificationsLinkLabel = translation['search.classifications-link'];
-          $scope.hasFacetedNavigationHelp = translation['search.faceted-navigation-help'];
-        });
-
-      var searchTaxonomyDisplay = {
-        variable: $scope.options.variables.showSearchTab,
-        dataset: $scope.options.datasets.showSearchTab,
-        study: $scope.options.studies.showSearchTab,
-        network: $scope.options.networks.showSearchTab
-      };
-      var taxonomyTypeInverseMap = Object.keys($scope.taxonomyTypeMap).reduce(function (prev, k) {
-        prev[$scope.taxonomyTypeMap[k]] = k;
-        return prev;
-      }, {});
-      $scope.targets = [];
-      $scope.lang = $translate.use();
-      $scope.metaTaxonomy = TaxonomyResource.get({
-        target: 'taxonomy',
-        taxonomy: 'Mica_taxonomy'
-      }, function (t) {
-        var stuff = t.vocabularies.map(function (v) {
-          return v.name;
-        });
-
-        $scope.targets = stuff.filter(function (target) {
-          return searchTaxonomyDisplay[target];
-        });
-
-        function flattenTaxonomies(terms){
-          function inner(acc, terms) {
-            angular.forEach(terms, function(t) {
-              if(!t.terms) {
-                acc.push(t);
-                return;
-              }
-
-              inner(acc, t.terms);
-            });
-
-            return acc;
-          }
-
-          return inner([], terms);
-        }
-
-        $scope.hasFacetedTaxonomies = false;
-
-        $scope.facetedTaxonomies = t.vocabularies.reduce(function(res, target) {
-          var taxonomies = flattenTaxonomies(target.terms);
-
-          function getTaxonomy(taxonomyName) {
-            return taxonomies.filter(function(t) {
-              return t.name === taxonomyName;
-            })[0];
-          }
-
-          function notNull(t) {
-            return t !== null && t !== undefined;
-          }
-
-          if($scope.options.showAllFacetedTaxonomies) {
-            res[target.name] = taxonomies.filter(function(t) {
-              return t.attributes && t.attributes.some(function(att) {
-                  return att.key === 'showFacetedNavigation' &&  att.value.toString() === 'true';
-                });
-            });
-          } else {
-            res[target.name] = ($scope.options[target.name + 'TaxonomiesOrder'] || []).map(getTaxonomy).filter(notNull);
-          }
-
-          $scope.hasFacetedTaxonomies = $scope.hasFacetedTaxonomies || res[target.name].length;
-
-          return res;
+        var taxonomyTypeInverseMap = Object.keys($scope.taxonomyTypeMap).reduce(function (prev, k) {
+          prev[$scope.taxonomyTypeMap[k]] = k;
+          return prev;
         }, {});
-      });
 
-      function initSearchTabs() {
-        $scope.taxonomyNav = [];
+        $scope.targets = [];
+        $scope.lang = $translate.use();
+        $scope.metaTaxonomy = TaxonomyResource.get({
+          target: 'taxonomy',
+          taxonomy: 'Mica_taxonomy'
+        }, function (t) {
+          var stuff = t.vocabularies.map(function (v) {
+            return v.name;
+          });
 
-        function getTabsOrderParam(arg) {
-          var value = $location.search()[arg];
+          $scope.targets = stuff.filter(function (target) {
+            return searchTaxonomyDisplay[target];
+          });
 
-          return value && value.split(',')
+          function flattenTaxonomies(terms) {
+            function inner(acc, terms) {
+              angular.forEach(terms, function (t) {
+                if (!t.terms) {
+                  acc.push(t);
+                  return;
+                }
+
+                inner(acc, t.terms);
+              });
+
+              return acc;
+            }
+
+            return inner([], terms);
+          }
+
+          $scope.hasFacetedTaxonomies = false;
+
+          $scope.facetedTaxonomies = t.vocabularies.reduce(function (res, target) {
+            var taxonomies = flattenTaxonomies(target.terms);
+
+            function getTaxonomy(taxonomyName) {
+              return taxonomies.filter(function (t) {
+                return t.name === taxonomyName;
+              })[0];
+            }
+
+            function notNull(t) {
+              return t !== null && t !== undefined;
+            }
+
+            if ($scope.options.showAllFacetedTaxonomies) {
+              res[target.name] = taxonomies.filter(function (t) {
+                return t.attributes && t.attributes.some(function (att) {
+                  return att.key === 'showFacetedNavigation' && att.value.toString() === 'true';
+                });
+              });
+            } else {
+              res[target.name] = ($scope.options[target.name + 'TaxonomiesOrder'] || []).map(getTaxonomy).filter(notNull);
+            }
+
+            $scope.hasFacetedTaxonomies = $scope.hasFacetedTaxonomies || res[target.name].length;
+
+            return res;
+          }, {});
+        });
+
+        function initSearchTabs() {
+          $scope.taxonomyNav = [];
+
+          function getTabsOrderParam(arg) {
+            var value = $location.search()[arg];
+
+            return value && value.split(',')
               .filter(function (t) {
                 return t;
               })
               .map(function (t) {
                 return t.trim();
               });
-        }
+          }
 
-        var targetTabsOrderParam = getTabsOrderParam('targetTabsOrder');
-        $scope.targetTabsOrder = (targetTabsOrderParam || $scope.options.targetTabsOrder).filter(function (t) {
-          return searchTaxonomyDisplay[t];
-        });
+          var targetTabsOrderParam = getTabsOrderParam('targetTabsOrder');
+          $scope.targetTabsOrder = (targetTabsOrderParam || $scope.options.targetTabsOrder).filter(function (t) {
+            return searchTaxonomyDisplay[t];
+          });
 
-        var searchTabsOrderParam = getTabsOrderParam('searchTabsOrder');
-        $scope.searchTabsOrder = searchTabsOrderParam || $scope.options.searchTabsOrder;
+          var searchTabsOrderParam = getTabsOrderParam('searchTabsOrder');
+          $scope.searchTabsOrder = searchTabsOrderParam || $scope.options.searchTabsOrder;
 
-        var resultTabsOrderParam = getTabsOrderParam('resultTabsOrder');
-        $scope.resultTabsOrder = (resultTabsOrderParam || $scope.options.resultTabsOrder).filter(function (t) {
-          return searchTaxonomyDisplay[t];
-        });
+          var resultTabsOrderParam = getTabsOrderParam('resultTabsOrder');
+          $scope.resultTabsOrder = (resultTabsOrderParam || $scope.options.resultTabsOrder).filter(function (t) {
+            return searchTaxonomyDisplay[t];
+          });
 
-        if($location.search().target) {
-          $scope.target = $location.search().target;
-        } else if (!$scope.target) {
-          $scope.target = $scope.targetTabsOrder[0];
-        }
+          if ($location.search().target) {
+            $scope.target = $location.search().target;
+          } else if (!$scope.target) {
+            $scope.target = $scope.targetTabsOrder[0];
+          }
 
-        $scope.metaTaxonomy.$promise.then(function (metaTaxonomy) {
-          var tabOrderTodisplay = [];
-          $scope.targetTabsOrder.forEach(function (target) {
-            var targetVocabulary = metaTaxonomy.vocabularies.filter(function (vocabulary) {
-              if(vocabulary.name === target){
-                tabOrderTodisplay.push(target);
-                return true;
-              }
-            }).pop();
-            if (targetVocabulary && targetVocabulary.terms) {
-              targetVocabulary.terms.forEach(function (term) {
-                term.target = target;
-                var title = term.title.filter(function (t) {
-                  return t.locale === $scope.lang;
-                })[0];
-                var description = term.description ? term.description.filter(function (t) {
-                  return t.locale === $scope.lang;
-                })[0] : undefined;
-                term.locale = {
-                  title: title,
-                  description: description
-                };
-                if (term.terms) {
-                  term.terms.forEach(function (trm) {
-                    var title = trm.title.filter(function (t) {
-                      return t.locale === $scope.lang;
-                    })[0];
-                    var description = trm.description ? trm.description.filter(function (t) {
-                      return t.locale === $scope.lang;
-                    })[0] : undefined;
-                    trm.locale = {
-                      title: title,
-                      description: description
-                    };
-                  });
+          $scope.metaTaxonomy.$promise.then(function (metaTaxonomy) {
+            var tabOrderTodisplay = [];
+            $scope.targetTabsOrder.forEach(function (target) {
+              var targetVocabulary = metaTaxonomy.vocabularies.filter(function (vocabulary) {
+                if (vocabulary.name === target) {
+                  tabOrderTodisplay.push(target);
+                  return true;
                 }
-                $scope.taxonomyNav.push(term);
-              });
-            }
-          });
-          $scope.targetTabsOrder = tabOrderTodisplay;
-        });
-      }
-
-      function onError(response) {
-        $scope.search.result = {};
-        $scope.search.loading = false;
-        AlertService.alert({
-          id: 'SearchController',
-          type: 'danger',
-          msg: ServerErrorUtils.buildMessage(response),
-          delay: 5000
-        });
-      }
-
-      function canExecuteWithEmptyQuery() {
-        return $scope.search.layout === 'layout2' || $scope.search.query;
-      }
-
-      function validateType(type) {
-        if (!type || !QUERY_TYPES[type.toUpperCase()]) {
-          throw new Error('Invalid type: ' + type);
-        }
-      }
-
-      function validateBucket(bucket) {
-        if (bucket &&
-            (!BUCKET_TYPES[bucket.replace('-', '_').toUpperCase()] || !CoverageGroupByService.canGroupBy(bucket))) {
-          throw new Error('Invalid bucket ' + bucket);
-        }
-      }
-
-      function validateDisplay(display) {
-        if (!display || !DISPLAY_TYPES[display.toUpperCase()]) {
-          throw new Error('Invalid display: ' + display);
-        }
-      }
-
-      function getDefaultQueryType() {
-        return $scope.taxonomyTypeMap[$scope.resultTabsOrder[0]];
-      }
-
-      function getDefaultDisplayType() {
-        return $scope.searchTabsOrder[0] || DISPLAY_TYPES.LIST;
-      }
-
-      function resolveLayout(resolvedOptions) {
-        return resolvedOptions.listLayout ? resolvedOptions.listLayout :
-            resolvedOptions.searchLayout ? resolvedOptions.searchLayout : 'layout2';
-      }
-
-      function validateQueryData() {
-        try {
-          var search = $location.search();
-          var type = $scope.resultTabsOrder.indexOf(taxonomyTypeInverseMap[search.type]) > -1 ? search.type : getDefaultQueryType();
-          var bucket = search.bucket && CoverageGroupByService.canGroupBy(search.bucket) ? search.bucket : CoverageGroupByService.defaultBucket();
-          var display = $scope.searchTabsOrder.indexOf(search.display) > -1 ? search.display : getDefaultDisplayType();
-          var query = search.query || '';
-          validateType(type);
-          validateBucket(bucket);
-          validateDisplay(display);
-          $scope.search.type = type;
-          $scope.search.bucket = bucket;
-          $scope.search.display = display;
-          $scope.search.query = query;
-          $scope.search.rqlQuery = RqlQueryService.parseQuery(query);
-          $scope.search.layout = setLayout(search.layout ? search.layout : resolveLayout($scope.options));
-
-          return true;
-        } catch (e) {
-          AlertService.alert({
-            id: 'SearchController',
-            type: 'danger',
-            msg: e.message,
-            delay: 5000
-          });
-        }
-
-        return false;
-      }
-
-      function setLayout(layout) {
-        return layout ? (['layout1', 'layout2'].indexOf(layout) > -1 ? layout : 'layout2') : 'layout2';
-      }
-
-      var clearSearchQuery = function () {
-        var search = $location.search();
-        delete search.query;
-        $location.search(search);
-      };
-
-      var toggleSearchQuery = function () {
-        $scope.search.advanced = !$scope.search.advanced;
-      };
-
-      var showAdvanced = function() {
-        var children = $scope.search.criteria.children || [];
-        for(var i = children.length; i--;) {
-          var vocabularyChildren = children[i].children || [];
-          for (var j = vocabularyChildren.length; j--;) {
-            if (vocabularyChildren[j].type === RQL_NODE.OR || vocabularyChildren[j].type === RQL_NODE.AND) {
-              return true;
-            }
-          }
-        }
-      };
-
-      function sortCriteriaItems(items) {
-        items.sort(function (a, b) {
-          if (a.target === 'network' || b.target === 'variable') {
-            return -1;
-          }
-          if (a.target === 'variable' || b.target === 'network') {
-            return 1;
-          }
-          if (a.target < b.target) {
-            return 1;
-          }
-          if (a.target > b.target) {
-            return -1;
-          }
-          // a must be equal to b
-          return 0;
-        });
-      }
-
-      function loadResults() {
-        // execute search only when results are to be shown
-        if ($location.path() !== '/search') {
-          return;
-        }
-
-        function updateSortByType() {
-          var rqlSort = RqlQueryService.getTargetQuerySort($scope.search.type, $scope.search.rqlQuery);
-          var sort = rqlSort && rqlSort.args ? rqlSort.args : null;
-
-          if (!sort) {
-            sort = $scope.search.type === QUERY_TYPES.VARIABLES ? SORT_FIELDS.NAME : SORT_FIELDS.ACRONYM;
-
-            if ($scope.search.type === QUERY_TYPES.VARIABLES) {
-              sort = [SORT_FIELDS.VARIABLE_TYPE, SORT_FIELDS.CONTAINER_ID, SORT_FIELDS.POPULATION_WEIGHT, SORT_FIELDS.DATA_COLLECTION_EVENT_WEIGHT, SORT_FIELDS.DATASET_ID, SORT_FIELDS.INDEX, SORT_FIELDS.NAME];
-            } else if ($scope.search.type === QUERY_TYPES.DATASETS) {
-              sort = [SORT_FIELDS.STUDY_TABLE.STUDY_ID, SORT_FIELDS.STUDY_TABLE.POPULATION_WEIGHT, SORT_FIELDS.STUDY_TABLE.DATA_COLLECTION_EVENT_WEIGHT, SORT_FIELDS.ACRONYM];
-            }
-          }
-
-          return sort;
-        }
-
-        var localizedQuery =
-          RqlQueryService.prepareSearchQueryAndSerialize(
-            $scope.search.display,
-            $scope.search.type,
-            $scope.search.rqlQuery,
-            $scope.search.pagination,
-            $scope.lang,
-            updateSortByType()
-          );
-
-        function getCountResultFromJoinQuerySearchResponse(response) {
-          return {
-            studyTotalCount: {
-              total: response.studyResultDto.totalCount,
-              hits: response.studyResultDto.totalHits
-            },
-            datasetTotalCount: {
-              total: response.datasetResultDto.totalCount,
-              hits: response.datasetResultDto.totalHits
-            },
-            variableTotalCount: {
-              total: response.variableResultDto.totalCount,
-              hits: response.variableResultDto.totalHits
-            },
-            networkTotalCount: {
-              total: response.networkResultDto.totalCount,
-              hits: response.networkResultDto.totalHits
-            }
-          };
-        }
-
-        switch ($scope.search.display) {
-          case DISPLAY_TYPES.LIST:
-            $scope.search.loading = true;
-            $scope.search.executedQuery = localizedQuery;
-            JoinQuerySearchResource[$scope.search.type]({query: localizedQuery},
-              function onSuccess(response) {
-                $scope.search.result.list = response;
-                $scope.search.loading = false;
-                $scope.search.countResult = getCountResultFromJoinQuerySearchResponse(response);
-              },
-              onError);
-            break;
-          case DISPLAY_TYPES.COVERAGE:
-            var hasVariableCriteria = Object.keys($scope.search.criteriaItemMap).map(function (k) {
-                return $scope.search.criteriaItemMap[k];
-              }).filter(function (item) {
-                return QUERY_TARGETS.VARIABLE  === item.getTarget() && item.taxonomy.name !== 'Mica_variable';
-              }).length > 0;
-
-            if (hasVariableCriteria) {
-              $scope.search.loading = true;
-              $scope.search.executedQuery = RqlQueryService.prepareCoverageQuery(localizedQuery, $scope.search.bucket);
-              JoinQueryCoverageResource.get({query: $scope.search.executedQuery},
-                function onSuccess(response) {
-                  $scope.search.result.coverage = response;
-                  $scope.search.loading = false;
-                  $scope.search.countResult = response.totalCounts;
-                },
-                onError);
-            } else {
-              $scope.search.result = {};
-            }
-
-            break;
-          case DISPLAY_TYPES.GRAPHICS:
-            $scope.search.loading = true;
-            $scope.search.executedQuery = RqlQueryService.prepareGraphicsQuery(localizedQuery,
-              ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'],
-              ['Mica_study.methods-design']);
-            JoinQuerySearchResource.studies({query: $scope.search.executedQuery},
-              function onSuccess(response) {
-                $scope.search.result.graphics = response;
-                $scope.search.loading = false;
-                $scope.search.countResult = getCountResultFromJoinQuerySearchResponse(response);
-              },
-              onError);
-            break;
-        }
-
-      }
-
-      function findAndSetCriteriaItemForTaxonomyVocabularies(target, taxonomy) {
-        if (Array.isArray(taxonomy)) {
-          taxonomy.forEach(function (subTaxonomy) {
-            subTaxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
-              taxonomyVocabulary.existingItem =
-                  RqlQueryService.findCriteriaItemFromTreeById(target,
-                      CriteriaIdGenerator.generate(subTaxonomy, taxonomyVocabulary), $scope.search.criteria, true);
-            });
-          });
-        } else {
-          taxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
-            taxonomyVocabulary.existingItem =
-                RqlQueryService.findCriteriaItemFromTreeById(target,
-                    CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria, true);
-          });
-        }
-      }
-
-      function executeSearchQuery() {
-        if (validateQueryData()) {
-          // build the criteria UI
-          RqlQueryService.createCriteria($scope.search.rqlQuery, $scope.lang).then(function (result) {
-            // criteria UI is updated here
-            $scope.search.criteria = result.root;
-
-            if ($scope.search.criteria && $scope.search.criteria.children) {
-              sortCriteriaItems($scope.search.criteria.children);
-            }
-
-            $scope.search.criteriaItemMap = result.map;
-
-             if (canExecuteWithEmptyQuery()) {
-              loadResults();
-             }
-
-            if ($scope.search.selectedTarget && $scope.search.selectedTaxonomy) {
-              findAndSetCriteriaItemForTaxonomyVocabularies($scope.search.selectedTarget, $scope.search.selectedTaxonomy);
-            }
-
-            $scope.$broadcast('ngObibaMicaQueryUpdated', $scope.search.criteria);
-          });
-        }
-      }
-
-      function processTaxonomyVocabulary(target, taxonomy, taxonomyVocabulary) {
-        function processExistingItem(existingItem) {
-          if (existingItem) {
-            if (VocabularyService.isNumericVocabulary(taxonomyVocabulary)) {
-              taxonomyVocabulary.rangeTerms = existingItem.getRangeTerms();
-            }
-
-            if (VocabularyService.isMatchVocabulary(taxonomyVocabulary)) {
-              taxonomyVocabulary.matchString = existingItem.selectedTerms.join('');
-            }
-
-            // when vocabulary has terms
-            taxonomyVocabulary.wholeVocabularyIsSelected = ['exists','match'].indexOf(existingItem.type) > -1;
-            (taxonomyVocabulary.terms || []).forEach(function (term) {
-              term.selected = existingItem.type === 'exists' || existingItem.selectedTerms.indexOf(term.name) > -1;
-            });
-          } else {
-            taxonomyVocabulary.rangeTerms = {};
-            taxonomyVocabulary.matchString = null;
-
-            // when vocabulary has terms
-            taxonomyVocabulary.wholeVocabularyIsSelected = false;
-            (taxonomyVocabulary.terms || []).forEach(function (term) {
-              term.selected = false;
-            });
-          }
-
-          taxonomyVocabulary._existingItem = existingItem;
-        }
-
-        taxonomyVocabulary.__defineSetter__('existingItem', processExistingItem);
-        taxonomyVocabulary.__defineGetter__('existingItem', function () {  return taxonomyVocabulary._existingItem; });
-
-        taxonomyVocabulary.existingItem =
-            RqlQueryService.findCriteriaItemFromTreeById(target,
-                CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria, true);
-      }
-
-      function onTaxonomyFilterPanelToggleVisibility(target, taxonomy) {
-        if (target && taxonomy) {
-          if (Array.isArray(taxonomy)) {
-            taxonomy.forEach(function (subTaxonomy) {
-              subTaxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
-                processTaxonomyVocabulary(target, subTaxonomy, taxonomyVocabulary);
-              });
-            });
-          } else {
-            taxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
-              processTaxonomyVocabulary(target, taxonomy, taxonomyVocabulary);
-            });
-          }
-        }
-
-        $scope.search.selectedTarget = target;
-        $scope.search.selectedTaxonomy = taxonomy;
-        $scope.search.showTaxonomyPanel = taxonomy !== null;
-
-        // QUICKFIX for MK-1772 - there is a digest desync and UI misses info, resend the request upon closing
-        // A good solution may be a RequestQueue.
-        if (!$scope.search.showTaxonomyPanel) {
-          loadResults();
-        }
-      }
-
-      $scope.translateTaxonomyNav = function(t, key) {
-        var value = t[key] && t[key].filter(function(item) {
-          return item.locale === $translate.use();
-        }).pop();
-
-        return value ? value.text : key;
-      };
-
-      $rootScope.$on('$translateChangeSuccess', function (event, value) {
-        if (value.language !== SearchContext.currentLocale()) {
-          $scope.lang = $translate.use();
-          SearchContext.setLocale($scope.lang);
-          executeSearchQuery();
-        }
-      });
-
-      var showTaxonomy = function (target, name) {
-        if ($scope.target === target && $scope.taxonomyName === name && $scope.taxonomiesShown) {
-          $scope.taxonomiesShown = false;
-          return;
-        }
-
-        $scope.taxonomiesShown = true;
-        $scope.target = target;
-        $scope.taxonomyName = name;
-      };
-
-      var clearTaxonomy = function () {
-        $scope.target = null;
-        $scope.taxonomyName = null;
-      };
-
-      /**
-       * Updates the URL location triggering a query execution
-       */
-      var refreshQuery = function () {
-        var query = new RqlQuery().serializeArgs($scope.search.rqlQuery.args);
-        var search = $location.search();
-        if ('' === query) {
-          delete search.query;
-        } else {
-          search.query = query;
-        }
-        $location.search(search);
-      };
-
-      var clearSearch = function () {
-        $scope.documents.search.text = null;
-        $scope.documents.search.active = false;
-      };
-
-      /**
-       * Searches the criteria matching the input query
-       *
-       * @param query
-       * @returns {*}
-       */
-      var searchCriteria = function (query) {
-        // search for taxonomy terms
-        // search for matching variables/studies/... count
-
-        function score(item) {
-          var result = 0;
-          var regExp = new RegExp(query, 'ig');
-
-          if (item.itemTitle.match(regExp)) {
-            result = 10;
-          } else if (item.itemDescription && item.itemDescription.match(regExp)) {
-            result = 8;
-          } else if (item.itemParentTitle.match(regExp)) {
-            result = 6;
-          } else if (item.itemParentDescription && item.itemParentDescription.match(regExp)) {
-            result = 4;
-          }
-
-          return result;
-        }
-
-        // vocabulary (or term) can be used in search if it doesn't have the 'showSearch' attribute
-        function canSearch(taxonomyEntity, hideSearchList) {
-          if ((hideSearchList || []).indexOf(taxonomyEntity.name) > -1) {
-            return false;
-          }
-
-          return (taxonomyEntity.attributes || []).filter(function (attr) { return attr.key === 'showSearch'; }).length === 0;
-        }
-
-        function processBundle(bundle) {
-          var results = [];
-          var total = 0;
-          var target = bundle.target;
-          var taxonomy = bundle.taxonomy;
-          if (taxonomy.vocabularies) {
-            taxonomy.vocabularies.filter(function (vocabulary) {
-              return VocabularyService.isVisibleVocabulary(vocabulary) && canSearch(vocabulary, $scope.options.hideSearch);
-            }).forEach(function (vocabulary) {
-              if (vocabulary.terms) {
-                vocabulary.terms.filter(function (term) {
-                  return canSearch(term, $scope.options.hideSearch);
-                }).forEach(function (term) {
-                  var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, term, $scope.lang);
-                  results.push({
-                    score: score(item),
-                    item: item
-                  });
-                  total++;
+              }).pop();
+              if (targetVocabulary && targetVocabulary.terms) {
+                targetVocabulary.terms.forEach(function (term) {
+                  term.target = target;
+                  var title = term.title.filter(function (t) {
+                    return t.locale === $scope.lang;
+                  })[0];
+                  var description = term.description ? term.description.filter(function (t) {
+                    return t.locale === $scope.lang;
+                  })[0] : undefined;
+                  term.locale = {
+                    title: title,
+                    description: description
+                  };
+                  if (term.terms) {
+                    term.terms.forEach(function (trm) {
+                      var title = trm.title.filter(function (t) {
+                        return t.locale === $scope.lang;
+                      })[0];
+                      var description = trm.description ? trm.description.filter(function (t) {
+                        return t.locale === $scope.lang;
+                      })[0] : undefined;
+                      trm.locale = {
+                        title: title,
+                        description: description
+                      };
+                    });
+                  }
+                  $scope.taxonomyNav.push(term);
                 });
-              } else {
-                var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, $scope.lang);
-                results.push({
-                  score: score(item),
-                  item: item
-                });
-                total++;
               }
             });
-          }
-          return {results: results, total: total};
+            $scope.targetTabsOrder = tabOrderTodisplay;
+          });
         }
 
-        var criteria = TaxonomiesSearchResource.get({
-          query: StringUtils.quoteQuery(query.replace(/\/.*/g, '')), locale: $scope.lang, target: $scope.documents.search.target
-        }).$promise.then(function (response) {
-          if (response) {
-            var results = [];
-            var total = 0;
-            var size = 10;
-
-            response.forEach(function (bundle) {
-              var rval = processBundle(bundle);
-              results.push.apply(results, rval.results);
-              total = total + rval.total;
-            });
-
-            results.sort(function (a, b) {
-              return b.score - a.score;
-            });
-
-            results = results.splice(0, size);
-
-            if (total > results.length) {
-              var note = {
-                query: query,
-                total: total,
-                size: size,
-                message: LocaleStringUtils.translate('search.showing', [size, total]),
-                status: 'has-warning'
-              };
-              results.push({score: -1, item: note});
-            }
-
-            return results.map(function (result) {
-              return result.item;
-            });
-          } else {
-            return [];
-          }
-        }, function (response) {
+        function onError(response) {
+          $scope.search.result = {};
+          $scope.search.loading = false;
           AlertService.alert({
             id: 'SearchController',
             type: 'danger',
             msg: ServerErrorUtils.buildMessage(response),
             delay: 5000
           });
-        });
-
-        return criteria;
-      };
-
-      /**
-       * Removes the item from the criteria tree
-       * @param item
-       */
-      var removeCriteriaItem = function (item) {
-        RqlQueryService.removeCriteriaItem(item);
-        refreshQuery();
-      };
-
-      /**
-       * Propagates a Scope change that results in criteria panel update
-       * @param item
-       */
-      var selectCriteria = function (item, logicalOp, replace, showNotification, fullCoverage) {
-        if (angular.isUndefined(showNotification)) {
-          showNotification = true;
         }
 
-        if (item.id) {
-          var id = CriteriaIdGenerator.generate(item.taxonomy, item.vocabulary);
-          var existingItem = RqlQueryService.findCriteriaItemFromTree(item, $scope.search.criteria);
-          var growlMsgKey;
+        function canExecuteWithEmptyQuery() {
+          return $scope.search.layout === 'layout2' || $scope.search.query;
+        }
 
-          if (existingItem && id.indexOf('dceId') !== -1 && fullCoverage) {
-            removeCriteriaItem(existingItem);
-            growlMsgKey = 'search.criterion.updated';
-            RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item, logicalOp);
-          } else if (existingItem) {
-            growlMsgKey = 'search.criterion.updated';
-            RqlQueryService.updateCriteriaItem(existingItem, item, replace);
-          } else {
-            growlMsgKey = 'search.criterion.created';
-            RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item, logicalOp);
+        function validateType(type) {
+          if (!type || !QUERY_TYPES[type.toUpperCase()]) {
+            throw new Error('Invalid type: ' + type);
           }
+        }
 
-          if (showNotification) {
-            AlertService.growl({
-              id: 'SearchControllerGrowl',
-              type: 'info',
-              msgKey: growlMsgKey,
-              msgArgs: [LocalizedValues.forLocale(item.vocabulary.title, $scope.lang), $filter('translate')('taxonomy.target.' + item.target)],
-              delay: 3000
+        function validateBucket(bucket) {
+          if (bucket &&
+            (!BUCKET_TYPES[bucket.replace('-', '_').toUpperCase()] || !CoverageGroupByService.canGroupBy(bucket))) {
+            throw new Error('Invalid bucket ' + bucket);
+          }
+        }
+
+        function validateDisplay(display) {
+          if (!display || !DISPLAY_TYPES[display.toUpperCase()]) {
+            throw new Error('Invalid display: ' + display);
+          }
+        }
+
+        function getDefaultQueryType() {
+          return $scope.taxonomyTypeMap[$scope.resultTabsOrder[0]];
+        }
+
+        function getDefaultDisplayType() {
+          return $scope.searchTabsOrder[0] || DISPLAY_TYPES.LIST;
+        }
+
+        function resolveLayout(resolvedOptions) {
+          return resolvedOptions.listLayout ? resolvedOptions.listLayout :
+            resolvedOptions.searchLayout ? resolvedOptions.searchLayout : 'layout2';
+        }
+
+        function validateQueryData() {
+          try {
+            var search = $location.search();
+            var type = $scope.resultTabsOrder.indexOf(taxonomyTypeInverseMap[search.type]) > -1 ? search.type : getDefaultQueryType();
+            var bucket = search.bucket && CoverageGroupByService.canGroupBy(search.bucket) ? search.bucket : CoverageGroupByService.defaultBucket();
+            var display = $scope.searchTabsOrder.indexOf(search.display) > -1 ? search.display : getDefaultDisplayType();
+            var query = search.query || '';
+            validateType(type);
+            validateBucket(bucket);
+            validateDisplay(display);
+            $scope.search.type = type;
+            $scope.search.bucket = bucket;
+            $scope.search.display = display;
+            $scope.search.query = query;
+            $scope.search.rqlQuery = RqlQueryService.parseQuery(query);
+            $scope.search.layout = setLayout(search.layout ? search.layout : resolveLayout($scope.options));
+
+            return true;
+          } catch (e) {
+            AlertService.alert({
+              id: 'SearchController',
+              type: 'danger',
+              msg: e.message,
+              delay: 5000
             });
           }
 
-          refreshQuery();
-          $scope.search.selectedCriteria = null;
-        } else {
-          $scope.search.selectedCriteria = item.query;
+          return false;
         }
-      };
 
-      var searchKeyUp = function (event) {
-        switch (event.keyCode) {
-          case 27: // ESC
-            if ($scope.documents.search.active) {
-              clearSearch();
-            }
-            break;
-
-          default:
-            if ($scope.documents.search.text) {
-              searchCriteria($scope.documents.search.text);
-            }
-            break;
+        function setLayout(layout) {
+          return layout ? (['layout1', 'layout2'].indexOf(layout) > -1 ? layout : 'layout2') : 'layout2';
         }
-      };
 
-      var onTypeChanged = function (type) {
-        if (type) {
-          validateType(type);
+        var clearSearchQuery = function () {
           var search = $location.search();
-          search.type = type;
-          search.display = DISPLAY_TYPES.LIST;
+          delete search.query;
           $location.search(search);
-        }
-      };
-
-      var onBucketChanged = function (bucket) {
-        if (bucket) {
-          validateBucket(bucket);
-          var search = $location.search();
-          search.bucket = bucket;
-          $location.search(search);
-        }
-      };
-
-      var onPaginate = function (target, from, size) {
-        $scope.search.pagination[target] = {from: from, size: size};
-        executeSearchQuery();
-      };
-
-      var onDisplayChanged = function (display) {
-        if (display) {
-          validateDisplay(display);
-
-          var search = $location.search();
-          search.display = display;
-          $location.search(search);
-        }
-      };
-
-      /**
-       * Reduce the current query such that all irrelevant criteria is removed but the criterion. The exceptions are
-       * when the criterion is inside an AND, in this case this latter is reduced.
-       *
-       * @param parentItem
-       * @param criteriaItem
-       */
-      function reduce(parentItem, criteriaItem) {
-        if (parentItem.type === RQL_NODE.OR) {
-          var grandParentItem = parentItem.parent;
-          var parentItemIndex = grandParentItem.children.indexOf(parentItem);
-          grandParentItem.children[parentItemIndex] = criteriaItem;
-
-          var parentRql = parentItem.rqlQuery;
-          var grandParentRql = grandParentItem.rqlQuery;
-          var parentRqlIndex = grandParentRql.args.indexOf(parentRql);
-          grandParentRql.args[parentRqlIndex] = criteriaItem.rqlQuery;
-
-          if (grandParentItem.type !== QUERY_TARGETS.VARIABLE) {
-            reduce(grandParentItem, criteriaItem);
-          }
-        } else if (criteriaItem.type !== RQL_NODE.VARIABLE && parentItem.type === RQL_NODE.AND) {
-          // Reduce until parent is Variable node or another AND node
-          reduce(parentItem.parent, parentItem);
-        }
-      }
-
-      var onUpdateCriteria = function (item, type, useCurrentDisplay, replaceTarget, showNotification, fullCoverage) {
-        if (type) {
-          onTypeChanged(type);
-        }
-
-        if (replaceTarget) {
-          var criteriaItem = RqlQueryService.findCriteriaItemFromTree(item, $scope.search.criteria);
-          if (criteriaItem) {
-            reduce(criteriaItem.parent, criteriaItem);
-          }
-        }
-
-        onDisplayChanged(useCurrentDisplay && $scope.search.display ? $scope.search.display : DISPLAY_TYPES.LIST);
-        selectCriteria(item, RQL_NODE.AND, true, showNotification, fullCoverage);
-      };
-
-      var onRemoveCriteria = function(item) {
-        var found = RqlQueryService.findCriterion($scope.search.criteria, item.id);
-        removeCriteriaItem(found);
-      };
-
-      var onSelectTerm = function (target, taxonomy, vocabulary, args) {
-        args = args || {};
-
-        if (args.text) {
-          args.text = args.text.replace(/[^a-zA-Z0-9" _-]/g, '');
-        }
-
-        if(angular.isString(args)) {
-          args = {term: args};
-        }
-
-        if (vocabulary) {
-          var item;
-          if (VocabularyService.isNumericVocabulary(vocabulary)) {
-            item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, $scope.lang);
-            item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
-            RqlQueryUtils.updateRangeQuery(item.rqlQuery, args.from, args.to);
-            selectCriteria(item, null, true);
-
-            return;
-          } else if(VocabularyService.isMatchVocabulary(vocabulary)) {
-            item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, $scope.lang);
-            item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
-            RqlQueryUtils.updateMatchQuery(item.rqlQuery, args.text);
-            selectCriteria(item, null, true);
-
-            return;
-          }
-        }
-
-        if (options.searchLayout === 'layout1') {
-          selectCriteria(RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, args && args.term, $scope.lang));
-        } else {
-          // TODO externalize TermsVocabularyFacetController.selectTerm and use it for terms case
-          var selected = vocabulary.terms.filter(function(t) {return t.selected;}).map(function(t) { return t.name; }),
-              criterion = RqlQueryService.findCriterion($scope.search.criteria, CriteriaIdGenerator.generate(taxonomy, vocabulary));
-
-          if(criterion) {
-            if (selected.length === 0) {
-              RqlQueryService.removeCriteriaItem(criterion);
-            } else if (Object.keys(args).length === 0) {
-              RqlQueryService.updateCriteriaItem(criterion, RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, args && args.term, $scope.lang), true);
-            } else {
-              criterion.rqlQuery.name = RQL_NODE.IN;
-              RqlQueryUtils.updateQuery(criterion.rqlQuery, selected);
-
-              if (vocabulary.terms.length > 1 && selected.length === vocabulary.terms.length) {
-                criterion.rqlQuery.name = RQL_NODE.EXISTS;
-                criterion.rqlQuery.args.pop();
-              }
-            }
-
-            $scope.refreshQuery();
-          } else {
-            var setExists = vocabulary.terms.length > 1 && selected.length === vocabulary.terms.length;
-            selectCriteria(RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, !setExists && (args && args.term), $scope.lang));
-          }
-        }
-      };
-
-      var selectSearchTarget = function (target) {
-        $scope.documents.search.target = target;
-      };
-
-      var VIEW_MODES = {
-        SEARCH: 'search',
-        CLASSIFICATION: 'classification'
-      };
-
-      const SUGGESTION_FIELDS_MAP = new Map([
-        [QUERY_TARGETS.NETWORK, ['acronym', 'name']],
-        [QUERY_TARGETS.STUDY, ['acronym', 'name']],
-        [QUERY_TARGETS.DATASET, ['acronym', 'name']],
-        [QUERY_TARGETS.VARIABLE, ['name', 'label']]
-      ]);
-
-      function searchSuggestion(target, suggestion, withSpecificFields) {
-        var rqlQuery = angular.copy($scope.search.rqlQuery);
-        var targetQuery = RqlQueryService.findTargetQuery(target, rqlQuery);
-
-        if (!targetQuery) {
-          targetQuery = new RqlQuery(target);
-          rqlQuery.push(targetQuery);
-        }
-
-        // get filter fields
-        var filterFields;
-        if (withSpecificFields) {
-          filterFields = SUGGESTION_FIELDS_MAP.get(target);
-        }
-
-        var matchQuery = EntitySuggestionRqlUtilityService.createMatchQuery(suggestion, filterFields);
-        if (!matchQuery) {
-          EntitySuggestionRqlUtilityService.removeFilteredMatchQueryFromTargetQuery(targetQuery);
-        } else {
-          var filterQuery = EntitySuggestionRqlUtilityService.givenTargetQueryGetFilterQuery(targetQuery);
-          if (!filterQuery) {
-            targetQuery.push(new RqlQuery(RQL_NODE.FILTER).push(matchQuery));
-          } else {
-            var currentMatchQuery = EntitySuggestionRqlUtilityService.givenFilterQueryGetMatchQuery(filterQuery);
-            if (currentMatchQuery) {
-              currentMatchQuery.args = matchQuery.args;
-            } else {
-              filterQuery.push(matchQuery);
-            }
-          }
-        }
-
-        $scope.search.rqlQuery = rqlQuery;
-        refreshQuery();
-      }
-
-      $scope.searchSuggestion = searchSuggestion;
-      $scope.goToSearch = function () {
-        $scope.viewMode = VIEW_MODES.SEARCH;
-        $location.search('taxonomy', null);
-        $location.search('vocabulary', null);
-        $location.search('target', null);
-        $location.path('/search');
-      };
-
-      $scope.goToClassifications = function () {
-        $scope.viewMode = VIEW_MODES.CLASSIFICATION;
-        $location.path('/classifications');
-        $location.search('target', $scope.targetTabsOrder[0]);
-      };
-
-      $scope.navigateToTarget = function(target) {
-        $location.search('target', target);
-        $location.search('taxonomy', null);
-        $location.search('vocabulary', null);
-        $scope.target = target;
-      };
-
-      $scope.QUERY_TYPES = QUERY_TYPES;
-      $scope.BUCKET_TYPES = BUCKET_TYPES;
-
-      $scope.search = {
-        selectedCriteria: null,
-        layout: 'layout2',
-        pagination: {},
-        query: null,
-        advanced: false,
-        rqlQuery: new RqlQuery(),
-        executedQuery: null,
-        type: null,
-        bucket: null,
-        result: {
-          list: null,
-          coverage: null,
-          graphics: null
-        },
-        criteria: [],
-        criteriaItemMap: {},
-        loading: false
-      };
-
-      $scope.viewMode = VIEW_MODES.SEARCH;
-      $scope.documents = {
-        search: {
-          text: null,
-          active: false,
-          target: null
-        }
-      };
-
-      $scope.searchHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('search');
-      $scope.classificationsHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('classifications');
-      $scope.onTaxonomyFilterPanelToggleVisibility = onTaxonomyFilterPanelToggleVisibility;
-      $scope.selectSearchTarget = selectSearchTarget;
-      $scope.selectDisplay = onDisplayChanged;
-      $scope.searchCriteria = searchCriteria;
-      $scope.selectCriteria = selectCriteria;
-      $scope.searchKeyUp = searchKeyUp;
-
-      $scope.showTaxonomy = showTaxonomy;
-      $scope.clearTaxonomy = clearTaxonomy;
-
-      $scope.removeCriteriaItem = removeCriteriaItem;
-      $scope.refreshQuery = refreshQuery;
-      $scope.clearSearchQuery = clearSearchQuery;
-      $scope.toggleSearchQuery = toggleSearchQuery;
-      $scope.showAdvanced = showAdvanced;
-
-      $scope.onTypeChanged = onTypeChanged;
-      $scope.onBucketChanged = onBucketChanged;
-      $scope.onDisplayChanged = onDisplayChanged;
-      $scope.onUpdateCriteria = onUpdateCriteria;
-      $scope.onRemoveCriteria = onRemoveCriteria;
-      $scope.onSelectTerm = onSelectTerm;
-      $scope.QUERY_TARGETS = QUERY_TARGETS;
-      $scope.onPaginate = onPaginate;
-      $scope.canExecuteWithEmptyQuery = canExecuteWithEmptyQuery;
-      $scope.inSearchMode = function() {
-        return $scope.viewMode === VIEW_MODES.SEARCH;
-      };
-      $scope.toggleFullscreen = function() {
-        $scope.isFullscreen = !$scope.isFullscreen;
-      };
-      $scope.isSearchAvailable = true;
-      ObibaServerConfigResource.get(function(micaConfig){
-        $scope.isSearchAvailable = !micaConfig.isSingleStudyEnabled ||
-          (micaConfig.isNetworkEnabled && !micaConfig.isSingleNetworkEnabled) ||
-          micaConfig.isCollectedDatasetEnabled || micaConfig.isHarmonizedDatasetEnabled;
-      });
-
-      $scope.$on('$locationChangeSuccess', function (event, newLocation, oldLocation) {
-        initSearchTabs();
-
-        if (newLocation !== oldLocation) {
-          try {
-            validateBucket($location.search().bucket);
-            executeSearchQuery();
-          } catch (error) {
-            var defaultBucket = CoverageGroupByService.defaultBucket();
-            $location.search('bucket', defaultBucket).replace();
-          }
-        }
-      });
-
-      $rootScope.$on('ngObibaMicaSearch.fullscreenChange', function(obj, isEnabled) {
-        $scope.isFullscreen = isEnabled;
-      });
-
-      $rootScope.$on('ngObibaMicaSearch.sortChange', function(obj, sort) {
-        $scope.search.rqlQuery = RqlQueryService.prepareSearchQueryNoFields(
-          $scope.search.display,
-          $scope.search.type,
-          $scope.search.rqlQuery,
-          {},
-          $scope.lang,
-          sort
-        );
-        refreshQuery();
-      });
-
-      $rootScope.$on('ngObibaMicaSearch.searchSuggestion', function (event, suggestion, target, withSpecificFields) {
-        searchSuggestion(target, suggestion, withSpecificFields);
-      });
-
-      function init() {
-        $scope.lang = $translate.use();
-        SearchContext.setLocale($scope.lang);
-        initSearchTabs();
-        executeSearchQuery();
-      }
-
-      init();
-    }])
-
-  .controller('NumericVocabularyPanelController', ['$scope', function($scope) {
-    $scope.$watch('taxonomies', function() {
-      $scope.from = null;
-      $scope.to = null;
-    }, true);
-  }])
-
-  .controller('MatchVocabularyPanelController', ['$scope', function($scope) {
-    $scope.$watch('taxonomies', function() {
-      $scope.text = null;
-    }, true);
-  }])
-
-  .controller('NumericVocabularyFacetController', ['$scope','JoinQuerySearchResource', 'RqlQueryService',
-    'RqlQueryUtils', function($scope, JoinQuerySearchResource, RqlQueryService, RqlQueryUtils) {
-    function updateLimits (criteria, vocabulary) {
-      function createExistsQuery(criteria, criterion) {
-        var rootQuery = angular.copy(criteria.rqlQuery);
-        criterion.rqlQuery = RqlQueryUtils.buildRqlQuery(criterion);
-        RqlQueryService.addCriteriaItem(rootQuery, criterion);
-        return rootQuery;
-      }
-
-      var criterion = RqlQueryService.findCriterion(criteria, CriteriaIdGenerator.generate($scope.$parent.taxonomy, vocabulary));
-
-      if(!criterion) {
-        criterion = RqlQueryService.createCriteriaItem($scope.target, $scope.$parent.taxonomy, $scope.vocabulary);
-      }
-
-      if(criterion.rqlQuery && criterion.rqlQuery.args[1]) {
-        if(angular.isArray(criterion.rqlQuery.args[1])) {
-          $scope.from = criterion.rqlQuery.args[1][0];
-          $scope.to = criterion.rqlQuery.args[1][1];
-        } else {
-          if(criterion.rqlQuery.name === RQL_NODE.GE) {
-            $scope.from = criterion.rqlQuery.args[1];
-          } else {
-            $scope.to = criterion.rqlQuery.args[1];
-          }
-        }
-      } else {
-        $scope.from = null;
-        $scope.to = null;
-        $scope.min = null;
-        $scope.max = null;
-      }
-
-      var query = RqlQueryUtils.hasTargetQuery(criteria.rqlQuery, criterion.target) ? angular.copy(criteria.rqlQuery) : createExistsQuery(criteria, criterion);
-      var joinQuery = RqlQueryService.prepareCriteriaTermsQuery(query, criterion);
-      JoinQuerySearchResource[targetToType($scope.target)]({query: joinQuery}).$promise.then(function (joinQueryResponse) {
-        var stats = RqlQueryService.getTargetAggregations(joinQueryResponse, criterion, $scope.lang);
-
-        if (stats && stats.default) {
-          $scope.min = stats.default.min;
-          $scope.max = stats.default.max;
-        }
-      });
-    }
-
-    function updateCriteria() {
-      $scope.$parent.selectTerm($scope.$parent.target, $scope.$parent.taxonomy, $scope.vocabulary, {from: $scope.from, to: $scope.to});
-    }
-
-    $scope.onKeypress = function(ev) {
-      if(ev.keyCode === 13 || ev.type==='click') { updateCriteria(); }
-    };
-
-    $scope.$on('ngObibaMicaQueryUpdated', function(ev, criteria) {
-      if ($scope.vocabulary.isNumeric && $scope.vocabulary.isOpen) {
-        updateLimits(criteria, $scope.vocabulary);
-      }
-    });
-
-    $scope.$on('ngObibaMicaLoadVocabulary', function(ev, taxonomy, vocabulary) {
-      if ($scope.vocabulary.isNumeric &&
-        vocabulary.name === $scope.vocabulary.name && !vocabulary.isOpen) {
-        updateLimits($scope.criteria, vocabulary);
-      }
-    });
-  }])
-
-  .controller('MatchVocabularyFacetController', ['$scope', 'RqlQueryService', function($scope, RqlQueryService) {
-    function updateMatch (criteria, vocabulary) {
-      var criterion = RqlQueryService.findCriterion(criteria, CriteriaIdGenerator.generate($scope.$parent.taxonomy, vocabulary));
-      if(criterion && criterion.rqlQuery && criterion.rqlQuery.args[1]) {
-        $scope.text = criterion.rqlQuery.args[0];
-      } else {
-        $scope.text = null;
-      }
-    }
-
-    function updateCriteria() {
-      $scope.$parent.selectTerm($scope.$parent.target, $scope.$parent.taxonomy, $scope.vocabulary, {text: $scope.text || '*'});
-    }
-
-    $scope.onKeypress = function(ev) {
-      if(ev.keyCode === 13 || ev.type==='click') {
-        updateCriteria();
-      }
-    };
-
-    $scope.$on('ngObibaMicaQueryUpdated', function(ev, criteria) {
-      if ($scope.vocabulary.isMatch && $scope.vocabulary.isOpen) {
-        updateMatch(criteria, $scope.vocabulary);
-      }
-    });
-
-    $scope.$on('ngObibaMicaLoadVocabulary', function(ev, taxonomy, vocabulary) {
-      if (vocabulary.name === $scope.vocabulary.name && !vocabulary.isOpen) {
-        updateMatch($scope.criteria, vocabulary);
-      }
-    });
-  }])
-
-  .controller('TermsVocabularyFacetController', ['$scope', '$filter', 'JoinQuerySearchResource', 'RqlQueryService',
-    'RqlQueryUtils',
-    function($scope, $filter, JoinQuerySearchResource, RqlQueryService, RqlQueryUtils) {
-      function isSelectedTerm (criterion, term) {
-        return criterion.selectedTerms && (criterion.rqlQuery.name === RQL_NODE.EXISTS || criterion.selectedTerms.indexOf(term.key) !== -1);
-      }
-
-      $scope.loading = false;
-      $scope.selectTerm = function (target, taxonomy, vocabulary, args) {
-        var selected = vocabulary.terms.filter(function(t) {return t.selected;}).map(function(t) { return t.name; }),
-          criterion = RqlQueryService.findCriterion($scope.criteria, CriteriaIdGenerator.generate(taxonomy, vocabulary));
-
-        if(criterion) {
-          if (selected.length === 0) {
-            RqlQueryService.removeCriteriaItem(criterion);
-          } else {
-            criterion.rqlQuery.name = RQL_NODE.IN;
-            RqlQueryUtils.updateQuery(criterion.rqlQuery, selected);
-          }
-
-          $scope.onRefresh();
-        } else {
-          $scope.onSelectTerm(target, taxonomy, vocabulary, args);
-        }
-      };
-
-      function updateCounts(criteria, vocabulary) {
-        var query = null, isCriterionPresent = false;
-        $scope.loading = true;
-
-        function createExistsQuery(criteria, criterion) {
-          var rootQuery = angular.copy(criteria.rqlQuery);
-          criterion.rqlQuery = RqlQueryUtils.buildRqlQuery(criterion);
-          RqlQueryService.addCriteriaItem(rootQuery, criterion);
-          return rootQuery;
-        }
-
-        var criterion = RqlQueryService.findCriterion(criteria,
-          CriteriaIdGenerator.generate($scope.$parent.taxonomy, vocabulary));
-
-        if(criterion) {
-          isCriterionPresent = true;
-        } else {
-          criterion = RqlQueryService.createCriteriaItem($scope.target, $scope.$parent.taxonomy, $scope.vocabulary);
-        }
-
-        if(RqlQueryUtils.hasTargetQuery(criteria.rqlQuery, criterion.target)) {
-          query = angular.copy(criteria.rqlQuery);
-
-          if(!isCriterionPresent) {
-            var operator = criterion.target === QUERY_TARGETS.VARIABLE && criterion.taxonomy.name !== 'Mica_variable' ?
-              RQL_NODE.OR :
-              RQL_NODE.AND;
-
-            RqlQueryService.addCriteriaItem(query, criterion, operator);
-          }
-        } else {
-          query = createExistsQuery(criteria, criterion);
-        }
-
-        var joinQuery = RqlQueryService.prepareCriteriaTermsQuery(query, criterion, criterion.lang);
-        JoinQuerySearchResource[targetToType($scope.target)]({query: joinQuery}).$promise.then(function (joinQueryResponse) {
-          $scope.vocabulary.visibleTerms = 0;
-          RqlQueryService.getTargetAggregations(joinQueryResponse, criterion, criterion.lang).forEach(function (term) {
-            $scope.vocabulary.terms.some(function(t) {
-              if (t.name === term.key) {
-                t.selected = isSelectedTerm(criterion, term);
-                t.count = term.count;
-                t.isVisible = $scope.options.showFacetTermsWithZeroCount || term.count > 0;
-                $scope.vocabulary.visibleTerms += t.isVisible;
+        };
+
+        var toggleSearchQuery = function () {
+          $scope.search.advanced = !$scope.search.advanced;
+        };
+
+        var showAdvanced = function () {
+          var children = $scope.search.criteria.children || [];
+          for (var i = children.length; i--;) {
+            var vocabularyChildren = children[i].children || [];
+            for (var j = vocabularyChildren.length; j--;) {
+              if (vocabularyChildren[j].type === RQL_NODE.OR || vocabularyChildren[j].type === RQL_NODE.AND) {
                 return true;
               }
-            });
-          });
-          $scope.loading = false;
-        });
-      }
-
-      $scope.$on('ngObibaMicaQueryUpdated', function(ev, criteria) {
-        if(!$scope.vocabulary.isNumeric && !$scope.vocabulary.isMatch && $scope.vocabulary.isOpen) {
-          updateCounts(criteria, $scope.vocabulary);
-        }
-      });
-
-      $scope.$on('ngObibaMicaLoadVocabulary', function(ev, taxonomy, vocabulary) {
-        if(vocabulary.name === $scope.vocabulary.name && !$scope.vocabulary.isNumeric && !$scope.vocabulary.isMatch &&
-          !vocabulary.isOpen) {
-          updateCounts($scope.criteria, vocabulary);
-        }
-      });
-  }])
-
-  .controller('TaxonomiesPanelController', ['$rootScope',
-    '$scope',
-    '$translate',
-    '$location',
-    'TaxonomyResource',
-    'TaxonomiesResource',
-    'ngObibaMicaSearch',
-    'RqlQueryUtils',
-    '$cacheFactory',
-    'AlertService',
-    'ServerErrorUtils',
-    'VocabularyService',
-    TaxonomiesPanelController])
-
-  .controller('ClassificationPanelController', ['$rootScope',
-    '$scope',
-    '$translate',
-    '$location',
-    'TaxonomyResource',
-    'TaxonomiesResource',
-    'ngObibaMicaSearch',
-    'RqlQueryUtils',
-    '$cacheFactory',
-    'VocabularyService',
-    ClassificationPanelController])
-
-  .controller('TaxonomiesFacetsController', ['$scope',
-    '$timeout',
-    'TaxonomyResource',
-    'TaxonomiesResource',
-    'LocalizedValues',
-    'ngObibaMicaSearch',
-    'RqlQueryUtils',
-    'VocabularyService',
-    function ($scope,
-      $timeout,
-      TaxonomyResource,
-      TaxonomiesResource,
-      LocalizedValues,
-      ngObibaMicaSearch,
-      RqlQueryUtils,
-      VocabularyService) {
-
-      $scope.options = ngObibaMicaSearch.getOptions();
-      $scope.taxonomies = {};
-      $scope.targets = [];
-      $scope.RqlQueryUtils = RqlQueryUtils;
-
-      $scope.$watch('facetedTaxonomies', function(facetedTaxonomies) {
-        if(facetedTaxonomies) {
-          $scope.targets = $scope.options.targetTabsOrder.filter(function (t) {
-            if(facetedTaxonomies[t]){
-              return facetedTaxonomies[t].length;
             }
-          });
-
-          $scope.target = $scope.targets[0];
-          init($scope.target);
-        }
-      });
-
-      $scope.selectTerm = function(target, taxonomy, vocabulary, args) {
-        $scope.onSelectTerm(target, taxonomy, vocabulary, args);
-      };
-
-      $scope.setTarget = function(target) {
-        $scope.target=target;
-        init(target);
-      };
-
-      $scope.loadVocabulary = function(taxonomy, vocabulary) {
-        $scope.$broadcast('ngObibaMicaLoadVocabulary', taxonomy, vocabulary);
-      };
-
-      $scope.localize = function (values) {
-        return LocalizedValues.forLocale(values, $scope.lang);
-      };
-
-      function init(target) {
-        if($scope.taxonomies[target]) { return; }
-
-        TaxonomiesResource.get({
-          target: target
-        }, function onSuccess(taxonomies) {
-          $scope.taxonomies[target] = $scope.facetedTaxonomies[target].map(function(f) {
-            return taxonomies.filter(function(t) {
-              return f.name === t.name;
-            })[0];
-          }).filter(function(t) { return t; }).map(function(t) {
-            t.isOpen = false;
-            t.vocabularies = 'Maelstrom Research' === t.author ?
-              t.vocabularies :
-              VocabularyService.visibleFacetVocabularies(t.vocabularies);
-
-            t.vocabularies.map(function (v) {
-              var facetAttributes = VocabularyService.findVocabularyAttributes(v, /^facet/i);
-              v.isOpen = 'true' === facetAttributes.facetExpanded;
-              v.position = parseInt(facetAttributes.facetPosition);
-              v.limit = 10;
-              v.isMatch = VocabularyService.isMatchVocabulary(v);
-              v.isNumeric = VocabularyService.isNumericVocabulary(v);
-
-              t.isOpen = t.isOpen || v.isOpen;
-            });
-
-            return t;
-          });
-
-          if($scope.taxonomies[target].length === 1) {
-            $scope.taxonomies[target][0].isOpen = 1;
           }
+        };
 
-          if ($scope.criteria) {
-            $timeout(function(){
-              $scope.$broadcast('ngObibaMicaQueryUpdated', $scope.criteria);
-            });
-          }
-        });
-      }
-
-      $scope.$on('ngObibaMicaQueryUpdated', function(ev, criteria) {
-        $scope.criteria = criteria;
-      });
-    }
-  ])
-
-  .controller('SearchResultController', [
-    '$scope',
-    'ngObibaMicaSearch',
-    'ngObibaMicaUrl',
-    'RqlQueryService',
-    'RqlQueryUtils',
-    'ngObibaMicaSearchTemplateUrl',
-    function ($scope,
-              ngObibaMicaSearch,
-              ngObibaMicaUrl,
-              RqlQueryService,
-              RqlQueryUtils,
-              ngObibaMicaSearchTemplateUrl) {
-
-      function updateType(type) {
-        Object.keys($scope.activeTarget).forEach(function (key) {
-          $scope.activeTarget[key].active = type === key;
-        });
-      }
-
-      $scope.targetTypeMap = $scope.$parent.taxonomyTypeMap;
-      $scope.QUERY_TARGETS = QUERY_TARGETS;
-      $scope.QUERY_TYPES = QUERY_TYPES;
-      $scope.options = ngObibaMicaSearch.getOptions();
-      $scope.activeTarget = {};
-      $scope.activeTarget[QUERY_TYPES.VARIABLES] = {active: false, name: QUERY_TARGETS.VARIABLE, totalHits: 0};
-      $scope.activeTarget[QUERY_TYPES.DATASETS] = {active: false, name: QUERY_TARGETS.DATASET, totalHits: 0};
-      $scope.activeTarget[QUERY_TYPES.STUDIES] = {active: false, name: QUERY_TARGETS.STUDY, totalHits: 0};
-      $scope.activeTarget[QUERY_TYPES.NETWORKS] = {active: false, name: QUERY_TARGETS.NETWORK, totalHits: 0};
-
-      $scope.getUrlTemplate = function (tab) {
-        switch (tab){
-          case 'list' :
-            return ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchResultList');
-          case 'coverage' :
-            return ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchResultCoverage');
-          case 'graphics' :
-            return ngObibaMicaSearchTemplateUrl.getTemplateUrl('searchResultGraphics');
-        }
-      };
-
-      $scope.selectType = function (type) {
-        updateType(type);
-        $scope.type = type;
-        $scope.$parent.onTypeChanged(type);
-      };
-
-      $scope.getTotalHits = function(type) {
-        if (!$scope.result.list || !$scope.result.list[type + 'ResultDto']) {
-          return '...';
-        }
-        return $scope.result.list[type + 'ResultDto'].totalHits;
-      };
-
-      $scope.getReportUrl = function () {
-
-        if ($scope.query === null) {
-          return $scope.query;
-        }
-
-        var parsedQuery = RqlQueryService.parseQuery($scope.query);
-        var target = typeToTarget($scope.type);
-        var targetQuery = parsedQuery.args.filter(function (query) {
-          return query.name === target;
-        }).pop();
-        RqlQueryUtils.addLimit(targetQuery, RqlQueryUtils.limit(0, 100000));
-        var queryWithoutLimit = new RqlQuery().serializeArgs(parsedQuery.args);
-
-        return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(queryWithoutLimit));
-      };
-
-      $scope.getStudySpecificReportUrl = function () {
-
-          if ($scope.query === null) {
-              return $scope.query;
-          }
-
-          var parsedQuery = RqlQueryService.parseQuery($scope.query);
-          var target = typeToTarget($scope.type);
-          var targetQuery = parsedQuery.args.filter(function (query) {
-              return query.name === target;
-          }).pop();
-          RqlQueryUtils.addLimit(targetQuery, RqlQueryUtils.limit(0, 100000));
-          var queryWithoutLimit = new RqlQuery().serializeArgs(parsedQuery.args);
-
-          return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvReportResource').replace(':type', $scope.type).replace(':query', encodeURI(queryWithoutLimit));
-      };
-
-      $scope.$watchCollection('result', function () {
-        if ($scope.result.list) {
-          $scope.activeTarget[QUERY_TYPES.VARIABLES].totalHits = $scope.result.list.variableResultDto.totalHits;
-          $scope.activeTarget[QUERY_TYPES.DATASETS].totalHits = $scope.result.list.datasetResultDto.totalHits;
-          $scope.activeTarget[QUERY_TYPES.STUDIES].totalHits = $scope.result.list.studyResultDto.totalHits;
-          $scope.activeTarget[QUERY_TYPES.NETWORKS].totalHits = $scope.result.list.networkResultDto.totalHits;
-        }
-      });
-
-
-      $scope.$watch('type', function (type) {
-        updateType(type);
-      });
-
-      $scope.DISPLAY_TYPES = DISPLAY_TYPES;
-    }])
-
-  .controller('CriterionLogicalController', [
-    '$scope',
-    function ($scope) {
-      $scope.updateLogical = function (operator) {
-        $scope.item.rqlQuery.name = operator;
-        $scope.$emit(CRITERIA_ITEM_EVENT.refresh);
-      };
-    }])
-
-  .controller('CriterionDropdownController', [
-    '$scope',
-    '$filter',
-    'LocalizedValues',
-    'VocabularyService',
-    'StringUtils',
-    function ($scope, $filter, LocalizedValues, VocabularyService, StringUtils) {
-      var closeDropdown = function () {
-        if (!$scope.state.open) {
-          return;
-        }
-
-        $scope.state.onClose();
-
-        var wasDirty = $scope.state.dirty;
-        $scope.state.open = false;
-        $scope.state.dirty = false;
-        if (wasDirty) {
-          // trigger a query update
-          $scope.$emit(CRITERIA_ITEM_EVENT.refresh);
-        }
-      };
-
-      var openDropdown = function () {
-        if ($scope.state.open) {
-          closeDropdown();
-          return;
-        }
-
-        $scope.state.open = true;
-        $scope.state.onOpen();
-      };
-
-      var remove = function () {
-        $scope.$emit(CRITERIA_ITEM_EVENT.deleted, $scope.criterion);
-      };
-
-      var onKeyup = function (event) {
-        if (event.keyCode === 13) {
-          closeDropdown();
-        }
-      };
-
-      $scope.state = new CriterionState();
-      $scope.timestamp = new Date().getTime();
-      $scope.localize = function (values) {
-        return LocalizedValues.forLocale(values, $scope.criterion.lang);
-      };
-      $scope.localizeCriterion = function () {
-        var rqlQuery = $scope.criterion.rqlQuery;
-        if ((rqlQuery.name === RQL_NODE.IN || rqlQuery.name === RQL_NODE.OUT || rqlQuery.name === RQL_NODE.CONTAINS) && $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.length > 0) {
-          var sep = rqlQuery.name === RQL_NODE.IN ? ' | ' : ' ';
-          var prefix = rqlQuery.name === RQL_NODE.OUT ? '-' : '';
-          return $scope.criterion.selectedTerms.map(function (t) {
-            if (!$scope.criterion.vocabulary.terms) {
-              return t;
+        function sortCriteriaItems(items) {
+          items.sort(function (a, b) {
+            if (a.target === 'network' || b.target === 'variable') {
+              return -1;
             }
-            var found = $scope.criterion.vocabulary.terms.filter(function (arg) {
-              return arg.name === t;
-            }).pop();
-            return prefix + (found ? LocalizedValues.forLocale(found.title, $scope.criterion.lang) : t);
-          }).join(sep);
-        }
-        var operation = rqlQuery.name;
-        switch (rqlQuery.name) {
-          case RQL_NODE.EXISTS:
-            operation = ':' + $filter('translate')('any');
-            break;
-          case RQL_NODE.MISSING:
-            operation = ':' + $filter('translate')('none');
-            break;
-          case RQL_NODE.EQ:
-            operation = '=' + rqlQuery.args[1];
-            break;
-          case RQL_NODE.GE:
-            operation = '>' + rqlQuery.args[1];
-            break;
-          case RQL_NODE.LE:
-            operation = '<' + rqlQuery.args[1];
-            break;
-          case RQL_NODE.BETWEEN:
-            operation = ':[' + rqlQuery.args[1] + ')';
-            break;
-          case RQL_NODE.IN:
-          case RQL_NODE.CONTAINS:
-            operation = '';
-            break;
-          case RQL_NODE.MATCH:
-            operation = ':match(' + rqlQuery.args[0] + ')';
-            break;
-        }
-        return LocalizedValues.forLocale($scope.criterion.vocabulary.title, $scope.criterion.lang) + operation;
-      };
-      $scope.vocabularyType = VocabularyService.vocabularyType;
-      $scope.onKeyup = onKeyup;
-      $scope.truncate = StringUtils.truncate;
-      $scope.remove = remove;
-      $scope.openDropdown = openDropdown;
-      $scope.closeDropdown = closeDropdown;
-      $scope.VocabularyService = VocabularyService;
-    }])
-  .controller('searchCriteriaRegionController', ['$scope', 'RqlQueryService', function ($scope,RqlQueryService) {
-    var canShow = false;
-
-    $scope.$watchCollection('search.criteria', function () {
-        $scope.renderableTargets = RqlQueryService.getRenderableTargetCriteriaFromRoot($scope.search.criteria);
-    });
-
-    $scope.$watchCollection('search.criteriaItemMap', function () {
-      if ($scope.search.criteriaItemMap) {
-        canShow = Object.keys($scope.search.criteriaItemMap).length > 1;
-      }
-    });
-    var canShowCriteriaRegion = function () {
-      return ($scope.options.studyTaxonomiesOrder.length || $scope.options.datasetTaxonomiesOrder.length || $scope.options.networkTaxonomiesOrder.length) && canShow;
-    };
-    $scope.canShowCriteriaRegion = canShowCriteriaRegion;
-  }])
-  .controller('MatchCriterionTermsController', [
-    '$scope',
-    'RqlQueryService',
-    'LocalizedValues',
-    'JoinQuerySearchResource',
-    'RqlQueryUtils',
-    'SearchContext',
-    function ($scope, RqlQueryService, LocalizedValues, JoinQuerySearchResource, RqlQueryUtils, SearchContext) {
-      $scope.lang = SearchContext.currentLocale();
-
-      var update = function () {
-        $scope.state.dirty = true;
-        RqlQueryUtils.updateMatchQuery($scope.criterion.rqlQuery, $scope.match);
-      };
-
-      var queryString = $scope.criterion.rqlQuery.args[0];
-      $scope.match = queryString === '*' ? '' : queryString;
-      $scope.update = update;
-      $scope.localize = function (values) {
-        return LocalizedValues.forLocale(values, $scope.criterion.lang);
-      };
-
-    }])
-
-  .controller('NumericCriterionController', [
-    '$scope',
-    'RqlQueryService',
-    'LocalizedValues',
-    'JoinQuerySearchResource',
-    'RqlQueryUtils',
-    'SearchContext',
-    function ($scope, RqlQueryService, LocalizedValues, JoinQuerySearchResource, RqlQueryUtils, SearchContext) {
-      $scope.lang = SearchContext.currentLocale();
-      var range = $scope.criterion.rqlQuery.args[1];
-
-      if (angular.isArray(range)) {
-        $scope.from = $scope.criterion.rqlQuery.args[1][0];
-        $scope.to = $scope.criterion.rqlQuery.args[1][1];
-      } else {
-        $scope.from = $scope.criterion.rqlQuery.name === RQL_NODE.GE ? range : null;
-        $scope.to = $scope.criterion.rqlQuery.name === RQL_NODE.LE ? range : null;
-      }
-
-      var updateLimits = function () {
-        var target = $scope.criterion.target,
-          joinQuery = RqlQueryService.prepareCriteriaTermsQuery($scope.query, $scope.criterion);
-        JoinQuerySearchResource[targetToType(target)]({query: joinQuery}).$promise.then(function (joinQueryResponse) {
-          var stats = RqlQueryService.getTargetAggregations(joinQueryResponse, $scope.criterion, $scope.lang);
-
-          if (stats && stats.default) {
-            $scope.min = stats.default.min;
-            $scope.max = stats.default.max;
-          }
-        });
-      };
-
-      var onOpen = function () {
-        updateLimits();
-      };
-
-      var onClose = function () {
-        $scope.updateSelection();
-      };
-
-      $scope.updateSelection = function () {
-        RqlQueryUtils.updateRangeQuery($scope.criterion.rqlQuery, $scope.from, $scope.to, $scope.selectMissing);
-        $scope.state.dirty = true;
-      };
-
-      $scope.selectMissing = $scope.criterion.rqlQuery.name === RQL_NODE.MISSING;
-      $scope.state.addOnClose(onClose);
-      $scope.state.addOnOpen(onOpen);
-      $scope.localize = function (values) {
-        return LocalizedValues.forLocale(values, $scope.criterion.lang);
-      };
-    }])
-
-  .controller('StringCriterionTermsController', [
-    '$scope',
-    'RqlQueryService',
-    'LocalizedValues',
-    'StringUtils',
-    'JoinQuerySearchResource',
-    'RqlQueryUtils',
-    'SearchContext',
-    '$filter',
-    function ($scope,
-              RqlQueryService,
-              LocalizedValues,
-              StringUtils,
-              JoinQuerySearchResource,
-              RqlQueryUtils,
-              SearchContext,
-              $filter) {
-      $scope.lang = SearchContext.currentLocale();
-
-      var isSelected = function (name) {
-        return $scope.checkboxTerms.indexOf(name) !== -1;
-      };
-
-      var updateSelection = function () {
-        $scope.state.dirty = true;
-        $scope.criterion.rqlQuery.name = $scope.selectedFilter;
-        var selected = [];
-        if($scope.selectedFilter !== RQL_NODE.MISSING && $scope.selectedFilter !== RQL_NODE.EXISTS) {
-          Object.keys($scope.checkboxTerms).forEach(function (key) {
-            if ($scope.checkboxTerms[key]) {
-              selected.push(key);
+            if (a.target === 'variable' || b.target === 'network') {
+              return 1;
             }
+            if (a.target < b.target) {
+              return 1;
+            }
+            if (a.target > b.target) {
+              return -1;
+            }
+            // a must be equal to b
+            return 0;
           });
         }
-        if (selected.length === 0 && $scope.selectedFilter !== RQL_NODE.MISSING) {
-          $scope.criterion.rqlQuery.name = RQL_NODE.EXISTS;
-        }
-        RqlQueryUtils.updateQuery($scope.criterion.rqlQuery, selected);
-      };
 
-      var updateFilter = function () {
-        updateSelection();
-      };
-
-      var isInOutFilter = function () {
-        return $scope.selectedFilter === RQL_NODE.IN || $scope.selectedFilter === RQL_NODE.OUT;
-      };
-
-      var isContainsFilter = function () {
-        return $scope.selectedFilter === RQL_NODE.CONTAINS;
-      };
-
-      var onOpen = function () {
-        $scope.state.loading = true;
-        var target = $scope.criterion.target;
-        var joinQuery = RqlQueryService.prepareCriteriaTermsQuery($scope.query, $scope.criterion, $scope.lang);
-
-        JoinQuerySearchResource[targetToType(target)]({query: joinQuery}).$promise.then(function (joinQueryResponse) {
-          $scope.state.loading = false;
-          $scope.terms = RqlQueryService.getTargetAggregations(joinQueryResponse, $scope.criterion, $scope.lang);
-          if ($scope.terms) {
-            $scope.terms.forEach(function (term) {
-              $scope.checkboxTerms[term.key] = $scope.isSelectedTerm(term);
-            });
-
-            $scope.terms = $filter('orderBySelection')($scope.terms, $scope.checkboxTerms);
-          }
-        });
-      };
-
-      $scope.isSelectedTerm = function (term) {
-        return $scope.criterion.selectedTerms && $scope.criterion.selectedTerms.indexOf(term.key) !== -1;
-      };
-
-      $scope.state.addOnOpen(onOpen);
-      $scope.checkboxTerms = {};
-      $scope.RQL_NODE = RQL_NODE;
-      $scope.selectedFilter = $scope.criterion.type;
-      $scope.isSelected = isSelected;
-      $scope.updateFilter = updateFilter;
-      $scope.localize = function (values) {
-        return LocalizedValues.forLocale(values, $scope.criterion.lang);
-      };
-      $scope.truncate = StringUtils.truncate;
-      $scope.isInOutFilter = isInOutFilter;
-      $scope.isContainsFilter = isContainsFilter;
-      $scope.updateSelection = updateSelection;
-    }])
-
-  .controller('CoverageResultTableController', [
-    '$scope',
-    '$location',
-    '$q',
-    '$translate',
-    '$filter',
-    'LocalizedValues',
-    'PageUrlService',
-    'RqlQueryUtils',
-    'RqlQueryService',
-    'CoverageGroupByService',
-    'StudyFilterShortcutService',
-    'TaxonomyService',
-    'AlertService',
-    function ($scope,
-              $location,
-              $q,
-              $translate,
-              $filter,
-              LocalizedValues,
-              PageUrlService,
-              RqlQueryUtils,
-              RqlQueryService,
-              CoverageGroupByService,
-              StudyFilterShortcutService,
-              TaxonomyService,
-              AlertService) {
-      var targetMap = {}, vocabulariesTermsMap = {};
-
-      targetMap[BUCKET_TYPES.NETWORK] = QUERY_TARGETS.NETWORK;
-      targetMap[BUCKET_TYPES.STUDY] = QUERY_TARGETS.STUDY;
-      targetMap[BUCKET_TYPES.STUDY_INDIVIDUAL] = QUERY_TARGETS.STUDY;
-      targetMap[BUCKET_TYPES.STUDY_HARMONIZATION] = QUERY_TARGETS.STUDY;
-      targetMap[BUCKET_TYPES.DCE] = QUERY_TARGETS.VARIABLE;
-      targetMap[BUCKET_TYPES.DCE_INDIVIDUAL] = QUERY_TARGETS.VARIABLE;
-      targetMap[BUCKET_TYPES.DCE_HARMONIZATION] = QUERY_TARGETS.VARIABLE;
-      targetMap[BUCKET_TYPES.DATASCHEMA] = QUERY_TARGETS.DATASET;
-      targetMap[BUCKET_TYPES.DATASET] = QUERY_TARGETS.DATASET;
-      targetMap[BUCKET_TYPES.DATASET_COLLECTED] = QUERY_TARGETS.DATASET;
-      targetMap[BUCKET_TYPES.DATASET_HARMONIZED] = QUERY_TARGETS.DATASET;
-
-      function decorateVocabularyHeaders(headers, vocabularyHeaders) {
-        var count = 0, i = 0;
-        for (var j=0 ; j < vocabularyHeaders.length; j ++) {
-          if (count >= headers[i].termsCount) {
-            i++;
-            count = 0;
+        function loadResults() {
+          // execute search only when results are to be shown
+          if ($location.path() !== '/search') {
+            return;
           }
 
-          count += vocabularyHeaders[j].termsCount;
-          vocabularyHeaders[j].taxonomyName = headers[i].entity.name;
-        }
-      }
+          function updateSortByType() {
+            var rqlSort = RqlQueryService.getTargetQuerySort($scope.search.type, $scope.search.rqlQuery);
+            var sort = rqlSort && rqlSort.args ? rqlSort.args : null;
 
-      function decorateTermHeaders(headers, termHeaders, attr) {
-        var idx = 0;
-        return headers.reduce(function(result, h) {
-          result[h.entity.name] = termHeaders.slice(idx, idx + h.termsCount).map(function(t) {
-            if(h.termsCount > 1 && attr === 'vocabularyName') {
-              t.canRemove = true;
+            if (!sort) {
+              sort = $scope.search.type === QUERY_TYPES.VARIABLES ? SORT_FIELDS.NAME : SORT_FIELDS.ACRONYM;
+
+              if ($scope.search.type === QUERY_TYPES.VARIABLES) {
+                sort = [SORT_FIELDS.VARIABLE_TYPE, SORT_FIELDS.CONTAINER_ID, SORT_FIELDS.POPULATION_WEIGHT, SORT_FIELDS.DATA_COLLECTION_EVENT_WEIGHT, SORT_FIELDS.DATASET_ID, SORT_FIELDS.INDEX, SORT_FIELDS.NAME];
+              } else if ($scope.search.type === QUERY_TYPES.DATASETS) {
+                sort = [SORT_FIELDS.STUDY_TABLE.STUDY_ID, SORT_FIELDS.STUDY_TABLE.POPULATION_WEIGHT, SORT_FIELDS.STUDY_TABLE.DATA_COLLECTION_EVENT_WEIGHT, SORT_FIELDS.ACRONYM];
+              }
             }
 
-            t[attr] = h.entity.name;
-
-            return t;
-          });
-
-          idx += h.termsCount;
-          return result;
-        }, {});
-      }
-
-      function dceUpdateBucket(val) {
-        if (val) {
-          $scope.selectBucket(BUCKET_TYPES.DCE);
-        } else if ($scope.bucket.startsWith('dce')) {
-          $scope.selectBucket(BUCKET_TYPES.STUDY);
-        }
-      }
-
-      function onDceUpdateBucket(val, old) {
-        if (val === old) {
-          return;
-        }
-
-        dceUpdateBucket(val);
-      }
-
-      function setInitialFilter() {
-        var result = StudyFilterShortcutService.getStudyClassNameChoices();
-
-        if (result.choseAll) {
-          $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.ALL_STUDIES;
-        } else if (result.choseIndividual) {
-          $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.INDIVIDUAL_STUDIES;
-        } else if (result.choseHarmonization) {
-          $scope.bucketSelection._studySelection = STUDY_FILTER_CHOICES.HARMONIZATION_STUDIES;
-        }
-
-        angular.extend($scope, result);
-
-        var bucket = $location.search().bucket;
-        if (bucket === BUCKET_TYPES.STUDY || bucket === BUCKET_TYPES.DCE) {
-          $scope.bucketSelection._dceBucketSelected = bucket === BUCKET_TYPES.DCE; // don't trigger the watch callback
-        }
-      }
-
-      function onLocationChange() {
-        var search = $location.search();
-        if (search.display && search.display === DISPLAY_TYPES.COVERAGE) {
-          $scope.bucket = search.bucket ? search.bucket : CoverageGroupByService.defaultBucket();
-          $scope.bucketStartsWithDce = $scope.bucket.startsWith('dce');
-          $scope.singleStudy = CoverageGroupByService.isSingleStudy();
-          setInitialFilter();
-        }
-      }
-
-      function updateBucket (groupBy) {
-        if ($scope.groupByOptions.canShowVariableTypeFilter(groupBy)) {
-          $scope.selectBucket(groupBy);
-        } else if (BUCKET_TYPES.STUDY !== groupBy) {
-          $scope.selectBucket(BUCKET_TYPES.DCE);
-        }
-      }
-
-      function dsUpdateBucket (groupBy) {
-        $scope.selectBucket(groupBy);
-      }
-
-      function isStudyBucket() {
-        return $scope.bucket.indexOf('study') > -1 || $scope.bucket.indexOf('dce') > -1;
-      }
-
-      function isDatasetBucket() {
-        return $scope.bucket.indexOf('dataset') > -1;
-      }
-
-      function selectTab(tab) {
-        if (tab === BUCKET_TYPES.STUDY) {
-          updateBucket(($scope.bucketSelection.dceBucketSelected || $scope.groupByOptions.isSingleStudy()) ? BUCKET_TYPES.DCE : BUCKET_TYPES.STUDY);
-        } else if (tab === BUCKET_TYPES.DATASET) {
-          dsUpdateBucket(BUCKET_TYPES.DATASET);
-        }
-      }
-
-      function getBucketUrl(bucket, id) {
-        switch (bucket) {
-          case BUCKET_TYPES.STUDY:
-          case BUCKET_TYPES.STUDY_INDIVIDUAL:
-          case BUCKET_TYPES.DCE:
-          case BUCKET_TYPES.DCE_INDIVIDUAL:
-            return PageUrlService.studyPage(id, 'individual');
-          case BUCKET_TYPES.STUDY_HARMONIZATION:
-          case BUCKET_TYPES.DCE_HARMONIZATION:
-            return PageUrlService.studyPage(id, 'harmonization');
-          case BUCKET_TYPES.NETWORK:
-            return PageUrlService.networkPage(id);
-          case BUCKET_TYPES.DATASCHEMA:
-          case BUCKET_TYPES.DATASET_HARMONIZED:
-            return PageUrlService.datasetPage(id, 'harmonized');
-          case BUCKET_TYPES.DATASET:
-          case BUCKET_TYPES.DATASET_COLLECTED:
-            return PageUrlService.datasetPage(id, 'collected');
-        }
-
-        return '';
-      }
-
-      function updateFilterCriteriaInternal(selected) {
-        var vocabulary = $scope.bucket.startsWith('dce') ? 'dceId' : 'id';
-        var growlMsgKey = 'search.criterion.created';
-
-        var rqlQuery = RqlQueryService.parseQuery($location.search().query);
-        var targetQuery = RqlQueryService.findTargetQuery(targetMap[$scope.bucket], rqlQuery);
-        if (!targetQuery) {
-          targetQuery = new RqlQuery(targetMap[$scope.bucket]);
-          rqlQuery.args.push(targetQuery);
-        }
-
-        var foundVocabularyQuery = RqlQueryService.findQueryInTargetByVocabulary(targetQuery, vocabulary);
-        var vocabularyQuery;
-
-        if (foundVocabularyQuery) {
-          growlMsgKey = 'search.criterion.updated';
-          vocabularyQuery = foundVocabularyQuery;
-          if (vocabularyQuery.name === RQL_NODE.EXISTS) {
-            vocabularyQuery.name = RQL_NODE.IN;
+            return sort;
           }
-        } else {
-          vocabularyQuery = new RqlQuery(RQL_NODE.IN);
+
+          var localizedQuery =
+            RqlQueryService.prepareSearchQueryAndSerialize(
+              $scope.search.display,
+              $scope.search.type,
+              $scope.search.rqlQuery,
+              $scope.search.pagination,
+              $scope.lang,
+              updateSortByType()
+            );
+
+          function getCountResultFromJoinQuerySearchResponse(response) {
+            return {
+              studyTotalCount: {
+                total: response.studyResultDto.totalCount,
+                hits: response.studyResultDto.totalHits
+              },
+              datasetTotalCount: {
+                total: response.datasetResultDto.totalCount,
+                hits: response.datasetResultDto.totalHits
+              },
+              variableTotalCount: {
+                total: response.variableResultDto.totalCount,
+                hits: response.variableResultDto.totalHits
+              },
+              networkTotalCount: {
+                total: response.networkResultDto.totalCount,
+                hits: response.networkResultDto.totalHits
+              }
+            };
+          }
+
+          switch ($scope.search.display) {
+            case DISPLAY_TYPES.LIST:
+              $scope.search.loading = true;
+              $scope.search.executedQuery = localizedQuery;
+              JoinQuerySearchResource[$scope.search.type]({ query: localizedQuery },
+                function onSuccess(response) {
+                  $scope.search.result.list = response;
+                  $scope.search.loading = false;
+                  $scope.search.countResult = getCountResultFromJoinQuerySearchResponse(response);
+                },
+                onError);
+              break;
+            case DISPLAY_TYPES.COVERAGE:
+              var hasVariableCriteria = Object.keys($scope.search.criteriaItemMap).map(function (k) {
+                return $scope.search.criteriaItemMap[k];
+              }).filter(function (item) {
+                return QUERY_TARGETS.VARIABLE === item.getTarget() && item.taxonomy.name !== 'Mica_variable';
+              }).length > 0;
+
+              if (hasVariableCriteria) {
+                $scope.search.loading = true;
+                $scope.search.executedQuery = RqlQueryService.prepareCoverageQuery(localizedQuery, $scope.search.bucket);
+                JoinQueryCoverageResource.get({ query: $scope.search.executedQuery },
+                  function onSuccess(response) {
+                    $scope.search.result.coverage = response;
+                    $scope.search.loading = false;
+                    $scope.search.countResult = response.totalCounts;
+                  },
+                  onError);
+              } else {
+                $scope.search.result = {};
+              }
+
+              break;
+            case DISPLAY_TYPES.GRAPHICS:
+              $scope.search.loading = true;
+              $scope.search.executedQuery = RqlQueryService.prepareGraphicsQuery(localizedQuery,
+                ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'],
+                ['Mica_study.methods-design']);
+              JoinQuerySearchResource.studies({ query: $scope.search.executedQuery },
+                function onSuccess(response) {
+                  $scope.search.result.graphics = response;
+                  $scope.search.loading = false;
+                  $scope.search.countResult = getCountResultFromJoinQuerySearchResponse(response);
+                },
+                onError);
+              break;
+          }
+
         }
 
-        vocabularyQuery.args = ['Mica_' + targetMap[$scope.bucket] + '.' + vocabulary];
-        vocabularyQuery.args.push(selected.map(function (selection) { return selection.value; }));
-
-        if (!foundVocabularyQuery) {
-          if (targetQuery.args.length > 0) {
-            var andQuery = new RqlQuery(RQL_NODE.AND);
-            targetQuery.args.forEach(function (arg) { andQuery.args.push(arg); });
-            andQuery.args.push(vocabularyQuery);
-            targetQuery.args = [andQuery];
+        function findAndSetCriteriaItemForTaxonomyVocabularies(target, taxonomy) {
+          if (Array.isArray(taxonomy)) {
+            taxonomy.forEach(function (subTaxonomy) {
+              subTaxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
+                taxonomyVocabulary.existingItem =
+                  RqlQueryService.findCriteriaItemFromTreeById(target,
+                    CriteriaIdGenerator.generate(subTaxonomy, taxonomyVocabulary), $scope.search.criteria, true);
+              });
+            });
           } else {
-            targetQuery.args = [vocabularyQuery];
+            taxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
+              taxonomyVocabulary.existingItem =
+                RqlQueryService.findCriteriaItemFromTreeById(target,
+                  CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria, true);
+            });
           }
         }
 
-        $location.search('query', new RqlQuery().serializeArgs(rqlQuery.args));
+        function executeSearchQuery() {
+          if (validateQueryData()) {
+            // build the criteria UI
+            RqlQueryService.createCriteria($scope.search.rqlQuery, $scope.lang).then(function (result) {
+              // criteria UI is updated here
+              $scope.search.criteria = result.root;
 
-        TaxonomyService.findVocabularyInTaxonomy(targetMap[$scope.bucket], 'Mica_' + targetMap[$scope.bucket], vocabulary)
-            .then(function (foundVocabulary) {
+              if ($scope.search.criteria && $scope.search.criteria.children) {
+                sortCriteriaItems($scope.search.criteria.children);
+              }
+
+              $scope.search.criteriaItemMap = result.map;
+
+              if (canExecuteWithEmptyQuery()) {
+                loadResults();
+              }
+
+              if ($scope.search.selectedTarget && $scope.search.selectedTaxonomy) {
+                findAndSetCriteriaItemForTaxonomyVocabularies($scope.search.selectedTarget, $scope.search.selectedTaxonomy);
+              }
+
+              $scope.$broadcast('ngObibaMicaQueryUpdated', $scope.search.criteria);
+            });
+          }
+        }
+
+        function processTaxonomyVocabulary(target, taxonomy, taxonomyVocabulary) {
+          function processExistingItem(existingItem) {
+            if (existingItem) {
+              if (VocabularyService.isNumericVocabulary(taxonomyVocabulary)) {
+                taxonomyVocabulary.rangeTerms = existingItem.getRangeTerms();
+              }
+
+              if (VocabularyService.isMatchVocabulary(taxonomyVocabulary)) {
+                taxonomyVocabulary.matchString = existingItem.selectedTerms.join('');
+              }
+
+              // when vocabulary has terms
+              taxonomyVocabulary.wholeVocabularyIsSelected = ['exists', 'match'].indexOf(existingItem.type) > -1;
+              (taxonomyVocabulary.terms || []).forEach(function (term) {
+                term.selected = existingItem.type === 'exists' || existingItem.selectedTerms.indexOf(term.name) > -1;
+              });
+            } else {
+              taxonomyVocabulary.rangeTerms = {};
+              taxonomyVocabulary.matchString = null;
+
+              // when vocabulary has terms
+              taxonomyVocabulary.wholeVocabularyIsSelected = false;
+              (taxonomyVocabulary.terms || []).forEach(function (term) {
+                term.selected = false;
+              });
+            }
+
+            taxonomyVocabulary._existingItem = existingItem;
+          }
+
+          taxonomyVocabulary.__defineSetter__('existingItem', processExistingItem);
+          taxonomyVocabulary.__defineGetter__('existingItem', function () { return taxonomyVocabulary._existingItem; });
+
+          taxonomyVocabulary.existingItem =
+            RqlQueryService.findCriteriaItemFromTreeById(target,
+              CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria, true);
+        }
+
+        function onTaxonomyFilterPanelToggleVisibility(target, taxonomy) {
+          if (target && taxonomy) {
+            if (Array.isArray(taxonomy)) {
+              taxonomy.forEach(function (subTaxonomy) {
+                subTaxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
+                  processTaxonomyVocabulary(target, subTaxonomy, taxonomyVocabulary);
+                });
+              });
+            } else {
+              taxonomy.vocabularies.forEach(function (taxonomyVocabulary) {
+                processTaxonomyVocabulary(target, taxonomy, taxonomyVocabulary);
+              });
+            }
+          }
+
+          $scope.search.selectedTarget = target;
+          $scope.search.selectedTaxonomy = taxonomy;
+          $scope.search.showTaxonomyPanel = taxonomy !== null;
+
+          // QUICKFIX for MK-1772 - there is a digest desync and UI misses info, resend the request upon closing
+          // A good solution may be a RequestQueue.
+          if (!$scope.search.showTaxonomyPanel) {
+            loadResults();
+          }
+        }
+
+        $scope.translateTaxonomyNav = function (t, key) {
+          var value = t[key] && t[key].filter(function (item) {
+            return item.locale === $translate.use();
+          }).pop();
+
+          return value ? value.text : key;
+        };
+
+        $rootScope.$on('$translateChangeSuccess', function (event, value) {
+          if (value.language !== SearchContext.currentLocale()) {
+            $scope.lang = $translate.use();
+            SearchContext.setLocale($scope.lang);
+            executeSearchQuery();
+          }
+        });
+
+        var showTaxonomy = function (target, name) {
+          if ($scope.target === target && $scope.taxonomyName === name && $scope.taxonomiesShown) {
+            $scope.taxonomiesShown = false;
+            return;
+          }
+
+          $scope.taxonomiesShown = true;
+          $scope.target = target;
+          $scope.taxonomyName = name;
+        };
+
+        var clearTaxonomy = function () {
+          $scope.target = null;
+          $scope.taxonomyName = null;
+        };
+
+        /**
+         * Updates the URL location triggering a query execution
+         */
+        var refreshQuery = function () {
+          var query = new RqlQuery().serializeArgs($scope.search.rqlQuery.args);
+          var search = $location.search();
+          if ('' === query) {
+            delete search.query;
+          } else {
+            search.query = query;
+          }
+          $location.search(search);
+        };
+
+        var clearSearch = function () {
+          $scope.documents.search.text = null;
+          $scope.documents.search.active = false;
+        };
+
+        /**
+         * Searches the criteria matching the input query
+         *
+         * @param query
+         * @returns {*}
+         */
+        var searchCriteria = function (query) {
+          // search for taxonomy terms
+          // search for matching variables/studies/... count
+
+          function score(item) {
+            var result = 0;
+            var regExp = new RegExp(query, 'ig');
+
+            if (item.itemTitle.match(regExp)) {
+              result = 10;
+            } else if (item.itemDescription && item.itemDescription.match(regExp)) {
+              result = 8;
+            } else if (item.itemParentTitle.match(regExp)) {
+              result = 6;
+            } else if (item.itemParentDescription && item.itemParentDescription.match(regExp)) {
+              result = 4;
+            }
+
+            return result;
+          }
+
+          // vocabulary (or term) can be used in search if it doesn't have the 'showSearch' attribute
+          function canSearch(taxonomyEntity, hideSearchList) {
+            if ((hideSearchList || []).indexOf(taxonomyEntity.name) > -1) {
+              return false;
+            }
+
+            return (taxonomyEntity.attributes || []).filter(function (attr) { return attr.key === 'showSearch'; }).length === 0;
+          }
+
+          function processBundle(bundle) {
+            var results = [];
+            var total = 0;
+            var target = bundle.target;
+            var taxonomy = bundle.taxonomy;
+            if (taxonomy.vocabularies) {
+              taxonomy.vocabularies.filter(function (vocabulary) {
+                return VocabularyService.isVisibleVocabulary(vocabulary) && canSearch(vocabulary, $scope.options.hideSearch);
+              }).forEach(function (vocabulary) {
+                if (vocabulary.terms) {
+                  vocabulary.terms.filter(function (term) {
+                    return canSearch(term, $scope.options.hideSearch);
+                  }).forEach(function (term) {
+                    var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, term, $scope.lang);
+                    results.push({
+                      score: score(item),
+                      item: item
+                    });
+                    total++;
+                  });
+                } else {
+                  var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, $scope.lang);
+                  results.push({
+                    score: score(item),
+                    item: item
+                  });
+                  total++;
+                }
+              });
+            }
+            return { results: results, total: total };
+          }
+
+          var criteria = TaxonomiesSearchResource.get({
+            query: StringUtils.quoteQuery(query.replace(/\/.*/g, '')), locale: $scope.lang, target: $scope.documents.search.target
+          }).$promise.then(function (response) {
+            if (response) {
+              var results = [];
+              var total = 0;
+              var size = 10;
+
+              response.forEach(function (bundle) {
+                var rval = processBundle(bundle);
+                results.push.apply(results, rval.results);
+                total = total + rval.total;
+              });
+
+              results.sort(function (a, b) {
+                return b.score - a.score;
+              });
+
+              results = results.splice(0, size);
+
+              if (total > results.length) {
+                var note = {
+                  query: query,
+                  total: total,
+                  size: size,
+                  message: LocaleStringUtils.translate('search.showing', [size, total]),
+                  status: 'has-warning'
+                };
+                results.push({ score: -1, item: note });
+              }
+
+              return results.map(function (result) {
+                return result.item;
+              });
+            } else {
+              return [];
+            }
+          }, function (response) {
+            AlertService.alert({
+              id: 'SearchController',
+              type: 'danger',
+              msg: ServerErrorUtils.buildMessage(response),
+              delay: 5000
+            });
+          });
+
+          return criteria;
+        };
+
+        /**
+         * Removes the item from the criteria tree
+         * @param item
+         */
+        var removeCriteriaItem = function (item) {
+          RqlQueryService.removeCriteriaItem(item);
+          refreshQuery();
+        };
+
+        /**
+         * Propagates a Scope change that results in criteria panel update
+         * @param item
+         */
+        var selectCriteria = function (item, logicalOp, replace, showNotification, fullCoverage) {
+          if (angular.isUndefined(showNotification)) {
+            showNotification = true;
+          }
+
+          if (item.id) {
+            var id = CriteriaIdGenerator.generate(item.taxonomy, item.vocabulary);
+            var existingItem = RqlQueryService.findCriteriaItemFromTree(item, $scope.search.criteria);
+            var growlMsgKey;
+
+            if (existingItem && id.indexOf('dceId') !== -1 && fullCoverage) {
+              removeCriteriaItem(existingItem);
+              growlMsgKey = 'search.criterion.updated';
+              RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item, logicalOp);
+            } else if (existingItem) {
+              growlMsgKey = 'search.criterion.updated';
+              RqlQueryService.updateCriteriaItem(existingItem, item, replace);
+            } else {
+              growlMsgKey = 'search.criterion.created';
+              RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item, logicalOp);
+            }
+
+            if (showNotification) {
               AlertService.growl({
                 id: 'SearchControllerGrowl',
                 type: 'info',
                 msgKey: growlMsgKey,
-                msgArgs: [foundVocabulary ?
-                    LocalizedValues.forLocale(foundVocabulary.title, $translate.use()) :
-                    vocabulary, $filter('translate')('taxonomy.target.' + targetMap[$scope.bucket])],
+                msgArgs: [LocalizedValues.forLocale(item.vocabulary.title, $scope.lang), $filter('translate')('taxonomy.target.' + item.target)],
                 delay: 3000
               });
-            });
+            }
 
-      }
-
-      function splitIds() {
-        var cols = {
-          colSpan: $scope.bucket.startsWith('dce') ? (CoverageGroupByService.isSingleStudy() ? 2 : 3) : 1,
-          ids: {}
+            refreshQuery();
+            $scope.search.selectedCriteria = null;
+          } else {
+            $scope.search.selectedCriteria = item.query;
+          }
         };
 
-        var rowSpans = {};
+        var searchKeyUp = function (event) {
+          switch (event.keyCode) {
+            case 27: // ESC
+              if ($scope.documents.search.active) {
+                clearSearch();
+              }
+              break;
 
-        function appendRowSpan(id) {
-          var rowSpan;
-          if (!rowSpans[id]) {
-            rowSpan = 1;
-            rowSpans[id] = 1;
-          } else {
-            rowSpan = 0;
-            rowSpans[id] = rowSpans[id] + 1;
+            default:
+              if ($scope.documents.search.text) {
+                searchCriteria($scope.documents.search.text);
+              }
+              break;
           }
-          return rowSpan;
+        };
+
+        var onTypeChanged = function (type) {
+          if (type) {
+            validateType(type);
+            var search = $location.search();
+            search.type = type;
+            search.display = DISPLAY_TYPES.LIST;
+            $location.search(search);
+          }
+        };
+
+        var onBucketChanged = function (bucket) {
+          if (bucket) {
+            validateBucket(bucket);
+            var search = $location.search();
+            search.bucket = bucket;
+            $location.search(search);
+          }
+        };
+
+        var onPaginate = function (target, from, size) {
+          $scope.search.pagination[target] = { from: from, size: size };
+          executeSearchQuery();
+        };
+
+        var onDisplayChanged = function (display) {
+          if (display) {
+            validateDisplay(display);
+
+            var search = $location.search();
+            search.display = display;
+            $location.search(search);
+          }
+        };
+
+        /**
+         * Reduce the current query such that all irrelevant criteria is removed but the criterion. The exceptions are
+         * when the criterion is inside an AND, in this case this latter is reduced.
+         *
+         * @param parentItem
+         * @param criteriaItem
+         */
+        function reduce(parentItem, criteriaItem) {
+          if (parentItem.type === RQL_NODE.OR) {
+            var grandParentItem = parentItem.parent;
+            var parentItemIndex = grandParentItem.children.indexOf(parentItem);
+            grandParentItem.children[parentItemIndex] = criteriaItem;
+
+            var parentRql = parentItem.rqlQuery;
+            var grandParentRql = grandParentItem.rqlQuery;
+            var parentRqlIndex = grandParentRql.args.indexOf(parentRql);
+            grandParentRql.args[parentRqlIndex] = criteriaItem.rqlQuery;
+
+            if (grandParentItem.type !== QUERY_TARGETS.VARIABLE) {
+              reduce(grandParentItem, criteriaItem);
+            }
+          } else if (criteriaItem.type !== RQL_NODE.VARIABLE && parentItem.type === RQL_NODE.AND) {
+            // Reduce until parent is Variable node or another AND node
+            reduce(parentItem.parent, parentItem);
+          }
         }
 
-        var minMax = {};
-
-        function appendMinMax(id, start, end) {
-          if (minMax[id]) {
-            if (start < minMax[id][0]) {
-              minMax[id][0] = start;
-            }
-            if (end > minMax[id][1]) {
-              minMax[id][1] = end;
-            }
-          } else {
-            minMax[id] = [start, end];
+        var onUpdateCriteria = function (item, type, useCurrentDisplay, replaceTarget, showNotification, fullCoverage) {
+          if (type) {
+            onTypeChanged(type);
           }
-        }
 
-        function toTime(yearMonth, start) {
-          var res;
-          if (yearMonth) {
-            if (yearMonth.indexOf('-')>0) {
-              var ym = yearMonth.split('-');
-              if (!start) {
-                var m = parseInt(ym[1]);
-                if(m<12) {
-                  ym[1] = m + 1;
-                } else {
-                  ym[0] = parseInt(ym[0]) + 1;
-                  ym[1] = 1;
+          if (replaceTarget) {
+            var criteriaItem = RqlQueryService.findCriteriaItemFromTree(item, $scope.search.criteria);
+            if (criteriaItem) {
+              reduce(criteriaItem.parent, criteriaItem);
+            }
+          }
+
+          onDisplayChanged(useCurrentDisplay && $scope.search.display ? $scope.search.display : DISPLAY_TYPES.LIST);
+          selectCriteria(item, RQL_NODE.AND, true, showNotification, fullCoverage);
+        };
+
+        var onRemoveCriteria = function (item) {
+          var found = RqlQueryService.findCriterion($scope.search.criteria, item.id);
+          removeCriteriaItem(found);
+        };
+
+        var onSelectTerm = function (target, taxonomy, vocabulary, args) {
+          args = args || {};
+
+          if (args.text) {
+            args.text = args.text.replace(/[^a-zA-Z0-9" _-]/g, '');
+          }
+
+          if (angular.isString(args)) {
+            args = { term: args };
+          }
+
+          if (vocabulary) {
+            var item;
+            if (VocabularyService.isNumericVocabulary(vocabulary)) {
+              item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, $scope.lang);
+              item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
+              RqlQueryUtils.updateRangeQuery(item.rqlQuery, args.from, args.to);
+              selectCriteria(item, null, true);
+
+              return;
+            } else if (VocabularyService.isMatchVocabulary(vocabulary)) {
+              item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, $scope.lang);
+              item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
+              RqlQueryUtils.updateMatchQuery(item.rqlQuery, args.text);
+              selectCriteria(item, null, true);
+
+              return;
+            }
+          }
+
+          if (options.searchLayout === 'layout1') {
+            selectCriteria(RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, args && args.term, $scope.lang));
+          } else {
+            // TODO externalize TermsVocabularyFacetController.selectTerm and use it for terms case
+            var selected = vocabulary.terms.filter(function (t) { return t.selected; }).map(function (t) { return t.name; }),
+              criterion = RqlQueryService.findCriterion($scope.search.criteria, CriteriaIdGenerator.generate(taxonomy, vocabulary));
+
+            if (criterion) {
+              if (selected.length === 0) {
+                RqlQueryService.removeCriteriaItem(criterion);
+              } else if (Object.keys(args).length === 0) {
+                RqlQueryService.updateCriteriaItem(criterion, RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, args && args.term, $scope.lang), true);
+              } else {
+                criterion.rqlQuery.name = RQL_NODE.IN;
+                RqlQueryUtils.updateQuery(criterion.rqlQuery, selected);
+
+                if (vocabulary.terms.length > 1 && selected.length === vocabulary.terms.length) {
+                  criterion.rqlQuery.name = RQL_NODE.EXISTS;
+                  criterion.rqlQuery.args.pop();
                 }
               }
-              var ymStr = ym[0] + '/'  + ym[1] + '/01';
-              res = Date.parse(ymStr);
+
+              $scope.refreshQuery();
             } else {
-              res = start ? Date.parse(yearMonth + '/01/01') : Date.parse(yearMonth + '/12/31');
+              var setExists = vocabulary.terms.length > 1 && selected.length === vocabulary.terms.length;
+              selectCriteria(RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, !setExists && (args && args.term), $scope.lang));
             }
           }
-          return res;
-        }
+        };
 
-        var currentYear = new Date().getFullYear();
-        var currentMonth = new Date().getMonth() + 1;
-        var currentYearMonth = currentYear + '-' + currentMonth;
-        var currentDate = toTime(currentYearMonth, true);
+        var selectSearchTarget = function (target) {
+          $scope.documents.search.target = target;
+        };
 
-        function getProgress(startYearMonth, endYearMonth) {
-          var start = toTime(startYearMonth, true);
-          var end = endYearMonth ? toTime(endYearMonth, false) : currentDate;
-          var current = end < currentDate ? end : currentDate;
-          if(end === start) {
-            return 100;
-          } else {
-            return Math.round(startYearMonth ? 100 * (current - start) / (end - start) : 0);
+        var VIEW_MODES = {
+          SEARCH: 'search',
+          CLASSIFICATION: 'classification'
+        };
+
+        const SUGGESTION_FIELDS_MAP = new Map([
+          [QUERY_TARGETS.NETWORK, ['acronym', 'name']],
+          [QUERY_TARGETS.STUDY, ['acronym', 'name']],
+          [QUERY_TARGETS.DATASET, ['acronym', 'name']],
+          [QUERY_TARGETS.VARIABLE, ['name', 'label']]
+        ]);
+
+        function searchSuggestion(target, suggestion, withSpecificFields) {
+          var rqlQuery = angular.copy($scope.search.rqlQuery);
+          var targetQuery = RqlQueryService.findTargetQuery(target, rqlQuery);
+
+          if (!targetQuery) {
+            targetQuery = new RqlQuery(target);
+            rqlQuery.push(targetQuery);
           }
-        }
 
-        var odd = true;
-        var groupId;
-        $scope.result.rows.forEach(function (row, i) {
-          row.hitsTitles = row.hits.map(function(hit){
-            return LocalizedValues.formatNumber(hit);
-          });
-          cols.ids[row.value] = [];
-          if ($scope.bucket.startsWith('dce')) {
-            var ids = row.value.split(':');
-            var isHarmo = row.className.indexOf('Harmonization') > -1 || ids[2] === '.'; // would work for both HarmonizationDataset and HarmonizationStudy
-            var titles = row.title.split(':');
-            var descriptions = row.description.split(':');
-            var rowSpan;
-            var id;
+          // get filter fields
+          var filterFields;
+          if (withSpecificFields) {
+            filterFields = SUGGESTION_FIELDS_MAP.get(target);
+          }
 
-            // study
-            id = ids[0];
-            if (!groupId) {
-              groupId = id;
-            } else if(id !== groupId) {
-              odd = !odd;
-              groupId = id;
-            }
-            rowSpan = appendRowSpan(id);
-            appendMinMax(id,row.start || currentYearMonth, row.end || currentYearMonth);
-            cols.ids[row.value].push({
-              id: CoverageGroupByService.isSingleStudy() ? '-' : id,
-              url: PageUrlService.studyPage(id, isHarmo ? 'harmonization' : 'individual'),
-              title: titles[0],
-              description: descriptions[0],
-              rowSpan: rowSpan,
-              index: i++
-            });
-
-            // population
-            id = ids[0] + ':' + ids[1];
-            rowSpan = appendRowSpan(id);
-            cols.ids[row.value].push({
-              id: id,
-              url: PageUrlService.studyPopulationPage(ids[0], isHarmo ? 'harmonization' : 'individual', ids[1]),
-              title: titles[1],
-              description: descriptions[1],
-              rowSpan: rowSpan,
-              index: i++
-            });
-
-            // dce
-            cols.ids[row.value].push({
-              id: isHarmo ? '-' : row.value,
-              title: titles[2],
-              description: descriptions[2],
-              start: row.start,
-              current: currentYearMonth,
-              end: row.end,
-              progressClass: odd ? 'info' : 'warning',
-              url: PageUrlService.studyPopulationPage(ids[0], isHarmo ? 'harmonization' : 'individual', ids[1]),
-              rowSpan: 1,
-              index: i++
-            });
+          var matchQuery = EntitySuggestionRqlUtilityService.createMatchQuery(suggestion, filterFields);
+          if (!matchQuery) {
+            EntitySuggestionRqlUtilityService.removeFilteredMatchQueryFromTargetQuery(targetQuery);
           } else {
-            var parts = $scope.bucket.split('-');
-            var itemBucket = parts[0];
-            if (itemBucket === BUCKET_TYPES.DATASET) {
-              itemBucket = itemBucket + (row.className.indexOf('Harmonization') > -1 ? '-harmonized' : '-collected');
+            var filterQuery = EntitySuggestionRqlUtilityService.givenTargetQueryGetFilterQuery(targetQuery);
+            if (!filterQuery) {
+              targetQuery.push(new RqlQuery(RQL_NODE.FILTER).push(matchQuery));
             } else {
-              itemBucket = itemBucket + (row.className.indexOf('Harmonization') > -1 ? '-harmonization' : '-individual');
+              var currentMatchQuery = EntitySuggestionRqlUtilityService.givenFilterQueryGetMatchQuery(filterQuery);
+              if (currentMatchQuery) {
+                currentMatchQuery.args = matchQuery.args;
+              } else {
+                filterQuery.push(matchQuery);
+              }
             }
-
-            cols.ids[row.value].push({
-              id: row.value,
-              url: getBucketUrl(itemBucket, row.value),
-              title: row.title,
-              description: row.description,
-              min: row.start,
-              start: row.start,
-              current: currentYear,
-              end: row.end,
-              max: row.end,
-              progressStart: 0,
-              progress: getProgress(row.start ? row.start + '-01' : currentYearMonth, row.end ? row.end + '-12' : currentYearMonth),
-              progressClass: odd ? 'info' : 'warning',
-              rowSpan: 1,
-              index: i++
-            });
-            odd = !odd;
           }
+
+          $scope.search.rqlQuery = rqlQuery;
+          refreshQuery();
+        }
+
+        $scope.searchSuggestion = searchSuggestion;
+        $scope.goToSearch = function () {
+          $scope.viewMode = VIEW_MODES.SEARCH;
+          $location.search('taxonomy', null);
+          $location.search('vocabulary', null);
+          $location.search('target', null);
+          $location.path('/search');
+        };
+
+        $scope.goToClassifications = function () {
+          $scope.viewMode = VIEW_MODES.CLASSIFICATION;
+          $location.path('/classifications');
+          $location.search('target', $scope.targetTabsOrder[0]);
+        };
+
+        $scope.navigateToTarget = function (target) {
+          $location.search('target', target);
+          $location.search('taxonomy', null);
+          $location.search('vocabulary', null);
+          $scope.target = target;
+        };
+
+        $scope.QUERY_TYPES = QUERY_TYPES;
+        $scope.BUCKET_TYPES = BUCKET_TYPES;
+
+        $scope.search = {
+          selectedCriteria: null,
+          layout: 'layout2',
+          pagination: {},
+          query: null,
+          advanced: false,
+          rqlQuery: new RqlQuery(),
+          executedQuery: null,
+          type: null,
+          bucket: null,
+          result: {
+            list: null,
+            coverage: null,
+            graphics: null
+          },
+          criteria: [],
+          criteriaItemMap: {},
+          loading: false
+        };
+
+        $scope.viewMode = VIEW_MODES.SEARCH;
+        $scope.documents = {
+          search: {
+            text: null,
+            active: false,
+            target: null
+          }
+        };
+
+        $scope.searchHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('search');
+        $scope.classificationsHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('classifications');
+        $scope.onTaxonomyFilterPanelToggleVisibility = onTaxonomyFilterPanelToggleVisibility;
+        $scope.selectSearchTarget = selectSearchTarget;
+        $scope.selectDisplay = onDisplayChanged;
+        $scope.searchCriteria = searchCriteria;
+        $scope.selectCriteria = selectCriteria;
+        $scope.searchKeyUp = searchKeyUp;
+
+        $scope.showTaxonomy = showTaxonomy;
+        $scope.clearTaxonomy = clearTaxonomy;
+
+        $scope.removeCriteriaItem = removeCriteriaItem;
+        $scope.refreshQuery = refreshQuery;
+        $scope.clearSearchQuery = clearSearchQuery;
+        $scope.toggleSearchQuery = toggleSearchQuery;
+        $scope.showAdvanced = showAdvanced;
+
+        $scope.onTypeChanged = onTypeChanged;
+        $scope.onBucketChanged = onBucketChanged;
+        $scope.onDisplayChanged = onDisplayChanged;
+        $scope.onUpdateCriteria = onUpdateCriteria;
+        $scope.onRemoveCriteria = onRemoveCriteria;
+        $scope.onSelectTerm = onSelectTerm;
+        $scope.QUERY_TARGETS = QUERY_TARGETS;
+        $scope.onPaginate = onPaginate;
+        $scope.canExecuteWithEmptyQuery = canExecuteWithEmptyQuery;
+        $scope.inSearchMode = function () {
+          return $scope.viewMode === VIEW_MODES.SEARCH;
+        };
+        $scope.toggleFullscreen = function () {
+          $scope.isFullscreen = !$scope.isFullscreen;
+        };
+        $scope.isSearchAvailable = true;
+        
+        ObibaServerConfigResource.get(function (micaConfig) {
+          $scope.isSearchAvailable = !micaConfig.isSingleStudyEnabled ||
+            (micaConfig.isNetworkEnabled && !micaConfig.isSingleNetworkEnabled) ||
+            micaConfig.isCollectedDatasetEnabled || micaConfig.isHarmonizedDatasetEnabled;
         });
 
-        // adjust the rowspans and the progress
-        if ($scope.bucket.startsWith('dce')) {
-          $scope.result.rows.forEach(function (row, i) {
-            row.hitsTitles = row.hits.map(function(hit){
-              return LocalizedValues.formatNumber(hit);
-            });
-            if (cols.ids[row.value][0].rowSpan > 0) {
-              cols.ids[row.value][0].rowSpan = rowSpans[cols.ids[row.value][0].id];
-            }
-            if (cols.ids[row.value][1].rowSpan > 0) {
-              cols.ids[row.value][1].rowSpan = rowSpans[cols.ids[row.value][1].id];
-            }
-            var ids = row.value.split(':');
-            if (minMax[ids[0]]) {
-              var min = minMax[ids[0]][0];
-              var max = minMax[ids[0]][1];
-              var start = cols.ids[row.value][2].start || currentYearMonth;
-              var end = cols.ids[row.value][2].end || currentYearMonth;
-              var diff = toTime(max, false) - toTime(min, true);
-              // set the DCE min and max dates of the study
-              cols.ids[row.value][2].min = min;
-              cols.ids[row.value][2].max = max;
-              // compute the progress
-              cols.ids[row.value][2].progressStart = 100 * (toTime(start, true) - toTime(min, true))/diff;
-              cols.ids[row.value][2].progress = 100 * (toTime(end, false) - toTime(start, true))/diff;
-              cols.ids[row.value].index = i;
-            }
-          });
-        }
+        $scope.$on('$locationChangeSuccess', function (event, newLocation, oldLocation) {
+          initSearchTabs();
 
-        return cols;
-      }
-
-      function mergeCriteriaItems(criteria) {
-        return criteria.reduce(function(prev, item) {
-          if (prev) {
-            RqlQueryService.updateCriteriaItem(prev, item);
-            return prev;
-          }
-
-          item.rqlQuery = RqlQueryUtils.buildRqlQuery(item);
-          return item;
-        }, null);
-      }
-
-      function updateStudyClassNameFilter(choice) {
-        StudyFilterShortcutService.filter(choice, $scope.lang);
-      }
-
-      function init() {
-        onLocationChange();
-      }
-
-      $scope.showMissing = true;
-      $scope.toggleMissing = function (value) {
-        $scope.showMissing = value;
-      };
-
-      $scope.groupByOptions = CoverageGroupByService;
-      $scope.bucketSelection = {
-        get studySelection() {
-          return this._studySelection;
-        },
-        set studySelection(value) {
-          this._studySelection = value;
-
-          if (!$scope.bucket || ($scope.bucket && ($scope.bucket.indexOf(BUCKET_TYPES.STUDY) > -1 || $scope.bucket.indexOf(BUCKET_TYPES.DCE) > -1))) {
-            updateBucket($scope.bucket.split('-')[0]);
-          } else if ($scope.bucket && $scope.bucket.indexOf(BUCKET_TYPES.DATASET) > -1) {
-            dsUpdateBucket($scope.bucket.split('-')[0]);
-          }
-
-          updateStudyClassNameFilter(value);
-        },
-        get dceBucketSelected() {
-          return this._dceBucketSelected;
-        },
-        set dceBucketSelected(value) {
-          var oldValue = this._dceBucketSelected;
-          this._dceBucketSelected = value;
-
-          onDceUpdateBucket(value, oldValue);
-        }
-      };
-
-      $scope.isStudyBucket = isStudyBucket;
-      $scope.isDatasetBucket = isDatasetBucket;
-      $scope.selectTab = selectTab;
-
-      $scope.selectBucket = function (bucket) {
-
-        $scope.bucket = bucket;
-        $scope.$parent.onBucketChanged(bucket);
-      };
-
-      $scope.$on('$locationChangeSuccess', onLocationChange);
-      $scope.rowspans = {};
-
-      $scope.getSpan = function (study, population) {
-        var length = 0;
-        if (population) {
-          var prefix = study + ':' + population;
-          length = $scope.result.rows.filter(function (row) {
-            return row.title.startsWith(prefix + ':');
-          }).length;
-          $scope.rowspans[prefix] = length;
-          return length;
-        } else {
-          length = $scope.result.rows.filter(function (row) {
-            return row.title.startsWith(study + ':');
-          }).length;
-          $scope.rowspans[study] = length;
-          return length;
-        }
-      };
-
-      $scope.hasSpan = function (study, population) {
-        if (population) {
-          return $scope.rowspans[study + ':' + population] > 0;
-        } else {
-          return $scope.rowspans[study] > 0;
-        }
-      };
-
-      $scope.hasVariableTarget = function () {
-        var query = $location.search().query;
-        return query && RqlQueryUtils.hasTargetQuery(RqlQueryService.parseQuery(query), RQL_NODE.VARIABLE);
-      };
-
-      $scope.hasSelected = function () {
-        return $scope.table && $scope.table.rows && $scope.table.rows.filter(function (r) {
-            return r.selected;
-          }).length;
-      };
-
-      $scope.selectAll = function() {
-        if ($scope.table && $scope.table.rows) {
-          $scope.table.rows.forEach(function(r){
-            r.selected = true;
-          });
-        }
-      };
-
-      $scope.selectNone = function() {
-        if ($scope.table && $scope.table.rows) {
-          $scope.table.rows.forEach(function(r){
-            r.selected = false;
-          });
-        }
-      };
-
-      $scope.selectFull = function() {
-        if ($scope.table && $scope.table.rows) {
-          $scope.table.rows.forEach(function(r){
-            if (r.hits) {
-              r.selected = r.hits.filter(function(h){
-                  return h === 0;
-                }).length === 0;
-            } else {
-              r.selected = false;
-            }
-          });
-        }
-      };
-
-      $scope.BUCKET_TYPES = BUCKET_TYPES;
-
-      $scope.downloadUrl = function () {
-        return PageUrlService.downloadCoverage($scope.query);
-      };
-
-      $scope.$watch('result', function () {
-        $scope.table = {cols: []};
-        vocabulariesTermsMap = {};
-
-        if ($scope.result && $scope.result.rows) {
-          var tableTmp = $scope.result;
-          tableTmp.cols = splitIds();
-          $scope.table = tableTmp;
-
-          vocabulariesTermsMap = decorateTermHeaders($scope.table.vocabularyHeaders, $scope.table.termHeaders, 'vocabularyName');
-          decorateTermHeaders($scope.table.taxonomyHeaders, $scope.table.termHeaders, 'taxonomyName');
-          decorateVocabularyHeaders($scope.table.taxonomyHeaders, $scope.table.vocabularyHeaders);
-        }
-      });
-
-      $scope.updateCriteria = function (id, term, idx, type) { //
-        var vocabulary = $scope.bucket.startsWith('dce') ? 'dceId' : 'id';
-        var criteria = {varItem: RqlQueryService.createCriteriaItem(QUERY_TARGETS.VARIABLE, term.taxonomyName, term.vocabularyName, term.entity.name)};
-
-        // if id is null, it is a click on the total count for the term
-        if (id) {
-          var groupBy = $scope.bucket.split('-')[0];
-          if (groupBy === 'dce' && id.endsWith(':.')) {
-            groupBy = 'study';
-            var studyId = id.split(':')[0];
-            criteria.item = RqlQueryService.createCriteriaItem(targetMap[groupBy], 'Mica_' + targetMap[groupBy], 'id', studyId);
-          } else {
-            criteria.item = RqlQueryService.createCriteriaItem(targetMap[groupBy], 'Mica_' + targetMap[groupBy], vocabulary, id);
-          }
-        } else if ($scope.bucket.endsWith('individual')) {
-          criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.STUDY, 'Mica_' + QUERY_TARGETS.STUDY, 'className', 'Study');
-        } else if ($scope.bucket.endsWith('harmonization')) {
-          criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.STUDY, 'Mica_' + QUERY_TARGETS.STUDY, 'className', 'HarmonizationStudy');
-        } else if ($scope.bucket.endsWith('collected')) {
-          criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'StudyDataset');
-        } else if ($scope.bucket.endsWith('harmonized')) {
-          criteria.item = RqlQueryService.createCriteriaItem(QUERY_TARGETS.DATASET, 'Mica_' + QUERY_TARGETS.DATASET, 'className', 'HarmonizationDataset');
-        }
-
-        $q.all(criteria).then(function (criteria) {
-          $scope.onUpdateCriteria(criteria.varItem, type, false, true);
-          if (criteria.item) {
-            $scope.onUpdateCriteria(criteria.item, type);
-          }
-          if (criteria.bucketItem) {
-            $scope.onUpdateCriteria(criteria.bucketItem, type);
-          }
-        });
-      };
-
-      $scope.isFullCoverageImpossibleOrCoverageAlreadyFull = function () {
-        var rows = $scope.table ? ($scope.table.rows || []) : [];
-        var rowsWithZeroHitColumn = 0;
-
-        if (rows.length === 0) {
-          return true;
-        }
-
-        rows.forEach(function (row) {
-          if (row.hits) {
-            if (row.hits.filter(function (hit) { return hit === 0; }).length > 0) {
-              rowsWithZeroHitColumn++;
+          if (newLocation !== oldLocation) {
+            try {
+              validateBucket($location.search().bucket);
+              executeSearchQuery();
+            } catch (error) {
+              var defaultBucket = CoverageGroupByService.defaultBucket();
+              $location.search('bucket', defaultBucket).replace();
             }
           }
         });
 
-        if (rowsWithZeroHitColumn === 0) {
-          return true;
+        $rootScope.$on('ngObibaMicaSearch.fullscreenChange', function (obj, isEnabled) {
+          $scope.isFullscreen = isEnabled;
+        });
+
+        $rootScope.$on('ngObibaMicaSearch.sortChange', function (obj, sort) {
+          $scope.search.rqlQuery = RqlQueryService.prepareSearchQueryNoFields(
+            $scope.search.display,
+            $scope.search.type,
+            $scope.search.rqlQuery,
+            {},
+            $scope.lang,
+            sort
+          );
+          refreshQuery();
+        });
+
+        $rootScope.$on('ngObibaMicaSearch.searchSuggestion', function (event, suggestion, target, withSpecificFields) {
+          searchSuggestion(target, suggestion, withSpecificFields);
+        });
+
+        function init() {
+          $scope.lang = $translate.use();
+          SearchContext.setLocale($scope.lang);
+          initSearchTabs();
+          executeSearchQuery();
         }
 
-        return rows.length === rowsWithZeroHitColumn;
-      };
+        init();
+      }])
 
-      $scope.selectFullAndFilter = function() {
-        var selected = [];
-        if ($scope.table && $scope.table.rows) {
-          $scope.table.rows.forEach(function(r){
-            if (r.hits) {
-              if (r.hits.filter(function(h){
-                  return h === 0;
-                }).length === 0) {
-                selected.push(r);
-              }
-            }
-          });
-          console.log('selected=' + Math.round(selected.length*100/$scope.table.rows.length) + '%');
-        }
-        updateFilterCriteriaInternal(selected, true);
-      };
-
-      $scope.updateFilterCriteria = function () {
-        updateFilterCriteriaInternal($scope.table.rows.filter(function (r) {
-          return r.selected;
-        }));
-      };
-
-      $scope.removeTerm = function(term) {
-        var remainingCriteriaItems = vocabulariesTermsMap[term.vocabularyName].filter(function(t) {
-            return t.entity.name !== term.entity.name;
-          }).map(function(t) {
-            return RqlQueryService.createCriteriaItem(QUERY_TARGETS.VARIABLE, t.taxonomyName, t.vocabularyName, t.entity.name);
-          });
-
-        $q.all(remainingCriteriaItems).then(function(criteriaItems) {
-          $scope.onUpdateCriteria(mergeCriteriaItems(criteriaItems), null, true, false, false);
-        });
-      };
-
-      $scope.removeVocabulary = function(vocabulary) {
-        RqlQueryService.createCriteriaItem(QUERY_TARGETS.VARIABLE, vocabulary.taxonomyName, vocabulary.entity.name).then(function(item){
-          $scope.onRemoveCriteria(item);
-        });
-      };
-
-      init();
-    }])
-
-  .controller('GraphicsResultController', [
-    'GraphicChartsConfig',
-    'GraphicChartsUtils',
-    'RqlQueryService',
-    '$filter',
-    '$scope',
-    'D3GeoConfig', 'D3ChartConfig',
-    function (GraphicChartsConfig,
-              GraphicChartsUtils,
-              RqlQueryService,
-              $filter,
-              $scope, D3GeoConfig, D3ChartConfig) {
-
-      $scope.hasChartObjects = function () {
-        return $scope.chartObjects && Object.keys($scope.chartObjects).length > 0;
-      };
-
-      var setChartObject = function (vocabulary, dtoObject, header, title, options, isTable) {
-
-        return GraphicChartsUtils.getArrayByAggregation(vocabulary, dtoObject)
-          .then(function (entries){
-            var data = entries.map(function (e) {
-              if (e.participantsNbr && isTable) {
-                return [e.title, e.value, e.participantsNbr];
-              }
-              else {
-                return [e.title, e.value];
-              }
-            });
-
-            if (data.length > 0) {
-              data.unshift(header);
-              angular.extend(options, {title: title});
-
-              return {
-                data: data,
-                entries: entries,
-                options: options,
-                vocabulary: vocabulary
-              };
-            }
-          });
-
-      };
-
-      var charOptions = GraphicChartsConfig.getOptions().ChartsOptions;
-
-      $scope.updateCriteria = function (key, vocabulary) {
-        RqlQueryService.createCriteriaItem('study', 'Mica_study', vocabulary, key).then(function (item) {
-          $scope.onUpdateCriteria(item, 'studies');
-        });
-      };
-
-      $scope.$watch('result', function (result) {
-        $scope.chartObjects = {};
-        $scope.noResults = true;
-
-        if (result && result.studyResultDto.totalHits) {
-          $scope.noResults = false;
-          setChartObject('populations-model-selectionCriteria-countriesIso',
-            result.studyResultDto,
-            [$filter('translate')(charOptions.geoChartOptions.header[0]), $filter('translate')(charOptions.geoChartOptions.header[1])],
-            $filter('translate')(charOptions.geoChartOptions.title) + ' (N=' + result.studyResultDto.totalHits + ')',
-            charOptions.geoChartOptions.options).then(function(geoStudies) {
-              if (geoStudies) {
-                var d3Config = new D3GeoConfig()
-                  .withData(geoStudies.entries)
-                  .withTitle($filter('translate')(charOptions.geoChartOptions.title) + ' (N=' + result.studyResultDto.totalHits + ')');
-                d3Config.withColor(charOptions.geoChartOptions.options.colors);
-                var chartObject = {
-                  geoChartOptions: {
-                    directiveTitle: geoStudies.options.title,
-                    headerTitle: $filter('translate')('graphics.geo-charts'),
-                    chartObject: {
-                      geoTitle: geoStudies.options.title,
-                      options: geoStudies.options,
-                      type: 'GeoChart',
-                      vocabulary: geoStudies.vocabulary,
-                      data: geoStudies.data,
-                      entries: geoStudies.entries,
-                      d3Config: d3Config
-                    }
-                  }
-                };
-                chartObject.geoChartOptions.getTable = function(){
-                  return chartObject.geoChartOptions.chartObject;
-                };
-                angular.extend($scope.chartObjects, chartObject);
-              }
-            });
-          // Study design chart.
-          setChartObject('model-methods-design',
-            result.studyResultDto,
-            [$filter('translate')(charOptions.studiesDesigns.header[0]),
-              $filter('translate')(charOptions.studiesDesigns.header[1])
-              ],
-            $filter('translate')(charOptions.studiesDesigns.title) + ' (N=' + result.studyResultDto.totalHits + ')',
-            charOptions.studiesDesigns.options).then(function(methodDesignStudies) {
-              if (methodDesignStudies) {
-                var d3Config = new D3ChartConfig(methodDesignStudies.vocabulary)
-                    .withType('multiBarHorizontalChart')
-                    .withTitle($filter('translate')(charOptions.studiesDesigns.title) + ' (N=' + result.studyResultDto.totalHits + ')')
-                    .withData(angular.copy(methodDesignStudies.entries), false, $filter('translate')('graphics.nbr-studies'));
-                d3Config.options.chart.showLegend = false;
-                d3Config.options.chart.color = charOptions.numberParticipants.options.colors;
-                var chartObject= {
-                  studiesDesigns: {
-                    //directiveTitle: methodDesignStudies.options.title ,
-                    headerTitle: $filter('translate')('graphics.study-design'),
-                    chartObject: {
-                      options: methodDesignStudies.options,
-                      type: 'BarChart',
-                      data: methodDesignStudies.data,
-                      vocabulary: methodDesignStudies.vocabulary,
-                      entries: methodDesignStudies.entries,
-                      d3Config: d3Config
-                    }
-                  }
-                };
-                angular.extend($scope.chartObjects, chartObject);
-              }
-            });
-
-          // Study design table.
-          setChartObject('model-methods-design',
-            result.studyResultDto,
-            [$filter('translate')(charOptions.studiesDesigns.header[0]),
-              $filter('translate')(charOptions.studiesDesigns.header[1]),
-              $filter('translate')(charOptions.studiesDesigns.header[2])
-            ],
-            $filter('translate')(charOptions.studiesDesigns.title) + ' (N=' + result.studyResultDto.totalHits + ')',
-            charOptions.studiesDesigns.options, true).then(function(methodDesignStudies) {
-            if (methodDesignStudies) {
-              var chartObject = {
-                  chartObjectTable: {
-                    options: methodDesignStudies.options,
-                    type: 'BarChart',
-                    data: methodDesignStudies.data,
-                    vocabulary: methodDesignStudies.vocabulary,
-                    entries: methodDesignStudies.entries
-                  }
-
-              };
-              chartObject.getTable= function(){
-                return chartObject.chartObjectTable;
-              };
-              angular.extend($scope.chartObjects.studiesDesigns, chartObject);
-            }
-          });
-          setChartObject('model-numberOfParticipants-participant-number-range',
-            result.studyResultDto,
-            [$filter('translate')(charOptions.numberParticipants.header[0]), $filter('translate')(charOptions.numberParticipants.header[1])],
-            $filter('translate')(charOptions.numberParticipants.title) + ' (N=' + result.studyResultDto.totalHits + ')',
-            charOptions.numberParticipants.options).then(function(numberParticipant) {
-              if (numberParticipant) {
-                var chartConfig = new D3ChartConfig(numberParticipant.vocabulary)
-                  .withType('pieChart')
-                  .withTitle($filter('translate')(charOptions.numberParticipants.title) + ' (N=' + result.studyResultDto.totalHits + ')')
-                  .withData(angular.copy(numberParticipant.entries), true);
-                chartConfig.options.chart.legendPosition = 'right';
-                chartConfig.options.chart.color = charOptions.numberParticipants.options.colors;
-                var chartObject = {
-                  numberParticipants: {
-                    headerTitle: $filter('translate')('graphics.number-participants'),
-                    chartObject: {
-                      options: numberParticipant.options,
-                      type: 'PieChart',
-                      data: numberParticipant.data,
-                      vocabulary: numberParticipant.vocabulary,
-                      entries: numberParticipant.entries,
-                      d3Config: chartConfig
-                    }
-                  }
-                };
-                chartObject.numberParticipants.getTable= function(){
-                  return chartObject.numberParticipants.chartObject;
-                };
-                angular.extend($scope.chartObjects, chartObject);
-              }
-            });
-
-          setChartObject('populations-dataCollectionEvents-model-bioSamples',
-            result.studyResultDto,
-            [$filter('translate')(charOptions.biologicalSamples.header[0]), $filter('translate')(charOptions.biologicalSamples.header[1])],
-            $filter('translate')(charOptions.biologicalSamples.title) + ' (N=' + result.studyResultDto.totalHits + ')',
-            charOptions.biologicalSamples.options).then(function(bioSamplesStudies) {
-              if (bioSamplesStudies) {
-                var d3Config = new D3ChartConfig(bioSamplesStudies.vocabulary)
-                    .withType('multiBarHorizontalChart')
-                    .withTitle($filter('translate')(charOptions.biologicalSamples.title) + ' (N=' + result.studyResultDto.totalHits + ')')
-                    .withData(angular.copy(bioSamplesStudies.entries), false, $filter('translate')('graphics.nbr-studies'));
-                d3Config.options.chart.showLegend = false;
-                d3Config.options.chart.color = charOptions.numberParticipants.options.colors;
-                var chartObject = {
-                  biologicalSamples: {
-                    headerTitle: $filter('translate')('graphics.bio-samples'),
-                    chartObject: {
-                      options: bioSamplesStudies.options,
-                      type: 'BarChart',
-                      data: bioSamplesStudies.data,
-                      vocabulary: bioSamplesStudies.vocabulary,
-                      entries: bioSamplesStudies.entries,
-                      d3Config: d3Config
-                    }
-                  }
-                };
-                chartObject.biologicalSamples.getTable= function(){
-                  return chartObject.biologicalSamples.chartObject;
-                };
-                angular.extend($scope.chartObjects, chartObject);
-              }
-            });
-        }
-      });
-    }])
-
-  .controller('SearchResultPaginationController', ['$scope', 'ngObibaMicaSearch', function ($scope, ngObibaMicaSearch) {
-
-    function updateMaxSize() {
-      $scope.maxSize = Math.min(3, Math.ceil($scope.totalHits / $scope.pagination.selected.value));
-    }
-
-    function calculateRange() {
-      var pageSize = $scope.pagination.selected.value;
-      var current = $scope.pagination.currentPage;
-      $scope.pagination.from = pageSize * (current - 1) + 1;
-      $scope.pagination.to = Math.min($scope.totalHits, pageSize * current);
-    }
-
-    function canShow() {
-      return angular.isUndefined($scope.showTotal) ||  true === $scope.showTotal;
-    }
-
-    var pageChanged = function () {
-      calculateRange();
-      if ($scope.onChange) {
-        $scope.onChange(
-          $scope.target,
-          ($scope.pagination.currentPage - 1) * $scope.pagination.selected.value,
-          $scope.pagination.selected.value
-        );
-      }
-    };
-
-    var pageSizeChanged = function () {
-      updateMaxSize();
-      $scope.pagination.currentPage = 1;
-      pageChanged();
-    };
-
-    $scope.canShow = canShow;
-    $scope.pageChanged = pageChanged;
-    $scope.pageSizeChanged = pageSizeChanged;
-    $scope.pageSizes = [
-      {label: '10', value: 10},
-      {label: '20', value: 20},
-      {label: '50', value: 50},
-      {label: '100', value: 100}
-    ];
-
-    var listPageSize = ngObibaMicaSearch.getDefaultListPageSize($scope.target);
-    var initialTargetPageSize = $scope.pageSizes.filter(function(p) {
-      return p.value === listPageSize;
-    });
-
-    $scope.pagination = {
-      selected: initialTargetPageSize.length>0 ? initialTargetPageSize[0] : $scope.pageSizes[0],
-      currentPage: 1
-    };
-
-    $scope.$watch('totalHits', function () {
-      updateMaxSize();
-      calculateRange();
-    });
-  }])
-  .controller('ResultTabsOrderCountController', [function(){
-  }]);
+    .controller('ResultTabsOrderCountController', [function () {
+    }]);
+})();
