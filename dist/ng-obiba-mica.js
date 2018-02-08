@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2018-02-07
+ * Date: 2018-02-08
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -4189,7 +4189,7 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
         ]);
 
         function searchSuggestion(target, suggestion, withSpecificFields) {
-          var rqlQuery = angular.copy($scope.search.rqlQuery);
+          var rqlQuery = $scope.search.rqlQuery;
           var targetQuery = RqlQueryService.findTargetQuery(target, rqlQuery);
 
           if (!targetQuery) {
@@ -4220,7 +4220,6 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
             }
           }
 
-          $scope.search.rqlQuery = rqlQuery;
           refreshQuery();
         }
 
