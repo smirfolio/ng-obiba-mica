@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2018-02-08
+ * Date: 2018-02-13
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -5472,7 +5472,7 @@ ngObibaMica.search.service('RqlQueryService',
           existingItem.rqlQuery.args.splice(1, 1);
         }
 
-        if (RQL_NODE.EXISTS === newItem.rqlQuery.name) {
+        if (newItem.rqlQuery && RQL_NODE.EXISTS === newItem.rqlQuery.name) {
           updateItemForExistsQuery();
         } else {
 
