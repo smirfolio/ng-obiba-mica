@@ -3792,14 +3792,6 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
           }
         }
 
-        $scope.translateTaxonomyNav = function (t, key) {
-          var value = t[key] && t[key].filter(function (item) {
-            return item.locale === $translate.use();
-          }).pop();
-
-          return value ? value.text : key;
-        };
-
         $rootScope.$on('$translateChangeSuccess', function (event, value) {
           if (value.language !== SearchContext.currentLocale()) {
             $scope.lang = $translate.use();
@@ -3808,21 +3800,6 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
           }
         });
 
-        var showTaxonomy = function (target, name) {
-          if ($scope.target === target && $scope.taxonomyName === name && $scope.taxonomiesShown) {
-            $scope.taxonomiesShown = false;
-            return;
-          }
-
-          $scope.taxonomiesShown = true;
-          $scope.target = target;
-          $scope.taxonomyName = name;
-        };
-
-        var clearTaxonomy = function () {
-          $scope.target = null;
-          $scope.taxonomyName = null;
-        };
 
         /**
          * Updates the URL location triggering a query execution
@@ -3838,128 +3815,6 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
           $location.search(search);
         };
 
-        var clearSearch = function () {
-          $scope.documents.search.text = null;
-          $scope.documents.search.active = false;
-        };
-
-        /**
-         * Searches the criteria matching the input query
-         *
-         * @param query
-         * @returns {*}
-         */
-        var searchCriteria = function (query) {
-          // search for taxonomy terms
-          // search for matching variables/studies/... count
-
-          function score(item) {
-            var result = 0;
-            var regExp = new RegExp(query, 'ig');
-
-            if (item.itemTitle.match(regExp)) {
-              result = 10;
-            } else if (item.itemDescription && item.itemDescription.match(regExp)) {
-              result = 8;
-            } else if (item.itemParentTitle.match(regExp)) {
-              result = 6;
-            } else if (item.itemParentDescription && item.itemParentDescription.match(regExp)) {
-              result = 4;
-            }
-
-            return result;
-          }
-
-          // vocabulary (or term) can be used in search if it doesn't have the 'showSearch' attribute
-          function canSearch(taxonomyEntity, hideSearchList) {
-            if ((hideSearchList || []).indexOf(taxonomyEntity.name) > -1) {
-              return false;
-            }
-
-            return (taxonomyEntity.attributes || []).filter(function (attr) { return attr.key === 'showSearch'; }).length === 0;
-          }
-
-          function processBundle(bundle) {
-            var results = [];
-            var total = 0;
-            var target = bundle.target;
-            var taxonomy = bundle.taxonomy;
-            if (taxonomy.vocabularies) {
-              taxonomy.vocabularies.filter(function (vocabulary) {
-                return VocabularyService.isVisibleVocabulary(vocabulary) && canSearch(vocabulary, $scope.options.hideSearch);
-              }).forEach(function (vocabulary) {
-                if (vocabulary.terms) {
-                  vocabulary.terms.filter(function (term) {
-                    return canSearch(term, $scope.options.hideSearch);
-                  }).forEach(function (term) {
-                    var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, term, $scope.lang);
-                    results.push({
-                      score: score(item),
-                      item: item
-                    });
-                    total++;
-                  });
-                } else {
-                  var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, $scope.lang);
-                  results.push({
-                    score: score(item),
-                    item: item
-                  });
-                  total++;
-                }
-              });
-            }
-            return { results: results, total: total };
-          }
-
-          var criteria = TaxonomiesSearchResource.get({
-            query: StringUtils.quoteQuery(query.replace(/\/.*/g, '')), locale: $scope.lang, target: $scope.documents.search.target
-          }).$promise.then(function (response) {
-            if (response) {
-              var results = [];
-              var total = 0;
-              var size = 10;
-
-              response.forEach(function (bundle) {
-                var rval = processBundle(bundle);
-                results.push.apply(results, rval.results);
-                total = total + rval.total;
-              });
-
-              results.sort(function (a, b) {
-                return b.score - a.score;
-              });
-
-              results = results.splice(0, size);
-
-              if (total > results.length) {
-                var note = {
-                  query: query,
-                  total: total,
-                  size: size,
-                  message: LocaleStringUtils.translate('search.showing', [size, total]),
-                  status: 'has-warning'
-                };
-                results.push({ score: -1, item: note });
-              }
-
-              return results.map(function (result) {
-                return result.item;
-              });
-            } else {
-              return [];
-            }
-          }, function (response) {
-            AlertService.alert({
-              id: 'SearchController',
-              type: 'danger',
-              msg: ServerErrorUtils.buildMessage(response),
-              delay: 5000
-            });
-          });
-
-          return criteria;
-        };
 
         /**
          * Removes the item from the criteria tree
@@ -4007,25 +3862,6 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
             }
 
             refreshQuery();
-            $scope.search.selectedCriteria = null;
-          } else {
-            $scope.search.selectedCriteria = item.query;
-          }
-        };
-
-        var searchKeyUp = function (event) {
-          switch (event.keyCode) {
-            case 27: // ESC
-              if ($scope.documents.search.active) {
-                clearSearch();
-              }
-              break;
-
-            default:
-              if ($scope.documents.search.text) {
-                searchCriteria($scope.documents.search.text);
-              }
-              break;
           }
         };
 
@@ -4171,10 +4007,6 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
           }
         };
 
-        var selectSearchTarget = function (target) {
-          $scope.documents.search.target = target;
-        };
-
         var VIEW_MODES = {
           SEARCH: 'search',
           CLASSIFICATION: 'classification'
@@ -4248,7 +4080,6 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
         $scope.BUCKET_TYPES = BUCKET_TYPES;
 
         $scope.search = {
-          selectedCriteria: null,
           layout: 'layout2',
           pagination: {},
           query: null,
@@ -4268,26 +4099,12 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
         };
 
         $scope.viewMode = VIEW_MODES.SEARCH;
-        $scope.documents = {
-          search: {
-            text: null,
-            active: false,
-            target: null
-          }
-        };
 
         $scope.searchHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('search');
         $scope.classificationsHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('classifications');
         $scope.onTaxonomyFilterPanelToggleVisibility = onTaxonomyFilterPanelToggleVisibility;
-        $scope.selectSearchTarget = selectSearchTarget;
         $scope.selectDisplay = onDisplayChanged;
-        $scope.searchCriteria = searchCriteria;
         $scope.selectCriteria = selectCriteria;
-        $scope.searchKeyUp = searchKeyUp;
-
-        $scope.showTaxonomy = showTaxonomy;
-        $scope.clearTaxonomy = clearTaxonomy;
-
         $scope.removeCriteriaItem = removeCriteriaItem;
         $scope.refreshQuery = refreshQuery;
         $scope.clearSearchQuery = clearSearchQuery;
@@ -10455,6 +10272,234 @@ ngObibaMica.search
 
 (function () {
 
+  function Controller(
+    $translate,
+    VocabularyService, 
+    RqlQueryService, 
+    AlertService, 
+    StringUtils,
+    LocaleStringUtils, 
+    ServerErrorUtils, 
+    TaxonomiesSearchResource) {
+
+    // vocabulary (or term) can be used in search if it doesn't have the 'showSearch' attribute
+    function canSearch(taxonomyEntity, hideSearchList) {
+      if ((hideSearchList || []).indexOf(taxonomyEntity.name) > -1) {
+        return false;
+      }
+
+      return (taxonomyEntity.attributes || []).filter(function (attr) { return attr.key === 'showSearch'; }).length === 0;
+    }
+
+    function score(query, item) {
+      var result = 0;
+      var regExp = new RegExp(query, 'ig');
+
+      if (item.itemTitle.match(regExp)) {
+        result = 10;
+      } else if (item.itemDescription && item.itemDescription.match(regExp)) {
+        result = 8;
+      } else if (item.itemParentTitle.match(regExp)) {
+        result = 6;
+      } else if (item.itemParentDescription && item.itemParentDescription.match(regExp)) {
+        result = 4;
+      }
+
+      return result;
+    }
+
+    function processBundle(query, bundle) {
+      var results = [];
+      var total = 0;
+      var target = bundle.target;
+      var taxonomy = bundle.taxonomy;
+      if (taxonomy.vocabularies) {
+        taxonomy.vocabularies.filter(function (vocabulary) {
+          return VocabularyService.isVisibleVocabulary(vocabulary) && canSearch(vocabulary, ctrl.hideSearch);
+        }).forEach(function (vocabulary) {
+          if (vocabulary.terms) {
+            vocabulary.terms.filter(function (term) {
+              return canSearch(term, ctrl.hideSearch);
+            }).forEach(function (term) {
+              var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, term, ctrl.lang);
+              results.push({
+                score: score(query, item),
+                item: item
+              });
+              total++;
+            });
+          } else {
+            var item = RqlQueryService.createCriteriaItem(target, taxonomy, vocabulary, null, ctrl.lang);
+            results.push({
+              score: score(query, item),
+              item: item
+            });
+            total++;
+          }
+        });
+      }
+      return { results: results, total: total };
+    }
+
+    function searchCriteria(query) {
+      // search for taxonomy terms
+      // search for matching variables/studies/... count
+
+      var criteria = TaxonomiesSearchResource.get({
+        query: StringUtils.quoteQuery(query.replace(/\/.*/g, '')),
+        locale: ctrl.lang,
+        target: ctrl.documents.search.target
+      }).$promise.then(function (response) {
+        if (response) {
+          var results = [];
+          var total = 0;
+          var size = 10;
+
+          response.forEach(function (bundle) {
+            var rval = processBundle(query, bundle);
+            results.push.apply(results, rval.results);
+            total = total + rval.total;
+          });
+
+          results.sort(function (a, b) {
+            return b.score - a.score;
+          });
+
+          results = results.splice(0, size);
+
+          if (total > results.length) {
+            var note = {
+              query: query,
+              total: total,
+              size: size,
+              message: LocaleStringUtils.translate('search.showing', [size, total]),
+              status: 'has-warning'
+            };
+            results.push({ score: -1, item: note });
+          }
+
+          return results.map(function (result) {
+            return result.item;
+          });
+        } else {
+          return [];
+        }
+      }, function (response) {
+        AlertService.alert({
+          id: ctrl.alertId,
+          type: 'danger',
+          msg: ServerErrorUtils.buildMessage(response),
+          delay: 5000
+        });
+      });
+
+      return criteria;
+    }
+
+    function showTaxonomy(target, name) {
+      if (ctrl.target === target && ctrl.taxonomyName === name && ctrl.taxonomiesShown) {
+        ctrl.taxonomiesShown = false;
+        return;
+      }
+
+      ctrl.taxonomiesShown = true;
+      ctrl.target = target;
+      ctrl.taxonomyName = name;
+    }
+
+    function clearTaxonomy() {
+      ctrl.target = null;
+      ctrl.taxonomyName = null;
+    }
+
+    function selectSearchTarget(target) {
+      ctrl.documents.search.target = target;
+    }
+
+    function selectCriteria(item) {
+      ctrl.onSelectCriteria({item: item});
+      ctrl.selectedCriteria = null;
+    }
+
+    function translateTaxonomyNav(taxonomy, key) {
+      var value = taxonomy[key] && taxonomy[key].filter(function (item) {
+        return item.locale === $translate.use();
+      }).pop();
+
+      return value ? value.text : key;
+    }
+
+    function goToClassifications() {
+      ctrl.onGotoClassifications({});
+    }
+
+    function selectTerm(target, taxonomy, vocabulary, args) {
+      ctrl.onSelectTerm({target: target, taxonomy: taxonomy, vocabulary: vocabulary, args: args});
+    }
+
+    var ctrl = this;
+
+    ctrl.selectedCriteria = null;
+    ctrl.target = null;
+    ctrl.documents = {
+      search: {
+        text: null,
+        active: false,
+        target: null
+      }
+    };
+
+    ctrl.selectCriteria = selectCriteria;
+    ctrl.searchCriteria = searchCriteria;
+    ctrl.selectSearchTarget = selectSearchTarget;
+    ctrl.clearTaxonomy = clearTaxonomy;
+    ctrl.showTaxonomy = showTaxonomy;
+    ctrl.translateTaxonomyNav = translateTaxonomyNav;
+    ctrl.goToClassifications = goToClassifications;
+    ctrl.selectTerm = selectTerm;
+  }
+
+  ngObibaMica.search.component('searchBoxRegion',
+    {
+      // transclude: true,
+      bindings: {
+        targets: '<',
+        options: '<',
+        alertId: '@',
+        lang: '<',
+        taxonomyNav: '<',
+        onSelectCriteria: '&',
+        onGotoClassifications: '&',
+        onSelectTerm: '&'
+      },
+      templateUrl: 'search/components/search-box-region/component.html',
+      controller: [
+        '$translate',
+        'VocabularyService',
+        'RqlQueryService',
+        'AlertService',
+        'StringUtils',
+        'LocaleStringUtils',
+        'ServerErrorUtils',
+        'TaxonomiesSearchResource',
+        Controller]
+    });
+
+})();
+;/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+'use strict';
+
+(function () {
+
   function StudyFilterShortcut($location, $translate, RqlQueryService, StudyFilterShortcutService) {
     return {
       restrict: 'EA',
@@ -12661,7 +12706,7 @@ ngObibaMica.fileBrowser
       }
     };
   }]);
-;angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+;angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/views/data-access-request-documents-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-documents-view.html",
@@ -15743,6 +15788,113 @@ angular.module("search/components/result/variables-result-table/component.html",
     "</div>");
 }]);
 
+angular.module("search/components/search-box-region/component.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/components/search-box-region/component.html",
+    "<div id=\"search-region\" class=\"{{tabs && tabs.length>1 ? 'tab-content voffset4' : ''}}\">\n" +
+    "  <div ng-if=\"$ctrl.options.showSearchBox\" id=\"search-box-region\" class=\"{{hasFacetedTaxonomies ? '' : 'row'}}\">\n" +
+    "    <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-3'}}\"></div>\n" +
+    "    <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-6'}}\">\n" +
+    "      <script type=\"text/ng-template\" id=\"customTemplate.html\">\n" +
+    "        <a ng-if=\"match.model.id\">\n" +
+    "          <table style=\"border:none;\">\n" +
+    "            <tbody>\n" +
+    "            <tr>\n" +
+    "              <td style=\"min-width: 30px;\">\n" +
+    "                <span title=\"{{match.model.target + '-classifications' | translate}}\">\n" +
+    "                  <i class=\"{{'i-obiba-large i-obiba-' + match.model.target}}\"></i>\n" +
+    "                </span>\n" +
+    "              </td>\n" +
+    "              <td>\n" +
+    "            <span\n" +
+    "              uib-popover-html=\"match.model.itemDescription | uibTypeaheadHighlight:query\"\n" +
+    "              popover-title=\"{{match.model.itemTitle}}\"\n" +
+    "              popover-placement=\"bottom\"\n" +
+    "              popover-trigger=\"'mouseenter'\"\n" +
+    "              ng-bind-html=\"match.model.itemTitle | uibTypeaheadHighlight:query\">\n" +
+    "            </span>\n" +
+    "                <small class=\"help-block no-margin\" title=\"{{match.model.itemParentDescription}}\">\n" +
+    "                  {{match.model.itemParentTitle}}\n" +
+    "                </small>\n" +
+    "              </td>\n" +
+    "            </tr>\n" +
+    "            </tbody>\n" +
+    "          </table>\n" +
+    "        </a>\n" +
+    "        <a ng-if=\"!match.model.id\" class=\"{{match.model.status}}\">\n" +
+    "          <small class=\"help-block no-margin\">\n" +
+    "            {{match.model.message}}\n" +
+    "          </small>\n" +
+    "        </a>\n" +
+    "      </script>\n" +
+    "      <span class=\"input-group input-group-sm\">\n" +
+    "        <span class=\"input-group-btn\" uib-dropdown>\n" +
+    "          <button type=\"button\" class=\"btn btn-primary\" uib-dropdown-toggle>\n" +
+    "            {{'taxonomy.target.' + ($ctrl.documents.search.target ? $ctrl.documents.search.target : 'all')| translate}}\n" +
+    "            <span class=\"caret\"></span>\n" +
+    "          </button>\n" +
+    "          <ul uib-dropdown-menu role=\"menu\">\n" +
+    "            <li>\n" +
+    "              <a href ng-click=\"$ctrl.selectSearchTarget()\" translate>taxonomy.target.all</a>\n" +
+    "            </li>\n" +
+    "            <li ng-repeat=\"target in $ctrl.targets\" role=\"menuitem\">\n" +
+    "              <a href ng-click=\"$ctrl.selectSearchTarget(target)\">{{'taxonomy.target.' + target | translate}}</a>\n" +
+    "            </li>\n" +
+    "          </ul>\n" +
+    "        </span>\n" +
+    "        <input type=\"text\" ng-model=\"$ctrl.selectedCriteria\" placeholder=\"{{'search.placeholder.' + ($ctrl.documents.search.target ? $ctrl.documents.search.target : 'all') | translate}}\"\n" +
+    "          uib-typeahead=\"criteria for criteria in $ctrl.searchCriteria($viewValue)\" typeahead-min-length=\"2\" typeahead-loading=\"$ctrl.documents.search.active\"\n" +
+    "          typeahead-template-url=\"customTemplate.html\" typeahead-on-select=\"$ctrl.selectCriteria($item)\" class=\"form-control\">\n" +
+    "        <span class=\"input-group-addon\">\n" +
+    "          <i class=\"fa fa-search\"></i>\n" +
+    "        </span>\n" +
+    "        <span ng-if=\"$ctrl.options.SearchHelpLinkUrl\" class=\"input-group-btn\">\n" +
+    "          <a type=\"button\" target=\"_blank\" class=\"btn btn-default\" href=\"{{$ctrl.options.SearchHelpLinkUrl}}\">\n" +
+    "            <span class=\"fa fa-question-circle\"></span> {{$ctrl.options.SearchHelpLinkLabel}}</a>\n" +
+    "        </span>\n" +
+    "      </span>\n" +
+    "\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "  <div ng-if=\"$ctrl.options.showSearchBrowser\" id=\"search-selector-region\" class=\"{{hasFacetedTaxonomies ? '' : 'row'}}\">\n" +
+    "    <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-3'}}\"></div>\n" +
+    "    <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-6'}}\">\n" +
+    "      <small>\n" +
+    "        <ul class=\"nav nav-pills taxo-element\">\n" +
+    "          <li ng-if=\"hasClassificationsTitle\">\n" +
+    "            <label class=\"nav-label\" translate>search.classifications-title</label>\n" +
+    "          </li>\n" +
+    "          <li ng-repeat=\"t in $ctrl.taxonomyNav track by $index\" title=\"{{$ctrl.translateTaxonomyNav(t, 'description')}}\">\n" +
+    "            <a href ng-click=\"$ctrl.showTaxonomy(t.target, t.name)\" ng-if=\"!t.terms\">{{$ctrl.translateTaxonomyNav(t, 'title')}}</a>\n" +
+    "            <span uib-dropdown ng-if=\"t.terms\">\n" +
+    "              <ul class=\"nav nav-pills\">\n" +
+    "                <li>\n" +
+    "                  <a href uib-dropdown-toggle>{{$ctrl.translateTaxonomyNav(t, 'title')}}\n" +
+    "                    <span class=\"caret\"></span>\n" +
+    "                  </a>\n" +
+    "                </li>\n" +
+    "              </ul>\n" +
+    "              <ul uib-dropdown-menu class=\"innerul\">\n" +
+    "                <li ng-repeat=\"st in t.terms\">\n" +
+    "                  <a href ng-click=\"$ctrl.showTaxonomy(t.target, st.name)\" title=\"{{$ctrl.translateTaxonomyNav(st, 'description')}}\">{{$ctrl.translateTaxonomyNav(st, 'title')}}</a>\n" +
+    "                </li>\n" +
+    "              </ul>\n" +
+    "            </span>\n" +
+    "          </li>\n" +
+    "          <li>\n" +
+    "            <a href ng-click=\"$ctrl.goToClassifications()\" title=\"{{'search.classifications-show' | translate}}\">\n" +
+    "              <span ng-if=\"hasClassificationsLinkLabel\" translate>search.classifications-link</span>\n" +
+    "              <i class=\"fa fa-ellipsis-h\" ng-if=\"!hasClassificationsLinkLabel\"></i>\n" +
+    "            </a>\n" +
+    "          </li>\n" +
+    "        </ul>\n" +
+    "      </small>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "  <taxonomies-panel ng-if=\"$ctrl.options.showSearchBrowser\" taxonomy-name=\"$ctrl.taxonomyName\" target=\"$ctrl.target\" on-select-term=\"$ctrl.selectTerm\"\n" +
+    "    on-close=\"$ctrl.clearTaxonomy\" lang=\"$ctrl.lang\" taxonomies-shown=\"$ctrl.taxonomiesShown\"></taxonomies-panel>\n" +
+    "</div>");
+}]);
+
 angular.module("search/components/study-filter-shortcut/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/study-filter-shortcut/component.html",
     "<div class=\"voffset2\">\n" +
@@ -16209,111 +16361,16 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "                    on-refresh=\"refreshQuery\" lang=\"lang\"></taxonomies-facets-panel>\n" +
     "    </div>\n" +
     "    <div class=\"{{hasFacetedTaxonomies ? 'col-md-9' : 'col-md-12'}}\">\n" +
-    "\n" +
-    "      <!-- Search box region -->\n" +
-    "      <div id=\"search-region\" class=\"{{tabs && tabs.length>1 ? 'tab-content voffset4' : ''}}\">\n" +
-    "        <div ng-if=\"options.showSearchBox\" id=\"search-box-region\" class=\"{{hasFacetedTaxonomies ? '' : 'row'}}\">\n" +
-    "          <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-3'}}\"></div>\n" +
-    "          <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-6'}}\">\n" +
-    "            <script type=\"text/ng-template\" id=\"customTemplate.html\">\n" +
-    "              <a ng-if=\"match.model.id\">\n" +
-    "                <table style=\"border:none;\">\n" +
-    "                  <tbody>\n" +
-    "                  <tr>\n" +
-    "                    <td style=\"min-width: 30px;\">\n" +
-    "                  <span title=\"{{match.model.target + '-classifications' | translate}}\">\n" +
-    "                    <i class=\"{{'i-obiba-large i-obiba-' + match.model.target}}\"></i>\n" +
-    "                  </span>\n" +
-    "                    </td>\n" +
-    "                    <td>\n" +
-    "                  <span\n" +
-    "                          uib-popover-html=\"match.model.itemDescription | uibTypeaheadHighlight:query\"\n" +
-    "                          popover-title=\"{{match.model.itemTitle}}\"\n" +
-    "                          popover-placement=\"bottom\"\n" +
-    "                          popover-trigger=\"'mouseenter'\"\n" +
-    "                          ng-bind-html=\"match.model.itemTitle | uibTypeaheadHighlight:query\">\n" +
-    "                  </span>\n" +
-    "                      <small class=\"help-block no-margin\" title=\"{{match.model.itemParentDescription}}\">\n" +
-    "                        {{match.model.itemParentTitle}}\n" +
-    "                      </small>\n" +
-    "                    </td>\n" +
-    "                  </tr>\n" +
-    "                  </tbody>\n" +
-    "                </table>\n" +
-    "              </a>\n" +
-    "              <a ng-if=\"!match.model.id\" class=\"{{match.model.status}}\">\n" +
-    "                <small class=\"help-block no-margin\">\n" +
-    "                  {{match.model.message}}\n" +
-    "                </small>\n" +
-    "              </a>\n" +
-    "            </script>\n" +
-    "          <span class=\"input-group input-group-sm\">\n" +
-    "            <span class=\"input-group-btn\" uib-dropdown>\n" +
-    "              <button type=\"button\" class=\"btn btn-primary\" uib-dropdown-toggle>\n" +
-    "                {{'taxonomy.target.' + (documents.search.target ? documents.search.target : 'all')| translate}} <span\n" +
-    "                      class=\"caret\"></span>\n" +
-    "              </button>\n" +
-    "              <ul uib-dropdown-menu role=\"menu\">\n" +
-    "                <li>\n" +
-    "                  <a href ng-click=\"selectSearchTarget()\" translate>taxonomy.target.all</a>\n" +
-    "                </li>\n" +
-    "                <li ng-repeat=\"target in targets\" role=\"menuitem\"><a href ng-click=\"selectSearchTarget(target)\">{{'taxonomy.target.'\n" +
-    "                  + target | translate}}</a></li>\n" +
-    "              </ul>\n" +
-    "            </span>\n" +
-    "            <input type=\"text\" ng-model=\"search.selectedCriteria\"\n" +
-    "                   placeholder=\"{{'search.placeholder.' + (documents.search.target ? documents.search.target : 'all') | translate}}\"\n" +
-    "                   uib-typeahead=\"criteria for criteria in searchCriteria($viewValue)\"\n" +
-    "                   typeahead-min-length=\"2\"\n" +
-    "                   typeahead-loading=\"documents.search.active\"\n" +
-    "                   typeahead-template-url=\"customTemplate.html\"\n" +
-    "                   typeahead-on-select=\"selectCriteria($item)\"\n" +
-    "                   class=\"form-control\">\n" +
-    "            <span class=\"input-group-addon\"><i class=\"fa fa-search\"></i></span>\n" +
-    "            <span ng-if=\"options.SearchHelpLinkUrl\" class=\"input-group-btn\">\n" +
-    "              <a type=\"button\" target=\"_blank\" class=\"btn btn-default\" href=\"{{options.SearchHelpLinkUrl}}\">\n" +
-    "                <span class=\"fa fa-question-circle\"></span> {{options.SearchHelpLinkLabel}}</a>\n" +
-    "            </span>\n" +
-    "          </span>\n" +
-    "\n" +
-    "          </div>\n" +
-    "        </div>\n" +
-    "        <div ng-if=\"options.showSearchBrowser\" id=\"search-selector-region\" class=\"{{hasFacetedTaxonomies ? '' : 'row'}}\">\n" +
-    "          <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-3'}}\"></div>\n" +
-    "          <div class=\"{{hasFacetedTaxonomies ? '' : 'col-md-6'}}\">\n" +
-    "            <small>\n" +
-    "              <ul class=\"nav nav-pills taxo-element\">\n" +
-    "                <li ng-if=\"hasClassificationsTitle\">\n" +
-    "                  <label class=\"nav-label\" translate>search.classifications-title</label>\n" +
-    "                </li>\n" +
-    "                <li ng-repeat=\"t in taxonomyNav track by $index\" title=\"{{translateTaxonomyNav(t, 'description')}}\">\n" +
-    "                  <a href ng-click=\"showTaxonomy(t.target, t.name)\" ng-if=\"!t.terms\">{{translateTaxonomyNav(t, 'title')}}</a>\n" +
-    "            <span uib-dropdown ng-if=\"t.terms\">\n" +
-    "              <ul class=\"nav nav-pills\">\n" +
-    "                <li>\n" +
-    "                  <a href uib-dropdown-toggle>{{translateTaxonomyNav(t, 'title')}} <span class=\"caret\"></span></a>\n" +
-    "                </li>\n" +
-    "              </ul>\n" +
-    "              <ul uib-dropdown-menu class=\"innerul\">\n" +
-    "                <li ng-repeat=\"st in t.terms\">\n" +
-    "                  <a href ng-click=\"showTaxonomy(t.target, st.name)\" title=\"{{translateTaxonomyNav(st, 'description')}}\">{{translateTaxonomyNav(st, 'title')}}</a>\n" +
-    "                </li>\n" +
-    "              </ul>\n" +
-    "            </span>\n" +
-    "                </li>\n" +
-    "                <li>\n" +
-    "                  <a href ng-click=\"goToClassifications()\" title=\"{{'search.classifications-show' | translate}}\">\n" +
-    "                    <span ng-if=\"hasClassificationsLinkLabel\" translate>search.classifications-link</span>\n" +
-    "                    <i class=\"fa fa-ellipsis-h\" ng-if=\"!hasClassificationsLinkLabel\"></i>\n" +
-    "                  </a>\n" +
-    "                </li>\n" +
-    "              </ul>\n" +
-    "            </small>\n" +
-    "          </div>\n" +
-    "        </div>\n" +
-    "        <taxonomies-panel ng-if=\"options.showSearchBrowser\" taxonomy-name=\"taxonomyName\" target=\"target\" on-select-term=\"onSelectTerm\"\n" +
-    "                          on-close=\"clearTaxonomy\" lang=\"lang\" taxonomies-shown=\"taxonomiesShown\"></taxonomies-panel>\n" +
-    "      </div>\n" +
+    "      <search-box-region \n" +
+    "        targets=\"targets\"\n" +
+    "        options=\"options\" \n" +
+    "        alert-id=\"'SearchController'\" \n" +
+    "        lang=\"lang\"\n" +
+    "        taxonomy-nav=\"taxonomyNav\"\n" +
+    "        on-select-criteria=\"selectCriteria(item)\"\n" +
+    "        on-goto-classifications=\"goToClassifications()\",\n" +
+    "        on-select-term=\"onSelectTerm(target, taxonomy, vocabulary, args)\">\n" +
+    "      </search-box-region>\n" +
     "\n" +
     "      <div ng-if=\"hasFacetedTaxonomies && hasFacetedNavigationHelp && !(search.criteria.children && search.criteria.children.length > 0)\">\n" +
     "        <p class=\"help-block\" translate>search.faceted-navigation-help</p>\n" +
@@ -16393,10 +16450,6 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "            on-toggle=\"onTaxonomyFilterPanelToggleVisibility(target, taxonomy)\"></meta-taxonomy-filter-panel>\n" +
     "      </div>\n" +
     "      <div class=\"col-md-9\">\n" +
-    "        <div\n" +
-    "            ng-if=\"hasFacetedTaxonomies && hasFacetedNavigationHelp && !(search.criteria.children && search.criteria.children.length > 0)\">\n" +
-    "          <p class=\"help-block\" translate>search.faceted-navigation-help</p>\n" +
-    "        </div>\n" +
     "        <!-- Search Results region -->\n" +
     "        <div class=\"panel panel-default\" ng-if=\"search.showTaxonomyPanel\">\n" +
     "          <taxonomy-filter-panel\n" +
