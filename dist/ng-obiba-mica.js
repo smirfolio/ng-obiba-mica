@@ -14540,9 +14540,9 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
     "             popover-trigger=\"'mouseenter'\"\n" +
     "             popover-popup-delay=\"250\"\n" +
     "             popover-class=\"right-panel-popover\"\n" +
-    "             for=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\"\n" +
+    "             for=\"term-{{$ctrl.vocabulary.name + '-' + $index + '-' + term.name}}\"\n" +
     "             class=\"word-break\">\n" +
-    "        <input id=\"term-{{$ctrl.vocabulary.name + '-' + $index}}\"\n" +
+    "        <input id=\"term-{{$ctrl.vocabulary.name + '-' + $index + '-' + term.name}}\"\n" +
     "               type=\"checkbox\"\n" +
     "               ng-model=\"term.selected\"\n" +
     "               ng-click=\"$ctrl.clickCheckbox(term)\"> {{term.title | localizedString}}\n" +
