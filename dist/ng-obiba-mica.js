@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2018-02-15
+ * Date: 2018-02-16
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -2799,7 +2799,146 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
   return this.list.length > 0 ? this.list[0].getTarget() : null;
 };
 
-;/*
+;'use strict';
+
+(function () {
+  function SearchControllerFacetHelperService(MetaTaxonomyService, ngObibaMicaSearch) {
+    var metaTaxonomiesPromise = MetaTaxonomyService.getMetaTaxonomiesPromise(),
+      options = ngObibaMicaSearch.getOptions(),
+      taxonomyNav = [],
+      tabOrderTodisplay = [],
+      facetedTaxonomies = {},
+      hasFacetedTaxonomies = false;
+
+    function flattenTaxonomies(terms) {
+      function termsReducer(accumulator, termsArray) {
+        return termsArray.reduce(function (acc, val) {
+          if (!Array.isArray(val.terms)) {
+            acc.push(val);
+            return acc;
+          } else {
+            return termsReducer(acc, val.terms);
+          }
+        }, accumulator || []);
+      }
+
+      return termsReducer([], terms);
+    }
+
+    function doTabOrderToDisplay(targetTabsOrder, lang) {
+      return metaTaxonomiesPromise.then(function (metaTaxonomy) {
+        targetTabsOrder.forEach(function (target) {
+          var targetVocabulary = metaTaxonomy.vocabularies.filter(function (vocabulary) {
+            if (vocabulary.name === target) {
+              tabOrderTodisplay.push(target);
+              return true;
+            }
+          }).pop();
+
+          if (targetVocabulary && targetVocabulary.terms) {
+            targetVocabulary.terms.forEach(function (term) {
+              term.target = target;
+              var title = term.title.filter(function (t) {
+                return t.locale === lang;
+              })[0];
+
+              var description = term.description ? term.description.filter(function (t) {
+                return t.locale === lang;
+              })[0] : undefined;
+
+              term.locale = {
+                title: title,
+                description: description
+              };
+
+              if (term.terms) {
+                term.terms.forEach(function (trm) {
+                  var title = trm.title.filter(function (t) {
+                    return t.locale === lang;
+                  })[0];
+
+                  var description = trm.description ? trm.description.filter(function (t) {
+                    return t.locale === lang;
+                  })[0] : undefined;
+
+                  trm.locale = {
+                    title: title,
+                    description: description
+                  };
+                });
+              }
+
+              taxonomyNav.push(term);
+            });
+          }
+        });
+      });
+    }
+
+    function doFacetedTaxonomies() {
+      return metaTaxonomiesPromise.then(function (metaTaxonomy) {
+        metaTaxonomy.vocabularies.reduce(function (accumulator, target) {
+          var taxonomies = flattenTaxonomies(target.terms);
+
+          function getTaxonomy(taxonomyName) {
+            return taxonomies.filter(function (taxonomy) {
+              return taxonomy.name === taxonomyName;
+            })[0];
+          }
+
+          function notNull(value) {
+            return value !== null && value !== undefined;
+          }
+
+          if (options.showAllFacetedTaxonomies) {
+            accumulator[target.name] = taxonomies.filter(function (taxonomy) {
+              return taxonomy.attributes && taxonomy.attributes.some(function (attribute) {
+                return attribute.key === 'showFacetedNavigation' && attribute.value.toString() === 'true';
+              });
+            });
+          } else {
+            accumulator[target.name] = (options[target.name + 'TaxonomiesOrder'] || []).map(getTaxonomy).filter(notNull);
+          }
+
+          hasFacetedTaxonomies = hasFacetedTaxonomies || accumulator[target.name].length;
+
+          return accumulator;
+        }, facetedTaxonomies);
+      });
+    }
+
+    function getTaxonomyNav() {
+      return taxonomyNav;
+    }
+
+    function getFacetedTaxonomies() {
+      return facetedTaxonomies;
+    }
+
+    function getTabOrderTodisplay() {
+      return tabOrderTodisplay;
+    }
+
+    function getHasFacetedTaxonomies() {
+      return hasFacetedTaxonomies;
+    }
+
+    function help(targetTabsOrder, lang) {
+      return Promise.all([doFacetedTaxonomies(), doTabOrderToDisplay(targetTabsOrder, lang)]).then(function () {
+        return {
+          getTaxonomyNav: getTaxonomyNav,
+          getFacetedTaxonomies: getFacetedTaxonomies,
+          getTabOrderTodisplay: getTabOrderTodisplay,
+          getHasFacetedTaxonomies: getHasFacetedTaxonomies
+        };
+      });
+    }
+
+    this.help = help;
+  }
+
+  ngObibaMica.search.service('SearchControllerFacetHelperService', ['MetaTaxonomyService', 'ngObibaMicaSearch', SearchControllerFacetHelperService]);
+})();;/*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
@@ -2812,7 +2951,6 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
 'use strict';
 
 (function() {
-
 
   /**
    * Parses each metaTaxonomies taxonomy and returns a list of :
@@ -3234,20 +3372,13 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
   }
 
   ngObibaMica.search
-
     .controller('SearchController', [
       '$scope',
       '$rootScope',
-      '$timeout',
-      '$routeParams',
       '$location',
       '$translate',
       '$filter',
       '$cookies',
-      'TaxonomiesSearchResource',
-      'TaxonomiesResource',
-      'TaxonomyResource',
-      'VocabularyResource',
       'ngObibaMicaSearchTemplateUrl',
       'ObibaServerConfigResource',
       'JoinQuerySearchResource',
@@ -3260,22 +3391,15 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
       'SearchContext',
       'CoverageGroupByService',
       'VocabularyService',
-      'LocaleStringUtils',
-      'StringUtils',
       'EntitySuggestionRqlUtilityService',
+      'SearchControllerFacetHelperService',
       'options',
       function ($scope,
         $rootScope,
-        $timeout,
-        $routeParams,
         $location,
         $translate,
         $filter,
         $cookies,
-        TaxonomiesSearchResource,
-        TaxonomiesResource,
-        TaxonomyResource,
-        VocabularyResource,
         ngObibaMicaSearchTemplateUrl,
         ObibaServerConfigResource,
         JoinQuerySearchResource,
@@ -3288,9 +3412,8 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
         SearchContext,
         CoverageGroupByService,
         VocabularyService,
-        LocaleStringUtils,
-        StringUtils,
         EntitySuggestionRqlUtilityService,
+        SearchControllerFacetHelperService,
         options) {
 
         $scope.options = options;
@@ -3324,65 +3447,6 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
 
         $scope.targets = [];
         $scope.lang = $translate.use();
-        $scope.metaTaxonomy = TaxonomyResource.get({
-          target: 'taxonomy',
-          taxonomy: 'Mica_taxonomy'
-        }, function (t) {
-          var stuff = t.vocabularies.map(function (v) {
-            return v.name;
-          });
-
-          $scope.targets = stuff.filter(function (target) {
-            return searchTaxonomyDisplay[target];
-          });
-
-          function flattenTaxonomies(terms) {
-            function inner(acc, terms) {
-              angular.forEach(terms, function (t) {
-                if (!t.terms) {
-                  acc.push(t);
-                  return;
-                }
-
-                inner(acc, t.terms);
-              });
-
-              return acc;
-            }
-
-            return inner([], terms);
-          }
-
-          $scope.hasFacetedTaxonomies = false;
-
-          $scope.facetedTaxonomies = t.vocabularies.reduce(function (res, target) {
-            var taxonomies = flattenTaxonomies(target.terms);
-
-            function getTaxonomy(taxonomyName) {
-              return taxonomies.filter(function (t) {
-                return t.name === taxonomyName;
-              })[0];
-            }
-
-            function notNull(t) {
-              return t !== null && t !== undefined;
-            }
-
-            if ($scope.options.showAllFacetedTaxonomies) {
-              res[target.name] = taxonomies.filter(function (t) {
-                return t.attributes && t.attributes.some(function (att) {
-                  return att.key === 'showFacetedNavigation' && att.value.toString() === 'true';
-                });
-              });
-            } else {
-              res[target.name] = ($scope.options[target.name + 'TaxonomiesOrder'] || []).map(getTaxonomy).filter(notNull);
-            }
-
-            $scope.hasFacetedTaxonomies = $scope.hasFacetedTaxonomies || res[target.name].length;
-
-            return res;
-          }, {});
-        });
 
         function initSearchTabs() {
           $scope.taxonomyNav = [];
@@ -3417,49 +3481,6 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
           } else if (!$scope.target) {
             $scope.target = $scope.targetTabsOrder[0];
           }
-
-          $scope.metaTaxonomy.$promise.then(function (metaTaxonomy) {
-            var tabOrderTodisplay = [];
-            $scope.targetTabsOrder.forEach(function (target) {
-              var targetVocabulary = metaTaxonomy.vocabularies.filter(function (vocabulary) {
-                if (vocabulary.name === target) {
-                  tabOrderTodisplay.push(target);
-                  return true;
-                }
-              }).pop();
-              if (targetVocabulary && targetVocabulary.terms) {
-                targetVocabulary.terms.forEach(function (term) {
-                  term.target = target;
-                  var title = term.title.filter(function (t) {
-                    return t.locale === $scope.lang;
-                  })[0];
-                  var description = term.description ? term.description.filter(function (t) {
-                    return t.locale === $scope.lang;
-                  })[0] : undefined;
-                  term.locale = {
-                    title: title,
-                    description: description
-                  };
-                  if (term.terms) {
-                    term.terms.forEach(function (trm) {
-                      var title = trm.title.filter(function (t) {
-                        return t.locale === $scope.lang;
-                      })[0];
-                      var description = trm.description ? trm.description.filter(function (t) {
-                        return t.locale === $scope.lang;
-                      })[0] : undefined;
-                      trm.locale = {
-                        title: title,
-                        description: description
-                      };
-                    });
-                  }
-                  $scope.taxonomyNav.push(term);
-                });
-              }
-            });
-            $scope.targetTabsOrder = tabOrderTodisplay;
-          });
         }
 
         function onError(response) {
@@ -4140,8 +4161,6 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
         });
 
         $scope.$on('$locationChangeSuccess', function (event, newLocation, oldLocation) {
-          initSearchTabs();
-
           if (newLocation !== oldLocation) {
             try {
               validateBucket($location.search().bucket);
@@ -4177,6 +4196,14 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
           $scope.lang = $translate.use();
           SearchContext.setLocale($scope.lang);
           initSearchTabs();
+
+          SearchControllerFacetHelperService.help($scope.targetTabsOrder, $scope.lang).then(function (data) {
+            $scope.facetedTaxonomies = data.getFacetedTaxonomies();
+            $scope.hasFacetedTaxonomies = data.getHasFacetedTaxonomies();
+            $scope.targetTabsOrder = data.getTabOrderTodisplay();
+            $scope.taxonomyNav = data.getTaxonomyNav();
+          });
+
           executeSearchQuery();
         }
 
@@ -4592,8 +4619,8 @@ ngObibaMica.search
 
 (function () {
   function MetaTaxonomyService($q, $translate, TaxonomyResource, ngObibaMicaSearch) {
-    var taxonomyPanelOptions = ngObibaMicaSearch.getOptions().taxonomyPanelOptions;
-    var parser = new ngObibaMica.search.MetaTaxonomyParser(taxonomyPanelOptions);
+    var taxonomyPanelOptions = ngObibaMicaSearch.getOptions().taxonomyPanelOptions,
+      parser = new ngObibaMica.search.MetaTaxonomyParser(taxonomyPanelOptions);
 
     /**
      * Returns the taxonomy of taxonomy
@@ -4646,9 +4673,11 @@ ngObibaMica.search
     function getTaxonomyPanelOptions() {
       return taxonomyPanelOptions;
     }
+
     // exported functions
     this.getTaxonomyPanelOptions = getTaxonomyPanelOptions;
     this.getMetaTaxonomyForTargets = getMetaTaxonomyForTargets;
+    this.getMetaTaxonomiesPromise = getMetaTaxonomies;
   }
 
   ngObibaMica.search
