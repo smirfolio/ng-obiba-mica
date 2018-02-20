@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
 
  * License: GNU Public License version 3
- * Date: 2018-02-19
+ * Date: 2018-02-21
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -8121,9 +8121,14 @@ ngObibaMica.search
       return targetToType(ctrl.metaTaxonomy.name);
     }
 
+    function init() {
+      ctrl.entityType = getEntityType();
+    }
+
     ctrl.status = { isFirstOpen: true };
     ctrl.selectTaxonomy = selectTaxonomy;
-    ctrl.entityType = getEntityType();
+    
+    ctrl.$onInit = init;
   }
 
   ngObibaMica.search
@@ -8202,8 +8207,7 @@ ngObibaMica.search
     ctrl.selectedTaxonomy = null;
     ctrl.onSelectTaxonomy = onSelectTaxonomy;
     ctrl.$onChanges = onChanges;
-
-    init();
+    ctrl.$onInit = init;
   }
 
   ngObibaMica.search
