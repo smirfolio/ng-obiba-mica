@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-02-26
+ * Date: 2018-02-27
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -9480,7 +9480,7 @@ ngObibaMica.search
             }
         }
         function selectVocabularyArgs(args) {
-            if (!args.term.selected) {
+            if (ctrl.criterionType === 'string-terms' && !args.term.selected) {
                 var selectedTerms = ctrl.vocabulary.terms.filter(function (term) {
                     return term.selected;
                 });
