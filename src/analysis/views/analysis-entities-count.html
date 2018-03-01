@@ -1,0 +1,19 @@
+<div>
+
+  <div ng-if="entitiesHeaderTemplateUrl" ng-include="entitiesHeaderTemplateUrl"></div>
+
+  <p>{{query}}</p>
+
+  <p ng-if="loading" class="voffset2 loading"></p>
+
+  <div ng-hide="loading">
+    <div>
+        <span class="badge">{{result.total}}</span>
+    </div>
+    <div>
+      <entities-count-result-table result="result" show-study="showStudy" ></entities-count-result-table>
+    </div>      
+  </div>
+  
+  <!--pre>{{result | json}}</pre-->
+</div>

@@ -1,0 +1,35 @@
+<div>
+  <table class="table table-bordered table-striped" ng-if="$ctrl.result && $ctrl.result.total>0">
+    <thead>
+      <th ng-if="$ctrl.showStudy" translate>taxonomy.target.study</th>
+      <th translate>taxonomy.target.variable</th>
+      <th translate>taxonomy.target.dataset</th>
+      <th translate>analysis.criteria</th>
+      <th translate>analysis.count</th>
+    </thead>
+    <tbody>
+        <tr ng-repeat="row in $ctrl.getTable().rows">
+          <td ng-if="row[0].rowspan>0 && $ctrl.showStudy" colspan="{{row[0].colspan}}" rowspan="{{row[0].rowspan}}" title="{{row[0].title}}">
+            <a href="{{row[0].link}}">{{row[0].value}}</a>
+          </td>
+          
+          <!-- per variable criteria -->
+          <td ng-if="row.length===5" colspan="{{row[1].colspan}}">
+              <a href="{{row[1].link}}">{{row[1].value}}</a>
+              <div class="help-block">{{row[1].title}}</div>
+          </td>
+          <td ng-if="row.length===5" colspan="{{row[2].colspan}}" title="{{row[2].title}}">
+              <a href="{{row[2].link}}">{{row[2].value}}</a>
+          </td>
+          <td ng-if="row.length===5" colspan="{{row[3].colspan}}" title="{{row[3].value}}">
+
+          </td>
+          <td ng-if="row.length===5" colspan="{{row[4].colspan}}">{{row[4].value}}</td>
+
+          <!-- all criteria -->
+          <td ng-if="row.length===3" colspan="{{row[1].colspan}}" title="{{row[1].title}}" translate>analysis.all-criteria</td>
+          <td ng-if="row.length===3" colspan="{{row[2].colspan}}"><b><localized-number value="row[2].value"></localized-number></b></td>
+        </tr>
+    </tbody>
+  </table>
+</div>

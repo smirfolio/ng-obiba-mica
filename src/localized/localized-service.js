@@ -44,16 +44,22 @@ ngObibaMica.localized
 
       this.forLocale = function (values, lang) {
         var rval = this.for(values, lang, 'locale', 'text');
-        if (rval === '') {
+        if (!rval || rval === '') {
           rval = this.for(values, 'und', 'locale', 'text');
+        }
+        if (!rval || rval === '') {
+          rval = this.for(values, 'en', 'locale', 'text');
         }
         return rval;
       };
 
       this.forLang = function (values, lang) {
         var rval = this.for(values, lang, 'lang', 'value');
-        if (rval === '') {
+        if (!rval || rval === '') {
           rval = this.for(values, 'und', 'lang', 'value');
+        }
+        if (!rval || rval === '') {
+          rval = this.for(values, 'en', 'lang', 'value');
         }
         return rval;
       };
