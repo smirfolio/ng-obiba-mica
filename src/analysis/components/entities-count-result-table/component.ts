@@ -20,7 +20,11 @@ class EntitiesCountResultTableController implements ng.IComponentController {
 
   constructor(private PageUrlService: any, private SearchContext: any, private LocalizedValues: any) {
       this.result = {};
-      this.lang = SearchContext.currentLocale();
+      this.lang = "en";
+  }
+
+  public $onInit() {
+    this.lang = this.SearchContext.currentLocale();
   }
 
   public getTable(): any {

@@ -22,13 +22,19 @@
               <a href="{{row[2].link}}">{{row[2].value}}</a>
           </td>
           <td ng-if="row.length===5" colspan="{{row[3].colspan}}" title="{{row[3].value}}">
-
+            <variable-criteria query="row[3].value"></variable-criteria>  
           </td>
-          <td ng-if="row.length===5" colspan="{{row[4].colspan}}">{{row[4].value}}</td>
+          <td ng-if="row.length===5" colspan="{{row[4].colspan}}">
+            <localized-number value="row[4].value"></localized-number>
+          </td>
 
           <!-- all criteria -->
-          <td ng-if="row.length===3" colspan="{{row[1].colspan}}" title="{{row[1].title}}" translate>analysis.all-criteria</td>
-          <td ng-if="row.length===3" colspan="{{row[2].colspan}}"><b><localized-number value="row[2].value"></localized-number></b></td>
+          <td ng-if="row.length===3" colspan="{{row[1].colspan}}" title="{{row[1].title}}">
+            <b translate>analysis.all-criteria</b>
+          </td>
+          <td ng-if="row.length===3" colspan="{{row[2].colspan}}">
+            <b><localized-number value="row[2].value"></localized-number></b>
+          </td>
         </tr>
     </tbody>
   </table>

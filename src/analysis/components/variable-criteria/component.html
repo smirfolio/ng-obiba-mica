@@ -1,0 +1,18 @@
+<div>
+  <p ng-if="$ctrl.loading" class="voffset2 loading"></p>
+  
+  <div  ng-hide="$ctrl.loading" class="btn-group voffset1 btn-variable" ng-class="{open: state.open}" ng-keyup="onKeyup($event)">
+
+    <button class="btn btn-xs dropdown btn-variable" ng-click="openDropdown()">
+      <span title="{{$ctrl.getQueryTitle(false)}}" test-ref="search-criterion">
+        {{$ctrl.getQueryTitle(true)}}
+      </span>
+      <span class="fa fa-caret-down"></span>
+    </button>
+    <button class="btn btn-xs btn-default" ng-click="$ctrl.onRemove()">
+      <span class="fa fa-times"></span>
+    </button>
+
+  </div>
+
+</div>

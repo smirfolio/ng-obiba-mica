@@ -143,6 +143,8 @@ function NgObibaMicaTemplateUrlFactory() {
         'TaxonomiesResource': 'ws/taxonomies/_filter',
         'TaxonomyResource': 'ws/taxonomy/:taxonomy/_filter',
         'VocabularyResource': 'ws/taxonomy/:taxonomy/vocabulary/:vocabulary/_filter',
+        'VariableResource': 'ws/variable/:id',
+        'VariableSummaryResource': 'ws/variable/:id/summary',
         'JoinQuerySearchResource': 'ws/:type/_rql',
         'JoinQuerySearchCsvResource': 'ws/:type/_rql_csv?query=:query',
         'JoinQuerySearchCsvReportResource': 'ws/:type/_report?query=:query',
