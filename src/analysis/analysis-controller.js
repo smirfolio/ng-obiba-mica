@@ -23,24 +23,32 @@ ngObibaMica.analysis
     $scope.entitiesHeaderTemplateUrl = ngObibaMicaAnalysisTemplateUrl.getHeaderUrl('entities');
     $scope.result = {};
     $scope.query = $location.search().query;
+    $scope.loading = false;
 
-    function onError(response) {
-      $scope.result = {};
-      $scope.loading = false;
-      AlertService.alert({
-        id: 'EntitiesCountController',
-        type: 'danger',
-        msg: ServerErrorUtils.buildMessage(response),
-        delay: 5000
-      });
+    function refresh() {
+      if ($scope.query) {
+        $scope.loading = true;
+
+        EntitiesCountResource.get({ query: $scope.query },
+          function onSuccess(response) {
+            $scope.result = response;
+            $scope.showStudy = !EntitiesCountService.isSingleStudy();
+            $scope.loading = false;
+          },
+          function onError(response) {
+            $scope.result = {};
+            $scope.loading = false;
+            AlertService.alert({
+              id: 'EntitiesCountController',
+              type: 'danger',
+              msg: ServerErrorUtils.buildMessage(response),
+              delay: 5000
+            });
+          });
+      }
     }
 
-    $scope.loading = false;
-    EntitiesCountResource.get({ query: $scope.query },
-      function onSuccess(response) {
-        $scope.result = response;
-        $scope.showStudy = !EntitiesCountService.isSingleStudy();
-        $scope.loading = false;
-      },
-      onError);
+    refresh();
+    $scope.onRefresh = refresh;
+
   }]);
