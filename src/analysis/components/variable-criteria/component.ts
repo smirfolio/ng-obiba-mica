@@ -14,13 +14,20 @@ declare var ngObibaMica: any;
 declare var RqlParser: any;
 declare var RqlQuery: any;
 
+enum Operation {
+  All = "all",
+  Exists = "exists",
+  Empty = "empty",
+  In = "in",
+  Out = "out",
+}
+
 class VariableCriteriaController implements ng.IComponentController {
 
   private static $inject = [
-    "VariableResource", "VariableSummaryResource", "$log", "SearchContext", "LocalizedValues", "$location"];
+    "VariableResource", "VariableSummaryResource", "LocalizedValues", "$log", "$location", "$translate", "$filter"];
 
   public id: string;
-  public lang: string;
   public loading: boolean;
   public query: string;
   public rqlQuery: any;
@@ -36,19 +43,18 @@ class VariableCriteriaController implements ng.IComponentController {
   constructor(
     private VariableResource: any,
     private VariableSummaryResource: any,
-    private $log: any,
-    private SearchContext: any,
     private LocalizedValues: any,
-    private $location: any) {
+    private $log: any,
+    private $location: any,
+    private $translate: any,
+    private $filter: any) {
       this.query = "";
-      this.lang = "en";
       this.state = { open: false };
       this.categoriesData = [];
       this.selectedCategories = {};
   }
 
   public $onInit() {
-    this.lang = this.SearchContext.currentLocale();
     this.loading = true;
     this.rqlQuery = this.parseQuery();
     if (this.rqlQuery.args) {
@@ -87,14 +93,14 @@ class VariableCriteriaController implements ng.IComponentController {
       return this.selectedCategories[key];
     }).map((key) => key);
     switch (this.selectedOperation) {
-      case "all":
-      case "exists":
+      case Operation.All:
+      case Operation.Exists:
         newQuery = this.selectedOperation + "({field})";
         break;
-      case "empty":
+      case Operation.Empty:
         newQuery = "not(exists({field}))";
         break;
-      case "in":
+      case Operation.In:
       if (args && args.length > 0) {
         newQuery = this.getNature() === "CATEGORICAL" ? "in({field},({args}))" : "range({field},({args}))";
       } else {
@@ -102,7 +108,7 @@ class VariableCriteriaController implements ng.IComponentController {
         this.selectedOperation = "empty";
       }
       break;
-      case "out":
+      case Operation.Out:
       if (args && args.length > 0) {
         newQuery = this.getNature() === "CATEGORICAL" ? "not(in({field},({args})))" : "not(range({field},({args})))";
       } else {
@@ -118,12 +124,15 @@ class VariableCriteriaController implements ng.IComponentController {
   public openDropdown() {
     if (this.state.open) {
       this.closeDropdown();
+      return;
     }
     this.state.open = true;
   }
 
   public showOptions(): boolean {
-    return ["all", "exists", "empty"].indexOf(this.selectedOperation) === -1;
+    return Operation.All !== this.selectedOperation
+      && Operation.Exists !== this.selectedOperation
+      && Operation.Empty !== this.selectedOperation;
   }
 
   public onRemove(): void {
@@ -160,25 +169,24 @@ class VariableCriteriaController implements ng.IComponentController {
         items = items.map((x) => this.localizeCategory(x));
       }
       if (rqlQueryWithArgs.name === "range") {
-        title = title + " [" + items.join(",") + "]";
+        title = title + " [" + items.join(", ") + "]";
       } else {
-        title = title + " (" + items.join(",") + ")";
+        title = title + " (" + items.join(", ") + ")";
       }
     }
     return truncated && title.length > 50 ? title.substring(0, 50) + "..." : title;
   }
 
-  // TODO translate
   private getOperationTitle(): string {
     const rqlQueryWithArgs = this.getRqlQueryWithArgs();
     if (this.isNotQuery()) {
       if (rqlQueryWithArgs.name === "exists") {
-        return "empty";
+        return this.$filter("translate")("analysis.empty");
       } else {
-        return "not in";
+        return this.$filter("translate")("analysis.out");
       }
     }
-    return rqlQueryWithArgs.name;
+    return this.$filter("translate")("analysis." + rqlQueryWithArgs.name);
   }
 
   private getRqlQueryWithArgs(): any {
@@ -226,7 +234,7 @@ class VariableCriteriaController implements ng.IComponentController {
   }
 
   private localize(values): string {
-    return this.LocalizedValues.forLang(values, this.lang);
+    return this.LocalizedValues.forLang(values, this.$translate.use());
   }
 
   private prepareCategories(): void {

@@ -1,20 +1,9 @@
 <div>
-
   <div ng-if="entitiesHeaderTemplateUrl" ng-include="entitiesHeaderTemplateUrl"></div>
-
-  <p>{{query}}</p>
-
-  <p ng-if="loading" class="voffset2 loading"></p>
-
-  <div ng-hide="loading">
-    <div>
-        <span class="badge">{{result.total}}</span>
-    </div>
-    <div>
-      <entities-count-result-table 
-        result="result" show-study="showStudy"></entities-count-result-table>
-    </div>      
+  <div>
+      <span ng-hide="loading && !result.total" class="badge">{{result.total}}</span>
+      <span ng-if="loading" class="voffset2 loading"></span>
   </div>
-  
-  <!--pre>{{result | json}}</pre-->
+  <entities-count-result-table ng-hide="loading && !result.total"
+    result="result" show-study="showStudy"></entities-count-result-table>
 </div>
