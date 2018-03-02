@@ -37,6 +37,9 @@ class VariableCriteriaController implements ng.IComponentController {
   public categoriesData: any;
   public rangeMin: number;
   public rangeMax: number;
+  public allFrequency: number;
+  public existsFrequency: number;
+  public emptyFrequency: number;
   public searchText: string;
   public selectedCategories: any;
   public selectedOperation: string;
@@ -66,7 +69,6 @@ class VariableCriteriaController implements ng.IComponentController {
       // get variable from field name
       this.id = rqlQueryWithArgs.args[0].join(":");
       this.VariableResource.get({ id: this.id }, this.onVariable(), this.onError());
-      this.VariableSummaryResource.get({ id: this.id }, this.onVariableSummary(), this.onError());
       // get categories if any
       if (rqlQueryWithArgs.args.length > 1) {
         if (rqlQueryWithArgs.name === "in") {
@@ -285,6 +287,7 @@ class VariableCriteriaController implements ng.IComponentController {
       that.variable = response;
       that.loading = false;
       that.prepareCategories();
+      that.VariableSummaryResource.get({ id: response.id }, that.onVariableSummary(), that.onError());
     };
   }
 
@@ -293,8 +296,26 @@ class VariableCriteriaController implements ng.IComponentController {
     return (response: any) => {
       that.summary = response;
       if (that.summary["Math.ContinuousSummaryDto.continuous"]) {
-        that.rangeMin = that.summary["Math.ContinuousSummaryDto.continuous"].summary.min;
-        that.rangeMax = that.summary["Math.ContinuousSummaryDto.continuous"].summary.max;
+        const summary = that.summary["Math.ContinuousSummaryDto.continuous"].summary;
+        that.rangeMin = summary.min;
+        that.rangeMax = summary.max;
+        const frequencies = that.summary["Math.ContinuousSummaryDto.continuous"].frequencies;
+        that.existsFrequency = frequencies.filter((elem) => elem.value === "NOT_NULL")[0].freq;
+        that.emptyFrequency = frequencies.filter((elem) => elem.value === "N/A")[0].freq;
+        that.allFrequency = that.existsFrequency + that.emptyFrequency;
+      }
+      if (that.summary["Math.CategoricalSummaryDto.categorical"]) {
+        const frequencies = that.summary["Math.CategoricalSummaryDto.categorical"].frequencies;
+        that.categoriesData.forEach((cat) => {
+          const freqs = frequencies.filter((elem) => elem.value === cat.name);
+          if (freqs.length > 0) {
+            cat.frequency = freqs[0].freq;
+          }
+        });
+        that.allFrequency = that.summary["Math.CategoricalSummaryDto.categorical"].n;
+        that.existsFrequency = that.summary["Math.CategoricalSummaryDto.categorical"].otherFrequency +
+          frequencies.filter((elem) => elem.value !== "N/A").map((elem) => elem.freq).reduce((acc, curr) => acc + curr);
+        that.emptyFrequency = that.allFrequency - that.existsFrequency;
       }
     };
   }

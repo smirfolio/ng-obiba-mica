@@ -19,40 +19,45 @@
           <span class="pull-right" title="{{'search.close-and-search' | translate}}" ng-click="$ctrl.closeDropdown()"><i class="fa fa-check"></i></span>
         </li>
         <li class='divider'></li>
-        <li class="btn-group">
-          <ul class="criteria-list-item">
-            <li>
-              <label title="{{'analysis.all-help' | translate}}">
-                <input ng-click="$ctrl.onUpdateOperation()" type="radio" ng-model="$ctrl.selectedOperation" value="all">
-                  {{'analysis.all' | translate}}
-              </label>
-            </li>
-            <li>
-              <label title="{{'analysis.exists-help' | translate}}">
-                <input ng-click="$ctrl.onUpdateOperation()" type="radio" ng-model="$ctrl.selectedOperation" value="exists">
-                  {{'analysis.exists' | translate}}
-              </label>
-            </li>
-            <li>
-              <label title="{{'analysis.empty-help' | translate}}">
-                <input ng-click="$ctrl.onUpdateOperation()" type="radio" ng-model="$ctrl.selectedOperation" value="empty">
-                  {{'analysis.empty' | translate}}
-              </label>
-            </li>
-            <li>
-              <label title="{{'analysis.in-help' | translate}}">
-                <input ng-click="$ctrl.onUpdateOperation()" type="radio" ng-model="$ctrl.selectedOperation" value="in">
-                  {{'analysis.in' | translate}}
-              </label>
-            </li>
-            <li>
-              <label title="{{'analysis.out-help' | translate}}">
-                <input ng-click="$ctrl.onUpdateOperation()" type="radio" ng-model="$ctrl.selectedOperation" value="out">
-                  {{'analysis.out' | translate}}
-              </label>
-            <li>
-          </ul>
+        <li class="criteria-list-item">
+          <label title="{{'analysis.all-help' | translate}}">
+            <input ng-click="$ctrl.onUpdateOperation()" type="radio" ng-model="$ctrl.selectedOperation" value="all">
+              {{'analysis.all' | translate}}
+          </label>
+          <div class="pull-right">
+            <span class="agg-term-count">{{$ctrl.allFrequency}}</span>
+          </div>
         </li>
+        <li class="criteria-list-item">
+          <label title="{{'analysis.exists-help' | translate}}">
+            <input ng-click="$ctrl.onUpdateOperation()" type="radio" ng-model="$ctrl.selectedOperation" value="exists">
+              {{'analysis.exists' | translate}}
+          </label>
+          <div class="pull-right">
+            <span class="agg-term-count">{{$ctrl.existsFrequency}}</span>
+          </div>
+        </li>
+        <li class="criteria-list-item">
+          <label title="{{'analysis.empty-help' | translate}}">
+            <input ng-click="$ctrl.onUpdateOperation()" type="radio" ng-model="$ctrl.selectedOperation" value="empty">
+              {{'analysis.empty' | translate}}
+          </label>
+          <div class="pull-right">
+            <span class="agg-term-count">{{$ctrl.emptyFrequency}}</span>
+          </div>
+        </li>
+        <li class="criteria-list-item">
+          <label title="{{'analysis.in-help' | translate}}">
+            <input ng-click="$ctrl.onUpdateOperation()" type="radio" ng-model="$ctrl.selectedOperation" value="in">
+              {{'analysis.in' | translate}}
+          </label>
+        </li>
+        <li class="criteria-list-item">
+          <label title="{{'analysis.out-help' | translate}}">
+            <input ng-click="$ctrl.onUpdateOperation()" type="radio" ng-model="$ctrl.selectedOperation" value="out">
+              {{'analysis.out' | translate}}
+          </label>
+        <li>
         <li class="divider" ng-if="$ctrl.showCategoricalOptions()"></li>
         <li class="criteria-list-item" ng-if="$ctrl.showCategoricalOptions() && $ctrl.categoriesData && $ctrl.categoriesData.length>1">
           <span class="input-group input-group-sm no-padding-top">
@@ -65,9 +70,12 @@
             <input 
               ng-model="$ctrl.selectedCategories[category.name]"
               type="checkbox"
-              ng-click="$ctrl.updateSelection()">
+              ng-click="$ctrl.updateSelection()"/>
               <span title="{{category.name}}">{{category.label}}</span>
           </label>
+          <div class="pull-right">
+            <span class="agg-term-count">{{category.frequency}}</span>
+          </div>
         </li>
         <li class="divider" ng-if="$ctrl.showNumericalOptions()"></li>
         <li class="criteria-list-item" ng-if="$ctrl.showNumericalOptions()">
