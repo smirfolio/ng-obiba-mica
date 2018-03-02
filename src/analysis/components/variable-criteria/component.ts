@@ -209,6 +209,10 @@ class VariableCriteriaController implements ng.IComponentController {
     return this.variable.valueType === "integer" || this.variable.valueType === "decimal";
   }
 
+  private isLogical(): boolean {
+    return this.variable.valueType === "boolean";
+  }
+
   private getOperationTitle(): string {
     const rqlQueryWithArgs = this.getRqlQueryWithArgs();
     if (this.isNotQuery()) {
@@ -246,8 +250,8 @@ class VariableCriteriaController implements ng.IComponentController {
   }
 
   private localizeCategory(value: string): string {
-    if (!this.variable || !this.variable.categories) {
-      return value;
+    if (!this.variable.categories) {
+      return this.isLogical() ? this.$filter("translate")("global." + value) : value;
     }
     const categories = this.variable.categories.filter((cat) => cat.name === value + "");
     if (categories.length === 0) {
@@ -272,12 +276,24 @@ class VariableCriteriaController implements ng.IComponentController {
   private prepareCategories(): void {
     this.categoriesData = [];
     if (this.getNature() === "CATEGORICAL") {
-      this.variable.categories.forEach((cat) => {
-        this.categoriesData.push({
-          label: this.localizeCategory(cat.name),
-          name: cat.name,
+      const categories = this.variable.categories;
+      if (categories) {
+        categories.forEach((cat) => {
+          this.categoriesData.push({
+            label: this.localizeCategory(cat.name),
+            name: cat.name,
+          });
         });
-      });
+      } else if (this.isLogical()) {
+        this.categoriesData.push({
+          label: this.$filter("translate")("global.true"),
+          name: "true",
+        });
+        this.categoriesData.push({
+          label: this.$filter("translate")("global.false"),
+          name: "false",
+        });
+      }
     }
   }
 
