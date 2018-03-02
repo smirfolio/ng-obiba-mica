@@ -32,8 +32,11 @@ class VariableCriteriaController implements ng.IComponentController {
   public query: string;
   public rqlQuery: any;
   public state: any;
+  public summary: any;
   public variable: any;
   public categoriesData: any;
+  public rangeMin: number;
+  public rangeMax: number;
   public searchText: string;
   public selectedCategories: any;
   public selectedOperation: string;
@@ -63,14 +66,21 @@ class VariableCriteriaController implements ng.IComponentController {
       // get variable from field name
       this.id = rqlQueryWithArgs.args[0].join(":");
       this.VariableResource.get({ id: this.id }, this.onVariable(), this.onError());
+      this.VariableSummaryResource.get({ id: this.id }, this.onVariableSummary(), this.onError());
       // get categories if any
       if (rqlQueryWithArgs.args.length > 1) {
-        rqlQueryWithArgs.args[1].forEach((value) => {
-          this.selectedCategories[value] = true;
-        });
+        if (rqlQueryWithArgs.name === "in") {
+          rqlQueryWithArgs.args[1].forEach((value) => {
+            this.selectedCategories[value] = true;
+          });
+        } else if (rqlQueryWithArgs.name === "range" && rqlQueryWithArgs.args[1].length > 0) {
+          this.selectedMin = rqlQueryWithArgs.args[1][0] === "*" ? undefined : rqlQueryWithArgs.args[1][0];
+          this.selectedMax = rqlQueryWithArgs.args[1].length < 2 || rqlQueryWithArgs.args[1][1] === "*" ?
+            undefined : rqlQueryWithArgs.args[1][1];
+        }
       }
-      this.selectedOperation = this.rqlQuery.name; // TODO handle not
-      if (isNot && rqlQueryWithArgs.name === "in") {
+      this.selectedOperation = this.rqlQuery.name === "range" ? "in" : this.rqlQuery.name;
+      if (isNot && (rqlQueryWithArgs.name === "in" || rqlQueryWithArgs.name === "range")) {
         this.selectedOperation = "out";
       }
       if (isNot && rqlQueryWithArgs.name === "exists") {
@@ -89,9 +99,17 @@ class VariableCriteriaController implements ng.IComponentController {
     this.state.open = false;
     // get the query from the selections
     let newQuery = "";
-    const args = Object.keys(this.selectedCategories).filter((key) => {
-      return this.selectedCategories[key];
-    }).map((key) => key);
+    let args;
+    if (this.showCategoricalOptions()) {
+      args = Object.keys(this.selectedCategories).filter((key) => {
+        return this.selectedCategories[key];
+      }).map((key) => key).join(",");
+    }
+    if (this.showNumericalOptions()) {
+      const min = this.selectedMin ? this.selectedMin : "*";
+      const max = this.selectedMax ? this.selectedMax : "*";
+      args = [min, max].join(",");
+    }
     switch (this.selectedOperation) {
       case Operation.All:
       case Operation.Exists:
@@ -117,7 +135,7 @@ class VariableCriteriaController implements ng.IComponentController {
       }
     }
     newQuery = newQuery.replace("{field}", this.variable.id);
-    newQuery = newQuery.replace("{args}", args.join(","));
+    newQuery = newQuery.replace("{args}", args);
     this.onUpdate(newQuery);
   }
 
@@ -127,12 +145,6 @@ class VariableCriteriaController implements ng.IComponentController {
       return;
     }
     this.state.open = true;
-  }
-
-  public showOptions(): boolean {
-    return Operation.All !== this.selectedOperation
-      && Operation.Exists !== this.selectedOperation
-      && Operation.Empty !== this.selectedOperation;
   }
 
   public onRemove(): void {
@@ -149,10 +161,6 @@ class VariableCriteriaController implements ng.IComponentController {
         search.query = search.query + "," + newQuery;
     }
     this.$location.search(search);
-  }
-
-  public getNature(): string {
-    return this.variable ? this.variable.nature : "?";
   }
 
   public getQueryTitle(truncated: boolean): string {
@@ -177,6 +185,28 @@ class VariableCriteriaController implements ng.IComponentController {
     return truncated && title.length > 50 ? title.substring(0, 50) + "..." : title;
   }
 
+  public showCategoricalOptions(): boolean {
+    return this.getNature() === "CATEGORICAL" && this.showOptions();
+  }
+
+  public showNumericalOptions(): boolean {
+    return this.getNature() === "CONTINUOUS" && this.isNumerical() && this.showOptions();
+  }
+
+  private showOptions(): boolean {
+    return Operation.All !== this.selectedOperation
+      && Operation.Exists !== this.selectedOperation
+      && Operation.Empty !== this.selectedOperation;
+  }
+
+  private getNature(): string {
+    return this.variable ? this.variable.nature : "?";
+  }
+
+  private isNumerical(): boolean {
+    return this.variable.valueType === "integer" || this.variable.valueType === "decimal";
+  }
+
   private getOperationTitle(): string {
     const rqlQueryWithArgs = this.getRqlQueryWithArgs();
     if (this.isNotQuery()) {
@@ -186,7 +216,7 @@ class VariableCriteriaController implements ng.IComponentController {
         return this.$filter("translate")("analysis.out");
       }
     }
-    return this.$filter("translate")("analysis." + rqlQueryWithArgs.name);
+    return this.$filter("translate")("analysis." + (rqlQueryWithArgs.name === "range" ? "in" : rqlQueryWithArgs.name));
   }
 
   private getRqlQueryWithArgs(): any {
@@ -255,6 +285,17 @@ class VariableCriteriaController implements ng.IComponentController {
       that.variable = response;
       that.loading = false;
       that.prepareCategories();
+    };
+  }
+
+  private onVariableSummary() {
+    const that = this;
+    return (response: any) => {
+      that.summary = response;
+      if (that.summary["Math.ContinuousSummaryDto.continuous"]) {
+        that.rangeMin = that.summary["Math.ContinuousSummaryDto.continuous"].summary.min;
+        that.rangeMax = that.summary["Math.ContinuousSummaryDto.continuous"].summary.max;
+      }
     };
   }
 

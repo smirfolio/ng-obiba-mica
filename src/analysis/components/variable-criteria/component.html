@@ -53,14 +53,14 @@
             <li>
           </ul>
         </li>
-        <li class="divider" ng-if="$ctrl.showOptions()"></li>
-        <li class="criteria-list-item" ng-if="$ctrl.showOptions() && $ctrl.categoriesData && $ctrl.categoriesData.length>10">
+        <li class="divider" ng-if="$ctrl.showCategoricalOptions()"></li>
+        <li class="criteria-list-item" ng-if="$ctrl.showCategoricalOptions() && $ctrl.categoriesData && $ctrl.categoriesData.length>1">
           <span class="input-group input-group-sm no-padding-top">
-            <input ng-model="$ctrl.searchText" type="text" class="form-control" aria-describedby="term-search">
-            <span class="input-group-addon" id="term-search"><i class="fa fa-search"></i></span>
+            <input ng-model="$ctrl.searchText" type="text" class="form-control" aria-describedby="category-search">
+            <span class="input-group-addon" id="category-search"><i class="fa fa-search"></i></span>
           </span>
         </li>
-        <li class="criteria-list-item" ng-if="$ctrl.showOptions()" ng-repeat="category in $ctrl.categoriesData">
+        <li class="criteria-list-item" ng-if="$ctrl.showCategoricalOptions()" ng-repeat="category in $ctrl.categoriesData">
           <label class="control-label">
             <input 
               ng-model="$ctrl.selectedCategories[category.name]"
@@ -68,6 +68,23 @@
               ng-click="$ctrl.updateSelection()">
               <span title="{{category.name}}">{{category.label}}</span>
           </label>
+        </li>
+        <li class="divider" ng-if="$ctrl.showNumericalOptions()"></li>
+        <li class="criteria-list-item" ng-if="$ctrl.showNumericalOptions()">
+          <div class="row">
+            <div class="col-xs-6">
+              <div class="form-group">
+                <label for="range-min" translate>analysis.min</label>
+                <input ng-model="$ctrl.selectedMin" type="text" class="form-control" id="range-min" placeholder="{{$ctrl.rangeMin}}">
+              </div>
+            </div>
+            <div class="col-xs-6">
+              <div class="form-group">
+                  <label for="range-max" translate>analysis.max</label>
+                  <input ng-model="$ctrl.selectedMax" type="text" class="form-control" id="range-max" placeholder="{{$ctrl.rangeMax}}">
+                </div>    
+            </div>
+          </div>
         </li>
     </ul>
 
