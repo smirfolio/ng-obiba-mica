@@ -53,14 +53,14 @@
             <li>
           </ul>
         </li>
-        <li class='divider'></li>
-        <li class="criteria-list-item" ng-if="$ctrl.categoriesData && $ctrl.categoriesData.length>10">
+        <li class="divider" ng-if="$ctrl.showOptions()"></li>
+        <li class="criteria-list-item" ng-if="$ctrl.showOptions() && $ctrl.categoriesData && $ctrl.categoriesData.length>10">
           <span class="input-group input-group-sm no-padding-top">
             <input ng-model="$ctrl.searchText" type="text" class="form-control" aria-describedby="term-search">
             <span class="input-group-addon" id="term-search"><i class="fa fa-search"></i></span>
           </span>
         </li>
-        <li class="criteria-list-item" ng-repeat="category in $ctrl.categoriesData">
+        <li class="criteria-list-item" ng-if="$ctrl.showOptions()" ng-repeat="category in $ctrl.categoriesData">
           <label class="control-label">
             <input 
               ng-model="$ctrl.selectedCategories[category.name]"

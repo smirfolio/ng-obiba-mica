@@ -95,10 +95,20 @@ class VariableCriteriaController implements ng.IComponentController {
         newQuery = "not(exists({field}))";
         break;
       case "in":
+      if (args && args.length > 0) {
         newQuery = this.getNature() === "CATEGORICAL" ? "in({field},({args}))" : "range({field},({args}))";
-        break;
+      } else {
+        newQuery = "not(exists({field}))";
+        this.selectedOperation = "empty";
+      }
+      break;
       case "out":
+      if (args && args.length > 0) {
         newQuery = this.getNature() === "CATEGORICAL" ? "not(in({field},({args})))" : "not(range({field},({args})))";
+      } else {
+        newQuery = "exists({field})";
+        this.selectedOperation = "exists";
+      }
     }
     newQuery = newQuery.replace("{field}", this.variable.id);
     newQuery = newQuery.replace("{args}", args.join(","));
@@ -112,11 +122,18 @@ class VariableCriteriaController implements ng.IComponentController {
     this.state.open = true;
   }
 
+  public showOptions(): boolean {
+    return ["all", "exists", "empty"].indexOf(this.selectedOperation) === -1;
+  }
+
   public onRemove(): void {
     this.onUpdate("");
   }
 
   public onUpdate(newQuery: string): void {
+    if (this.query === newQuery) {
+      return;
+    }
     const search = this.$location.search();
     search.query = search.query.split(this.query).join("").replace(/,,/, ",").replace(/^,/, "").replace(/,$/, "");
     if (newQuery && newQuery.length !== 0) {
