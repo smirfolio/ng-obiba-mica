@@ -10,29 +10,41 @@
 
 "use strict";
 
+declare var ngObibaMica: any;
 declare var RqlParser: any;
 declare var RqlQuery: any;
 
 class VariableCriteriaController implements ng.IComponentController {
 
-  private static $inject = ["VariableResource", "VariableSummaryResource", "$log", "SearchContext", "LocalizedValues"];
+  private static $inject = [
+    "VariableResource", "VariableSummaryResource", "$log", "SearchContext", "LocalizedValues", "$location"];
 
   public id: string;
   public lang: string;
   public loading: boolean;
-  public onRemoveQuery: any;
   public query: string;
   public rqlQuery: any;
+  public state: any;
   public variable: any;
+  public categoriesData: any;
+  public searchText: string;
+  public selectedCategories: any;
+  public selectedOperation: string;
+  public selectedMin: number;
+  public selectedMax: number;
 
   constructor(
     private VariableResource: any,
     private VariableSummaryResource: any,
     private $log: any,
     private SearchContext: any,
-    private LocalizedValues: any) {
+    private LocalizedValues: any,
+    private $location: any) {
       this.query = "";
       this.lang = "en";
+      this.state = { open: false };
+      this.categoriesData = [];
+      this.selectedCategories = {};
   }
 
   public $onInit() {
@@ -40,38 +52,127 @@ class VariableCriteriaController implements ng.IComponentController {
     this.loading = true;
     this.rqlQuery = this.parseQuery();
     if (this.rqlQuery.args) {
-      this.id = this.rqlQuery.args[0].join(":");
+      const isNot = this.rqlQuery.name === "not";
+      const rqlQueryWithArgs = isNot ? this.rqlQuery.args[0] : this.rqlQuery;
+      // get variable from field name
+      this.id = rqlQueryWithArgs.args[0].join(":");
       this.VariableResource.get({ id: this.id }, this.onVariable(), this.onError());
+      // get categories if any
+      if (rqlQueryWithArgs.args.length > 1) {
+        rqlQueryWithArgs.args[1].forEach((value) => {
+          this.selectedCategories[value] = true;
+        });
+      }
+      this.selectedOperation = this.rqlQuery.name; // TODO handle not
+      if (isNot && rqlQueryWithArgs.name === "in") {
+        this.selectedOperation = "out";
+      }
+      if (isNot && rqlQueryWithArgs.name === "exists") {
+        this.selectedOperation = "empty";
+      }
     }
   }
 
+  public onKeyup(event) {
+    if (event.keyCode === 13) {
+      this.closeDropdown();
+    }
+  }
+
+  public closeDropdown() {
+    this.state.open = false;
+    // get the query from the selections
+    let newQuery = "";
+    const args = Object.keys(this.selectedCategories).filter((key) => {
+      return this.selectedCategories[key];
+    }).map((key) => key);
+    switch (this.selectedOperation) {
+      case "all":
+      case "exists":
+        newQuery = this.selectedOperation + "({field})";
+        break;
+      case "empty":
+        newQuery = "not(exists({field}))";
+        break;
+      case "in":
+        newQuery = this.getNature() === "CATEGORICAL" ? "in({field},({args}))" : "range({field},({args}))";
+        break;
+      case "out":
+        newQuery = this.getNature() === "CATEGORICAL" ? "not(in({field},({args})))" : "not(range({field},({args})))";
+    }
+    newQuery = newQuery.replace("{field}", this.variable.id);
+    newQuery = newQuery.replace("{args}", args.join(","));
+    this.onUpdate(newQuery);
+  }
+
+  public openDropdown() {
+    if (this.state.open) {
+      this.closeDropdown();
+    }
+    this.state.open = true;
+  }
+
   public onRemove(): void {
-    this.$log.info(this.query);
-    this.onRemoveQuery()(this.query);
+    this.onUpdate("");
+  }
+
+  public onUpdate(newQuery: string): void {
+    const search = this.$location.search();
+    search.query = search.query.split(this.query).join("").replace(/,,/, ",").replace(/^,/, "").replace(/,$/, "");
+    if (newQuery && newQuery.length !== 0) {
+        search.query = search.query + "," + newQuery;
+    }
+    this.$location.search(search);
   }
 
   public getNature(): string {
     return this.variable ? this.variable.nature : "?";
   }
 
-  public getOperation(): string {
-    return this.rqlQuery ? this.rqlQuery.name : "?";
-  }
-
   public getQueryTitle(truncated: boolean): string {
-    let title = this.getOperation();
-    if (this.rqlQuery && this.rqlQuery.args && this.rqlQuery.args.length > 1) {
-      let items = this.rqlQuery.args[1];
+    if (!this.rqlQuery) {
+      return "?";
+    }
+
+    let title = this.getOperationTitle();
+    const rqlQueryWithArgs = this.getRqlQueryWithArgs();
+
+    if (rqlQueryWithArgs.args.length > 1) {
+      let items = rqlQueryWithArgs.args[1];
       if (this.getNature() === "CATEGORICAL") {
         items = items.map((x) => this.localizeCategory(x));
       }
-      if (title === "range") {
-        title = "in [" + items.join(",") + "]";
+      if (rqlQueryWithArgs.name === "range") {
+        title = title + " [" + items.join(",") + "]";
       } else {
         title = title + " (" + items.join(",") + ")";
       }
     }
-    return truncated ? title.substring(0, 30) : title;
+    return truncated && title.length > 50 ? title.substring(0, 50) + "..." : title;
+  }
+
+  // TODO translate
+  private getOperationTitle(): string {
+    const rqlQueryWithArgs = this.getRqlQueryWithArgs();
+    if (this.isNotQuery()) {
+      if (rqlQueryWithArgs.name === "exists") {
+        return "empty";
+      } else {
+        return "not in";
+      }
+    }
+    return rqlQueryWithArgs.name;
+  }
+
+  private getRqlQueryWithArgs(): any {
+    if (this.isNotQuery()) {
+      return this.rqlQuery.args[0];
+    }
+    return this.rqlQuery;
+  }
+
+  private isNotQuery(): boolean {
+    return this.rqlQuery && this.rqlQuery.name === "not";
   }
 
   private parseQuery() {
@@ -111,11 +212,24 @@ class VariableCriteriaController implements ng.IComponentController {
     return this.LocalizedValues.forLang(values, this.lang);
   }
 
+  private prepareCategories(): void {
+    this.categoriesData = [];
+    if (this.getNature() === "CATEGORICAL") {
+      this.variable.categories.forEach((cat) => {
+        this.categoriesData.push({
+          label: this.localizeCategory(cat.name),
+          name: cat.name,
+        });
+      });
+    }
+  }
+
   private onVariable() {
     const that = this;
     return (response: any) => {
       that.variable = response;
       that.loading = false;
+      that.prepareCategories();
     };
   }
 
@@ -139,7 +253,6 @@ class VariableCriteriaComponent implements ng.IComponentOptions {
   constructor() {
     this.transclude = true;
     this.bindings = {
-      onRemoveQuery: "&",
       query: "<",
     };
     this.controller = VariableCriteriaController;

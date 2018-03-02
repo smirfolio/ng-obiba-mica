@@ -22,7 +22,7 @@
               <a href="{{row[2].link}}">{{row[2].value}}</a>
           </td>
           <td ng-if="row.length===5" colspan="{{row[3].colspan}}" title="{{row[3].value}}">
-            <variable-criteria query="row[3].value" on-remove-query="$ctrl.onRemoveQuery()(row[3].value)"></variable-criteria>  
+            <variable-criteria query="row[3].value"></variable-criteria>  
           </td>
           <td ng-if="row.length===5" colspan="{{row[4].colspan}}">
             <localized-number value="row[4].value"></localized-number>

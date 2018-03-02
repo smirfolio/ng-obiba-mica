@@ -1,9 +1,9 @@
 <div>
   <p ng-if="$ctrl.loading" class="voffset2 loading"></p>
   
-  <div  ng-hide="$ctrl.loading" class="btn-group voffset1 btn-variable" ng-class="{open: state.open}" ng-keyup="onKeyup($event)">
+  <div  ng-hide="$ctrl.loading" class="btn-group voffset1 btn-variable" ng-class="{open: $ctrl.state.open}" ng-keyup="$ctrl.onKeyup($event)">
 
-    <button class="btn btn-xs dropdown btn-variable" ng-click="openDropdown()">
+    <button class="btn btn-xs dropdown btn-variable" ng-click="$ctrl.openDropdown()">
       <span title="{{$ctrl.getQueryTitle(false)}}" test-ref="search-criterion">
         {{$ctrl.getQueryTitle(true)}}
       </span>
@@ -12,6 +12,64 @@
     <button class="btn btn-xs btn-default" ng-click="$ctrl.onRemove()">
       <span class="fa fa-times"></span>
     </button>
+
+    <ul class="dropdown-menu query-dropdown-menu" aria-labelledby="">
+        <li class="criteria-list-item">
+          <span>{{$ctrl.variable.name}}</span>
+          <span class="pull-right" title="{{'search.close-and-search' | translate}}" ng-click="$ctrl.closeDropdown()"><i class="fa fa-check"></i></span>
+        </li>
+        <li class='divider'></li>
+        <li class="btn-group">
+          <ul class="criteria-list-item">
+            <li>
+              <label title="{{'analysis.all-help' | translate}}">
+                <input ng-click="$ctrl.onUpdateOperation()" type="radio" ng-model="$ctrl.selectedOperation" value="all">
+                  {{'analysis.all' | translate}}
+              </label>
+            </li>
+            <li>
+              <label title="{{'analysis.exists-help' | translate}}">
+                <input ng-click="$ctrl.onUpdateOperation()" type="radio" ng-model="$ctrl.selectedOperation" value="exists">
+                  {{'analysis.exists' | translate}}
+              </label>
+            </li>
+            <li>
+              <label title="{{'analysis.empty-help' | translate}}">
+                <input ng-click="$ctrl.onUpdateOperation()" type="radio" ng-model="$ctrl.selectedOperation" value="empty">
+                  {{'analysis.empty' | translate}}
+              </label>
+            </li>
+            <li>
+              <label title="{{'analysis.in-help' | translate}}">
+                <input ng-click="$ctrl.onUpdateOperation()" type="radio" ng-model="$ctrl.selectedOperation" value="in">
+                  {{'analysis.in' | translate}}
+              </label>
+            </li>
+            <li>
+              <label title="{{'seaanalysisrch.out-help' | translate}}">
+                <input ng-click="$ctrl.onUpdateOperation()" type="radio" ng-model="$ctrl.selectedOperation" value="out">
+                  {{'analysis.out' | translate}}
+              </label>
+            <li>
+          </ul>
+        </li>
+        <li class='divider'></li>
+        <li class="criteria-list-item" ng-if="$ctrl.categoriesData && $ctrl.categoriesData.length>10">
+          <span class="input-group input-group-sm no-padding-top">
+            <input ng-model="$ctrl.searchText" type="text" class="form-control" aria-describedby="term-search">
+            <span class="input-group-addon" id="term-search"><i class="fa fa-search"></i></span>
+          </span>
+        </li>
+        <li class="criteria-list-item" ng-repeat="category in $ctrl.categoriesData">
+          <label class="control-label">
+            <input 
+              ng-model="$ctrl.selectedCategories[category.name]"
+              type="checkbox"
+              ng-click="$ctrl.updateSelection()">
+              <span title="{{category.name}}">{{category.label}}</span>
+          </label>
+        </li>
+    </ul>
 
   </div>
 

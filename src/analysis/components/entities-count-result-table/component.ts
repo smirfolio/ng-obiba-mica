@@ -35,7 +35,6 @@ class EntitiesCountResultTableController implements ng.IComponentController {
   }
 
   public $onChanges() {
-    this.$log.info("entities-count-result changes");
     this.table = this.asTable();
   }
 
@@ -143,7 +142,6 @@ class EntitiesCountResultTableComponent implements ng.IComponentOptions {
   constructor() {
     this.transclude = true;
     this.bindings = {
-      onRemoveQuery: "&",
       result: "<",
       showStudy: "<",
     };

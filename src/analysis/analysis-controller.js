@@ -50,14 +50,6 @@ ngObibaMica.analysis
 
     refresh();
 
-    $scope.onRemoveQuery = function() {
-      return function(q) {
-        var search = $location.search();
-        search.query = $scope.query.split(q).join('').replace(/,,/,',').replace(/^,/,'').replace(/,$/,'');
-        $location.search(search);
-      };
-    };
-
     $scope.$on('$locationChangeSuccess', function() {
       $scope.query = $location.search().query;
       refresh();
