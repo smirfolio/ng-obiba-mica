@@ -20,6 +20,7 @@ class VariableCriteriaController implements ng.IComponentController {
   public id: string;
   public lang: string;
   public loading: boolean;
+  public onRemoveQuery: any;
   public query: string;
   public rqlQuery: any;
   public variable: any;
@@ -45,7 +46,8 @@ class VariableCriteriaController implements ng.IComponentController {
   }
 
   public onRemove(): void {
-    // TODO
+    this.$log.info(this.query);
+    this.onRemoveQuery()(this.query);
   }
 
   public getNature(): string {
@@ -137,6 +139,7 @@ class VariableCriteriaComponent implements ng.IComponentOptions {
   constructor() {
     this.transclude = true;
     this.bindings = {
+      onRemoveQuery: "&",
       query: "<",
     };
     this.controller = VariableCriteriaController;

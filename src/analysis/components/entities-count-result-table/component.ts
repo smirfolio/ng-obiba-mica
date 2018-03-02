@@ -12,26 +12,31 @@
 
 class EntitiesCountResultTableController implements ng.IComponentController {
 
-  private static $inject = ["PageUrlService", "SearchContext", "LocalizedValues"];
+  private static $inject = ["PageUrlService", "SearchContext", "LocalizedValues", "$log"];
 
   public lang: string;
   public result: any;
   public table: any;
 
-  constructor(private PageUrlService: any, private SearchContext: any, private LocalizedValues: any) {
+  constructor(
+    private PageUrlService: any,
+    private SearchContext: any,
+    private LocalizedValues: any,
+    private $log: any) {
       this.result = {};
       this.lang = "en";
   }
 
   public $onInit() {
     this.lang = this.SearchContext.currentLocale();
+    this.table = {
+      rows: new Array(),
+    };
   }
 
-  public getTable(): any {
-    if (!this.table) {
-      this.table = this.asTable();
-    }
-    return this.table;
+  public $onChanges() {
+    this.$log.info("entities-count-result changes");
+    this.table = this.asTable();
   }
 
   private localize(values): string {
@@ -138,6 +143,7 @@ class EntitiesCountResultTableComponent implements ng.IComponentOptions {
   constructor() {
     this.transclude = true;
     this.bindings = {
+      onRemoveQuery: "&",
       result: "<",
       showStudy: "<",
     };
