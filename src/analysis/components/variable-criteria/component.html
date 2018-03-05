@@ -85,19 +85,31 @@
 
         <li class="divider" ng-if="$ctrl.showNumericalOptions()"></li>
         <li class="criteria-list-item" ng-if="$ctrl.showNumericalOptions()">
+          <select class="form-control input-sm form-select" ng-model="$ctrl.selectedNumericalOperation">
+            <option value="range">{{'analysis.range' | translate}}</option>
+            <option value="in">{{'analysis.values' | translate}}</option>
+          </select>
+        </li>
+        <li class="criteria-list-item" ng-if="$ctrl.showNumericalOptions() && $ctrl.selectedNumericalOperation === 'range'">
           <div class="row">
             <div class="col-xs-6">
               <div class="form-group">
                 <label for="range-min" translate>analysis.min</label>
-                <input ng-model="$ctrl.selectedMin" type="text" class="form-control" id="range-min" placeholder="{{$ctrl.rangeMin}}">
+                <input ng-model="$ctrl.selectedNumericalMin" type="text" class="form-control" id="range-min" placeholder="{{$ctrl.rangeMin}}">
               </div>
             </div>
             <div class="col-xs-6">
               <div class="form-group">
                   <label for="range-max" translate>analysis.max</label>
-                  <input ng-model="$ctrl.selectedMax" type="text" class="form-control" id="range-max" placeholder="{{$ctrl.rangeMax}}">
+                  <input ng-model="$ctrl.selectedNumericalMax" type="text" class="form-control" id="range-max" placeholder="{{$ctrl.rangeMax}}">
                 </div>    
             </div>
+          </div>
+        </li>
+        <li class="criteria-list-item" ng-if="$ctrl.showNumericalOptions() && $ctrl.selectedNumericalOperation === 'in'">
+          <div class="form-group">
+            <label for="in-values" translate>analysis.values-title</label>
+            <input ng-model="$ctrl.selectedNumericalValues" type="text" class="form-control" id="in-values" ng-keyup="$ctrl.onNumericalValuesKeyup($event)">
           </div>
         </li>
     </ul>
