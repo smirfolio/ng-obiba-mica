@@ -44,9 +44,13 @@ class VariableCriteriaController implements ng.IComponentController {
   public selectedCategories: any;
   public selectedOperation: string;
   public selectedNumericalOperation: string;
-  public selectedNumericalMin: number;
-  public selectedNumericalMax: number;
+  public selectedMin: number;
+  public selectedMax: number;
   public selectedNumericalValues: string;
+  public selectedTemporalOperation: string;
+  public selectedFrom: Date;
+  public selectedTo: Date;
+  public selectedTemporalValue: Date;
 
   constructor(
     private VariableResource: any,
@@ -60,6 +64,8 @@ class VariableCriteriaController implements ng.IComponentController {
       this.state = { open: false };
       this.categoriesData = [];
       this.selectedCategories = {};
+      this.selectedNumericalOperation = "range";
+      this.selectedTemporalOperation = "range";
   }
 
   public $onInit() {
@@ -168,6 +174,13 @@ class VariableCriteriaController implements ng.IComponentController {
   }
 
   /**
+   * Check wether there are options for this criteria.
+   */
+  public showInOperations(): boolean {
+    return this.getNature() === "CATEGORICAL" || this.isNumerical() || this.isTemporal();
+  }
+
+  /**
    * Check whether the categorical options are to be shown.
    */
   public showCategoricalOptions(): boolean {
@@ -179,6 +192,13 @@ class VariableCriteriaController implements ng.IComponentController {
    */
   public showNumericalOptions(): boolean {
     return this.getNature() === "CONTINUOUS" && this.isNumerical() && this.showOptions();
+  }
+
+  /**
+   * Check whether the temporal options are to be shown.
+   */
+  public showTemporalOptions(): boolean {
+    return this.getNature() === "TEMPORAL" && this.isTemporal() && this.showOptions();
   }
 
   /**
@@ -195,17 +215,36 @@ class VariableCriteriaController implements ng.IComponentController {
       // get categories if any
       if (rqlQueryWithArgs.args.length > 1) {
         if (rqlQueryWithArgs.name === "in") {
-          // don't know at this point if it is a categorical or numerical variable
+          // don't know at this point if it is a categorical or numerical/temporal variable
           rqlQueryWithArgs.args[1].forEach((value) => {
             this.selectedCategories[value] = true;
           });
           this.selectedNumericalOperation = "in";
           this.selectedNumericalValues = rqlQueryWithArgs.args[1].filter((val) => !isNaN(val)).join(" ");
+          this.selectedTemporalOperation = "in";
+          this.selectedTemporalValue = rqlQueryWithArgs.args[1].length > 0 ?
+            new Date(Date.parse(rqlQueryWithArgs.args[1][0])) : undefined;
         } else if (rqlQueryWithArgs.name === "range" && rqlQueryWithArgs.args[1].length > 0) {
-          this.selectedNumericalOperation = "range";
-          this.selectedNumericalMin = rqlQueryWithArgs.args[1][0] === "*" ? undefined : rqlQueryWithArgs.args[1][0];
-          this.selectedNumericalMax = rqlQueryWithArgs.args[1].length < 2 || rqlQueryWithArgs.args[1][1] === "*" ?
-            undefined : rqlQueryWithArgs.args[1][1];
+          const arg1 = rqlQueryWithArgs.args[1][0];
+          if (arg1 === "*") {
+            this.selectedMin = undefined;
+            this.selectedFrom = undefined;
+          } else if (!isNaN(arg1)) {
+            this.selectedMin = arg1;
+          } else {
+            this.selectedFrom = new Date(Date.parse(arg1));
+          }
+          if (rqlQueryWithArgs.args[1].length >= 2) {
+            const arg2 = rqlQueryWithArgs.args[1][1];
+            if (arg2 === "*") {
+              this.selectedMax = undefined;
+              this.selectedTo = undefined;
+            } else if (!isNaN(arg2)) {
+              this.selectedMax = arg2;
+            } else {
+              this.selectedTo = new Date(Date.parse(arg2));
+            }
+          }
         }
       }
       this.selectedOperation = this.rqlQuery.name === "range" ? "in" : this.rqlQuery.name;
@@ -254,14 +293,21 @@ class VariableCriteriaController implements ng.IComponentController {
    * Check if the variable has a numerical type (integer or decimal).
    */
   private isNumerical(): boolean {
-    return this.variable.valueType === "integer" || this.variable.valueType === "decimal";
+    return this.variable && (this.variable.valueType === "integer" || this.variable.valueType === "decimal");
   }
 
   /**
    * Check if the variable has a logical type (boolean).
    */
   private isLogical(): boolean {
-    return this.variable.valueType === "boolean";
+    return this.variable && this.variable.valueType === "boolean";
+  }
+
+  /**
+   * Check if the variable has a numerical type (integer or decimal).
+   */
+  private isTemporal(): boolean {
+    return this.variable && (this.variable.valueType === "date" || this.variable.valueType === "datetime");
   }
 
   /**
@@ -392,11 +438,20 @@ class VariableCriteriaController implements ng.IComponentController {
     }
     if (this.showNumericalOptions()) {
       if (this.selectedNumericalOperation === "range") {
-        const min = this.selectedNumericalMin ? this.selectedNumericalMin : "*";
-        const max = this.selectedNumericalMax ? this.selectedNumericalMax : "*";
+        const min = this.selectedMin ? this.selectedMin : "*";
+        const max = this.selectedMax ? this.selectedMax : "*";
         args = [min, max].join(",");
       } else {
         args = this.selectedNumericalValues.split(" ").join(",");
+      }
+    }
+    if (this.showTemporalOptions()) {
+      if (this.selectedTemporalOperation === "range") {
+        const min = this.selectedFrom ? this.dateToString(this.selectedFrom) : "*";
+        const max = this.selectedTo ? this.dateToString(this.selectedTo) : "*";
+        args = [min, max].join(",");
+      } else {
+        args = this.dateToString(this.selectedTemporalValue);
       }
     }
     switch (this.selectedOperation) {
@@ -410,9 +465,11 @@ class VariableCriteriaController implements ng.IComponentController {
       case Operation.In:
       if (args && args.length > 0) {
         if (this.showCategoricalOptions()
-          || (this.showNumericalOptions() && this.selectedNumericalOperation === "in")) {
+          || (this.showNumericalOptions() && this.selectedNumericalOperation === "in")
+          || (this.showTemporalOptions() && this.selectedTemporalOperation === "in")) {
           newQuery = "in({field},({args}))";
-        } else if (this.showNumericalOptions() && this.selectedNumericalOperation === "range") {
+        } else if ((this.showNumericalOptions() && this.selectedNumericalOperation === "range")
+          || (this.showTemporalOptions() && this.selectedTemporalOperation === "range")) {
             newQuery = "range({field},({args}))";
         }
       } else {
@@ -423,10 +480,12 @@ class VariableCriteriaController implements ng.IComponentController {
       case Operation.Out:
       if (args && args.length > 0) {
         if (this.showCategoricalOptions()
-          || (this.showNumericalOptions() && this.selectedNumericalOperation === "in")) {
+          || (this.showNumericalOptions() && this.selectedNumericalOperation === "in")
+          || (this.showTemporalOptions() && this.selectedTemporalOperation === "in")) {
           newQuery = "not(in({field},({args})))";
-        } else if (this.showNumericalOptions() && this.selectedNumericalOperation === "range") {
-            newQuery = "not(range({field},({args})))";
+        } else if ((this.showNumericalOptions() && this.selectedNumericalOperation === "range")
+          || (this.showTemporalOptions() && this.selectedTemporalOperation === "range")) {
+          newQuery = "not(range({field},({args})))";
         }
       } else {
         newQuery = "exists({field})";
@@ -436,6 +495,15 @@ class VariableCriteriaController implements ng.IComponentController {
     newQuery = newQuery.replace("{field}", this.variable.id);
     newQuery = newQuery.replace("{args}", args);
     return newQuery;
+  }
+
+  private dateToString(date: Date): string {
+    if (!date) {
+      return "";
+    }
+    const mm = date.getMonth() + 1; // getMonth() is zero-based
+    const dd = date.getDate();
+    return [date.getFullYear(), (mm > 9 ? "" : "0") + mm, (dd > 9 ? "" : "0") + dd].join("-");
   }
 
   /**
@@ -463,8 +531,10 @@ class VariableCriteriaController implements ng.IComponentController {
         that.rangeMin = summary.min;
         that.rangeMax = summary.max;
         const frequencies = that.summary["Math.ContinuousSummaryDto.continuous"].frequencies;
-        that.existsFrequency = frequencies.filter((elem) => elem.value === "NOT_NULL")[0].freq;
-        that.emptyFrequency = frequencies.filter((elem) => elem.value === "N/A")[0].freq;
+        const notNullFreq = frequencies.filter((elem) => elem.value === "NOT_NULL")[0];
+        that.existsFrequency = notNullFreq ? notNullFreq.freq : 0;
+        const emptyFreq = frequencies.filter((elem) => elem.value === "N/A")[0];
+        that.emptyFrequency = emptyFreq ? emptyFreq.freq : 0;
         that.allFrequency = that.existsFrequency + that.emptyFrequency;
       }
       if (that.summary["Math.CategoricalSummaryDto.categorical"]) {
@@ -478,6 +548,13 @@ class VariableCriteriaController implements ng.IComponentController {
         that.allFrequency = that.summary["Math.CategoricalSummaryDto.categorical"].n;
         that.existsFrequency = that.summary["Math.CategoricalSummaryDto.categorical"].otherFrequency +
           frequencies.filter((elem) => elem.value !== "N/A").map((elem) => elem.freq).reduce((acc, curr) => acc + curr);
+        that.emptyFrequency = that.allFrequency - that.existsFrequency;
+      }
+      if (that.summary["Math.DefaultSummaryDto.defaultSummary"]) {
+        that.allFrequency = that.summary["Math.DefaultSummaryDto.defaultSummary"].n;
+        const notNullFreq = that.summary["Math.DefaultSummaryDto.defaultSummary"].frequencies
+          .filter((elem) => elem.value === "NOT_NULL")[0];
+        that.existsFrequency = notNullFreq ? notNullFreq.freq : 0;
         that.emptyFrequency = that.allFrequency - that.existsFrequency;
       }
     };

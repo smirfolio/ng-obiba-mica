@@ -46,13 +46,13 @@
             <span class="agg-term-count">{{$ctrl.emptyFrequency}}</span>
           </div>
         </li>
-        <li class="criteria-list-item">
+        <li class="criteria-list-item" ng-if="$ctrl.showInOperations()">
           <label title="{{'analysis.in-help' | translate}}">
             <input ng-click="$ctrl.onUpdateOperation()" type="radio" ng-model="$ctrl.selectedOperation" value="in">
               {{'analysis.in' | translate}}
           </label>
         </li>
-        <li class="criteria-list-item">
+        <li class="criteria-list-item" ng-if="$ctrl.showInOperations()">
           <label title="{{'analysis.out-help' | translate}}">
             <input ng-click="$ctrl.onUpdateOperation()" type="radio" ng-model="$ctrl.selectedOperation" value="out">
               {{'analysis.out' | translate}}
@@ -95,14 +95,14 @@
             <div class="col-xs-6">
               <div class="form-group">
                 <label for="range-min" translate>analysis.min</label>
-                <input ng-model="$ctrl.selectedNumericalMin" type="text" class="form-control" id="range-min" placeholder="{{$ctrl.rangeMin}}">
+                <input ng-model="$ctrl.selectedMin" type="text" class="form-control" id="range-min" placeholder="{{$ctrl.rangeMin}}">
               </div>
             </div>
             <div class="col-xs-6">
               <div class="form-group">
-                  <label for="range-max" translate>analysis.max</label>
-                  <input ng-model="$ctrl.selectedNumericalMax" type="text" class="form-control" id="range-max" placeholder="{{$ctrl.rangeMax}}">
-                </div>    
+                <label for="range-max" translate>analysis.max</label>
+                <input ng-model="$ctrl.selectedMax" type="text" class="form-control" id="range-max" placeholder="{{$ctrl.rangeMax}}">
+              </div>    
             </div>
           </div>
         </li>
@@ -110,6 +110,52 @@
           <div class="form-group">
             <label for="in-values" translate>analysis.values-title</label>
             <input ng-model="$ctrl.selectedNumericalValues" type="text" class="form-control" id="in-values" ng-keyup="$ctrl.onNumericalValuesKeyup($event)">
+          </div>
+        </li>
+
+        <li class="divider" ng-if="$ctrl.showTemporalOptions()"></li>
+        <li class="criteria-list-item" ng-if="$ctrl.showTemporalOptions()">
+          <select class="form-control input-sm form-select" ng-model="$ctrl.selectedTemporalOperation">
+            <option value="range">{{'analysis.range' | translate}}</option>
+            <option value="in">{{'analysis.date' | translate}}</option>
+          </select>
+        </li>
+        <li class="criteria-list-item" ng-if="$ctrl.showTemporalOptions() && $ctrl.selectedTemporalOperation === 'range'">
+          <div class="row">
+            <div class="col-xs-6">
+              <div class="form-group">
+                <label for="from-date" class="control-label" translate>analysis.to</label>  
+                <span class="input-group input-group-sm no-padding-top">
+                  <input id="from-date" type="text" class="form-control" aria-describedby="from-date-picker" uib-datepicker-popup="yyyy-MM-dd" 
+                    ng-model="$ctrl.selectedFrom" is-open="$ctrl.fromDatePickerOpened"/>
+                  <span class="input-group-addon" id="from-date-picker" ng-click="$ctrl.fromDatePickerOpened = true"><i class="fa fa-calendar"></i></span>
+                </span>
+              </div>
+            </div>
+            <div class="col-xs-6">
+              <div class="form-group">
+                <label for="to-date" class="control-label" translate>analysis.to</label>  
+                <span class="input-group input-group-sm no-padding-top">
+                  <input id="to-date" type="text" class="form-control" aria-describedby="to-date-picker" uib-datepicker-popup="yyyy-MM-dd" 
+                    ng-model="$ctrl.selectedTo" is-open="$ctrl.toDatePickerOpened"/>
+                  <span class="input-group-addon" id="to-date-picker" ng-click="$ctrl.toDatePickerOpened = true"><i class="fa fa-calendar"></i></span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="criteria-list-item" ng-if="$ctrl.showTemporalOptions() && $ctrl.selectedTemporalOperation === 'in'">
+          <div class="row">
+            <div class="col-xs-12">
+              <div class="form-group">
+                <label for="in-date" class="control-label" translate>analysis.date-title</label>  
+                <span class="input-group input-group-sm no-padding-top">
+                  <input id="in-date" type="text" class="form-control" aria-describedby="date-picker" uib-datepicker-popup="yyyy-MM-dd" 
+                    ng-model="$ctrl.selectedTemporalValue" is-open="$ctrl.datePickerOpened"/>
+                  <span class="input-group-addon" id="date-picker" ng-click="$ctrl.datePickerOpened = true"><i class="fa fa-calendar"></i></span>
+                </span>
+              </div>
+            </div>
           </div>
         </li>
     </ul>
