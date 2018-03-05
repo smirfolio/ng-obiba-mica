@@ -58,25 +58,31 @@
               {{'analysis.out' | translate}}
           </label>
         <li>
+
         <li class="divider" ng-if="$ctrl.showCategoricalOptions()"></li>
-        <li class="criteria-list-item" ng-if="$ctrl.showCategoricalOptions() && $ctrl.categoriesData && $ctrl.categoriesData.length>1">
+        <li class="criteria-list-item" ng-if="$ctrl.showCategoricalOptions() && $ctrl.categoriesData && $ctrl.categoriesData.length>10">
           <span class="input-group input-group-sm no-padding-top">
-            <input ng-model="$ctrl.searchText" type="text" class="form-control" aria-describedby="category-search">
+            <input ng-model="$ctrl.searchText" type="text" class="form-control" aria-describedby="category-search" ng-keyup="$ctrl.onSearchTextKeyup($event)">
             <span class="input-group-addon" id="category-search"><i class="fa fa-search"></i></span>
           </span>
         </li>
-        <li class="criteria-list-item" ng-if="$ctrl.showCategoricalOptions()" ng-repeat="category in $ctrl.categoriesData">
-          <label class="control-label">
-            <input 
-              ng-model="$ctrl.selectedCategories[category.name]"
-              type="checkbox"
-              ng-click="$ctrl.updateSelection()"/>
-              <span title="{{category.name}}">{{category.label}}</span>
-          </label>
-          <div class="pull-right">
-            <span class="agg-term-count">{{category.frequency}}</span>
-          </div>
+        <li ng-if="$ctrl.showCategoricalOptions()">
+          <ul class="no-padding criteria-list-terms">
+            <li class="criteria-list-item" ng-if="category.visible" ng-repeat="category in $ctrl.categoriesData">
+              <label class="control-label">
+                <input 
+                  ng-model="$ctrl.selectedCategories[category.name]"
+                  type="checkbox"
+                  ng-click="$ctrl.updateSelection()"/>
+                  <span title="{{category.name}}">{{category.label}}</span>
+              </label>
+              <div class="pull-right">
+                <span class="agg-term-count">{{category.frequency}}</span>
+              </div>
+            </li>
+          </ul>
         </li>
+
         <li class="divider" ng-if="$ctrl.showNumericalOptions()"></li>
         <li class="criteria-list-item" ng-if="$ctrl.showNumericalOptions()">
           <div class="row">

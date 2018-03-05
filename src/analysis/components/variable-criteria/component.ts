@@ -91,14 +91,29 @@ class VariableCriteriaController implements ng.IComponentController {
     }
   }
 
-  public onKeyup(event) {
+  public onKeyup(event): void {
     if (event.keyCode === 13) {
-      this.closeDropdown();
+      this.closeDropdown(false);
+    } else if (event.keyCode === 27) {
+      this.closeDropdown(true);
     }
   }
 
-  public closeDropdown() {
+  public onSearchTextKeyup(event): void {
+    const filter = this.searchText.trim();
+    if (this.categoriesData)  {
+      const regex = new RegExp(filter, "i");
+      this.categoriesData.forEach((cat) => {
+        cat.visible = cat.label.match(regex) !== null;
+      });
+    }
+  }
+
+  public closeDropdown(cancel: boolean) {
     this.state.open = false;
+    if (cancel) {
+      return;
+    }
     // get the query from the selections
     let newQuery = "";
     let args;
@@ -143,7 +158,7 @@ class VariableCriteriaController implements ng.IComponentController {
 
   public openDropdown() {
     if (this.state.open) {
-      this.closeDropdown();
+      this.closeDropdown(false);
       return;
     }
     this.state.open = true;
@@ -282,16 +297,19 @@ class VariableCriteriaController implements ng.IComponentController {
           this.categoriesData.push({
             label: this.localizeCategory(cat.name),
             name: cat.name,
+            visible: true,
           });
         });
       } else if (this.isLogical()) {
         this.categoriesData.push({
           label: this.$filter("translate")("global.true"),
           name: "true",
+          visible: true,
         });
         this.categoriesData.push({
           label: this.$filter("translate")("global.false"),
           name: "false",
+          visible: true,
         });
       }
     }
