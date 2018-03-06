@@ -25,7 +25,7 @@
               {{'analysis.all' | translate}}
           </label>
           <div class="pull-right">
-            <span class="agg-term-count">{{$ctrl.allFrequency}}</span>
+            <span class="agg-term-count">{{$ctrl.localizeNumber($ctrl.allFrequency)}}</span>
           </div>
         </li>
         <li class="criteria-list-item">
@@ -34,7 +34,7 @@
               {{'analysis.exists' | translate}}
           </label>
           <div class="pull-right">
-            <span class="agg-term-count">{{$ctrl.existsFrequency}}</span>
+            <span class="agg-term-count">{{$ctrl.localizeNumber($ctrl.existsFrequency)}}</span>
           </div>
         </li>
         <li class="criteria-list-item">
@@ -43,7 +43,7 @@
               {{'analysis.empty' | translate}}
           </label>
           <div class="pull-right">
-            <span class="agg-term-count">{{$ctrl.emptyFrequency}}</span>
+            <span class="agg-term-count">{{$ctrl.localizeNumber($ctrl.emptyFrequency)}}</span>
           </div>
         </li>
         <li class="criteria-list-item" ng-if="$ctrl.showInOperations()">
@@ -77,7 +77,7 @@
                   <span title="{{category.name}}">{{category.label}}</span>
               </label>
               <div class="pull-right">
-                <span class="agg-term-count">{{category.frequency}}</span>
+                <span class="agg-term-count">{{$ctrl.localizeNumber(category.frequency)}}</span>
               </div>
             </li>
           </ul>

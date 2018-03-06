@@ -205,6 +205,10 @@ class VariableCriteriaController implements ng.IComponentController {
     return this.getNature() === "TEMPORAL" && this.isTemporal() && this.showOptions();
   }
 
+  public localizeNumber(value: number): string {
+    return this.LocalizedValues.formatNumber(value);
+  }
+
   /**
    * Parse the query and initialize the component state with variable information.
    */
