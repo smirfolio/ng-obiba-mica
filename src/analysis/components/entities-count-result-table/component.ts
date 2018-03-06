@@ -15,7 +15,9 @@ class EntitiesCountResultTableController implements ng.IComponentController {
   private static $inject = ["PageUrlService", "LocalizedValues", "$translate", "$log"];
 
   public result: any;
+  public studyCount: number;
   public table: any;
+  public localizedTotal: string;
 
   constructor(
     private PageUrlService: any,
@@ -33,6 +35,7 @@ class EntitiesCountResultTableController implements ng.IComponentController {
 
   public $onChanges() {
     this.table = this.asTable();
+    this.localizedTotal = this.LocalizedValues.formatNumber(this.result.total ? this.result.total : 0);
   }
 
   private localize(values): string {
@@ -43,7 +46,8 @@ class EntitiesCountResultTableController implements ng.IComponentController {
     const table = {
       rows: new Array(),
     };
-    if (this.result.counts) {
+    this.studyCount = this.result.counts ? this.result.counts.length : 0;
+    if (this.studyCount) {
       this.result.counts.forEach((studyResult) => {
         const studyAcronym = this.localize(studyResult.study.acronym);
         const studyName = this.localize(studyResult.study.name);

@@ -171,7 +171,10 @@ class VariableCriteriaController implements ng.IComponentController {
         title = title + " (" + items.join(", ") + ")";
       }
     }
-    return truncated && title.length > 50 ? title.substring(0, 50) + "..." : title;
+    if (!truncated) {
+      return title.length > 50 ? title : "";
+    }
+    return title.length > 50 ? title.substring(0, 50) + "..." : title;
   }
 
   /**

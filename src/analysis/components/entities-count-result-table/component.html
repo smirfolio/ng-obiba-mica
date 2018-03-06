@@ -33,7 +33,16 @@
             <b translate>analysis.all-criteria</b>
           </td>
           <td ng-if="row.length===3" colspan="{{row[2].colspan}}">
-            <b><localized-number value="row[2].value"></localized-number></b>
+            <span ng-if="$ctrl.studyCount === 1" class="badge">{{$ctrl.localizedTotal}}</span>
+            <b ng-if="$ctrl.studyCount > 1"><localized-number value="row[2].value"></localized-number></b>
+          </td>
+        </tr>
+        <tr ng-if="$ctrl.studyCount > 1">
+          <td colspan="{{$ctrl.showStudy ? 4 : 3}}">
+            <b translate>total</b>
+          </td>
+          <td>
+            <span class="badge">{{$ctrl.localizedTotal}}</span>
           </td>
         </tr>
     </tbody>
