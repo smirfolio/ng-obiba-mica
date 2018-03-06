@@ -109,7 +109,7 @@ class VariableCriteriaController implements ng.IComponentController {
     if (this.selectedNumericalValues) {
       for (let i = 0; i < this.selectedNumericalValues.length; i++) {
         const c = this.selectedNumericalValues.charAt(i);
-        if (c === " " || c === "." || c === "-" || !isNaN(parseInt(c, 10))) {
+        if (c === " " || (this.variable.valueType === "decimal" && c === ".") || c === "-" || !isNaN(parseInt(c, 10))) {
           values = values + c;
         }
       }
@@ -207,54 +207,19 @@ class VariableCriteriaController implements ng.IComponentController {
   private initializeState(): void {
     this.rqlQuery = this.parseQuery();
     if (this.rqlQuery.args) {
-      const isNot = this.rqlQuery.name === "not";
-      const rqlQueryWithArgs = isNot ? this.rqlQuery.args[0] : this.rqlQuery;
+      const rqlQueryWithArgs = this.getQueryWithArgs();
       // get variable from field name
       this.id = rqlQueryWithArgs.args[0].join(":");
       this.VariableResource.get({ id: this.id }, this.onVariable(), this.onError());
-      // get categories if any
-      if (rqlQueryWithArgs.args.length > 1) {
-        if (rqlQueryWithArgs.name === "in") {
-          // don't know at this point if it is a categorical or numerical/temporal variable
-          rqlQueryWithArgs.args[1].forEach((value) => {
-            this.selectedCategories[value] = true;
-          });
-          this.selectedNumericalOperation = "in";
-          this.selectedNumericalValues = rqlQueryWithArgs.args[1].filter((val) => !isNaN(val)).join(" ");
-          this.selectedTemporalOperation = "in";
-          this.selectedTemporalValue = rqlQueryWithArgs.args[1].length > 0 ?
-            new Date(Date.parse(rqlQueryWithArgs.args[1][0])) : undefined;
-        } else if (rqlQueryWithArgs.name === "range" && rqlQueryWithArgs.args[1].length > 0) {
-          const arg1 = rqlQueryWithArgs.args[1][0];
-          if (arg1 === "*") {
-            this.selectedMin = undefined;
-            this.selectedFrom = undefined;
-          } else if (!isNaN(arg1)) {
-            this.selectedMin = arg1;
-          } else {
-            this.selectedFrom = new Date(Date.parse(arg1));
-          }
-          if (rqlQueryWithArgs.args[1].length >= 2) {
-            const arg2 = rqlQueryWithArgs.args[1][1];
-            if (arg2 === "*") {
-              this.selectedMax = undefined;
-              this.selectedTo = undefined;
-            } else if (!isNaN(arg2)) {
-              this.selectedMax = arg2;
-            } else {
-              this.selectedTo = new Date(Date.parse(arg2));
-            }
-          }
-        }
-      }
-      this.selectedOperation = this.rqlQuery.name === "range" ? "in" : this.rqlQuery.name;
-      if (isNot && (rqlQueryWithArgs.name === "in" || rqlQueryWithArgs.name === "range")) {
-        this.selectedOperation = "out";
-      }
-      if (isNot && rqlQueryWithArgs.name === "exists") {
-        this.selectedOperation = "empty";
-      }
     }
+  }
+
+  private getQueryWithArgs(): any {
+    return this.isQueryNot() ? this.rqlQuery.args[0] : this.rqlQuery;
+  }
+
+  private isQueryNot(): boolean {
+    return this.rqlQuery.name === "not";
   }
 
   /**
@@ -426,6 +391,59 @@ class VariableCriteriaController implements ng.IComponentController {
   }
 
   /**
+   * Set the state of the options according to the variable and the query.
+   */
+  private prepareOptions() {
+    this.prepareCategories();
+    const rqlQueryWithArgs = this.getRqlQueryWithArgs();
+    // get categories if any
+    if (rqlQueryWithArgs.args.length > 1) {
+      if (rqlQueryWithArgs.name === "in") {
+        if (this.showCategoricalOptions()) {
+          rqlQueryWithArgs.args[1].forEach((value) => {
+            this.selectedCategories[value] = true;
+          });
+        } else if (this.showNumericalOptions()) {
+          this.selectedNumericalOperation = "in";
+          this.selectedNumericalValues = rqlQueryWithArgs.args[1].filter((val) => !isNaN(val)).join(" ");
+        } else if (this.showTemporalOptions()) {
+          this.selectedTemporalOperation = "in";
+          this.selectedTemporalValue = rqlQueryWithArgs.args[1].length > 0 ?
+            new Date(Date.parse(rqlQueryWithArgs.args[1][0])) : undefined;
+        }
+      } else if (rqlQueryWithArgs.name === "range" && rqlQueryWithArgs.args[1].length > 0) {
+        const arg1 = rqlQueryWithArgs.args[1][0];
+        if (arg1 === "*") {
+          this.selectedMin = undefined;
+          this.selectedFrom = undefined;
+        } else if (this.showNumericalOptions() && !isNaN(arg1)) {
+          this.selectedMin = arg1;
+        } else if (this.showTemporalOptions()) {
+          this.selectedFrom = new Date(Date.parse(arg1));
+        }
+        if (rqlQueryWithArgs.args[1].length >= 2) {
+          const arg2 = rqlQueryWithArgs.args[1][1];
+          if (arg2 === "*") {
+            this.selectedMax = undefined;
+            this.selectedTo = undefined;
+          } else if (this.showNumericalOptions() && !isNaN(arg2)) {
+            this.selectedMax = arg2;
+          } else if (this.showTemporalOptions()) {
+            this.selectedTo = new Date(Date.parse(arg2));
+          }
+        }
+      }
+    }
+    this.selectedOperation = this.rqlQuery.name === "range" ? "in" : this.rqlQuery.name;
+    if (this.isQueryNot() && (rqlQueryWithArgs.name === "in" || rqlQueryWithArgs.name === "range")) {
+      this.selectedOperation = "out";
+    }
+    if (this.isQueryNot() && rqlQueryWithArgs.name === "exists") {
+      this.selectedOperation = "empty";
+    }
+  }
+
+  /**
    * Get the new query from the selections.
    */
   private makeNewQuery(): string {
@@ -514,7 +532,7 @@ class VariableCriteriaController implements ng.IComponentController {
     return (response: any) => {
       that.variable = response;
       that.loading = false;
-      that.prepareCategories();
+      that.prepareOptions();
       that.VariableSummaryResource.get({ id: response.id }, that.onVariableSummary(), that.onError());
     };
   }
@@ -548,6 +566,18 @@ class VariableCriteriaController implements ng.IComponentController {
         that.allFrequency = that.summary["Math.CategoricalSummaryDto.categorical"].n;
         that.existsFrequency = that.summary["Math.CategoricalSummaryDto.categorical"].otherFrequency +
           frequencies.filter((elem) => elem.value !== "N/A").map((elem) => elem.freq).reduce((acc, curr) => acc + curr);
+        that.emptyFrequency = that.allFrequency - that.existsFrequency;
+      }
+      if (that.summary["Math.TextSummaryDto.textSummary"]) {
+        that.allFrequency = that.summary["Math.TextSummaryDto.textSummary"].n;
+        const frequencies = that.summary["Math.TextSummaryDto.textSummary"].frequencies;
+        if (frequencies) {
+          that.existsFrequency = frequencies.filter((elem) => elem.value !== "N/A")
+            .map((elem) => elem.freq).reduce((acc, curr) => acc + curr);
+        }
+        if (that.summary["Math.TextSummaryDto.textSummary"].otherFrequency) {
+          that.existsFrequency = that.existsFrequency + that.summary["Math.TextSummaryDto.textSummary"].otherFrequency;
+        }
         that.emptyFrequency = that.allFrequency - that.existsFrequency;
       }
       if (that.summary["Math.DefaultSummaryDto.defaultSummary"]) {
