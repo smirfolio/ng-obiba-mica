@@ -19,19 +19,21 @@ interface IEntitiesCountService {
 
 class EntitiesCountService implements IEntitiesCountService {
 
-  private static $inject = ["$location"];
+  private static $inject = ["$location", "ObibaServerConfigResource"];
 
-  private options;
+  private hasMultipleStudies: boolean;
 
   constructor(
     private $location: any,
-    ngObibaMicaSearch) {
-    this.options = ngObibaMicaSearch.getOptions();
-  }
+    private ObibaServerConfigResource: any) {
+      const that = this;
+      ObibaServerConfigResource.get((micaConfig) => {
+        that.hasMultipleStudies = !micaConfig.isSingleStudyEnabled || micaConfig.isHarmonizedDatasetEnabled;
+      });
+    }
 
   public isSingleStudy(): boolean {
-    // not showing study means that there is only one
-    return !this.options.studies.showSearchTab;
+    return !this.hasMultipleStudies;
   }
 
   /**
@@ -53,4 +55,4 @@ class EntitiesCountService implements IEntitiesCountService {
   }
 }
 
-ngObibaMica.analysis.service("EntitiesCountService", ["$location", "ngObibaMicaSearch", EntitiesCountService]);
+ngObibaMica.analysis.service("EntitiesCountService", ["$location", "ObibaServerConfigResource", EntitiesCountService]);

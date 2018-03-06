@@ -10,48 +10,49 @@
 
 'use strict';
 
-ngObibaMica.analysis
-.controller('EntitiesCountController', [
-  '$scope',
-  '$location',
-  'EntitiesCountResource',
-  'AlertService',
-  'ServerErrorUtils',
-  'ngObibaMicaAnalysisTemplateUrl',
-  'EntitiesCountService', 
-  function($scope, $location, EntitiesCountResource, AlertService, ServerErrorUtils, ngObibaMicaAnalysisTemplateUrl, EntitiesCountService) {
-    $scope.entitiesHeaderTemplateUrl = ngObibaMicaAnalysisTemplateUrl.getHeaderUrl('entities');
-    $scope.result = {};
-    $scope.query = $location.search().query;
-    $scope.loading = false;
-
-    function refresh() {
-      if ($scope.query) {
-        $scope.loading = true;
-
-        EntitiesCountResource.get({ query: $scope.query },
-          function onSuccess(response) {
-            $scope.result = response;
-            $scope.showStudy = !EntitiesCountService.isSingleStudy();
-            $scope.loading = false;
-          },
-          function onError(response) {
-            $scope.result = {};
-            $scope.loading = false;
-            AlertService.alert({
-              id: 'EntitiesCountController',
-              type: 'danger',
-              msg: ServerErrorUtils.buildMessage(response),
-              delay: 5000
-            });
-          });
-      }
-    }
-
-    refresh();
-
-    $scope.$on('$locationChangeSuccess', function() {
+(function() {
+  ngObibaMica.analysis
+  .controller('EntitiesCountController', [
+    '$scope',
+    '$location',
+    'EntitiesCountResource',
+    'AlertService',
+    'ServerErrorUtils',
+    'ngObibaMicaAnalysisTemplateUrl',
+    function($scope, $location, EntitiesCountResource, AlertService, ServerErrorUtils, ngObibaMicaAnalysisTemplateUrl) {
+      $scope.entitiesHeaderTemplateUrl = ngObibaMicaAnalysisTemplateUrl.getHeaderUrl('entities');
+      $scope.result = {};
       $scope.query = $location.search().query;
+      $scope.loading = false;
+  
+      function refresh() {
+        if ($scope.query) {
+          $scope.loading = true;
+  
+          EntitiesCountResource.get({ query: $scope.query },
+            function onSuccess(response) {
+              $scope.result = response;
+              $scope.loading = false;
+            },
+            function onError(response) {
+              $scope.result = {};
+              $scope.loading = false;
+              AlertService.alert({
+                id: 'EntitiesCountController',
+                type: 'danger',
+                msg: ServerErrorUtils.buildMessage(response),
+                delay: 5000
+              });
+            });
+        }
+      }
+  
       refresh();
-    });
-  }]);
+  
+      $scope.$on('$locationChangeSuccess', function() {
+        $scope.query = $location.search().query;
+        refresh();
+      });
+  
+    }]); 
+})();

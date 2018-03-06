@@ -12,7 +12,7 @@
 
 class EntitiesCountResultTableController implements ng.IComponentController {
 
-  private static $inject = ["PageUrlService", "LocalizedValues", "$translate", "$log"];
+  private static $inject = ["PageUrlService", "LocalizedValues", "EntitiesCountService", "$translate", "$log"];
 
   public result: any;
   public studyCount: number;
@@ -22,6 +22,7 @@ class EntitiesCountResultTableController implements ng.IComponentController {
   constructor(
     private PageUrlService: any,
     private LocalizedValues: any,
+    private EntitiesCountService: any,
     private $translate: any,
     private $log: any) {
       this.result = {};
@@ -36,6 +37,10 @@ class EntitiesCountResultTableController implements ng.IComponentController {
   public $onChanges() {
     this.table = this.asTable();
     this.localizedTotal = this.LocalizedValues.formatNumber(this.result.total ? this.result.total : 0);
+  }
+
+  public showStudyColumn(): boolean {
+    return !this.EntitiesCountService.isSingleStudy();
   }
 
   private localize(values): string {
@@ -144,7 +149,6 @@ class EntitiesCountResultTableComponent implements ng.IComponentOptions {
     this.transclude = true;
     this.bindings = {
       result: "<",
-      showStudy: "<",
     };
     this.controller = EntitiesCountResultTableController;
     this.controllerAs = "$ctrl";

@@ -13,7 +13,6 @@
 /* global NgObibaMicaTemplateUrlFactory */
 
 (function () {
-
   ngObibaMica.analysis
     .config(['$provide', function ($provide) {
       $provide.provider('ngObibaMicaAnalysisTemplateUrl', new NgObibaMicaTemplateUrlFactory().create(

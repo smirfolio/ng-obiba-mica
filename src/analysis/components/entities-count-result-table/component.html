@@ -1,7 +1,7 @@
 <div>
   <table class="table table-bordered table-striped" ng-if="$ctrl.result">
     <thead>
-      <th ng-if="$ctrl.showStudy" translate>taxonomy.target.study</th>
+      <th ng-if="$ctrl.showStudyColumn()" translate>taxonomy.target.study</th>
       <th translate>taxonomy.target.variable</th>
       <th translate>taxonomy.target.dataset</th>
       <th translate>analysis.criteria</th>
@@ -9,7 +9,7 @@
     </thead>
     <tbody>
         <tr ng-repeat="row in $ctrl.table.rows">
-          <td ng-if="row[0].rowspan>0 && $ctrl.showStudy" colspan="{{row[0].colspan}}" rowspan="{{row[0].rowspan}}" title="{{row[0].title}}">
+          <td ng-if="row[0].rowspan>0 && $ctrl.showStudyColumn()" colspan="{{row[0].colspan}}" rowspan="{{row[0].rowspan}}" title="{{row[0].title}}">
             <a href="{{row[0].link}}">{{row[0].value}}</a>
           </td>
           
@@ -38,7 +38,7 @@
           </td>
         </tr>
         <tr ng-if="$ctrl.studyCount > 1">
-          <td colspan="{{$ctrl.showStudy ? 4 : 3}}">
+          <td colspan="{{$ctrl.showStudyColumn() ? 4 : 3}}">
             <b translate>total</b>
           </td>
           <td>
