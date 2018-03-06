@@ -95,13 +95,13 @@
             <div class="col-xs-6">
               <div class="form-group">
                 <label for="range-min" translate>analysis.min</label>
-                <input ng-model="$ctrl.selectedMin" type="text" class="form-control" id="range-min" placeholder="{{$ctrl.rangeMin}}">
+                <input ng-model="$ctrl.selectedMin" type="text" class="form-control" id="range-min" ng-keyup="$ctrl.onNumericalMinKeyup($event)" placeholder="{{$ctrl.rangeMin}}">
               </div>
             </div>
             <div class="col-xs-6">
               <div class="form-group">
                 <label for="range-max" translate>analysis.max</label>
-                <input ng-model="$ctrl.selectedMax" type="text" class="form-control" id="range-max" placeholder="{{$ctrl.rangeMax}}">
+                <input ng-model="$ctrl.selectedMax" type="text" class="form-control" id="range-max" ng-keyup="$ctrl.onNumericalMaxKeyup($event)" placeholder="{{$ctrl.rangeMax}}">
               </div>    
             </div>
           </div>

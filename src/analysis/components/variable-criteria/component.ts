@@ -10,6 +10,8 @@
 
 "use strict";
 
+// import { IEntitiesCountService } from "../../services/entities-count-service";
+
 declare var ngObibaMica: any;
 declare var RqlParser: any;
 declare var RqlQuery: any;
@@ -25,7 +27,8 @@ enum Operation {
 class VariableCriteriaController implements ng.IComponentController {
 
   private static $inject = [
-    "VariableResource", "VariableSummaryResource", "LocalizedValues", "$log", "$location", "$translate", "$filter"];
+    "VariableResource", "VariableSummaryResource", "LocalizedValues", "EntitiesCountService",
+    "$log", "$translate", "$filter"];
 
   public id: string;
   public loading: boolean;
@@ -44,8 +47,8 @@ class VariableCriteriaController implements ng.IComponentController {
   public selectedCategories: any;
   public selectedOperation: string;
   public selectedNumericalOperation: string;
-  public selectedMin: number;
-  public selectedMax: number;
+  public selectedMin: string;
+  public selectedMax: string;
   public selectedNumericalValues: string;
   public selectedTemporalOperation: string;
   public selectedFrom: Date;
@@ -56,8 +59,8 @@ class VariableCriteriaController implements ng.IComponentController {
     private VariableResource: any,
     private VariableSummaryResource: any,
     private LocalizedValues: any,
+    private EntitiesCountService: any,
     private $log: any,
-    private $location: any,
     private $translate: any,
     private $filter: any) {
       this.query = "";
@@ -99,22 +102,20 @@ class VariableCriteriaController implements ng.IComponentController {
     }
   }
 
+  public onNumericalMinKeyup(event): void {
+    this.selectedMin = this.ensureNumericValue(this.selectedMin + "", " ");
+  }
+
+  public onNumericalMaxKeyup(event): void {
+    this.selectedMax = this.ensureNumericValue(this.selectedMax + "", " ");
+  }
+
   /**
    * Make sure numerical values are space separated numbers.
    * @param event ignored
    */
   public onNumericalValuesKeyup(event): void {
-    this.$log.info(this.selectedNumericalValues);
-    let values = "";
-    if (this.selectedNumericalValues) {
-      for (let i = 0; i < this.selectedNumericalValues.length; i++) {
-        const c = this.selectedNumericalValues.charAt(i);
-        if (c === " " || (this.variable.valueType === "decimal" && c === ".") || c === "-" || !isNaN(parseInt(c, 10))) {
-          values = values + c;
-        }
-      }
-      this.selectedNumericalValues = values;
-    }
+    this.selectedNumericalValues = this.ensureNumericValue(this.selectedNumericalValues, " ");
   }
 
   /**
@@ -227,15 +228,7 @@ class VariableCriteriaController implements ng.IComponentController {
    * @param newQuery critera query
    */
   private update(newQuery: string): void {
-    if (this.query === newQuery) {
-      return;
-    }
-    const search = this.$location.search();
-    search.query = search.query.split(this.query).join("").replace(/,,/, ",").replace(/^,/, "").replace(/,$/, "");
-    if (newQuery && newQuery.length !== 0) {
-        search.query = search.query + "," + newQuery;
-    }
-    this.$location.search(search);
+    this.EntitiesCountService.update(this.query, newQuery);
   }
 
   /**
@@ -443,6 +436,22 @@ class VariableCriteriaController implements ng.IComponentController {
     }
   }
 
+  private ensureNumericValue(selection: string, separator: string): string {
+    let values = "";
+    if (selection) {
+      for (let i = 0; i < selection.length; i++) {
+        const c = selection.charAt(i);
+        if (c === separator
+          || (this.variable.valueType === "decimal" && c === ".")
+          || c === "-"
+          || !isNaN(parseInt(c, 10))) {
+          values = values + c;
+        }
+      }
+    }
+    return values;
+  }
+
   /**
    * Get the new query from the selections.
    */
@@ -456,8 +465,8 @@ class VariableCriteriaController implements ng.IComponentController {
     }
     if (this.showNumericalOptions()) {
       if (this.selectedNumericalOperation === "range") {
-        const min = this.selectedMin ? this.selectedMin : "*";
-        const max = this.selectedMax ? this.selectedMax : "*";
+        const min = this.selectedMin && this.selectedMin !== "-" ? this.selectedMin : "*";
+        const max = this.selectedMax && this.selectedMax !== "-" ? this.selectedMax : "*";
         args = [min, max].join(",");
       } else {
         args = this.selectedNumericalValues.split(" ").join(",");

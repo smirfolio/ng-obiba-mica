@@ -14,13 +14,18 @@ declare var ngObibaMica: any;
 
 interface IEntitiesCountService {
   isSingleStudy(): boolean;
+  update(originalQuery: string, newQuery: string): void;
 }
 
 class EntitiesCountService implements IEntitiesCountService {
 
+  private static $inject = ["$location"];
+
   private options;
 
-  constructor(ngObibaMicaSearch) {
+  constructor(
+    private $location: any,
+    ngObibaMicaSearch) {
     this.options = ngObibaMicaSearch.getOptions();
   }
 
@@ -28,6 +33,24 @@ class EntitiesCountService implements IEntitiesCountService {
     // not showing study means that there is only one
     return !this.options.studies.showSearchTab;
   }
+
+  /**
+   * Replace the original query with the new one in the browser location. If new query is empty,
+   * the criteria is to be removed.
+   * @param originalQuery Query before update
+   * @param newQuery Query after update
+   */
+  public update(originalQuery: string, newQuery: string): void {
+    if (originalQuery === newQuery) {
+      return;
+    }
+    const search = this.$location.search();
+    search.query = search.query.split(originalQuery).join("").replace(/,,/, ",").replace(/^,/, "").replace(/,$/, "");
+    if (newQuery && newQuery.length !== 0) {
+        search.query = search.query + "," + newQuery;
+    }
+    this.$location.search(search);
+  }
 }
 
-ngObibaMica.analysis.service("EntitiesCountService", ["ngObibaMicaSearch", EntitiesCountService]);
+ngObibaMica.analysis.service("EntitiesCountService", ["$location", "ngObibaMicaSearch", EntitiesCountService]);
