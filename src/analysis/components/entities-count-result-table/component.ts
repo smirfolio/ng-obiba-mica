@@ -64,7 +64,10 @@ class EntitiesCountResultTableController implements ng.IComponentController {
             if (datasetResult.counts) {
               datasetResult.counts.forEach((variableResult) => {
                 const parts = variableResult.variable.id.split(":");
-                const variableName = parts[1];
+                let variableName = parts[1];
+                if (variableResult.studyTableName) {
+                  variableName = variableName + " (" + this.localize(variableResult.studyTableName) + ")";
+                }
                 const variableType = parts[2];
                 const variableLink = this.PageUrlService.variablePage(variableResult.variable.id);
                 const datasetLink = this.PageUrlService.datasetPage(datasetResult.dataset.id, variableType);
