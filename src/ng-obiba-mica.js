@@ -94,6 +94,7 @@ function NgObibaMicaTemplateUrlFactory() {
       'obiba.mica.attachment',
       'obiba.mica.access',
       'obiba.mica.search',
+      'obiba.mica.analysis',
       'obiba.mica.graphics',
       'obiba.mica.localized',
       'obiba.mica.fileBrowser',
@@ -142,6 +143,8 @@ function NgObibaMicaTemplateUrlFactory() {
         'TaxonomiesResource': 'ws/taxonomies/_filter',
         'TaxonomyResource': 'ws/taxonomy/:taxonomy/_filter',
         'VocabularyResource': 'ws/taxonomy/:taxonomy/vocabulary/:vocabulary/_filter',
+        'VariableResource': 'ws/variable/:id',
+        'VariableSummaryResource': 'ws/variable/:id/summary',
         'JoinQuerySearchResource': 'ws/:type/_rql',
         'JoinQuerySearchCsvResource': 'ws/:type/_rql_csv?query=:query',
         'JoinQuerySearchCsvReportResource': 'ws/:type/_report?query=:query',
@@ -158,7 +161,8 @@ function NgObibaMicaTemplateUrlFactory() {
         'FileBrowserSearchResource': 'ws/files-search/:path',
         'FileBrowserDownloadUrl': 'ws/draft/file-dl/:path?inline=:inline',
         'SearchBaseUrl': '#/search',
-        'DocumentSuggestion': 'ws/:documentType/_suggest'
+        'DocumentSuggestion': 'ws/:documentType/_suggest',
+        'EntitiesCountResource': 'ws/datasets/entities/_count?query=:query'
       };
 
       function UrlProvider(registry) {

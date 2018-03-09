@@ -10,13 +10,17 @@
 
 "use strict";
 
+declare var ngObibaMica;
+
 class TemplateController implements ng.IComponentController {
+
+  private static $inject = ["$log"];
 
   public dataBinding: number;
   public functionBinding: () => any; // function arguments and returned value may need to be declared
   public textBinding: string;
 
-  constructor() {
+  constructor(private $log: any) {
       this.textBinding = "";
       this.dataBinding = 0;
   }
@@ -48,4 +52,4 @@ class TemplateComponent implements ng.IComponentOptions {
 }
 
 ngObibaMica.someModule
-  .component("templateComponent", new TemplateComponent());
+  .component("template", new TemplateComponent());
