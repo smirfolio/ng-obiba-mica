@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-03-08
+ * Date: 2018-03-09
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -84,6 +84,7 @@ function NgObibaMicaTemplateUrlFactory() {
         'obiba.mica.attachment',
         'obiba.mica.access',
         'obiba.mica.search',
+        'obiba.mica.analysis',
         'obiba.mica.graphics',
         'obiba.mica.localized',
         'obiba.mica.fileBrowser',
@@ -127,6 +128,8 @@ function NgObibaMicaTemplateUrlFactory() {
             'TaxonomiesResource': 'ws/taxonomies/_filter',
             'TaxonomyResource': 'ws/taxonomy/:taxonomy/_filter',
             'VocabularyResource': 'ws/taxonomy/:taxonomy/vocabulary/:vocabulary/_filter',
+            'VariableResource': 'ws/variable/:id',
+            'VariableSummaryResource': 'ws/variable/:id/summary',
             'JoinQuerySearchResource': 'ws/:type/_rql',
             'JoinQuerySearchCsvResource': 'ws/:type/_rql_csv?query=:query',
             'JoinQuerySearchCsvReportResource': 'ws/:type/_report?query=:query',
@@ -143,7 +146,8 @@ function NgObibaMicaTemplateUrlFactory() {
             'FileBrowserSearchResource': 'ws/files-search/:path',
             'FileBrowserDownloadUrl': 'ws/draft/file-dl/:path?inline=:inline',
             'SearchBaseUrl': '#/search',
-            'DocumentSuggestion': 'ws/:documentType/_suggest'
+            'DocumentSuggestion': 'ws/:documentType/_suggest',
+            'EntitiesCountResource': 'ws/datasets/entities/_count?query=:query'
         };
         function UrlProvider(registry) {
             var urlRegistry = registry;
@@ -9755,6 +9759,961 @@ ngObibaMica.search
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 'use strict';
+ngObibaMica.analysis = angular.module('obiba.mica.analysis', [
+    'obiba.alert',
+    'ui.bootstrap',
+    'pascalprecht.translate',
+    'templates-ngObibaMica'
+]);
+//# sourceMappingURL=analysis.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+'use strict';
+/* global NgObibaMicaTemplateUrlFactory */
+(function () {
+    ngObibaMica.analysis
+        .config(['$provide', function ($provide) {
+            $provide.provider('ngObibaMicaAnalysisTemplateUrl', new NgObibaMicaTemplateUrlFactory().create({
+                entities: { header: null, footer: null }
+            }));
+        }]);
+})();
+//# sourceMappingURL=analysis-template-url-provider.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+'use strict';
+(function () {
+    ngObibaMica.search.factory('EntitiesCountResource', ['$resource', 'ngObibaMicaUrl',
+        function ($resource, ngObibaMicaUrl) {
+            var resourceUrl = ngObibaMicaUrl.getUrl('EntitiesCountResource');
+            var method = resourceUrl.indexOf(':query') === -1 ? 'POST' : 'GET';
+            var contentType = method === 'POST' ? 'application/x-www-form-urlencoded' : 'application/json';
+            var requestTransformer = function (obj) {
+                var str = [];
+                for (var p in obj) {
+                    str.push(encodeURIComponent(p) + '=' + encodeURIComponent(obj[p]));
+                }
+                return str.join('&');
+            };
+            return $resource(resourceUrl, {}, {
+                'get': {
+                    method: method,
+                    headers: {
+                        'Content-Type': contentType
+                    },
+                    transformRequest: requestTransformer,
+                    errorHandler: true
+                }
+            });
+        }]);
+})();
+//# sourceMappingURL=entities-count-analysis-resource.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+'use strict';
+(function () {
+    ngObibaMica.search
+        .factory('VariableResource', ['$resource', 'ngObibaMicaUrl', '$cacheFactory',
+        function ($resource, ngObibaMicaUrl, $cacheFactory) {
+            return $resource(ngObibaMicaUrl.getUrl('VariableResource'), {}, {
+                'get': {
+                    method: 'GET',
+                    errorHandler: true,
+                    cache: $cacheFactory('variableResource')
+                }
+            });
+        }]);
+})();
+//# sourceMappingURL=variable-resource.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+'use strict';
+(function () {
+    ngObibaMica.search
+        .factory('VariableSummaryResource', ['$resource', 'ngObibaMicaUrl', '$cacheFactory',
+        function ($resource, ngObibaMicaUrl, $cacheFactory) {
+            return $resource(ngObibaMicaUrl.getUrl('VariableSummaryResource'), {}, {
+                'get': {
+                    method: 'GET',
+                    errorHandler: true,
+                    cache: $cacheFactory('variableSummaryResource')
+                }
+            });
+        }]);
+})();
+//# sourceMappingURL=variable-summary-resource.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+'use strict';
+(function () {
+    ngObibaMica.analysis
+        .controller('EntitiesCountController', [
+        '$scope',
+        '$location',
+        'EntitiesCountResource',
+        'AlertService',
+        'ServerErrorUtils',
+        'ngObibaMicaAnalysisTemplateUrl',
+        function ($scope, $location, EntitiesCountResource, AlertService, ServerErrorUtils, ngObibaMicaAnalysisTemplateUrl) {
+            $scope.entitiesHeaderTemplateUrl = ngObibaMicaAnalysisTemplateUrl.getHeaderUrl('entities');
+            $scope.result = {};
+            $scope.query = $location.search().query;
+            $scope.loading = false;
+            function refresh() {
+                if ($scope.query) {
+                    $scope.loading = true;
+                    EntitiesCountResource.get({ query: $scope.query }, function onSuccess(response) {
+                        $scope.result = response;
+                        $scope.loading = false;
+                    }, function onError(response) {
+                        $scope.result = {};
+                        $scope.loading = false;
+                        AlertService.alert({
+                            id: 'EntitiesCountController',
+                            type: 'danger',
+                            msg: ServerErrorUtils.buildMessage(response),
+                            delay: 5000
+                        });
+                    });
+                }
+            }
+            refresh();
+            $scope.$on('$locationChangeSuccess', function () {
+                $scope.query = $location.search().query;
+                refresh();
+            });
+        }
+    ]);
+})();
+//# sourceMappingURL=analysis-controller.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+'use strict';
+ngObibaMica.analysis
+    .config(['$routeProvider',
+    function ($routeProvider) {
+        $routeProvider
+            .when('/entities-count', {
+            templateUrl: 'analysis/views/analysis-entities-count.html',
+            controller: 'EntitiesCountController',
+            reloadOnSearch: false
+        });
+    }]);
+//# sourceMappingURL=analysis-router.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+"use strict";
+var EntitiesCountService = /** @class */ (function () {
+    function EntitiesCountService($location, ObibaServerConfigResource) {
+        this.$location = $location;
+        this.ObibaServerConfigResource = ObibaServerConfigResource;
+        var that = this;
+        ObibaServerConfigResource.get(function (micaConfig) {
+            that.hasMultipleStudies = !micaConfig.isSingleStudyEnabled || micaConfig.isHarmonizedDatasetEnabled;
+        });
+    }
+    EntitiesCountService.prototype.isSingleStudy = function () {
+        return !this.hasMultipleStudies;
+    };
+    /**
+     * Replace the original query with the new one in the browser location. If new query is empty,
+     * the criteria is to be removed.
+     * @param originalQuery Query before update
+     * @param newQuery Query after update
+     */
+    EntitiesCountService.prototype.update = function (originalQuery, newQuery) {
+        if (originalQuery === newQuery) {
+            return;
+        }
+        var search = this.$location.search();
+        search.query = search.query.split(originalQuery).join("").replace(/,,/, ",").replace(/^,/, "").replace(/,$/, "");
+        if (newQuery && newQuery.length !== 0) {
+            search.query = search.query + "," + newQuery;
+        }
+        this.$location.search(search);
+    };
+    EntitiesCountService.$inject = ["$location", "ObibaServerConfigResource"];
+    return EntitiesCountService;
+}());
+ngObibaMica.analysis.service("EntitiesCountService", ["$location", "ObibaServerConfigResource", EntitiesCountService]);
+//# sourceMappingURL=entities-count-service.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+"use strict";
+var EntitiesCountResultTableController = /** @class */ (function () {
+    function EntitiesCountResultTableController(PageUrlService, LocalizedValues, EntitiesCountService, $translate, $log) {
+        this.PageUrlService = PageUrlService;
+        this.LocalizedValues = LocalizedValues;
+        this.EntitiesCountService = EntitiesCountService;
+        this.$translate = $translate;
+        this.$log = $log;
+        this.result = {};
+    }
+    EntitiesCountResultTableController.prototype.$onInit = function () {
+        this.table = {
+            rows: new Array(),
+        };
+    };
+    EntitiesCountResultTableController.prototype.$onChanges = function () {
+        this.table = this.asTable();
+        this.localizedTotal = this.LocalizedValues.formatNumber(this.result.total ? this.result.total : 0);
+    };
+    EntitiesCountResultTableController.prototype.showStudyColumn = function () {
+        return !this.EntitiesCountService.isSingleStudy();
+    };
+    EntitiesCountResultTableController.prototype.localize = function (values) {
+        return this.LocalizedValues.forLang(values, this.$translate.use());
+    };
+    EntitiesCountResultTableController.prototype.asTable = function () {
+        var _this = this;
+        var table = {
+            rows: new Array(),
+        };
+        this.studyCount = this.result.counts ? this.result.counts.length : 0;
+        if (this.studyCount) {
+            this.result.counts.forEach(function (studyResult) {
+                var studyAcronym = _this.localize(studyResult.study.acronym);
+                var studyName = _this.localize(studyResult.study.name);
+                if (studyResult.counts) {
+                    var studyRowCount_1 = 0;
+                    studyResult.counts.forEach(function (datasetResult) {
+                        var datasetAcronym = _this.localize(datasetResult.dataset.acronym);
+                        var datasetName = _this.localize(datasetResult.dataset.name);
+                        if (datasetResult.counts) {
+                            datasetResult.counts.forEach(function (variableResult) {
+                                var parts = variableResult.variable.id.split(":");
+                                var variableName = parts[1];
+                                if (variableResult.studyTableName) {
+                                    variableName = variableName + " (" + _this.localize(variableResult.studyTableName) + ")";
+                                }
+                                var variableType = parts[2];
+                                var variableLink = _this.PageUrlService.variablePage(variableResult.variable.id);
+                                var datasetLink = _this.PageUrlService.datasetPage(datasetResult.dataset.id, variableType);
+                                var studyType = variableType === "Dataschema" ? "harmonization" : "individual";
+                                var row = new Array({
+                                    colspan: 1,
+                                    link: _this.PageUrlService.studyPage(studyResult.study.id, studyType),
+                                    rowspan: studyRowCount_1 === 0 ? 1 : 0,
+                                    title: studyRowCount_1 === 0 ? studyName : "",
+                                    value: studyRowCount_1 === 0 ? studyAcronym : "",
+                                }, {
+                                    colspan: 1,
+                                    link: variableLink ? variableLink : datasetLink,
+                                    rowspan: 1,
+                                    title: _this.localize(variableResult.variable.name),
+                                    value: variableName,
+                                }, {
+                                    colspan: 1,
+                                    link: datasetLink,
+                                    rowspan: 1,
+                                    title: datasetName,
+                                    value: datasetAcronym,
+                                }, {
+                                    colspan: 1,
+                                    link: undefined,
+                                    rowspan: 1,
+                                    title: variableResult.query,
+                                    value: variableResult.query,
+                                }, {
+                                    colspan: 1,
+                                    link: undefined,
+                                    rowspan: 1,
+                                    title: undefined,
+                                    value: variableResult.count,
+                                });
+                                table.rows.push(row);
+                                studyRowCount_1++;
+                            });
+                        }
+                    });
+                    table.rows[table.rows.length - studyRowCount_1][0].rowspan = studyRowCount_1 + 1;
+                    table.rows.push(new Array({
+                        colspan: 1,
+                        rowspan: 0,
+                        title: undefined,
+                        value: undefined,
+                    }, {
+                        colspan: 3,
+                        rowspan: 1,
+                        title: studyResult.query,
+                        value: undefined,
+                    }, {
+                        colspan: 1,
+                        rowspan: 1,
+                        title: undefined,
+                        value: studyResult.total,
+                    }));
+                }
+            });
+        }
+        return table;
+    };
+    EntitiesCountResultTableController.$inject = ["PageUrlService", "LocalizedValues", "EntitiesCountService", "$translate", "$log"];
+    return EntitiesCountResultTableController;
+}());
+var EntitiesCountResultTableComponent = /** @class */ (function () {
+    function EntitiesCountResultTableComponent() {
+        this.transclude = true;
+        this.bindings = {
+            result: "<",
+        };
+        this.controller = EntitiesCountResultTableController;
+        this.controllerAs = "$ctrl";
+        this.templateUrl = "analysis/components/entities-count-result-table/component.html";
+    }
+    return EntitiesCountResultTableComponent;
+}());
+ngObibaMica.analysis
+    .component("entitiesCountResultTable", new EntitiesCountResultTableComponent());
+//# sourceMappingURL=component.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+"use strict";
+var Operation;
+(function (Operation) {
+    Operation["All"] = "all";
+    Operation["Exists"] = "exists";
+    Operation["Empty"] = "empty";
+    Operation["In"] = "in";
+    Operation["Out"] = "out";
+})(Operation || (Operation = {}));
+var VariableCriteriaController = /** @class */ (function () {
+    function VariableCriteriaController(VariableResource, VariableSummaryResource, LocalizedValues, EntitiesCountService, $log, $translate, $filter) {
+        this.VariableResource = VariableResource;
+        this.VariableSummaryResource = VariableSummaryResource;
+        this.LocalizedValues = LocalizedValues;
+        this.EntitiesCountService = EntitiesCountService;
+        this.$log = $log;
+        this.$translate = $translate;
+        this.$filter = $filter;
+        this.query = "";
+        this.state = { open: false };
+        this.categoriesData = [];
+        this.selectedCategories = {};
+        this.selectedNumericalOperation = "range";
+        this.selectedTemporalOperation = "range";
+    }
+    VariableCriteriaController.prototype.$onInit = function () {
+        this.loading = true;
+        this.initializeState();
+    };
+    /**
+     * Close on return submit and escape. Submit the update request only on return.
+     * @param event event to get the key
+     */
+    VariableCriteriaController.prototype.onKeyup = function (event) {
+        if (event.keyCode === 13) {
+            this.closeDropdown(false);
+        }
+        else if (event.keyCode === 27) {
+            this.closeDropdown(true);
+        }
+    };
+    /**
+     * Applies the categories filter text: visible categories are the ones which label matches the searched text.
+     * @param event ignored
+     */
+    VariableCriteriaController.prototype.onSearchTextKeyup = function (event) {
+        var filter = this.searchText.trim();
+        if (this.categoriesData) {
+            var regex_1 = new RegExp(filter, "i");
+            this.categoriesData.forEach(function (cat) {
+                cat.visible = cat.label.match(regex_1) !== null;
+            });
+        }
+    };
+    VariableCriteriaController.prototype.onNumericalMinKeyup = function (event) {
+        this.selectedMin = this.ensureNumericValue(this.selectedMin + "", " ");
+    };
+    VariableCriteriaController.prototype.onNumericalMaxKeyup = function (event) {
+        this.selectedMax = this.ensureNumericValue(this.selectedMax + "", " ");
+    };
+    /**
+     * Make sure numerical values are space separated numbers.
+     * @param event ignored
+     */
+    VariableCriteriaController.prototype.onNumericalValuesKeyup = function (event) {
+        this.selectedNumericalValues = this.ensureNumericValue(this.selectedNumericalValues, " ");
+    };
+    /**
+     * Close the dropdown and submit update request if changes are detected.
+     * @param cancel cancel update request if true
+     */
+    VariableCriteriaController.prototype.closeDropdown = function (cancel) {
+        this.state.open = false;
+        if (cancel) {
+            return;
+        }
+        this.update(this.makeNewQuery());
+    };
+    /**
+     * Open the dropdown.
+     */
+    VariableCriteriaController.prototype.openDropdown = function () {
+        if (this.state.open) {
+            this.closeDropdown(false);
+            return;
+        }
+        this.state.open = true;
+    };
+    /**
+     * Removes the criteria.
+     */
+    VariableCriteriaController.prototype.onRemove = function () {
+        this.update("");
+    };
+    /**
+     * Get a human readable translated label of the criteria query.
+     * @param truncated true if the title is to be truncated
+     */
+    VariableCriteriaController.prototype.getQueryTitle = function (truncated) {
+        var _this = this;
+        if (!this.rqlQuery) {
+            return "?";
+        }
+        var title = this.getOperationTitle();
+        var rqlQueryWithArgs = this.getRqlQueryWithArgs();
+        if (rqlQueryWithArgs.args.length > 1) {
+            var items = rqlQueryWithArgs.args[1];
+            if (this.getNature() === "CATEGORICAL") {
+                items = items.map(function (x) { return _this.localizeCategory(x); });
+            }
+            if (rqlQueryWithArgs.name === "range") {
+                title = title + " [" + items.join(", ") + "]";
+            }
+            else {
+                title = title + " (" + items.join(", ") + ")";
+            }
+        }
+        if (!truncated) {
+            return title.length > 50 ? title : "";
+        }
+        return title.length > 50 ? title.substring(0, 50) + "..." : title;
+    };
+    /**
+     * Check wether there are options for this criteria.
+     */
+    VariableCriteriaController.prototype.showInOperations = function () {
+        return this.getNature() === "CATEGORICAL" || this.isNumerical() || this.isTemporal();
+    };
+    /**
+     * Check whether the categorical options are to be shown.
+     */
+    VariableCriteriaController.prototype.showCategoricalOptions = function () {
+        return this.getNature() === "CATEGORICAL" && this.showOptions();
+    };
+    /**
+     * Check whether the numerical options are to be shown.
+     */
+    VariableCriteriaController.prototype.showNumericalOptions = function () {
+        return this.getNature() === "CONTINUOUS" && this.isNumerical() && this.showOptions();
+    };
+    /**
+     * Check whether the temporal options are to be shown.
+     */
+    VariableCriteriaController.prototype.showTemporalOptions = function () {
+        return this.getNature() === "TEMPORAL" && this.isTemporal() && this.showOptions();
+    };
+    VariableCriteriaController.prototype.localizeNumber = function (value) {
+        return this.LocalizedValues.formatNumber(value);
+    };
+    /**
+     * Parse the query and initialize the component state with variable information.
+     */
+    VariableCriteriaController.prototype.initializeState = function () {
+        this.rqlQuery = this.parseQuery();
+        if (this.rqlQuery.args) {
+            var rqlQueryWithArgs = this.getQueryWithArgs();
+            // get variable from field name
+            this.id = rqlQueryWithArgs.args[0].join(":");
+            this.VariableResource.get({ id: this.id }, this.onVariable(), this.onError());
+        }
+    };
+    VariableCriteriaController.prototype.getQueryWithArgs = function () {
+        return this.isQueryNot() ? this.rqlQuery.args[0] : this.rqlQuery;
+    };
+    VariableCriteriaController.prototype.isQueryNot = function () {
+        return this.rqlQuery.name === "not";
+    };
+    /**
+     * Replace the original query by the new one. If query is empty, the criteria is to be removed.
+     * @param newQuery critera query
+     */
+    VariableCriteriaController.prototype.update = function (newQuery) {
+        this.EntitiesCountService.update(this.query, newQuery);
+    };
+    /**
+     * Check if none of the global operations are selected (all, exists, empty).
+     */
+    VariableCriteriaController.prototype.showOptions = function () {
+        return Operation.All !== this.selectedOperation
+            && Operation.Exists !== this.selectedOperation
+            && Operation.Empty !== this.selectedOperation;
+    };
+    /**
+     * Get the variable's nature.
+     */
+    VariableCriteriaController.prototype.getNature = function () {
+        return this.variable ? this.variable.nature : "?";
+    };
+    /**
+     * Check if the variable has a numerical type (integer or decimal).
+     */
+    VariableCriteriaController.prototype.isNumerical = function () {
+        return this.variable && (this.variable.valueType === "integer" || this.variable.valueType === "decimal");
+    };
+    /**
+     * Check if the variable has a logical type (boolean).
+     */
+    VariableCriteriaController.prototype.isLogical = function () {
+        return this.variable && this.variable.valueType === "boolean";
+    };
+    /**
+     * Check if the variable has a numerical type (integer or decimal).
+     */
+    VariableCriteriaController.prototype.isTemporal = function () {
+        return this.variable && (this.variable.valueType === "date" || this.variable.valueType === "datetime");
+    };
+    /**
+     * Get the translated label of the criteria query operation.
+     */
+    VariableCriteriaController.prototype.getOperationTitle = function () {
+        var rqlQueryWithArgs = this.getRqlQueryWithArgs();
+        if (this.isNotQuery()) {
+            if (rqlQueryWithArgs.name === "exists") {
+                return this.$filter("translate")("analysis.empty");
+            }
+            else {
+                return this.$filter("translate")("analysis.out");
+            }
+        }
+        return this.$filter("translate")("analysis." + (rqlQueryWithArgs.name === "range" ? "in" : rqlQueryWithArgs.name));
+    };
+    /**
+     * Get the RQL query node that contains the criteria arguments.
+     */
+    VariableCriteriaController.prototype.getRqlQueryWithArgs = function () {
+        if (this.isNotQuery()) {
+            return this.rqlQuery.args[0];
+        }
+        return this.rqlQuery;
+    };
+    /**
+     * Check if the RQL query node is a 'not' operation.
+     */
+    VariableCriteriaController.prototype.isNotQuery = function () {
+        return this.rqlQuery && this.rqlQuery.name === "not";
+    };
+    /**
+     * Parse the query string as a RQL query node.
+     */
+    VariableCriteriaController.prototype.parseQuery = function () {
+        try {
+            return new RqlParser().parse(this.normalize(this.query)).args[0];
+        }
+        catch (e) {
+            this.$log.error(e.message);
+        }
+        return new RqlQuery();
+    };
+    /**
+     * Variable identifier separator is not valid for the RQL parser: using path separator, the RQL parser will
+     * split the variable identifier tokens automatically.
+     * @param str variable identifier
+     */
+    VariableCriteriaController.prototype.normalize = function (str) {
+        return str.split(":").join("/");
+    };
+    /**
+     * Get the translated label of a variable category.
+     * @param value category name
+     */
+    VariableCriteriaController.prototype.localizeCategory = function (value) {
+        if (!this.variable.categories) {
+            return this.isLogical() ? this.$filter("translate")("global." + value) : value;
+        }
+        var categories = this.variable.categories.filter(function (cat) { return cat.name === value + ""; });
+        if (categories.length === 0) {
+            return value;
+        }
+        var category = categories[0];
+        if (!category.attributes) {
+            return value;
+        }
+        var labels = category.attributes.filter(function (attr) { return attr.name === "label"; });
+        if (labels.length === 0) {
+            return value;
+        }
+        var label = this.localize(labels[0].values);
+        return label || value;
+    };
+    /**
+     * Extract the translation for the current language.
+     * @param values labels object
+     */
+    VariableCriteriaController.prototype.localize = function (values) {
+        return this.LocalizedValues.forLang(values, this.$translate.use());
+    };
+    /**
+     * Extract the categories from the variable object.
+     */
+    VariableCriteriaController.prototype.prepareCategories = function () {
+        var _this = this;
+        this.categoriesData = [];
+        if (this.getNature() === "CATEGORICAL") {
+            var categories = this.variable.categories;
+            if (categories) {
+                categories.forEach(function (cat) {
+                    _this.categoriesData.push({
+                        label: _this.localizeCategory(cat.name),
+                        name: cat.name,
+                        visible: true,
+                    });
+                });
+            }
+            else if (this.isLogical()) {
+                this.categoriesData.push({
+                    label: this.$filter("translate")("global.true"),
+                    name: "true",
+                    visible: true,
+                });
+                this.categoriesData.push({
+                    label: this.$filter("translate")("global.false"),
+                    name: "false",
+                    visible: true,
+                });
+            }
+        }
+    };
+    /**
+     * Set the state of the options according to the variable and the query.
+     */
+    VariableCriteriaController.prototype.prepareOptions = function () {
+        var _this = this;
+        this.prepareCategories();
+        var rqlQueryWithArgs = this.getRqlQueryWithArgs();
+        // get categories if any
+        if (rqlQueryWithArgs.args.length > 1) {
+            if (rqlQueryWithArgs.name === "in") {
+                if (this.showCategoricalOptions()) {
+                    rqlQueryWithArgs.args[1].forEach(function (value) {
+                        _this.selectedCategories[value] = true;
+                    });
+                }
+                else if (this.showNumericalOptions()) {
+                    this.selectedNumericalOperation = "in";
+                    this.selectedNumericalValues = rqlQueryWithArgs.args[1].filter(function (val) { return !isNaN(val); }).join(" ");
+                }
+                else if (this.showTemporalOptions()) {
+                    this.selectedTemporalOperation = "in";
+                    this.selectedTemporalValue = rqlQueryWithArgs.args[1].length > 0 ?
+                        new Date(Date.parse(rqlQueryWithArgs.args[1][0])) : undefined;
+                }
+            }
+            else if (rqlQueryWithArgs.name === "range" && rqlQueryWithArgs.args[1].length > 0) {
+                var arg1 = rqlQueryWithArgs.args[1][0];
+                if (arg1 === "*") {
+                    this.selectedMin = undefined;
+                    this.selectedFrom = undefined;
+                }
+                else if (this.showNumericalOptions() && !isNaN(arg1)) {
+                    this.selectedMin = arg1;
+                }
+                else if (this.showTemporalOptions()) {
+                    this.selectedFrom = new Date(Date.parse(arg1));
+                }
+                if (rqlQueryWithArgs.args[1].length >= 2) {
+                    var arg2 = rqlQueryWithArgs.args[1][1];
+                    if (arg2 === "*") {
+                        this.selectedMax = undefined;
+                        this.selectedTo = undefined;
+                    }
+                    else if (this.showNumericalOptions() && !isNaN(arg2)) {
+                        this.selectedMax = arg2;
+                    }
+                    else if (this.showTemporalOptions()) {
+                        this.selectedTo = new Date(Date.parse(arg2));
+                    }
+                }
+            }
+        }
+        this.selectedOperation = this.rqlQuery.name === "range" ? "in" : this.rqlQuery.name;
+        if (this.isQueryNot() && (rqlQueryWithArgs.name === "in" || rqlQueryWithArgs.name === "range")) {
+            this.selectedOperation = "out";
+        }
+        if (this.isQueryNot() && rqlQueryWithArgs.name === "exists") {
+            this.selectedOperation = "empty";
+        }
+    };
+    VariableCriteriaController.prototype.ensureNumericValue = function (selection, separator) {
+        var values = "";
+        if (selection) {
+            for (var i = 0; i < selection.length; i++) {
+                var c = selection.charAt(i);
+                if (c === separator
+                    || (this.variable.valueType === "decimal" && c === ".")
+                    || c === "-"
+                    || !isNaN(parseInt(c, 10))) {
+                    values = values + c;
+                }
+            }
+        }
+        return values;
+    };
+    /**
+     * Get the new query from the selections.
+     */
+    VariableCriteriaController.prototype.makeNewQuery = function () {
+        var _this = this;
+        var newQuery = "";
+        var args;
+        if (this.showCategoricalOptions()) {
+            args = Object.keys(this.selectedCategories).filter(function (key) {
+                return _this.selectedCategories[key];
+            }).map(function (key) { return key; }).join(",");
+        }
+        if (this.showNumericalOptions()) {
+            if (this.selectedNumericalOperation === "range") {
+                var min = this.selectedMin && this.selectedMin !== "-" ? this.selectedMin : "*";
+                var max = this.selectedMax && this.selectedMax !== "-" ? this.selectedMax : "*";
+                args = [min, max].join(",");
+            }
+            else {
+                args = this.selectedNumericalValues.split(" ").join(",");
+            }
+        }
+        if (this.showTemporalOptions()) {
+            if (this.selectedTemporalOperation === "range") {
+                var min = this.selectedFrom ? this.dateToString(this.selectedFrom) : "*";
+                var max = this.selectedTo ? this.dateToString(this.selectedTo) : "*";
+                args = [min, max].join(",");
+            }
+            else {
+                args = this.dateToString(this.selectedTemporalValue);
+            }
+        }
+        switch (this.selectedOperation) {
+            case Operation.All:
+            case Operation.Exists:
+                newQuery = this.selectedOperation + "({field})";
+                break;
+            case Operation.Empty:
+                newQuery = "not(exists({field}))";
+                break;
+            case Operation.In:
+                if (args && args.length > 0) {
+                    if (this.showCategoricalOptions()
+                        || (this.showNumericalOptions() && this.selectedNumericalOperation === "in")
+                        || (this.showTemporalOptions() && this.selectedTemporalOperation === "in")) {
+                        newQuery = "in({field},({args}))";
+                    }
+                    else if ((this.showNumericalOptions() && this.selectedNumericalOperation === "range")
+                        || (this.showTemporalOptions() && this.selectedTemporalOperation === "range")) {
+                        newQuery = "range({field},({args}))";
+                    }
+                }
+                else {
+                    newQuery = "not(exists({field}))";
+                    this.selectedOperation = "empty";
+                }
+                break;
+            case Operation.Out:
+                if (args && args.length > 0) {
+                    if (this.showCategoricalOptions()
+                        || (this.showNumericalOptions() && this.selectedNumericalOperation === "in")
+                        || (this.showTemporalOptions() && this.selectedTemporalOperation === "in")) {
+                        newQuery = "not(in({field},({args})))";
+                    }
+                    else if ((this.showNumericalOptions() && this.selectedNumericalOperation === "range")
+                        || (this.showTemporalOptions() && this.selectedTemporalOperation === "range")) {
+                        newQuery = "not(range({field},({args})))";
+                    }
+                }
+                else {
+                    newQuery = "exists({field})";
+                    this.selectedOperation = "exists";
+                }
+        }
+        newQuery = newQuery.replace("{field}", this.variable.id);
+        newQuery = newQuery.replace("{args}", args);
+        return newQuery;
+    };
+    VariableCriteriaController.prototype.dateToString = function (date) {
+        if (!date) {
+            return "";
+        }
+        var mm = date.getMonth() + 1; // getMonth() is zero-based
+        var dd = date.getDate();
+        return [date.getFullYear(), (mm > 9 ? "" : "0") + mm, (dd > 9 ? "" : "0") + dd].join("-");
+    };
+    /**
+     * Variable response processor.
+     */
+    VariableCriteriaController.prototype.onVariable = function () {
+        var that = this;
+        return function (response) {
+            that.variable = response;
+            that.loading = false;
+            that.prepareOptions();
+            that.VariableSummaryResource.get({ id: response.id }, that.onVariableSummary(), that.onError());
+        };
+    };
+    /**
+     * Variable summary response processor.
+     */
+    VariableCriteriaController.prototype.onVariableSummary = function () {
+        var that = this;
+        return function (response) {
+            that.summary = response;
+            if (that.summary["Math.ContinuousSummaryDto.continuous"]) {
+                var summary = that.summary["Math.ContinuousSummaryDto.continuous"].summary;
+                that.rangeMin = summary.min;
+                that.rangeMax = summary.max;
+                var frequencies = that.summary["Math.ContinuousSummaryDto.continuous"].frequencies;
+                var notNullFreq = frequencies.filter(function (elem) { return elem.value === "NOT_NULL"; })[0];
+                that.existsFrequency = notNullFreq ? notNullFreq.freq : 0;
+                var emptyFreq = frequencies.filter(function (elem) { return elem.value === "N/A"; })[0];
+                that.emptyFrequency = emptyFreq ? emptyFreq.freq : 0;
+                that.allFrequency = that.existsFrequency + that.emptyFrequency;
+            }
+            if (that.summary["Math.CategoricalSummaryDto.categorical"]) {
+                var frequencies_1 = that.summary["Math.CategoricalSummaryDto.categorical"].frequencies;
+                that.categoriesData.forEach(function (cat) {
+                    var freqs = frequencies_1.filter(function (elem) { return elem.value === cat.name; });
+                    if (freqs.length > 0) {
+                        cat.frequency = freqs[0].freq;
+                    }
+                });
+                that.allFrequency = that.summary["Math.CategoricalSummaryDto.categorical"].n;
+                that.existsFrequency = that.summary["Math.CategoricalSummaryDto.categorical"].otherFrequency +
+                    frequencies_1.filter(function (elem) { return elem.value !== "N/A"; }).map(function (elem) { return elem.freq; }).reduce(function (acc, curr) { return acc + curr; });
+                that.emptyFrequency = that.allFrequency - that.existsFrequency;
+            }
+            if (that.summary["Math.TextSummaryDto.textSummary"]) {
+                that.allFrequency = that.summary["Math.TextSummaryDto.textSummary"].n;
+                var frequencies = that.summary["Math.TextSummaryDto.textSummary"].frequencies;
+                if (frequencies) {
+                    that.existsFrequency = frequencies.filter(function (elem) { return elem.value !== "N/A"; })
+                        .map(function (elem) { return elem.freq; }).reduce(function (acc, curr) { return acc + curr; });
+                }
+                if (that.summary["Math.TextSummaryDto.textSummary"].otherFrequency) {
+                    that.existsFrequency = that.existsFrequency + that.summary["Math.TextSummaryDto.textSummary"].otherFrequency;
+                }
+                that.emptyFrequency = that.allFrequency - that.existsFrequency;
+            }
+            if (that.summary["Math.DefaultSummaryDto.defaultSummary"]) {
+                that.allFrequency = that.summary["Math.DefaultSummaryDto.defaultSummary"].n;
+                var notNullFreq = that.summary["Math.DefaultSummaryDto.defaultSummary"].frequencies
+                    .filter(function (elem) { return elem.value === "NOT_NULL"; })[0];
+                that.existsFrequency = notNullFreq ? notNullFreq.freq : 0;
+                that.emptyFrequency = that.allFrequency - that.existsFrequency;
+            }
+        };
+    };
+    /**
+     * General error handler (to be improved).
+     */
+    VariableCriteriaController.prototype.onError = function () {
+        var that = this;
+        return function (response) {
+            that.variable = undefined;
+            that.loading = false;
+        };
+    };
+    VariableCriteriaController.$inject = [
+        "VariableResource", "VariableSummaryResource", "LocalizedValues", "EntitiesCountService",
+        "$log", "$translate", "$filter"
+    ];
+    return VariableCriteriaController;
+}());
+var VariableCriteriaComponent = /** @class */ (function () {
+    function VariableCriteriaComponent() {
+        this.transclude = true;
+        this.bindings = {
+            query: "<",
+        };
+        this.controller = VariableCriteriaController;
+        this.controllerAs = "$ctrl";
+        this.templateUrl = "analysis/components/variable-criteria/component.html";
+    }
+    return VariableCriteriaComponent;
+}());
+ngObibaMica.analysis
+    .component("variableCriteria", new VariableCriteriaComponent());
+//# sourceMappingURL=component.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+'use strict';
 function NgObibaMicaListsOptionsFactory() {
     var defaultOptions = {
         listSearchOptions: {
@@ -10772,15 +11731,21 @@ ngObibaMica.localized
         };
         this.forLocale = function (values, lang) {
             var rval = this.for(values, lang, 'locale', 'text');
-            if (rval === '') {
+            if (!rval || rval === '') {
                 rval = this.for(values, 'und', 'locale', 'text');
+            }
+            if (!rval || rval === '') {
+                rval = this.for(values, 'en', 'locale', 'text');
             }
             return rval;
         };
         this.forLang = function (values, lang) {
             var rval = this.for(values, lang, 'lang', 'value');
-            if (rval === '') {
+            if (!rval || rval === '') {
                 rval = this.for(values, 'und', 'lang', 'value');
+            }
+            if (!rval || rval === '') {
+                rval = this.for(values, 'en', 'lang', 'value');
             }
             return rval;
         };
@@ -11333,7 +12298,7 @@ ngObibaMica.fileBrowser
         };
     }]);
 //# sourceMappingURL=file-browser-service.js.map
-angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/views/data-access-request-documents-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-documents-view.html",
@@ -11900,6 +12865,242 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "\n" +
     "</div>\n" +
     "");
+}]);
+
+angular.module("analysis/components/entities-count-result-table/component.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("analysis/components/entities-count-result-table/component.html",
+    "<div>\n" +
+    "  <p class=\"help-block\" ng-if=\"$ctrl.result && $ctrl.result.total === 0\" translate>search.no-results</p>\n" +
+    "  <table class=\"table table-bordered table-striped\" ng-if=\"$ctrl.result && $ctrl.result.total>0\">\n" +
+    "    <thead>\n" +
+    "      <th ng-if=\"$ctrl.showStudyColumn()\" translate>taxonomy.target.study</th>\n" +
+    "      <th translate>taxonomy.target.variable</th>\n" +
+    "      <th translate>taxonomy.target.dataset</th>\n" +
+    "      <th translate>analysis.criteria</th>\n" +
+    "      <th translate>analysis.count</th>\n" +
+    "    </thead>\n" +
+    "    <tbody>\n" +
+    "        <tr ng-repeat=\"row in $ctrl.table.rows\">\n" +
+    "          <td ng-if=\"row[0].rowspan>0 && $ctrl.showStudyColumn()\" colspan=\"{{row[0].colspan}}\" rowspan=\"{{row[0].rowspan}}\" title=\"{{row[0].title}}\">\n" +
+    "            <a href=\"{{row[0].link}}\">{{row[0].value}}</a>\n" +
+    "          </td>\n" +
+    "          \n" +
+    "          <!-- per variable criteria -->\n" +
+    "          <td ng-if=\"row.length===5\" colspan=\"{{row[1].colspan}}\">\n" +
+    "              <a href=\"{{row[1].link}}\">{{row[1].value}}</a>\n" +
+    "              <div class=\"help-block\">{{row[1].title}}</div>\n" +
+    "          </td>\n" +
+    "          <td ng-if=\"row.length===5\" colspan=\"{{row[2].colspan}}\" title=\"{{row[2].title}}\">\n" +
+    "              <a href=\"{{row[2].link}}\">{{row[2].value}}</a>\n" +
+    "          </td>\n" +
+    "          <td ng-if=\"row.length===5\" colspan=\"{{row[3].colspan}}\">\n" +
+    "            <variable-criteria query=\"row[3].value\"></variable-criteria>  \n" +
+    "          </td>\n" +
+    "          <td ng-if=\"row.length===5\" colspan=\"{{row[4].colspan}}\">\n" +
+    "            <localized-number value=\"row[4].value\"></localized-number>\n" +
+    "          </td>\n" +
+    "\n" +
+    "          <!-- all criteria -->\n" +
+    "          <td ng-if=\"row.length===3\" colspan=\"{{row[1].colspan}}\" title=\"{{row[1].title}}\">\n" +
+    "            <b translate>analysis.all-criteria</b>\n" +
+    "          </td>\n" +
+    "          <td ng-if=\"row.length===3\" colspan=\"{{row[2].colspan}}\">\n" +
+    "            <span ng-if=\"$ctrl.studyCount === 1\" class=\"badge\">{{$ctrl.localizedTotal}}</span>\n" +
+    "            <b ng-if=\"$ctrl.studyCount > 1\"><localized-number value=\"row[2].value\"></localized-number></b>\n" +
+    "          </td>\n" +
+    "        </tr>\n" +
+    "        <tr ng-if=\"$ctrl.studyCount > 1\">\n" +
+    "          <td colspan=\"{{$ctrl.showStudyColumn() ? 4 : 3}}\">\n" +
+    "            <b translate>total</b>\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            <span class=\"badge\">{{$ctrl.localizedTotal}}</span>\n" +
+    "          </td>\n" +
+    "        </tr>\n" +
+    "    </tbody>\n" +
+    "  </table>\n" +
+    "</div>");
+}]);
+
+angular.module("analysis/components/variable-criteria/component.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("analysis/components/variable-criteria/component.html",
+    "<div>\n" +
+    "  <p ng-if=\"$ctrl.loading\" class=\"voffset2 loading\"></p>\n" +
+    "  \n" +
+    "  <div  ng-hide=\"$ctrl.loading\" class=\"btn-group voffset1 btn-variable\" ng-class=\"{open: $ctrl.state.open}\" ng-keyup=\"$ctrl.onKeyup($event)\">\n" +
+    "\n" +
+    "    <button class=\"btn btn-xs dropdown btn-variable\" ng-click=\"$ctrl.openDropdown()\">\n" +
+    "      <span title=\"{{$ctrl.getQueryTitle(false)}}\" test-ref=\"search-criterion\">\n" +
+    "        {{$ctrl.getQueryTitle(true)}}\n" +
+    "      </span>\n" +
+    "      <span class=\"fa fa-caret-down\"></span>\n" +
+    "    </button>\n" +
+    "    <button class=\"btn btn-xs btn-default\" ng-click=\"$ctrl.onRemove()\">\n" +
+    "      <span class=\"fa fa-times\"></span>\n" +
+    "    </button>\n" +
+    "\n" +
+    "    <ul class=\"dropdown-menu query-dropdown-menu\" aria-labelledby=\"\">\n" +
+    "        <li class=\"criteria-list-item\">\n" +
+    "          <span>{{$ctrl.variable.name}}</span>\n" +
+    "          <span class=\"pull-right\" title=\"{{'search.close-and-search' | translate}}\" ng-click=\"$ctrl.closeDropdown()\"><i class=\"fa fa-check\"></i></span>\n" +
+    "        </li>\n" +
+    "        <li class='divider'></li>\n" +
+    "        <li class=\"criteria-list-item\">\n" +
+    "          <label title=\"{{'analysis.all-help' | translate}}\">\n" +
+    "            <input ng-click=\"$ctrl.onUpdateOperation()\" type=\"radio\" ng-model=\"$ctrl.selectedOperation\" value=\"all\">\n" +
+    "              {{'analysis.all' | translate}}\n" +
+    "          </label>\n" +
+    "          <div class=\"pull-right\">\n" +
+    "            <span class=\"agg-term-count\">{{$ctrl.localizeNumber($ctrl.allFrequency)}}</span>\n" +
+    "          </div>\n" +
+    "        </li>\n" +
+    "        <li class=\"criteria-list-item\">\n" +
+    "          <label title=\"{{'analysis.exists-help' | translate}}\">\n" +
+    "            <input ng-click=\"$ctrl.onUpdateOperation()\" type=\"radio\" ng-model=\"$ctrl.selectedOperation\" value=\"exists\">\n" +
+    "              {{'analysis.exists' | translate}}\n" +
+    "          </label>\n" +
+    "          <div class=\"pull-right\">\n" +
+    "            <span class=\"agg-term-count\">{{$ctrl.localizeNumber($ctrl.existsFrequency)}}</span>\n" +
+    "          </div>\n" +
+    "        </li>\n" +
+    "        <li class=\"criteria-list-item\">\n" +
+    "          <label title=\"{{'analysis.empty-help' | translate}}\">\n" +
+    "            <input ng-click=\"$ctrl.onUpdateOperation()\" type=\"radio\" ng-model=\"$ctrl.selectedOperation\" value=\"empty\">\n" +
+    "              {{'analysis.empty' | translate}}\n" +
+    "          </label>\n" +
+    "          <div class=\"pull-right\">\n" +
+    "            <span class=\"agg-term-count\">{{$ctrl.localizeNumber($ctrl.emptyFrequency)}}</span>\n" +
+    "          </div>\n" +
+    "        </li>\n" +
+    "        <li class=\"criteria-list-item\" ng-if=\"$ctrl.showInOperations()\">\n" +
+    "          <label title=\"{{'analysis.in-help' | translate}}\">\n" +
+    "            <input ng-click=\"$ctrl.onUpdateOperation()\" type=\"radio\" ng-model=\"$ctrl.selectedOperation\" value=\"in\">\n" +
+    "              {{'analysis.in' | translate}}\n" +
+    "          </label>\n" +
+    "        </li>\n" +
+    "        <li class=\"criteria-list-item\" ng-if=\"$ctrl.showInOperations()\">\n" +
+    "          <label title=\"{{'analysis.out-help' | translate}}\">\n" +
+    "            <input ng-click=\"$ctrl.onUpdateOperation()\" type=\"radio\" ng-model=\"$ctrl.selectedOperation\" value=\"out\">\n" +
+    "              {{'analysis.out' | translate}}\n" +
+    "          </label>\n" +
+    "        <li>\n" +
+    "\n" +
+    "        <li class=\"divider\" ng-if=\"$ctrl.showCategoricalOptions()\"></li>\n" +
+    "        <li class=\"criteria-list-item\" ng-if=\"$ctrl.showCategoricalOptions() && $ctrl.categoriesData && $ctrl.categoriesData.length>10\">\n" +
+    "          <span class=\"input-group input-group-sm no-padding-top\">\n" +
+    "            <input ng-model=\"$ctrl.searchText\" type=\"text\" class=\"form-control\" aria-describedby=\"category-search\" ng-keyup=\"$ctrl.onSearchTextKeyup($event)\">\n" +
+    "            <span class=\"input-group-addon\" id=\"category-search\"><i class=\"fa fa-search\"></i></span>\n" +
+    "          </span>\n" +
+    "        </li>\n" +
+    "        <li ng-if=\"$ctrl.showCategoricalOptions()\">\n" +
+    "          <ul class=\"no-padding criteria-list-terms\">\n" +
+    "            <li class=\"criteria-list-item\" ng-if=\"category.visible\" ng-repeat=\"category in $ctrl.categoriesData\">\n" +
+    "              <label class=\"control-label\">\n" +
+    "                <input \n" +
+    "                  ng-model=\"$ctrl.selectedCategories[category.name]\"\n" +
+    "                  type=\"checkbox\"\n" +
+    "                  ng-click=\"$ctrl.updateSelection()\"/>\n" +
+    "                  <span title=\"{{category.name}}\">{{category.label}}</span>\n" +
+    "              </label>\n" +
+    "              <div class=\"pull-right\">\n" +
+    "                <span class=\"agg-term-count\">{{$ctrl.localizeNumber(category.frequency)}}</span>\n" +
+    "              </div>\n" +
+    "            </li>\n" +
+    "          </ul>\n" +
+    "        </li>\n" +
+    "\n" +
+    "        <li class=\"divider\" ng-if=\"$ctrl.showNumericalOptions()\"></li>\n" +
+    "        <li class=\"criteria-list-item\" ng-if=\"$ctrl.showNumericalOptions()\">\n" +
+    "          <select class=\"form-control input-sm form-select\" ng-model=\"$ctrl.selectedNumericalOperation\">\n" +
+    "            <option value=\"range\">{{'analysis.range' | translate}}</option>\n" +
+    "            <option value=\"in\">{{'analysis.values' | translate}}</option>\n" +
+    "          </select>\n" +
+    "        </li>\n" +
+    "        <li class=\"criteria-list-item\" ng-if=\"$ctrl.showNumericalOptions() && $ctrl.selectedNumericalOperation === 'range'\">\n" +
+    "          <div class=\"row\">\n" +
+    "            <div class=\"col-xs-6\">\n" +
+    "              <div class=\"form-group\">\n" +
+    "                <label for=\"range-min\" translate>analysis.min</label>\n" +
+    "                <input ng-model=\"$ctrl.selectedMin\" type=\"text\" class=\"form-control\" id=\"range-min\" ng-keyup=\"$ctrl.onNumericalMinKeyup($event)\" placeholder=\"{{$ctrl.rangeMin}}\">\n" +
+    "              </div>\n" +
+    "            </div>\n" +
+    "            <div class=\"col-xs-6\">\n" +
+    "              <div class=\"form-group\">\n" +
+    "                <label for=\"range-max\" translate>analysis.max</label>\n" +
+    "                <input ng-model=\"$ctrl.selectedMax\" type=\"text\" class=\"form-control\" id=\"range-max\" ng-keyup=\"$ctrl.onNumericalMaxKeyup($event)\" placeholder=\"{{$ctrl.rangeMax}}\">\n" +
+    "              </div>    \n" +
+    "            </div>\n" +
+    "          </div>\n" +
+    "        </li>\n" +
+    "        <li class=\"criteria-list-item\" ng-if=\"$ctrl.showNumericalOptions() && $ctrl.selectedNumericalOperation === 'in'\">\n" +
+    "          <div class=\"form-group\">\n" +
+    "            <label for=\"in-values\" translate>analysis.values-title</label>\n" +
+    "            <input ng-model=\"$ctrl.selectedNumericalValues\" type=\"text\" class=\"form-control\" id=\"in-values\" ng-keyup=\"$ctrl.onNumericalValuesKeyup($event)\">\n" +
+    "          </div>\n" +
+    "        </li>\n" +
+    "\n" +
+    "        <li class=\"divider\" ng-if=\"$ctrl.showTemporalOptions()\"></li>\n" +
+    "        <li class=\"criteria-list-item\" ng-if=\"$ctrl.showTemporalOptions()\">\n" +
+    "          <select class=\"form-control input-sm form-select\" ng-model=\"$ctrl.selectedTemporalOperation\">\n" +
+    "            <option value=\"range\">{{'analysis.range' | translate}}</option>\n" +
+    "            <option value=\"in\">{{'analysis.value' | translate}}</option>\n" +
+    "          </select>\n" +
+    "        </li>\n" +
+    "        <li class=\"criteria-list-item\" ng-if=\"$ctrl.showTemporalOptions() && $ctrl.selectedTemporalOperation === 'range'\">\n" +
+    "          <div class=\"row\">\n" +
+    "            <div class=\"col-xs-6\">\n" +
+    "              <div class=\"form-group\">\n" +
+    "                <label for=\"from-date\" class=\"control-label\" translate>analysis.to</label>  \n" +
+    "                <span class=\"input-group input-group-sm no-padding-top\">\n" +
+    "                  <input id=\"from-date\" type=\"text\" class=\"form-control\" aria-describedby=\"from-date-picker\" uib-datepicker-popup=\"yyyy-MM-dd\" \n" +
+    "                    ng-model=\"$ctrl.selectedFrom\" is-open=\"$ctrl.fromDatePickerOpened\"/>\n" +
+    "                  <span class=\"input-group-addon\" id=\"from-date-picker\" ng-click=\"$ctrl.fromDatePickerOpened = true\"><i class=\"fa fa-calendar\"></i></span>\n" +
+    "                </span>\n" +
+    "              </div>\n" +
+    "            </div>\n" +
+    "            <div class=\"col-xs-6\">\n" +
+    "              <div class=\"form-group\">\n" +
+    "                <label for=\"to-date\" class=\"control-label\" translate>analysis.to</label>  \n" +
+    "                <span class=\"input-group input-group-sm no-padding-top\">\n" +
+    "                  <input id=\"to-date\" type=\"text\" class=\"form-control\" aria-describedby=\"to-date-picker\" uib-datepicker-popup=\"yyyy-MM-dd\" \n" +
+    "                    ng-model=\"$ctrl.selectedTo\" is-open=\"$ctrl.toDatePickerOpened\"/>\n" +
+    "                  <span class=\"input-group-addon\" id=\"to-date-picker\" ng-click=\"$ctrl.toDatePickerOpened = true\"><i class=\"fa fa-calendar\"></i></span>\n" +
+    "                </span>\n" +
+    "              </div>\n" +
+    "            </div>\n" +
+    "          </div>\n" +
+    "        </li>\n" +
+    "        <li class=\"criteria-list-item\" ng-if=\"$ctrl.showTemporalOptions() && $ctrl.selectedTemporalOperation === 'in'\">\n" +
+    "          <div class=\"row\">\n" +
+    "            <div class=\"col-xs-12\">\n" +
+    "              <div class=\"form-group\">\n" +
+    "                <label for=\"in-date\" class=\"control-label\" translate>analysis.date-title</label>  \n" +
+    "                <span class=\"input-group input-group-sm no-padding-top\">\n" +
+    "                  <input id=\"in-date\" type=\"text\" class=\"form-control\" aria-describedby=\"date-picker\" uib-datepicker-popup=\"yyyy-MM-dd\" \n" +
+    "                    ng-model=\"$ctrl.selectedTemporalValue\" is-open=\"$ctrl.datePickerOpened\"/>\n" +
+    "                  <span class=\"input-group-addon\" id=\"date-picker\" ng-click=\"$ctrl.datePickerOpened = true\"><i class=\"fa fa-calendar\"></i></span>\n" +
+    "                </span>\n" +
+    "              </div>\n" +
+    "            </div>\n" +
+    "          </div>\n" +
+    "        </li>\n" +
+    "    </ul>\n" +
+    "\n" +
+    "  </div>\n" +
+    "\n" +
+    "</div>\n" +
+    "");
+}]);
+
+angular.module("analysis/views/analysis-entities-count.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("analysis/views/analysis-entities-count.html",
+    "<div>\n" +
+    "  <div ng-if=\"entitiesHeaderTemplateUrl\" ng-include=\"entitiesHeaderTemplateUrl\"></div>\n" +
+    "  <div>\n" +
+    "      <span ng-if=\"loading\" class=\"voffset2 loading\"></span>\n" +
+    "  </div>\n" +
+    "  <entities-count-result-table ng-hide=\"loading && !result.total\" result=\"result\"></entities-count-result-table>\n" +
+    "</div>");
 }]);
 
 angular.module("attachment/attachment-input-template.html", []).run(["$templateCache", function($templateCache) {
