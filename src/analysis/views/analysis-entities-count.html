@@ -4,4 +4,5 @@
       <span ng-if="loading" class="voffset2 loading"></span>
   </div>
   <entities-count-result-table ng-hide="loading && !result.total" result="result"></entities-count-result-table>
+  <p ng-hide="query" translate>analysis.entities-count.no-query</p>
 </div>

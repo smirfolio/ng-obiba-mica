@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-03-09
+ * Date: 2018-03-12
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -9911,6 +9911,8 @@ ngObibaMica.analysis = angular.module('obiba.mica.analysis', [
                         });
                     });
                 }
+                else {
+                }
             }
             refresh();
             $scope.$on('$locationChangeSuccess', function () {
@@ -13100,6 +13102,7 @@ angular.module("analysis/views/analysis-entities-count.html", []).run(["$templat
     "      <span ng-if=\"loading\" class=\"voffset2 loading\"></span>\n" +
     "  </div>\n" +
     "  <entities-count-result-table ng-hide=\"loading && !result.total\" result=\"result\"></entities-count-result-table>\n" +
+    "  <p ng-hide=\"query\" translate>analysis.entities-count.no-query</p>\n" +
     "</div>");
 }]);
 
