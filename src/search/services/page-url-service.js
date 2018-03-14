@@ -40,6 +40,22 @@
       return StringUtils.replaceAll(ngObibaMicaUrl.getUrl('JoinQueryCoverageDownloadResource'), { ':query': query });
     };
 
+    this.entitiesCountPage = function (query) {
+      var url = ngObibaMicaUrl.getUrl('BaseUrl') + ngObibaMicaUrl.getUrl('EntitiesCountBaseUrl');
+      if (query) {
+        url = url + '?query=' + urlEncode(query);
+      }
+      return url;
+    };
+
+    this.searchPage = function (query) {
+      var url = ngObibaMicaUrl.getUrl('BaseUrl') + ngObibaMicaUrl.getUrl('SearchBaseUrl');
+      if (query) {
+        url = url + '?query=' + urlEncode(query);
+      }
+      return url;
+    };
+
     return this;
   }
 
