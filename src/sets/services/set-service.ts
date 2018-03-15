@@ -15,8 +15,10 @@ declare var ngObibaMica: any;
 interface ISetService {
   isSingleStudy(): boolean;
   hasHarmonizedDatasets(): boolean;
+  isDocumentInCart(documentType: string, documentId: string): any;
   addDocumentToCart(documentType: string, documentId: string | string[]): any;
   addDocumentQueryToCart(documentType: string, query: string): any;
+  removeDocumentFromCart(documentType: string, documentId: string | string[]): any;
   getCartDocuments(documentType: string, fromIdx: number, limitIdx: number): any;
   clearCart(documentType: string): any;
   gotoSetEntitiesCount(documentType: string, setId: string): void;
@@ -27,8 +29,8 @@ interface ISetService {
 class SetService implements ISetService {
 
   private static $inject = ["$location", "$window", "$log", "localStorageService", "PageUrlService", "AlertService",
-    "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetImportResource",
-    "ObibaServerConfigResource"];
+    "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetExistsResource",
+    "SetImportResource", "SetRemoveResource", "ObibaServerConfigResource"];
 
   private hasMultipleStudies: boolean;
   private hasHarmonization: boolean;
@@ -44,7 +46,9 @@ class SetService implements ISetService {
     private SetResource: any,
     private SetDocumentsResource: any,
     private SetClearResource: any,
+    private SetExistsResource: any,
     private SetImportResource: any,
+    private SetRemoveResource: any,
     private ObibaServerConfigResource: any) {
       const that = this;
       ObibaServerConfigResource.get((micaConfig) => {
@@ -80,6 +84,18 @@ class SetService implements ISetService {
   }
 
   /**
+   * Check if document is in the cart.
+   * Return a promise on the response.
+   * @param documentType the document type
+   * @param documentId the document ID
+   */
+  public isDocumentInCart(documentType: string, documentId: string): any {
+    return this.getOrCreateCart(documentType).then((set) => {
+      return this.SetExistsResource.get({type: documentType, id: set.id, did: documentId}).$promise;
+    });
+  }
+
+  /**
    * Add one or more documents to the cart's set.
    * Return a promise on the cart's set.
    * @param documentType the document type
@@ -103,6 +119,22 @@ class SetService implements ISetService {
    */
   public addDocumentQueryToCart(documentType: string, query: string): any {
     this.$log.info("query=" + query);
+  }
+
+  /**
+   * Remove one or more documents from the cart's set.
+   * Return a promise on the cart's set.
+   * @param documentType the document type
+   * @param documentId the document ID or an array of document IDs
+   */
+  public removeDocumentFromCart(documentType: string, documentId: string | string[]): any {
+    const did = Array.isArray(documentId) ? documentId.join("\n") : documentId;
+    return this.getOrCreateCart(documentType).then((set) => {
+      return this.SetRemoveResource.delete({type: documentType, id: set.id}, did).$promise;
+    }).then((set) => {
+      this.localStorageService.set(this.getCartKey(documentType), set);
+      return set;
+    });
   }
 
   /**
@@ -221,5 +253,5 @@ class SetService implements ISetService {
 
 ngObibaMica.sets.service("SetService", ["$location", "$window", "$log", "localStorageService",
   "PageUrlService", "AlertService",
-  "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetImportResource",
-  "ObibaServerConfigResource", SetService]);
+  "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetExistsResource",
+  "SetImportResource", "SetRemoveResource", "ObibaServerConfigResource", SetService]);

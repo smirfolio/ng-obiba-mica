@@ -47,12 +47,37 @@
           }
         });
       }])
+
+    .factory('SetExistsResource', ['$resource', 'ngObibaMicaUrl',
+      function ($resource, ngObibaMicaUrl) {
+        const url = ngObibaMicaUrl.getUrl('SetExistsResource');
+        return $resource(url, {}, {
+          'get': {
+            method: 'GET',
+            params: {type: '@type', id: '@id', did: '@did'},
+            errorHandler: true
+          }
+        });
+      }])
     
     .factory('SetImportResource', ['$resource', 'ngObibaMicaUrl',
       function ($resource, ngObibaMicaUrl) {
         const url = ngObibaMicaUrl.getUrl('SetImportResource');
         return $resource(url, {}, {
           'save': {
+            method: 'POST',
+            params: {type: '@type', id: '@id'},
+            headers: {'Content-Type': 'text/plain'},
+            errorHandler: true
+          }
+        });
+      }])
+    
+    .factory('SetRemoveResource', ['$resource', 'ngObibaMicaUrl',
+      function ($resource, ngObibaMicaUrl) {
+        const url = ngObibaMicaUrl.getUrl('SetRemoveResource');
+        return $resource(url, {}, {
+          'delete': {
             method: 'POST',
             params: {type: '@type', id: '@id'},
             headers: {'Content-Type': 'text/plain'},

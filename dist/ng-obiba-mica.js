@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-03-14
+ * Date: 2018-03-15
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -135,7 +135,9 @@ function NgObibaMicaTemplateUrlFactory() {
             'SetResource': 'ws/:type/set/:id',
             'SetClearResource': 'ws/:type/set/:id/documents',
             'SetDocumentsResource': 'ws/:type/set/:id/documents?from=:from&limit=:limit',
+            'SetExistsResource': 'ws/:type/set/:id/document/:did/_exists',
             'SetImportResource': 'ws/:type/set/:id/documents/_import',
+            'SetRemoveResource': 'ws/:type/set/:id/documents/_delete',
             'JoinQuerySearchResource': 'ws/:type/_rql',
             'JoinQuerySearchCsvResource': 'ws/:type/_rql_csv?query=:query',
             'JoinQuerySearchCsvReportResource': 'ws/:type/_report?query=:query',
@@ -1679,11 +1681,34 @@ ngObibaMica.sets = angular.module('obiba.mica.sets', [
                 }
             });
         }])
+        .factory('SetExistsResource', ['$resource', 'ngObibaMicaUrl',
+        function ($resource, ngObibaMicaUrl) {
+            var url = ngObibaMicaUrl.getUrl('SetExistsResource');
+            return $resource(url, {}, {
+                'get': {
+                    method: 'GET',
+                    params: { type: '@type', id: '@id', did: '@did' },
+                    errorHandler: true
+                }
+            });
+        }])
         .factory('SetImportResource', ['$resource', 'ngObibaMicaUrl',
         function ($resource, ngObibaMicaUrl) {
             var url = ngObibaMicaUrl.getUrl('SetImportResource');
             return $resource(url, {}, {
                 'save': {
+                    method: 'POST',
+                    params: { type: '@type', id: '@id' },
+                    headers: { 'Content-Type': 'text/plain' },
+                    errorHandler: true
+                }
+            });
+        }])
+        .factory('SetRemoveResource', ['$resource', 'ngObibaMicaUrl',
+        function ($resource, ngObibaMicaUrl) {
+            var url = ngObibaMicaUrl.getUrl('SetRemoveResource');
+            return $resource(url, {}, {
+                'delete': {
                     method: 'POST',
                     params: { type: '@type', id: '@id' },
                     headers: { 'Content-Type': 'text/plain' },
@@ -1739,7 +1764,7 @@ ngObibaMica.sets = angular.module('obiba.mica.sets', [
  */
 "use strict";
 var SetService = /** @class */ (function () {
-    function SetService($location, $window, $log, localStorageService, PageUrlService, AlertService, SetsImportResource, SetResource, SetDocumentsResource, SetClearResource, SetImportResource, ObibaServerConfigResource) {
+    function SetService($location, $window, $log, localStorageService, PageUrlService, AlertService, SetsImportResource, SetResource, SetDocumentsResource, SetClearResource, SetExistsResource, SetImportResource, SetRemoveResource, ObibaServerConfigResource) {
         this.$location = $location;
         this.$window = $window;
         this.$log = $log;
@@ -1750,7 +1775,9 @@ var SetService = /** @class */ (function () {
         this.SetResource = SetResource;
         this.SetDocumentsResource = SetDocumentsResource;
         this.SetClearResource = SetClearResource;
+        this.SetExistsResource = SetExistsResource;
         this.SetImportResource = SetImportResource;
+        this.SetRemoveResource = SetRemoveResource;
         this.ObibaServerConfigResource = ObibaServerConfigResource;
         var that = this;
         ObibaServerConfigResource.get(function (micaConfig) {
@@ -1783,6 +1810,18 @@ var SetService = /** @class */ (function () {
         });
     };
     /**
+     * Check if document is in the cart.
+     * Return a promise on the response.
+     * @param documentType the document type
+     * @param documentId the document ID
+     */
+    SetService.prototype.isDocumentInCart = function (documentType, documentId) {
+        var _this = this;
+        return this.getOrCreateCart(documentType).then(function (set) {
+            return _this.SetExistsResource.get({ type: documentType, id: set.id, did: documentId }).$promise;
+        });
+    };
+    /**
      * Add one or more documents to the cart's set.
      * Return a promise on the cart's set.
      * @param documentType the document type
@@ -1806,6 +1845,22 @@ var SetService = /** @class */ (function () {
      */
     SetService.prototype.addDocumentQueryToCart = function (documentType, query) {
         this.$log.info("query=" + query);
+    };
+    /**
+     * Remove one or more documents from the cart's set.
+     * Return a promise on the cart's set.
+     * @param documentType the document type
+     * @param documentId the document ID or an array of document IDs
+     */
+    SetService.prototype.removeDocumentFromCart = function (documentType, documentId) {
+        var _this = this;
+        var did = Array.isArray(documentId) ? documentId.join("\n") : documentId;
+        return this.getOrCreateCart(documentType).then(function (set) {
+            return _this.SetRemoveResource.delete({ type: documentType, id: set.id }, did).$promise;
+        }).then(function (set) {
+            _this.localStorageService.set(_this.getCartKey(documentType), set);
+            return set;
+        });
     };
     /**
      * Clear the documents list of the cart.
@@ -1918,14 +1973,14 @@ var SetService = /** @class */ (function () {
         return "cart." + documentType;
     };
     SetService.$inject = ["$location", "$window", "$log", "localStorageService", "PageUrlService", "AlertService",
-        "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetImportResource",
-        "ObibaServerConfigResource"];
+        "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetExistsResource",
+        "SetImportResource", "SetRemoveResource", "ObibaServerConfigResource"];
     return SetService;
 }());
 ngObibaMica.sets.service("SetService", ["$location", "$window", "$log", "localStorageService",
     "PageUrlService", "AlertService",
-    "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetImportResource",
-    "ObibaServerConfigResource", SetService]);
+    "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetExistsResource",
+    "SetImportResource", "SetRemoveResource", "ObibaServerConfigResource", SetService]);
 //# sourceMappingURL=set-service.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -2102,18 +2157,56 @@ ngObibaMica.sets
             };
         }
     ])
-        .controller('AddVariableToCartController', [
+        .controller('VariableToCartController', [
         '$scope',
         'SetService',
         'AlertService',
         function ($scope, SetService, AlertService) {
+            $scope.canBeAdded = false;
+            $scope.canBeRemoved = false;
+            $scope.loading = true;
+            $scope.onInit = function (id) {
+                SetService.isDocumentInCart('variables', id)
+                    .then(function () {
+                    $scope.loading = false;
+                    $scope.canBeRemoved = true;
+                })
+                    .catch(function () {
+                    $scope.loading = false;
+                    $scope.canBeAdded = true;
+                });
+            };
             $scope.onAdd = function (id) {
+                $scope.loading = true;
                 var beforeCart = SetService.getCartSet('variables');
-                SetService.addDocumentToCart('variables', id).then(function (set) {
+                SetService.addDocumentToCart('variables', id)
+                    .then(function (set) {
+                    $scope.loading = false;
                     var addedCount = set.count - (beforeCart ? beforeCart.count : 0);
                     var msgKey = addedCount === 0 ? 'sets.cart.no-variable-added' : 'sets.cart.variable-added';
+                    $scope.canBeRemoved = addedCount > 0;
+                    $scope.canBeAdded = !$scope.canBeRemoved;
                     AlertService.growl({
-                        id: 'AddVariableToCartControllerGrowl',
+                        id: 'VariableToCartControllerGrowl',
+                        type: 'info',
+                        msgKey: msgKey,
+                        msgArgs: [],
+                        delay: 3000
+                    });
+                });
+            };
+            $scope.onRemove = function (id) {
+                $scope.loading = true;
+                var beforeCart = SetService.getCartSet('variables');
+                SetService.removeDocumentFromCart('variables', id)
+                    .then(function (set) {
+                    $scope.loading = false;
+                    var removedCount = (beforeCart ? beforeCart.count : 0) - set.count;
+                    var msgKey = removedCount > 0 ? 'sets.cart.variable-removed' : 'sets.cart.no-variable-removed';
+                    $scope.canBeAdded = removedCount > 0;
+                    $scope.canBeRemoved = !$scope.canBeAdded;
+                    AlertService.growl({
+                        id: 'VariableToCartControllerGrowl',
                         type: 'info',
                         msgKey: msgKey,
                         msgArgs: [],

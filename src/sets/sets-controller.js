@@ -43,25 +43,72 @@
         SetService.getCartDocuments(type, from, limit).then(onDocuments);
       };
     }])
-  .controller('AddVariableToCartController', [
+
+  .controller('VariableToCartController', [
     '$scope',
     'SetService',
     'AlertService',
     function($scope, SetService, AlertService) {
-      
-      $scope.onAdd = function(id) {
-        var beforeCart = SetService.getCartSet('variables');
-        SetService.addDocumentToCart('variables', id).then(function(set) {
-          var addedCount = set.count - (beforeCart ? beforeCart.count : 0);
-          var msgKey = addedCount === 0 ? 'sets.cart.no-variable-added' : 'sets.cart.variable-added';
-          AlertService.growl({
-            id: 'AddVariableToCartControllerGrowl',
-            type: 'info',
-            msgKey: msgKey,
-            msgArgs: [],
-            delay: 3000
+      $scope.canBeAdded = false;
+      $scope.canBeRemoved = false;
+      $scope.loading = true;
+
+      $scope.onInit = function(id) {
+        SetService.isDocumentInCart('variables', id)
+          .then(function() {
+            $scope.loading = false;
+            $scope.canBeRemoved = true;
+          })
+          .catch(function() {
+            $scope.loading = false;
+            $scope.canBeAdded = true;
           });
-        });
+      };
+
+      $scope.onAdd = function(id) {
+        $scope.loading = true;
+        var beforeCart = SetService.getCartSet('variables');
+        SetService.addDocumentToCart('variables', id)
+          .then(function(set) {
+            $scope.loading = false;
+            var addedCount = set.count - (beforeCart ? beforeCart.count : 0);
+            var msgKey = addedCount === 0 ? 'sets.cart.no-variable-added' : 'sets.cart.variable-added';
+            $scope.canBeRemoved = addedCount > 0;
+            $scope.canBeAdded = !$scope.canBeRemoved;
+            AlertService.growl({
+              id: 'VariableToCartControllerGrowl',
+              type: 'info',
+              msgKey: msgKey,
+              msgArgs: [],
+              delay: 3000
+            });
+          })
+          .catch(function() {
+            $scope.loading = false;
+          });
+      };
+
+      $scope.onRemove = function(id) {
+        $scope.loading = true;
+        var beforeCart = SetService.getCartSet('variables');
+        SetService.removeDocumentFromCart('variables', id)
+          .then(function(set) {
+            $scope.loading = false;
+            var removedCount = (beforeCart ? beforeCart.count : 0) - set.count;
+            var msgKey = removedCount > 0 ? 'sets.cart.variable-removed' : 'sets.cart.no-variable-removed';
+            $scope.canBeAdded = removedCount > 0;
+            $scope.canBeRemoved = !$scope.canBeAdded;
+            AlertService.growl({
+              id: 'VariableToCartControllerGrowl',
+              type: 'info',
+              msgKey: msgKey,
+              msgArgs: [],
+              delay: 3000
+            });
+         })
+         .catch(function() {
+           $scope.loading = false;
+         });
       };
 
     }]);
