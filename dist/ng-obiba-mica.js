@@ -13654,8 +13654,8 @@ angular.module("analysis/components/entities-count-result-table/component.html",
     "      <th ng-if=\"$ctrl.showStudyColumn()\" translate>taxonomy.target.study</th>\n" +
     "      <th translate>taxonomy.target.variable</th>\n" +
     "      <th translate>taxonomy.target.dataset</th>\n" +
-    "      <th translate>analysis.criteria</th>\n" +
-    "      <th translate>analysis.count</th>\n" +
+    "      <th style=\"width: 400px\" translate>analysis.criteria</th>\n" +
+    "      <th style=\"width: 100px\" translate>analysis.count</th>\n" +
     "    </thead>\n" +
     "    <tbody>\n" +
     "        <tr ng-repeat=\"row in $ctrl.table.rows\">\n" +
@@ -13875,6 +13875,10 @@ angular.module("analysis/views/analysis-entities-count.html", []).run(["$templat
     "<div>\n" +
     "  <div ng-if=\"entitiesHeaderTemplateUrl\" ng-include=\"entitiesHeaderTemplateUrl\"></div>\n" +
     "  <div>\n" +
+    "      <span class=\"btn btn-primary\" ng-show=\"result.counts\">\n" +
+    "        <span ng-show=\"result.counts.length>0\" translate>{{result.counts[0].entityType}}</span>\n" +
+    "        <span class=\"badge\">{{result.total}}</span>\n" +
+    "      </span>\n" +
     "      <span ng-if=\"loading\" class=\"voffset2 loading\"></span>\n" +
     "  </div>\n" +
     "  <entities-count-result-table ng-hide=\"loading && !result.total\" result=\"result\"></entities-count-result-table>\n" +
