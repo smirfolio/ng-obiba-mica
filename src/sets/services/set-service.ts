@@ -21,9 +21,10 @@ interface ISetService {
   removeDocumentFromCart(documentType: string, documentId: string | string[]): any;
   getCartDocuments(documentType: string, fromIdx: number, limitIdx: number): any;
   clearCart(documentType: string): any;
-  gotoSetEntitiesCount(documentType: string, setId: string): void;
+  gotoSetEntitiesCount(setId: string, documentId: string | string[]): void;
   gotoEntitiesCount(ids: string[]): void;
   gotoSearch(documentType: string, setId: string): void;
+  getCartSet(documentType: string): any;
 }
 
 class SetService implements ISetService {
@@ -140,6 +141,7 @@ class SetService implements ISetService {
   /**
    * Clear the documents list of the cart.
    * @param documentType the document type
+   * @param documentId one or more documents to be removed from the cart (optional)
    */
   public clearCart(documentType: string): any {
     return this.getOrCreateCart(documentType).then((set) => {
@@ -151,9 +153,12 @@ class SetService implements ISetService {
 
   /**
    * Go to the entities count page for the variables belonging to the provided set.
+   * Note that the number of variables for this type of analysis is limited to 20.
    * @param setId the set ID, if undefined, the cart set ID is used
+   * @param documentId one or more document id (optional)
    */
-  public gotoSetEntitiesCount(setId: string): void {
+  public gotoSetEntitiesCount(setId: string, documentId: string | string[]): void {
+    const max = 20;
     let sid = setId;
     if (!sid) {
       const cartSet = this.getCartSet("variables");
@@ -162,10 +167,15 @@ class SetService implements ISetService {
       }
     }
     // TODO make a search query instead to force variable type to Collected
-    this.SetDocumentsResource.get({type: "variables", id: sid, from: 0, limit: 20}).$promise
+    if (!documentId) {
+    this.SetDocumentsResource.get({type: "variables", id: sid, from: 0, limit: max}).$promise
       .then((documents) => {
         this.gotoEntitiesCount(documents.variables.map((doc) => doc.id));
       });
+    } else {
+      const ids = Array.isArray(documentId) ? documentId : [documentId];
+      this.gotoEntitiesCount(ids.slice(0, max));
+    }
   }
 
   /**
@@ -204,7 +214,7 @@ class SetService implements ISetService {
    * Get the cart set if it exists.
    * @param documentType the document type
    */
-  private getCartSet(documentType: string) {
+  public getCartSet(documentType: string): any {
     return this.localStorageService.get(this.getCartKey(documentType));
   }
 

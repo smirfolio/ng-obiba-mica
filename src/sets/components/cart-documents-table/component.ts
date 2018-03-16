@@ -23,6 +23,8 @@ class CartDocumentsTableController implements ng.IComponentController {
   public type: string;
   public table: any;
   public localizedTotal: string;
+  private allSelected: boolean;
+  private selections: any;
 
   constructor(
     private PageUrlService: any,
@@ -33,6 +35,8 @@ class CartDocumentsTableController implements ng.IComponentController {
     private $scope: any,
     private $location: any,
     private $window: any) {
+      this.allSelected = false;
+      this.selections = {};
       this.documents = {
         from: 0,
         limit: 0,
@@ -48,6 +52,25 @@ class CartDocumentsTableController implements ng.IComponentController {
       };
   }
 
+  public updateAllSelected() {
+    this.$log.info("ALL=" + this.allSelected);
+    if (this.allSelected) {
+      if (this.documents && this.documents[this.type]) {
+        this.documents[this.type].forEach((doc) => {
+          this.selections[doc.id] = true;
+        });
+      }
+    } else {
+      this.selections = {};
+    }
+  }
+
+  public updateSelection(documentId: any): void {
+    if (!this.selections[documentId]) {
+      this.allSelected = false;
+    }
+  }
+
   public showStudies(): boolean {
     return !this.SetService.isSingleStudy();
   }
@@ -58,7 +81,8 @@ class CartDocumentsTableController implements ng.IComponentController {
 
   public entitiesCount(): void {
     if (this.pagination.totalHits) {
-      this.SetService.gotoSetEntitiesCount();
+      const sels = this.getSelectedDocumentIds();
+      this.SetService.gotoSetEntitiesCount(undefined, (sels && sels.length > 0 ? sels : undefined));
     }
   }
 
@@ -67,8 +91,22 @@ class CartDocumentsTableController implements ng.IComponentController {
   }
 
   public clearSet(): void {
-    this.SetService.clearCart(this.type)
-      .then(() => this.$scope.$emit("cart-cleared", this.type));
+    const sels = this.getSelectedDocumentIds();
+    if (sels && sels.length > 0) {
+      this.SetService.removeDocumentFromCart(this.type, sels)
+        .then(() => {
+          this.allSelected = false;
+          this.selections = {};
+          this.$scope.$emit("cart-cleared", this.type);
+        });
+    } else {
+      this.SetService.clearCart(this.type)
+        .then(() => {
+          this.allSelected = false;
+          this.selections = {};
+          this.$scope.$emit("cart-cleared", this.type);
+        });
+    }
   }
 
   public pageChanged(): void {
@@ -88,6 +126,10 @@ class CartDocumentsTableController implements ng.IComponentController {
       .formatNumber((this.documents && this.documents.total) ? this.documents.total : 0);
   }
 
+  private getSelectedDocumentIds(): string[] {
+    return Object.keys(this.selections).filter((id) => this.selections[id]);
+  }
+
   private localize(values): string {
     return this.LocalizedValues.forLang(values, this.$translate.use());
   }
@@ -104,6 +146,9 @@ class CartDocumentsTableController implements ng.IComponentController {
     this.pagination.to = this.documents ? this.documents.from + documentCounts : 0;
     if (documentCounts) {
       this.documents[this.type].forEach((doc) => {
+        if (this.allSelected) {
+          this.selections[doc.id] = true;
+        }
         const studyAcronym = this.localize(doc.studySummary.acronym);
         const studyName = this.localize(doc.studySummary.name);
         const studyType = doc.variableType === "Dataschema" ? "harmonization" : "individual";
@@ -114,6 +159,10 @@ class CartDocumentsTableController implements ng.IComponentController {
         const attrLabel = doc.attributes.filter((attr) => attr.name === "label");
         const variableLabel = attrLabel && attrLabel.length > 0 ? this.localize(attrLabel[0].values) : "";
         const row = new Array(
+          {
+            link: undefined,
+            value: doc.id,
+          },
           {
             link: variableLink ? variableLink : datasetLink,
             value: doc.name,

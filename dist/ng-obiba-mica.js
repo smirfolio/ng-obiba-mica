@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-03-15
+ * Date: 2018-03-16
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -1865,6 +1865,7 @@ var SetService = /** @class */ (function () {
     /**
      * Clear the documents list of the cart.
      * @param documentType the document type
+     * @param documentId one or more documents to be removed from the cart (optional)
      */
     SetService.prototype.clearCart = function (documentType) {
         var _this = this;
@@ -1876,10 +1877,13 @@ var SetService = /** @class */ (function () {
     };
     /**
      * Go to the entities count page for the variables belonging to the provided set.
+     * Note that the number of variables for this type of analysis is limited to 20.
      * @param setId the set ID, if undefined, the cart set ID is used
+     * @param documentId one or more document id (optional)
      */
-    SetService.prototype.gotoSetEntitiesCount = function (setId) {
+    SetService.prototype.gotoSetEntitiesCount = function (setId, documentId) {
         var _this = this;
+        var max = 20;
         var sid = setId;
         if (!sid) {
             var cartSet = this.getCartSet("variables");
@@ -1888,10 +1892,16 @@ var SetService = /** @class */ (function () {
             }
         }
         // TODO make a search query instead to force variable type to Collected
-        this.SetDocumentsResource.get({ type: "variables", id: sid, from: 0, limit: 20 }).$promise
-            .then(function (documents) {
-            _this.gotoEntitiesCount(documents.variables.map(function (doc) { return doc.id; }));
-        });
+        if (!documentId) {
+            this.SetDocumentsResource.get({ type: "variables", id: sid, from: 0, limit: max }).$promise
+                .then(function (documents) {
+                _this.gotoEntitiesCount(documents.variables.map(function (doc) { return doc.id; }));
+            });
+        }
+        else {
+            var ids = Array.isArray(documentId) ? documentId : [documentId];
+            this.gotoEntitiesCount(ids.slice(0, max));
+        }
     };
     /**
      * Go to the entities count page with the provided identifiers.
@@ -2002,6 +2012,8 @@ var CartDocumentsTableController = /** @class */ (function () {
         this.$scope = $scope;
         this.$location = $location;
         this.$window = $window;
+        this.allSelected = false;
+        this.selections = {};
         this.documents = {
             from: 0,
             limit: 0,
@@ -2016,6 +2028,25 @@ var CartDocumentsTableController = /** @class */ (function () {
             totalHits: 0,
         };
     }
+    CartDocumentsTableController.prototype.updateAllSelected = function () {
+        var _this = this;
+        this.$log.info("ALL=" + this.allSelected);
+        if (this.allSelected) {
+            if (this.documents && this.documents[this.type]) {
+                this.documents[this.type].forEach(function (doc) {
+                    _this.selections[doc.id] = true;
+                });
+            }
+        }
+        else {
+            this.selections = {};
+        }
+    };
+    CartDocumentsTableController.prototype.updateSelection = function (documentId) {
+        if (!this.selections[documentId]) {
+            this.allSelected = false;
+        }
+    };
     CartDocumentsTableController.prototype.showStudies = function () {
         return !this.SetService.isSingleStudy();
     };
@@ -2024,7 +2055,8 @@ var CartDocumentsTableController = /** @class */ (function () {
     };
     CartDocumentsTableController.prototype.entitiesCount = function () {
         if (this.pagination.totalHits) {
-            this.SetService.gotoSetEntitiesCount();
+            var sels = this.getSelectedDocumentIds();
+            this.SetService.gotoSetEntitiesCount(undefined, (sels && sels.length > 0 ? sels : undefined));
         }
     };
     CartDocumentsTableController.prototype.search = function () {
@@ -2032,8 +2064,23 @@ var CartDocumentsTableController = /** @class */ (function () {
     };
     CartDocumentsTableController.prototype.clearSet = function () {
         var _this = this;
-        this.SetService.clearCart(this.type)
-            .then(function () { return _this.$scope.$emit("cart-cleared", _this.type); });
+        var sels = this.getSelectedDocumentIds();
+        if (sels && sels.length > 0) {
+            this.SetService.removeDocumentFromCart(this.type, sels)
+                .then(function () {
+                _this.allSelected = false;
+                _this.selections = {};
+                _this.$scope.$emit("cart-cleared", _this.type);
+            });
+        }
+        else {
+            this.SetService.clearCart(this.type)
+                .then(function () {
+                _this.allSelected = false;
+                _this.selections = {};
+                _this.$scope.$emit("cart-cleared", _this.type);
+            });
+        }
     };
     CartDocumentsTableController.prototype.pageChanged = function () {
         var from = (this.pagination.currentPage - 1) * this.documents.limit;
@@ -2048,6 +2095,10 @@ var CartDocumentsTableController = /** @class */ (function () {
         this.table = this.asTable();
         this.localizedTotal = this.LocalizedValues
             .formatNumber((this.documents && this.documents.total) ? this.documents.total : 0);
+    };
+    CartDocumentsTableController.prototype.getSelectedDocumentIds = function () {
+        var _this = this;
+        return Object.keys(this.selections).filter(function (id) { return _this.selections[id]; });
     };
     CartDocumentsTableController.prototype.localize = function (values) {
         return this.LocalizedValues.forLang(values, this.$translate.use());
@@ -2065,6 +2116,9 @@ var CartDocumentsTableController = /** @class */ (function () {
         this.pagination.to = this.documents ? this.documents.from + documentCounts : 0;
         if (documentCounts) {
             this.documents[this.type].forEach(function (doc) {
+                if (_this.allSelected) {
+                    _this.selections[doc.id] = true;
+                }
                 var studyAcronym = _this.localize(doc.studySummary.acronym);
                 var studyName = _this.localize(doc.studySummary.name);
                 var studyType = doc.variableType === "Dataschema" ? "harmonization" : "individual";
@@ -2075,6 +2129,9 @@ var CartDocumentsTableController = /** @class */ (function () {
                 var attrLabel = doc.attributes.filter(function (attr) { return attr.name === "label"; });
                 var variableLabel = attrLabel && attrLabel.length > 0 ? _this.localize(attrLabel[0].values) : "";
                 var row = new Array({
+                    link: undefined,
+                    value: doc.id,
+                }, {
                     link: variableLink ? variableLink : datasetLink,
                     value: doc.name,
                 }, {
@@ -2193,6 +2250,9 @@ ngObibaMica.sets
                         msgArgs: [],
                         delay: 3000
                     });
+                })
+                    .catch(function () {
+                    $scope.loading = false;
                 });
             };
             $scope.onRemove = function (id) {
@@ -2212,6 +2272,9 @@ ngObibaMica.sets
                         msgArgs: [],
                         delay: 3000
                     });
+                })
+                    .catch(function () {
+                    $scope.loading = false;
                 });
             };
         }
@@ -17118,6 +17181,12 @@ angular.module("sets/components/cart-documents-table/component.html", []).run(["
     "  <div class=\"table-responsive\">\n" +
     "    <table class=\"table table-bordered table-striped\" ng-if=\"$ctrl.documents.total>0\">\n" +
     "      <thead>\n" +
+    "        <th style=\"width: 50px\">\n" +
+    "            <input \n" +
+    "            ng-model=\"$ctrl.allSelected\"\n" +
+    "            type=\"checkbox\"\n" +
+    "            ng-click=\"$ctrl.updateAllSelected()\"/>\n" +
+    "        </th>\n" +
     "        <th translate>taxonomy.target.variable</th>\n" +
     "        <th translate>search.variable.label</th>\n" +
     "        <th ng-if=\"$ctrl.showVariableType()\" translate>type</th>\n" +
@@ -17126,11 +17195,17 @@ angular.module("sets/components/cart-documents-table/component.html", []).run(["
     "      </thead>\n" +
     "      <tbody>\n" +
     "        <tr ng-repeat=\"row in $ctrl.table.rows\">\n" +
-    "          <td><a href=\"{{row[0].link}}\">{{row[0].value}}</a></td>\n" +
-    "          <td>{{row[1].value}}</td>\n" +
-    "          <td ng-if=\"$ctrl.showVariableType()\">{{'search.variable.' + row[2].value.toLowerCase() | translate}}</td>\n" +
-    "          <td ng-if=\"$ctrl.showStudies()\"><a href=\"{{row[3].link}}\">{{row[3].value}}</a></td>\n" +
-    "          <td><a href=\"{{row[4].link}}\">{{row[4].value}}</a></td>\n" +
+    "          <td>\n" +
+    "              <input \n" +
+    "              ng-model=\"$ctrl.selections[row[0].value]\"\n" +
+    "              type=\"checkbox\"\n" +
+    "              ng-click=\"$ctrl.updateSelection(row[0].value)\"/>\n" +
+    "          </td>\n" +
+    "          <td><a href=\"{{row[1].link}}\">{{row[1].value}}</a></td>\n" +
+    "          <td>{{row[2].value}}</td>\n" +
+    "          <td ng-if=\"$ctrl.showVariableType()\">{{'search.variable.' + row[3].value.toLowerCase() | translate}}</td>\n" +
+    "          <td ng-if=\"$ctrl.showStudies()\"><a href=\"{{row[3].link}}\">{{row[4].value}}</a></td>\n" +
+    "          <td><a href=\"{{row[5].link}}\">{{row[5].value}}</a></td>\n" +
     "        </tr>\n" +
     "      </tbody>\n" +
     "    </table>\n" +
@@ -17143,9 +17218,12 @@ angular.module("sets/views/cart.html", []).run(["$templateCache", function($temp
     "<div>\n" +
     "  <div ng-if=\"cartHeaderTemplateUrl\" ng-include=\"cartHeaderTemplateUrl\"></div>\n" +
     "\n" +
-    "  <h3 translate>variables</h3>\n" +
+    "  <h3>\n" +
+    "    <span translate>variables</span>\n" +
+    "    <span ng-if=\"loading\" class=\"voffset2 loading\"></span>\n" +
+    "  </h3>\n" +
     "  <div>\n" +
-    "      <span ng-if=\"loading\" class=\"voffset2 loading\"></span>\n" +
+    "      \n" +
     "  </div>\n" +
     "  <cart-documents-table \n" +
     "    type=\"'variables'\" \n" +
