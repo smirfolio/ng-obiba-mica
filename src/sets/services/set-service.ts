@@ -31,7 +31,7 @@ class SetService implements ISetService {
 
   private static $inject = ["$location", "$window", "$log", "localStorageService", "PageUrlService", "AlertService",
     "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetExistsResource",
-    "SetImportResource", "SetRemoveResource", "ObibaServerConfigResource"];
+    "SetImportResource", "SetImportQueryResource", "SetRemoveResource", "ObibaServerConfigResource"];
 
   private hasMultipleStudies: boolean;
   private hasHarmonization: boolean;
@@ -49,6 +49,7 @@ class SetService implements ISetService {
     private SetClearResource: any,
     private SetExistsResource: any,
     private SetImportResource: any,
+    private SetImportQueryResource: any,
     private SetRemoveResource: any,
     private ObibaServerConfigResource: any) {
       const that = this;
@@ -116,10 +117,16 @@ class SetService implements ISetService {
    * Add documents matching the query to the cart's set.
    * Return a promise on the cart's set.
    * @param documentType the document type
-   * @param query the documents join query
+   * @param rqlQuery the documents join query
    */
-  public addDocumentQueryToCart(documentType: string, query: string): any {
-    this.$log.info("query=" + query);
+  public addDocumentQueryToCart(documentType: string, rqlQuery: string): any {
+    this.$log.info("query=" + rqlQuery);
+    return this.getOrCreateCart(documentType).then((set) => {
+      return this.SetImportQueryResource.save({type: documentType, id: set.id, query: rqlQuery}).$promise;
+    }).then((set) => {
+      this.localStorageService.set(this.getCartKey(documentType), set);
+      return set;
+    });
   }
 
   /**
@@ -264,4 +271,4 @@ class SetService implements ISetService {
 ngObibaMica.sets.service("SetService", ["$location", "$window", "$log", "localStorageService",
   "PageUrlService", "AlertService",
   "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetExistsResource",
-  "SetImportResource", "SetRemoveResource", "ObibaServerConfigResource", SetService]);
+  "SetImportResource", "SetImportQueryResource", "SetRemoveResource", "ObibaServerConfigResource", SetService]);

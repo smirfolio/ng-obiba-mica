@@ -73,6 +73,27 @@
         });
       }])
     
+    .factory('SetImportQueryResource', ['$resource', 'ngObibaMicaUrl',
+      function ($resource, ngObibaMicaUrl) {
+        const url = ngObibaMicaUrl.getUrl('SetImportQueryResource');
+        var requestTransformer = function (obj) {
+          var str = [];
+          for (var p in obj) {
+            str.push(encodeURIComponent(p) + '=' + encodeURIComponent(obj[p]));
+          }
+          return str.join('&');
+        };
+        return $resource(url, {}, {
+          'save': {
+            method: 'POST',
+            params: {type: '@type', id: '@id'},
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            errorHandler: true,
+            transformRequest: requestTransformer
+          }
+        });
+      }])
+    
     .factory('SetRemoveResource', ['$resource', 'ngObibaMicaUrl',
       function ($resource, ngObibaMicaUrl) {
         const url = ngObibaMicaUrl.getUrl('SetRemoveResource');

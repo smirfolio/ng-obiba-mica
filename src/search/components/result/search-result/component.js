@@ -28,13 +28,16 @@ ngObibaMica.search
         });
       }
 
-      function rewriteQueryWithLimit(limit) {
+      function rewriteQueryWithLimitAndFields(limit, fields) {
         var parsedQuery = RqlQueryService.parseQuery($scope.query);
         var target = typeToTarget($scope.type);
         var targetQuery = parsedQuery.args.filter(function (query) {
           return query.name === target;
         }).pop();
         RqlQueryUtils.addLimit(targetQuery, RqlQueryUtils.limit(0, limit));
+        if (fields) {
+          RqlQueryUtils.addFields(targetQuery, RqlQueryUtils.fields(fields));
+        }
         return new RqlQuery().serializeArgs(parsedQuery.args);
       }
 
@@ -76,7 +79,7 @@ ngObibaMica.search
         if ($scope.query === null) {
           return $scope.query;
         }
-        var queryWithLimit = rewriteQueryWithLimit(100000);
+        var queryWithLimit = rewriteQueryWithLimitAndFields(100000);
         return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(queryWithLimit));
       };
 
@@ -85,17 +88,8 @@ ngObibaMica.search
           return $scope.query;
         }
         var beforeCart = SetService.getCartSet('variables');
-        //var queryWithLimit = rewriteQueryWithLimit(1000);
-        //SetService.addDocumentQueryToCart('variables', queryWithLimit);
-
-        var ids = $scope.result.list.variableResultDto['obiba.mica.DatasetVariableResultDto.result'].summaries
-          .filter(function(variable) {
-            return variable.variableType === 'Collected';
-          })
-          .map(function(variable) {
-            return variable.id;
-          });
-        SetService.addDocumentToCart('variables', ids).then(function(set) {
+        var queryWithLimit = rewriteQueryWithLimitAndFields(20000, ['id']);
+        SetService.addDocumentQueryToCart('variables', queryWithLimit).then(function(set) {
           var addedCount = set.count - (beforeCart ? beforeCart.count : 0);
           var msgKey = 'sets.cart.variables-added';
           var msgArgs = [addedCount];

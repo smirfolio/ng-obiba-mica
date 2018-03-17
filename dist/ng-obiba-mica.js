@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-03-16
+ * Date: 2018-03-17
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -137,6 +137,7 @@ function NgObibaMicaTemplateUrlFactory() {
             'SetDocumentsResource': 'ws/:type/set/:id/documents?from=:from&limit=:limit',
             'SetExistsResource': 'ws/:type/set/:id/document/:did/_exists',
             'SetImportResource': 'ws/:type/set/:id/documents/_import',
+            'SetImportQueryResource': 'ws/:type/set/:id/documents/_rql',
             'SetRemoveResource': 'ws/:type/set/:id/documents/_delete',
             'JoinQuerySearchResource': 'ws/:type/_rql',
             'JoinQuerySearchCsvResource': 'ws/:type/_rql_csv?query=:query',
@@ -1704,6 +1705,26 @@ ngObibaMica.sets = angular.module('obiba.mica.sets', [
                 }
             });
         }])
+        .factory('SetImportQueryResource', ['$resource', 'ngObibaMicaUrl',
+        function ($resource, ngObibaMicaUrl) {
+            var url = ngObibaMicaUrl.getUrl('SetImportQueryResource');
+            var requestTransformer = function (obj) {
+                var str = [];
+                for (var p in obj) {
+                    str.push(encodeURIComponent(p) + '=' + encodeURIComponent(obj[p]));
+                }
+                return str.join('&');
+            };
+            return $resource(url, {}, {
+                'save': {
+                    method: 'POST',
+                    params: { type: '@type', id: '@id' },
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    errorHandler: true,
+                    transformRequest: requestTransformer
+                }
+            });
+        }])
         .factory('SetRemoveResource', ['$resource', 'ngObibaMicaUrl',
         function ($resource, ngObibaMicaUrl) {
             var url = ngObibaMicaUrl.getUrl('SetRemoveResource');
@@ -1764,7 +1785,7 @@ ngObibaMica.sets = angular.module('obiba.mica.sets', [
  */
 "use strict";
 var SetService = /** @class */ (function () {
-    function SetService($location, $window, $log, localStorageService, PageUrlService, AlertService, SetsImportResource, SetResource, SetDocumentsResource, SetClearResource, SetExistsResource, SetImportResource, SetRemoveResource, ObibaServerConfigResource) {
+    function SetService($location, $window, $log, localStorageService, PageUrlService, AlertService, SetsImportResource, SetResource, SetDocumentsResource, SetClearResource, SetExistsResource, SetImportResource, SetImportQueryResource, SetRemoveResource, ObibaServerConfigResource) {
         this.$location = $location;
         this.$window = $window;
         this.$log = $log;
@@ -1777,6 +1798,7 @@ var SetService = /** @class */ (function () {
         this.SetClearResource = SetClearResource;
         this.SetExistsResource = SetExistsResource;
         this.SetImportResource = SetImportResource;
+        this.SetImportQueryResource = SetImportQueryResource;
         this.SetRemoveResource = SetRemoveResource;
         this.ObibaServerConfigResource = ObibaServerConfigResource;
         var that = this;
@@ -1841,10 +1863,17 @@ var SetService = /** @class */ (function () {
      * Add documents matching the query to the cart's set.
      * Return a promise on the cart's set.
      * @param documentType the document type
-     * @param query the documents join query
+     * @param rqlQuery the documents join query
      */
-    SetService.prototype.addDocumentQueryToCart = function (documentType, query) {
-        this.$log.info("query=" + query);
+    SetService.prototype.addDocumentQueryToCart = function (documentType, rqlQuery) {
+        var _this = this;
+        this.$log.info("query=" + rqlQuery);
+        return this.getOrCreateCart(documentType).then(function (set) {
+            return _this.SetImportQueryResource.save({ type: documentType, id: set.id, query: rqlQuery }).$promise;
+        }).then(function (set) {
+            _this.localStorageService.set(_this.getCartKey(documentType), set);
+            return set;
+        });
     };
     /**
      * Remove one or more documents from the cart's set.
@@ -1984,13 +2013,13 @@ var SetService = /** @class */ (function () {
     };
     SetService.$inject = ["$location", "$window", "$log", "localStorageService", "PageUrlService", "AlertService",
         "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetExistsResource",
-        "SetImportResource", "SetRemoveResource", "ObibaServerConfigResource"];
+        "SetImportResource", "SetImportQueryResource", "SetRemoveResource", "ObibaServerConfigResource"];
     return SetService;
 }());
 ngObibaMica.sets.service("SetService", ["$location", "$window", "$log", "localStorageService",
     "PageUrlService", "AlertService",
     "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetExistsResource",
-    "SetImportResource", "SetRemoveResource", "ObibaServerConfigResource", SetService]);
+    "SetImportResource", "SetImportQueryResource", "SetRemoveResource", "ObibaServerConfigResource", SetService]);
 //# sourceMappingURL=set-service.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -9639,13 +9668,16 @@ ngObibaMica.search
                 $scope.activeTarget[key].active = type === key;
             });
         }
-        function rewriteQueryWithLimit(limit) {
+        function rewriteQueryWithLimitAndFields(limit, fields) {
             var parsedQuery = RqlQueryService.parseQuery($scope.query);
             var target = typeToTarget($scope.type);
             var targetQuery = parsedQuery.args.filter(function (query) {
                 return query.name === target;
             }).pop();
             RqlQueryUtils.addLimit(targetQuery, RqlQueryUtils.limit(0, limit));
+            if (fields) {
+                RqlQueryUtils.addFields(targetQuery, RqlQueryUtils.fields(fields));
+            }
             return new RqlQuery().serializeArgs(parsedQuery.args);
         }
         $scope.targetTypeMap = $scope.$parent.taxonomyTypeMap;
@@ -9682,7 +9714,7 @@ ngObibaMica.search
             if ($scope.query === null) {
                 return $scope.query;
             }
-            var queryWithLimit = rewriteQueryWithLimit(100000);
+            var queryWithLimit = rewriteQueryWithLimitAndFields(100000);
             return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(queryWithLimit));
         };
         $scope.addToCart = function () {
@@ -9690,16 +9722,8 @@ ngObibaMica.search
                 return $scope.query;
             }
             var beforeCart = SetService.getCartSet('variables');
-            //var queryWithLimit = rewriteQueryWithLimit(1000);
-            //SetService.addDocumentQueryToCart('variables', queryWithLimit);
-            var ids = $scope.result.list.variableResultDto['obiba.mica.DatasetVariableResultDto.result'].summaries
-                .filter(function (variable) {
-                return variable.variableType === 'Collected';
-            })
-                .map(function (variable) {
-                return variable.id;
-            });
-            SetService.addDocumentToCart('variables', ids).then(function (set) {
+            var queryWithLimit = rewriteQueryWithLimitAndFields(20000, ['id']);
+            SetService.addDocumentQueryToCart('variables', queryWithLimit).then(function (set) {
                 var addedCount = set.count - (beforeCart ? beforeCart.count : 0);
                 var msgKey = 'sets.cart.variables-added';
                 var msgArgs = [addedCount];
