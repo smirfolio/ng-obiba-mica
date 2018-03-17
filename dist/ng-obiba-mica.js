@@ -15254,12 +15254,12 @@ angular.module("search/components/criteria/terms-vocabulary-filter-detail/compon
     "      <button type=\"button\" ng-if=\"$ctrl.limitNumber > $ctrl.constantLimitNumber\"\n" +
     "              class=\"btn btn-xs btn-primary\"\n" +
     "              ng-click=\"$ctrl.limitNumber = $ctrl.constantLimitNumber\">\n" +
-    "        Less\n" +
+    "        {{'search.facet.less' | translate}}\n" +
     "      </button>\n" +
     "      <button type=\"button\" ng-if=\"$ctrl.vocabulary.filteredTerms.length > $ctrl.limitNumber\"\n" +
     "              class=\"btn btn-xs btn-primary\"\n" +
     "              ng-click=\"$ctrl.limitNumber = $ctrl.vocabulary.filteredTerms.length\">\n" +
-    "        More\n" +
+    "        {{'search.facet.more' | translate}}\n" +
     "      </button>\n" +
     "    </div>\n" +
     "  </div>\n" +
