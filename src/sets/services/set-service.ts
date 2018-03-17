@@ -151,6 +151,7 @@ class SetService implements ISetService {
     return this.getOrCreateCart(documentType).then((set) => {
       return this.SetClearResource.clear({type: documentType, id: set.id}).$promise;
     }).then(() => {
+      this.notifyCartChanged(documentType);
       return this.getOrCreateCart(documentType);
     });
   }
@@ -257,6 +258,7 @@ class SetService implements ISetService {
   private saveCart(documentType: string, set: any) {
     if (set && set.id) { // sanity check
       this.localStorageService.set(this.getCartKey(documentType), set);
+      this.notifyCartChanged(documentType);
       return set;
     }
     return undefined;
@@ -268,6 +270,27 @@ class SetService implements ISetService {
    */
   private getCartKey(documentType: string): string {
     return "cart." + documentType;
+  }
+
+  /**
+   * Notify at document level that the cart set was updated.
+   * @param documentType the document type
+   */
+  private notifyCartChanged(documentType: string): void {
+    let event;
+    try {
+      // For modern browsers except IE:
+      event = new CustomEvent("cart-updated", {detail: documentType});
+    } catch (err) {
+      // If IE 11 (or 10 or 9...?) do it this way:
+      // Create the event.
+      event = document.createEvent("Event");
+      // Define that the event name is 'build'.
+      event.initEvent("cart-updated", true, true);
+      event.detail = documentType;
+    }
+    // Dispatch/Trigger/Fire the event
+    document.dispatchEvent(event);
   }
 }
 

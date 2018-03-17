@@ -1898,6 +1898,7 @@ var SetService = /** @class */ (function () {
         return this.getOrCreateCart(documentType).then(function (set) {
             return _this.SetClearResource.clear({ type: documentType, id: set.id }).$promise;
         }).then(function () {
+            _this.notifyCartChanged(documentType);
             return _this.getOrCreateCart(documentType);
         });
     };
@@ -2002,6 +2003,7 @@ var SetService = /** @class */ (function () {
     SetService.prototype.saveCart = function (documentType, set) {
         if (set && set.id) {
             this.localStorageService.set(this.getCartKey(documentType), set);
+            this.notifyCartChanged(documentType);
             return set;
         }
         return undefined;
@@ -2012,6 +2014,27 @@ var SetService = /** @class */ (function () {
      */
     SetService.prototype.getCartKey = function (documentType) {
         return "cart." + documentType;
+    };
+    /**
+     * Notify at document level that the cart set was updated.
+     * @param documentType the document type
+     */
+    SetService.prototype.notifyCartChanged = function (documentType) {
+        var event;
+        try {
+            // For modern browsers except IE:
+            event = new CustomEvent("cart-updated", { detail: documentType });
+        }
+        catch (err) {
+            // If IE 11 (or 10 or 9...?) do it this way:
+            // Create the event.
+            event = document.createEvent("Event");
+            // Define that the event name is 'build'.
+            event.initEvent("cart-updated", true, true);
+            event.detail = documentType;
+        }
+        // Dispatch/Trigger/Fire the event
+        document.dispatchEvent(event);
     };
     SetService.$inject = ["$location", "$window", "$log", "localStorageService", "PageUrlService", "AlertService",
         "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetExistsResource",
