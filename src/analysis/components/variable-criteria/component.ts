@@ -565,9 +565,9 @@ class VariableCriteriaController implements ng.IComponentController {
         that.rangeMin = summary.min;
         that.rangeMax = summary.max;
         const frequencies = that.summary["Math.ContinuousSummaryDto.continuous"].frequencies;
-        const notNullFreq = frequencies.filter((elem) => elem.value === "NOT_NULL")[0];
+        const notNullFreq = frequencies ? frequencies.filter((elem) => elem.value === "NOT_NULL").pop() : undefined;
         that.existsFrequency = notNullFreq ? notNullFreq.freq : 0;
-        const emptyFreq = frequencies.filter((elem) => elem.value === "N/A")[0];
+        const emptyFreq = frequencies.filter((elem) => elem.value === "N/A").pop();
         that.emptyFrequency = emptyFreq ? emptyFreq.freq : 0;
         that.allFrequency = that.existsFrequency + that.emptyFrequency;
       }
@@ -598,8 +598,8 @@ class VariableCriteriaController implements ng.IComponentController {
       }
       if (that.summary["Math.DefaultSummaryDto.defaultSummary"]) {
         that.allFrequency = that.summary["Math.DefaultSummaryDto.defaultSummary"].n;
-        const notNullFreq = that.summary["Math.DefaultSummaryDto.defaultSummary"].frequencies
-          .filter((elem) => elem.value === "NOT_NULL")[0];
+        const frequencies = that.summary["Math.DefaultSummaryDto.defaultSummary"].frequencies;
+        const notNullFreq = frequencies ? frequencies.filter((elem) => elem.value === "NOT_NULL").pop() : undefined;
         that.existsFrequency = notNullFreq ? notNullFreq.freq : 0;
         that.emptyFrequency = that.allFrequency - that.existsFrequency;
       }

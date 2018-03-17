@@ -1855,8 +1855,7 @@ var SetService = /** @class */ (function () {
         return this.getOrCreateCart(documentType).then(function (set) {
             return _this.SetImportResource.save({ type: documentType, id: set.id }, did).$promise;
         }).then(function (set) {
-            _this.localStorageService.set(_this.getCartKey(documentType), set);
-            return set;
+            return _this.saveCart(documentType, set);
         });
     };
     /**
@@ -1871,8 +1870,7 @@ var SetService = /** @class */ (function () {
         return this.getOrCreateCart(documentType).then(function (set) {
             return _this.SetImportQueryResource.save({ type: documentType, id: set.id, query: rqlQuery }).$promise;
         }).then(function (set) {
-            _this.localStorageService.set(_this.getCartKey(documentType), set);
-            return set;
+            return _this.saveCart(documentType, set);
         });
     };
     /**
@@ -1887,8 +1885,7 @@ var SetService = /** @class */ (function () {
         return this.getOrCreateCart(documentType).then(function (set) {
             return _this.SetRemoveResource.delete({ type: documentType, id: set.id }, did).$promise;
         }).then(function (set) {
-            _this.localStorageService.set(_this.getCartKey(documentType), set);
-            return set;
+            return _this.saveCart(documentType, set);
         });
     };
     /**
@@ -1980,8 +1977,7 @@ var SetService = /** @class */ (function () {
         if (cartSet) {
             return this.SetResource.get({ type: documentType, id: cartSet.id }).$promise
                 .then(function (set) {
-                _this.localStorageService.set(_this.getCartKey(documentType), set);
-                return set;
+                return _this.saveCart(documentType, set);
             })
                 .catch(function () {
                 return _this.createCart(documentType, "");
@@ -2000,9 +1996,15 @@ var SetService = /** @class */ (function () {
         var _this = this;
         return this.SetsImportResource.save({ type: documentType }, documentId).$promise
             .then(function (set) {
-            _this.localStorageService.set(_this.getCartKey(documentType), set);
-            return set;
+            return _this.saveCart(documentType, set);
         });
+    };
+    SetService.prototype.saveCart = function (documentType, set) {
+        if (set && set.id) {
+            this.localStorageService.set(this.getCartKey(documentType), set);
+            return set;
+        }
+        return undefined;
     };
     /**
      * Get the local storage key for the cart.
@@ -11506,9 +11508,9 @@ var VariableCriteriaController = /** @class */ (function () {
                 that.rangeMin = summary.min;
                 that.rangeMax = summary.max;
                 var frequencies = that.summary["Math.ContinuousSummaryDto.continuous"].frequencies;
-                var notNullFreq = frequencies.filter(function (elem) { return elem.value === "NOT_NULL"; })[0];
+                var notNullFreq = frequencies ? frequencies.filter(function (elem) { return elem.value === "NOT_NULL"; }).pop() : undefined;
                 that.existsFrequency = notNullFreq ? notNullFreq.freq : 0;
-                var emptyFreq = frequencies.filter(function (elem) { return elem.value === "N/A"; })[0];
+                var emptyFreq = frequencies.filter(function (elem) { return elem.value === "N/A"; }).pop();
                 that.emptyFrequency = emptyFreq ? emptyFreq.freq : 0;
                 that.allFrequency = that.existsFrequency + that.emptyFrequency;
             }
@@ -11539,8 +11541,8 @@ var VariableCriteriaController = /** @class */ (function () {
             }
             if (that.summary["Math.DefaultSummaryDto.defaultSummary"]) {
                 that.allFrequency = that.summary["Math.DefaultSummaryDto.defaultSummary"].n;
-                var notNullFreq = that.summary["Math.DefaultSummaryDto.defaultSummary"].frequencies
-                    .filter(function (elem) { return elem.value === "NOT_NULL"; })[0];
+                var frequencies = that.summary["Math.DefaultSummaryDto.defaultSummary"].frequencies;
+                var notNullFreq = frequencies ? frequencies.filter(function (elem) { return elem.value === "NOT_NULL"; }).pop() : undefined;
                 that.existsFrequency = notNullFreq ? notNullFreq.freq : 0;
                 that.emptyFrequency = that.allFrequency - that.existsFrequency;
             }

@@ -108,8 +108,7 @@ class SetService implements ISetService {
     return this.getOrCreateCart(documentType).then((set) => {
       return this.SetImportResource.save({type: documentType, id: set.id}, did).$promise;
     }).then((set) => {
-      this.localStorageService.set(this.getCartKey(documentType), set);
-      return set;
+      return this.saveCart(documentType, set);
     });
   }
 
@@ -124,8 +123,7 @@ class SetService implements ISetService {
     return this.getOrCreateCart(documentType).then((set) => {
       return this.SetImportQueryResource.save({type: documentType, id: set.id, query: rqlQuery}).$promise;
     }).then((set) => {
-      this.localStorageService.set(this.getCartKey(documentType), set);
-      return set;
+      return this.saveCart(documentType, set);
     });
   }
 
@@ -140,8 +138,7 @@ class SetService implements ISetService {
     return this.getOrCreateCart(documentType).then((set) => {
       return this.SetRemoveResource.delete({type: documentType, id: set.id}, did).$promise;
     }).then((set) => {
-      this.localStorageService.set(this.getCartKey(documentType), set);
-      return set;
+      return this.saveCart(documentType, set);
     });
   }
 
@@ -235,8 +232,7 @@ class SetService implements ISetService {
     if (cartSet) {
       return this.SetResource.get({type: documentType, id: cartSet.id}).$promise
         .then((set) => {
-          this.localStorageService.set(this.getCartKey(documentType), set);
-          return set;
+          return this.saveCart(documentType, set);
         })
         .catch(() => {
           return this.createCart(documentType, "");
@@ -254,9 +250,16 @@ class SetService implements ISetService {
   private createCart(documentType: string, documentId: string): any {
     return this.SetsImportResource.save({type: documentType}, documentId).$promise
     .then((set) => {
+      return this.saveCart(documentType, set);
+    });
+  }
+
+  private saveCart(documentType: string, set: any) {
+    if (set && set.id) { // sanity check
       this.localStorageService.set(this.getCartKey(documentType), set);
       return set;
-    });
+    }
+    return undefined;
   }
 
   /**
