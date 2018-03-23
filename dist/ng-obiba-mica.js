@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-03-17
+ * Date: 2018-03-23
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -4780,7 +4780,18 @@ ngObibaMica.search.service("CoverageGroupByService", ["ngObibaMicaSearch", Cover
                 if (targetQuery) {
                     var matchQuery = EntitySuggestionRqlUtilityService
                         .givenFilterQueryGetMatchQuery(EntitySuggestionRqlUtilityService.givenTargetQueryGetFilterQuery(targetQuery));
-                    return matchQuery && matchQuery.args ? matchQuery.args[0][0] : '';
+                    if (matchQuery && matchQuery.args) {
+                        if (Array.isArray(matchQuery.args[0]) && matchQuery.args[0].length === 1) {
+                            return matchQuery.args[0][0];
+                        }
+                        else if (Array.isArray(matchQuery.args[0]) && matchQuery.args[0].length > 1) {
+                            return matchQuery.args[0].join(',');
+                        }
+                        return matchQuery.args[0].length ? matchQuery.args[0][0] : '';
+                    }
+                    else {
+                        return '';
+                    }
                 }
             }
             return '';

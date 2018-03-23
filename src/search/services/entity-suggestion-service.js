@@ -70,7 +70,17 @@
             EntitySuggestionRqlUtilityService
               .givenFilterQueryGetMatchQuery(EntitySuggestionRqlUtilityService.givenTargetQueryGetFilterQuery(targetQuery));
 
-          return matchQuery && matchQuery.args ? matchQuery.args[0][0] : '';
+          if (matchQuery && matchQuery.args) {
+            if (Array.isArray(matchQuery.args[0]) && matchQuery.args[0].length === 1) {
+              return matchQuery.args[0][0];
+            } else if (Array.isArray(matchQuery.args[0]) && matchQuery.args[0].length > 1) {
+              return matchQuery.args[0].join(',');
+            }
+  
+            return matchQuery.args[0].length ? matchQuery.args[0][0] : '';
+          } else {
+            return '';
+          }          
         }
       }
 
