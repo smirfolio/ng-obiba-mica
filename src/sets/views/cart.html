@@ -1,13 +1,9 @@
 <div>
   <div ng-if="cartHeaderTemplateUrl" ng-include="cartHeaderTemplateUrl"></div>
-
   <h3>
     <span translate>variables</span>
     <span ng-if="loading" class="voffset2 loading"></span>
   </h3>
-  <div>
-      
-  </div>
   <cart-documents-table 
     type="'variables'" 
     documents="variables"

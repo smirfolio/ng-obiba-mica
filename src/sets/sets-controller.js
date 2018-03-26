@@ -11,13 +11,41 @@
 'use strict';
 
 (function() {
+
+  function manageCartHelpText($scope, $translate, $cookies) {
+    var cookiesCartHelp = 'micaHideCartHelpText';
+    
+    $translate(['sets.cart.help'])
+      .then(function (translation) {
+        if (!$scope.options.CartHelpText && !$cookies.get(cookiesCartHelp)) {
+          $scope.options.CartHelpText = translation['sets.cart.help'];
+        }
+      });
+
+    // Close the cart help box and set the local cookies
+    $scope.closeHelpBox = function () {
+      $cookies.put(cookiesCartHelp, true);
+      $scope.options.CartHelpText = null;
+    };
+
+    // Retrieve from local cookies if user has disabled the cart help box and hide the box if true
+    if ($cookies.get(cookiesCartHelp)) {
+      $scope.options.CartHelpText = null;
+    }
+
+  }
+
   ngObibaMica.sets
   .controller('CartController', [
     '$scope',
     '$location',
+    '$translate',
+    '$cookies',
     'SetService',
     'ngObibaMicaSetsTemplateUrl',
-    function($scope, $location, SetService, ngObibaMicaSetsTemplateUrl) {
+    function($scope, $location, $translate, $cookies, SetService, ngObibaMicaSetsTemplateUrl) {
+      $scope.options = {};
+      manageCartHelpText($scope, $translate, $cookies);
       $scope.cartHeaderTemplateUrl = ngObibaMicaSetsTemplateUrl.getHeaderUrl('cart');
       $scope.loading = true;
       var limit = 100;

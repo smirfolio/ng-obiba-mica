@@ -14,7 +14,7 @@ declare var ngObibaMica: any;
 
 class CartDocumentsTableController implements ng.IComponentController {
 
-  private static $inject = ["PageUrlService", "LocalizedValues", "SetService",
+  private static $inject = ["PageUrlService", "LocalizedValues", "SetService", "AnalysisConfigService",
     "$translate", "$log", "$scope", "$location", "$window"];
 
   public documents: any;
@@ -30,6 +30,7 @@ class CartDocumentsTableController implements ng.IComponentController {
     private PageUrlService: any,
     private LocalizedValues: any,
     private SetService: any,
+    private AnalysisConfigService: any,
     private $translate: any,
     private $log: any,
     private $scope: any,
@@ -69,6 +70,10 @@ class CartDocumentsTableController implements ng.IComponentController {
     if (!this.selections[documentId]) {
       this.allSelected = false;
     }
+  }
+
+  public showAnalysis(): boolean {
+    return this.AnalysisConfigService.showAnalysis();
   }
 
   public showStudies(): boolean {

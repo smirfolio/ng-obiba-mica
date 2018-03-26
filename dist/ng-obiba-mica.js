@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-03-23
+ * Date: 2018-03-26
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -2057,10 +2057,11 @@ ngObibaMica.sets.service("SetService", ["$location", "$window", "$log", "localSt
  */
 "use strict";
 var CartDocumentsTableController = /** @class */ (function () {
-    function CartDocumentsTableController(PageUrlService, LocalizedValues, SetService, $translate, $log, $scope, $location, $window) {
+    function CartDocumentsTableController(PageUrlService, LocalizedValues, SetService, AnalysisConfigService, $translate, $log, $scope, $location, $window) {
         this.PageUrlService = PageUrlService;
         this.LocalizedValues = LocalizedValues;
         this.SetService = SetService;
+        this.AnalysisConfigService = AnalysisConfigService;
         this.$translate = $translate;
         this.$log = $log;
         this.$scope = $scope;
@@ -2100,6 +2101,9 @@ var CartDocumentsTableController = /** @class */ (function () {
         if (!this.selections[documentId]) {
             this.allSelected = false;
         }
+    };
+    CartDocumentsTableController.prototype.showAnalysis = function () {
+        return this.AnalysisConfigService.showAnalysis();
     };
     CartDocumentsTableController.prototype.showStudies = function () {
         return !this.SetService.isSingleStudy();
@@ -2206,7 +2210,7 @@ var CartDocumentsTableController = /** @class */ (function () {
         }
         return table;
     };
-    CartDocumentsTableController.$inject = ["PageUrlService", "LocalizedValues", "SetService",
+    CartDocumentsTableController.$inject = ["PageUrlService", "LocalizedValues", "SetService", "AnalysisConfigService",
         "$translate", "$log", "$scope", "$location", "$window"];
     return CartDocumentsTableController;
 }());
@@ -2238,13 +2242,35 @@ ngObibaMica.sets
  */
 'use strict';
 (function () {
+    function manageCartHelpText($scope, $translate, $cookies) {
+        var cookiesCartHelp = 'micaHideCartHelpText';
+        $translate(['sets.cart.help'])
+            .then(function (translation) {
+            if (!$scope.options.CartHelpText && !$cookies.get(cookiesCartHelp)) {
+                $scope.options.CartHelpText = translation['sets.cart.help'];
+            }
+        });
+        // Close the cart help box and set the local cookies
+        $scope.closeHelpBox = function () {
+            $cookies.put(cookiesCartHelp, true);
+            $scope.options.CartHelpText = null;
+        };
+        // Retrieve from local cookies if user has disabled the cart help box and hide the box if true
+        if ($cookies.get(cookiesCartHelp)) {
+            $scope.options.CartHelpText = null;
+        }
+    }
     ngObibaMica.sets
         .controller('CartController', [
         '$scope',
         '$location',
+        '$translate',
+        '$cookies',
         'SetService',
         'ngObibaMicaSetsTemplateUrl',
-        function ($scope, $location, SetService, ngObibaMicaSetsTemplateUrl) {
+        function ($scope, $location, $translate, $cookies, SetService, ngObibaMicaSetsTemplateUrl) {
+            $scope.options = {};
+            manageCartHelpText($scope, $translate, $cookies);
             $scope.cartHeaderTemplateUrl = ngObibaMicaSetsTemplateUrl.getHeaderUrl('cart');
             $scope.loading = true;
             var limit = 100;
@@ -2453,7 +2479,8 @@ ngObibaMica.search = angular.module('obiba.mica.search', [
                     showVariablesDatasetsColumn: true,
                     showDatasetsStudiesColumn: true,
                     showDatasetsVariablesColumn: true
-                }
+                },
+                showCart: true
             },
             datasets: {
                 showSearchTab: true,
@@ -10782,15 +10809,38 @@ ngObibaMica.analysis = angular.module('obiba.mica.analysis', [
  */
 'use strict';
 (function () {
+    function manageEntitiesCountHelpText($scope, $translate, $cookies) {
+        var cookiesHelp = 'micaHideEntitiesCountHelpText';
+        $translate(['analysis.entities-count.help'])
+            .then(function (translation) {
+            if (!$scope.options.EntitiesCountHelpText && !$cookies.get(cookiesHelp)) {
+                $scope.options.EntitiesCountHelpText = translation['analysis.entities-count.help'];
+            }
+        });
+        // Close the cart help box and set the local cookies
+        $scope.closeHelpBox = function () {
+            $cookies.put(cookiesHelp, true);
+            $scope.options.EntitiesCountHelpText = null;
+        };
+        // Retrieve from local cookies if user has disabled the cart help box and hide the box if true
+        if ($cookies.get(cookiesHelp)) {
+            $scope.options.EntitiesCountHelpText = null;
+        }
+    }
     ngObibaMica.analysis
         .controller('EntitiesCountController', [
         '$scope',
         '$location',
+        '$translate',
+        '$cookies',
+        'AnalysisConfigService',
         'EntitiesCountResource',
         'AlertService',
         'ServerErrorUtils',
         'ngObibaMicaAnalysisTemplateUrl',
-        function ($scope, $location, EntitiesCountResource, AlertService, ServerErrorUtils, ngObibaMicaAnalysisTemplateUrl) {
+        function ($scope, $location, $translate, $cookies, AnalysisConfigService, EntitiesCountResource, AlertService, ServerErrorUtils, ngObibaMicaAnalysisTemplateUrl) {
+            $scope.options = AnalysisConfigService.getOptions();
+            manageEntitiesCountHelpText($scope, $translate, $cookies);
             $scope.entitiesHeaderTemplateUrl = ngObibaMicaAnalysisTemplateUrl.getHeaderUrl('entities');
             $scope.result = {};
             $scope.query = $location.search().query;
@@ -10846,6 +10896,42 @@ ngObibaMica.analysis
         });
     }]);
 //# sourceMappingURL=analysis-router.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+"use strict";
+var AnalysisConfigService = /** @class */ (function () {
+    function AnalysisConfigService() {
+        this.options = {
+            showAnalysis: true,
+        };
+    }
+    AnalysisConfigService.prototype.setOptions = function (newOptions) {
+        var _this = this;
+        if (typeof (newOptions) === "object") {
+            Object.keys(newOptions).forEach(function (option) {
+                if (option in _this.options) {
+                    _this.options[option] = newOptions[option];
+                }
+            });
+        }
+    };
+    AnalysisConfigService.prototype.getOptions = function () {
+        return angular.copy(this.options);
+    };
+    AnalysisConfigService.prototype.showAnalysis = function () {
+        return this.options.showAnalysis;
+    };
+    return AnalysisConfigService;
+}());
+ngObibaMica.analysis.service("AnalysisConfigService", [AnalysisConfigService]);
+//# sourceMappingURL=analysis-config-service.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
@@ -16322,7 +16408,7 @@ angular.module("search/components/result/search-result/list.html", []).run(["$te
     "  </result-tabs-order-count>\n" +
     "  \n" +
     "  <div class=\"voffset2\" ng-class=\"{'pull-right': options.studies.showSearchTab, 'pull-left': !options.studies.showSearchTab, 'hoffset2': !options.studies.showSearchTab}\">\n" +
-    "    <a ng-if=\"type=='variables'\" ng-click=\"addToCart()\" class=\"btn btn-success\" href>\n" +
+    "    <a ng-if=\"type=='variables' && options.variables.showCart\" ng-click=\"addToCart()\" class=\"btn btn-success\" href>\n" +
     "      <i class=\"fa fa-cart-plus\"></i>\n" +
     "    </a>\n" +
     "    <a obiba-file-download url=\"getStudySpecificReportUrl()\" target=\"_self\" ng-if=\"type=='studies'\" download class=\"btn btn-info\"\n" +
@@ -17275,17 +17361,17 @@ angular.module("sets/components/cart-documents-table/component.html", []).run(["
   $templateCache.put("sets/components/cart-documents-table/component.html",
     "<div>\n" +
     "  <div class=\"pull-left\" ng-show=\"$ctrl.documents.total>0\">\n" +
-    "      <div class=\"btn-group\" uib-dropdown is-open=\"$ctrl.analysis.isopen\">\n" +
-    "          <button id=\"single-button\" type=\"button\" class=\"btn btn-primary\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
-    "              <i class=\"fa fa-cog\"></i> {{'analysis.action' | translate}} <span class=\"caret\"></span>\n" +
-    "          </button>\n" +
-    "          <ul class=\"dropdown-menu\" uib-dropdown-menu role=\"menu\" aria-labelledby=\"single-button\">\n" +
-    "            <li role=\"menuitem\">\n" +
-    "              <a href=\"\" ng-click=\"$ctrl.entitiesCount()\">\n" +
-    "                {{'analysis.entities-count.action' | translate}}</a>\n" +
-    "            </li>\n" +
-    "          </ul>\n" +
-    "        </div>\n" +
+    "    <div ng-if=\"$ctrl.showAnalysis()\" class=\"btn-group\" uib-dropdown is-open=\"$ctrl.analysis.isopen\">\n" +
+    "      <button id=\"single-button\" type=\"button\" class=\"btn btn-primary\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
+    "        <i class=\"fa fa-cog\"></i> {{'analysis.action' | translate}} <span class=\"caret\"></span>\n" +
+    "      </button>\n" +
+    "      <ul class=\"dropdown-menu\" uib-dropdown-menu role=\"menu\" aria-labelledby=\"single-button\">\n" +
+    "        <li role=\"menuitem\">\n" +
+    "          <a href=\"\" ng-click=\"$ctrl.entitiesCount()\">\n" +
+    "            {{'analysis.entities-count.action' | translate}}</a>\n" +
+    "        </li>\n" +
+    "      </ul>\n" +
+    "    </div>\n" +
     "    <a href=\"\" ng-click=\"$ctrl.search()\" class=\"action btn btn-info btn-responsive\">\n" +
     "      <i class=\"fa fa-search\"></i></a>\n" +
     "    <a href=\"\" ng-click=\"$ctrl.clearSet()\" class=\"action btn btn-danger btn-responsive\">\n" +
@@ -17352,14 +17438,10 @@ angular.module("sets/views/cart.html", []).run(["$templateCache", function($temp
   $templateCache.put("sets/views/cart.html",
     "<div>\n" +
     "  <div ng-if=\"cartHeaderTemplateUrl\" ng-include=\"cartHeaderTemplateUrl\"></div>\n" +
-    "\n" +
     "  <h3>\n" +
     "    <span translate>variables</span>\n" +
     "    <span ng-if=\"loading\" class=\"voffset2 loading\"></span>\n" +
     "  </h3>\n" +
-    "  <div>\n" +
-    "      \n" +
-    "  </div>\n" +
     "  <cart-documents-table \n" +
     "    type=\"'variables'\" \n" +
     "    documents=\"variables\"\n" +
