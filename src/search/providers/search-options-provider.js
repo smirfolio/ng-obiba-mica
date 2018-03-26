@@ -68,7 +68,8 @@
           showVariablesDatasetsColumn: true,
           showDatasetsStudiesColumn: true,
           showDatasetsVariablesColumn: true
-        }
+        },
+        showCart: true
       },
       datasets: {
         showSearchTab: true,

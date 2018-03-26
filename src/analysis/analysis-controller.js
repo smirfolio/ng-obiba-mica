@@ -11,15 +11,44 @@
 'use strict';
 
 (function() {
+
+  function manageEntitiesCountHelpText($scope, $translate, $cookies) {
+    var cookiesHelp = 'micaHideEntitiesCountHelpText';
+    
+    $translate(['analysis.entities-count.help'])
+      .then(function (translation) {
+        if (!$scope.options.EntitiesCountHelpText && !$cookies.get(cookiesHelp)) {
+          $scope.options.EntitiesCountHelpText = translation['analysis.entities-count.help'];
+        }
+      });
+
+    // Close the cart help box and set the local cookies
+    $scope.closeHelpBox = function () {
+      $cookies.put(cookiesHelp, true);
+      $scope.options.EntitiesCountHelpText = null;
+    };
+
+    // Retrieve from local cookies if user has disabled the cart help box and hide the box if true
+    if ($cookies.get(cookiesHelp)) {
+      $scope.options.EntitiesCountHelpText = null;
+    }
+
+  }
+
   ngObibaMica.analysis
   .controller('EntitiesCountController', [
     '$scope',
     '$location',
+    '$translate',
+    '$cookies',
+    'AnalysisConfigService',
     'EntitiesCountResource',
     'AlertService',
     'ServerErrorUtils',
     'ngObibaMicaAnalysisTemplateUrl',
-    function($scope, $location, EntitiesCountResource, AlertService, ServerErrorUtils, ngObibaMicaAnalysisTemplateUrl) {
+    function($scope, $location, $translate, $cookies, AnalysisConfigService, EntitiesCountResource, AlertService, ServerErrorUtils, ngObibaMicaAnalysisTemplateUrl) {
+      $scope.options = AnalysisConfigService.getOptions();
+      manageEntitiesCountHelpText($scope, $translate, $cookies);
       $scope.entitiesHeaderTemplateUrl = ngObibaMicaAnalysisTemplateUrl.getHeaderUrl('entities');
       $scope.result = {};
       $scope.query = $location.search().query;
