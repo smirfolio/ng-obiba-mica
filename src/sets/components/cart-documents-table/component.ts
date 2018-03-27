@@ -91,6 +91,10 @@ class CartDocumentsTableController implements ng.IComponentController {
     }
   }
 
+  public download(): string {
+    return this.SetService.getDownloadUrl(this.type);
+  }
+
   public search(): void {
     this.SetService.gotoSearch(this.type);
   }
