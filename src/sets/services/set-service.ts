@@ -22,6 +22,7 @@ interface ISetService {
   getCartDocuments(documentType: string, fromIdx: number, limitIdx: number): any;
   clearCart(documentType: string): any;
   gotoSetEntitiesCount(setId: string, documentId: string | string[]): void;
+  getDownloadUrl(documentType: string, setId: string): string;
   gotoEntitiesCount(ids: string[]): void;
   gotoSearch(documentType: string, setId: string): void;
   getCartSet(documentType: string): any;
@@ -29,7 +30,8 @@ interface ISetService {
 
 class SetService implements ISetService {
 
-  private static $inject = ["$location", "$window", "$log", "localStorageService", "PageUrlService", "AlertService",
+  private static $inject = ["$location", "$window", "$log", "$translate",
+    "localStorageService", "PageUrlService", "AlertService",
     "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetExistsResource",
     "SetImportResource", "SetImportQueryResource", "SetRemoveResource", "ObibaServerConfigResource"];
 
@@ -40,6 +42,7 @@ class SetService implements ISetService {
     private $location: any,
     private $window: any,
     private $log: any,
+    private $translate: any,
     private localStorageService: any,
     private PageUrlService: any,
     private AlertService: any,
@@ -196,6 +199,24 @@ class SetService implements ISetService {
     }
   }
 
+  public getDownloadUrl(documentType: string, setId: string): string {
+    let id = setId;
+    if (!id) {
+      const cartSet = this.getCartSet(documentType);
+      if (cartSet) {
+        id = cartSet.id;
+      }
+    }
+    if (id) {
+      const queryStr = "variable(in(Mica_variable.sets," + id + "),limit(0,20000)"
+        + ",fields((attributes.label.*,variableType,datasetId,datasetAcronym))"
+        + ",sort(variableType,containerId,populationWeight,dataCollectionEventWeight,datasetId,index,name))"
+        + ",locale(" + this.$translate.use() + ")";
+      return this.PageUrlService.downloadList(documentType, queryStr);
+    }
+    return null;
+  }
+
   /**
    * Go to search page with documents filtered by the set they belong to.
    * @param documentType the document type
@@ -294,7 +315,7 @@ class SetService implements ISetService {
   }
 }
 
-ngObibaMica.sets.service("SetService", ["$location", "$window", "$log", "localStorageService",
+ngObibaMica.sets.service("SetService", ["$location", "$window", "$log", "$translate", "localStorageService",
   "PageUrlService", "AlertService",
   "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetExistsResource",
   "SetImportResource", "SetImportQueryResource", "SetRemoveResource", "ObibaServerConfigResource", SetService]);

@@ -36,6 +36,10 @@
       return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('VariablePage'), { ':variable': urlEncode(id) }) : '';
     };
 
+    this.downloadList = function (type, query) {
+      return StringUtils.replaceAll(ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource'), { ':type': type, ':query': query });
+    };
+
     this.downloadCoverage = function (query) {
       return StringUtils.replaceAll(ngObibaMicaUrl.getUrl('JoinQueryCoverageDownloadResource'), { ':query': query });
     };

@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-03-26
+ * Date: 2018-03-27
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -1785,10 +1785,11 @@ ngObibaMica.sets = angular.module('obiba.mica.sets', [
  */
 "use strict";
 var SetService = /** @class */ (function () {
-    function SetService($location, $window, $log, localStorageService, PageUrlService, AlertService, SetsImportResource, SetResource, SetDocumentsResource, SetClearResource, SetExistsResource, SetImportResource, SetImportQueryResource, SetRemoveResource, ObibaServerConfigResource) {
+    function SetService($location, $window, $log, $translate, localStorageService, PageUrlService, AlertService, SetsImportResource, SetResource, SetDocumentsResource, SetClearResource, SetExistsResource, SetImportResource, SetImportQueryResource, SetRemoveResource, ObibaServerConfigResource) {
         this.$location = $location;
         this.$window = $window;
         this.$log = $log;
+        this.$translate = $translate;
         this.localStorageService = localStorageService;
         this.PageUrlService = PageUrlService;
         this.AlertService = AlertService;
@@ -1942,6 +1943,23 @@ var SetService = /** @class */ (function () {
             this.$window.location.href = this.PageUrlService.entitiesCountPage(queryStr);
         }
     };
+    SetService.prototype.getDownloadUrl = function (documentType, setId) {
+        var id = setId;
+        if (!id) {
+            var cartSet = this.getCartSet(documentType);
+            if (cartSet) {
+                id = cartSet.id;
+            }
+        }
+        if (id) {
+            var queryStr = "variable(in(Mica_variable.sets," + id + "),limit(0,20000)"
+                + ",fields((attributes.label.*,variableType,datasetId,datasetAcronym))"
+                + ",sort(variableType,containerId,populationWeight,dataCollectionEventWeight,datasetId,index,name))"
+                + ",locale(" + this.$translate.use() + ")";
+            return this.PageUrlService.downloadList(documentType, queryStr);
+        }
+        return null;
+    };
     /**
      * Go to search page with documents filtered by the set they belong to.
      * @param documentType the document type
@@ -2036,12 +2054,13 @@ var SetService = /** @class */ (function () {
         // Dispatch/Trigger/Fire the event
         document.dispatchEvent(event);
     };
-    SetService.$inject = ["$location", "$window", "$log", "localStorageService", "PageUrlService", "AlertService",
+    SetService.$inject = ["$location", "$window", "$log", "$translate",
+        "localStorageService", "PageUrlService", "AlertService",
         "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetExistsResource",
         "SetImportResource", "SetImportQueryResource", "SetRemoveResource", "ObibaServerConfigResource"];
     return SetService;
 }());
-ngObibaMica.sets.service("SetService", ["$location", "$window", "$log", "localStorageService",
+ngObibaMica.sets.service("SetService", ["$location", "$window", "$log", "$translate", "localStorageService",
     "PageUrlService", "AlertService",
     "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetExistsResource",
     "SetImportResource", "SetImportQueryResource", "SetRemoveResource", "ObibaServerConfigResource", SetService]);
@@ -2116,6 +2135,9 @@ var CartDocumentsTableController = /** @class */ (function () {
             var sels = this.getSelectedDocumentIds();
             this.SetService.gotoSetEntitiesCount(undefined, (sels && sels.length > 0 ? sels : undefined));
         }
+    };
+    CartDocumentsTableController.prototype.download = function () {
+        return this.SetService.getDownloadUrl(this.type);
     };
     CartDocumentsTableController.prototype.search = function () {
         this.SetService.gotoSearch(this.type);
@@ -5114,6 +5136,9 @@ ngObibaMica.search.service("CoverageGroupByService", ["ngObibaMicaSearch", Cover
         };
         this.variablePage = function (id) {
             return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('VariablePage'), { ':variable': urlEncode(id) }) : '';
+        };
+        this.downloadList = function (type, query) {
+            return StringUtils.replaceAll(ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource'), { ':type': type, ':query': query });
         };
         this.downloadCoverage = function (query) {
             return StringUtils.replaceAll(ngObibaMicaUrl.getUrl('JoinQueryCoverageDownloadResource'), { ':query': query });
@@ -17372,6 +17397,8 @@ angular.module("sets/components/cart-documents-table/component.html", []).run(["
     "        </li>\n" +
     "      </ul>\n" +
     "    </div>\n" +
+    "    <a obiba-file-download url=\"$ctrl.download()\" target=\"_self\" download class=\"action btn btn-info btn-responsive\">\n" +
+    "      <i class=\"fa fa-download\"></i></a>\n" +
     "    <a href=\"\" ng-click=\"$ctrl.search()\" class=\"action btn btn-info btn-responsive\">\n" +
     "      <i class=\"fa fa-search\"></i></a>\n" +
     "    <a href=\"\" ng-click=\"$ctrl.clearSet()\" class=\"action btn btn-danger btn-responsive\">\n" +
