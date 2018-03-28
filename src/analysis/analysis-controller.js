@@ -41,12 +41,13 @@
     '$location',
     '$translate',
     '$cookies',
+    'LocalizedValues',
     'AnalysisConfigService',
     'EntitiesCountResource',
     'AlertService',
     'ServerErrorUtils',
     'ngObibaMicaAnalysisTemplateUrl',
-    function($scope, $location, $translate, $cookies, AnalysisConfigService, EntitiesCountResource, AlertService, ServerErrorUtils, ngObibaMicaAnalysisTemplateUrl) {
+    function($scope, $location, $translate, $cookies, LocalizedValues, AnalysisConfigService, EntitiesCountResource, AlertService, ServerErrorUtils, ngObibaMicaAnalysisTemplateUrl) {
       $scope.options = AnalysisConfigService.getOptions();
       manageEntitiesCountHelpText($scope, $translate, $cookies);
       $scope.entitiesHeaderTemplateUrl = ngObibaMicaAnalysisTemplateUrl.getHeaderUrl('entities');
@@ -62,6 +63,7 @@
             function onSuccess(response) {
               $scope.result = response;
               $scope.loading = false;
+              $scope.localizedTotal = ($scope.result.belowPrivacyThreshold ? '<' : '') + LocalizedValues.formatNumber($scope.result.total, $translate.use());
             },
             function onError(response) {
               $scope.result = {};

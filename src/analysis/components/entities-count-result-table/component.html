@@ -26,7 +26,7 @@
             <variable-criteria query="row[3].value"></variable-criteria>  
           </td>
           <td ng-if="row.length===5" colspan="{{row[4].colspan}}">
-            <localized-number value="row[4].value"></localized-number>
+            {{row[4].value}}
           </td>
 
           <!-- all criteria -->
@@ -35,7 +35,7 @@
           </td>
           <td ng-if="row.length===3" colspan="{{row[2].colspan}}">
             <span ng-if="$ctrl.studyCount === 1" class="badge">{{$ctrl.localizedTotal}}</span>
-            <b ng-if="$ctrl.studyCount > 1"><localized-number value="row[2].value"></localized-number></b>
+            <b ng-if="$ctrl.studyCount > 1">{{row[2].value}}</b>
           </td>
         </tr>
         <tr ng-if="$ctrl.studyCount > 1">

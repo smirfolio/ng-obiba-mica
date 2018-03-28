@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-03-27
+ * Date: 2018-03-28
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -10858,12 +10858,13 @@ ngObibaMica.analysis = angular.module('obiba.mica.analysis', [
         '$location',
         '$translate',
         '$cookies',
+        'LocalizedValues',
         'AnalysisConfigService',
         'EntitiesCountResource',
         'AlertService',
         'ServerErrorUtils',
         'ngObibaMicaAnalysisTemplateUrl',
-        function ($scope, $location, $translate, $cookies, AnalysisConfigService, EntitiesCountResource, AlertService, ServerErrorUtils, ngObibaMicaAnalysisTemplateUrl) {
+        function ($scope, $location, $translate, $cookies, LocalizedValues, AnalysisConfigService, EntitiesCountResource, AlertService, ServerErrorUtils, ngObibaMicaAnalysisTemplateUrl) {
             $scope.options = AnalysisConfigService.getOptions();
             manageEntitiesCountHelpText($scope, $translate, $cookies);
             $scope.entitiesHeaderTemplateUrl = ngObibaMicaAnalysisTemplateUrl.getHeaderUrl('entities');
@@ -10876,6 +10877,7 @@ ngObibaMica.analysis = angular.module('obiba.mica.analysis', [
                     EntitiesCountResource.get({ query: $scope.query }, function onSuccess(response) {
                         $scope.result = response;
                         $scope.loading = false;
+                        $scope.localizedTotal = ($scope.result.belowPrivacyThreshold ? '<' : '') + LocalizedValues.formatNumber($scope.result.total, $translate.use());
                     }, function onError(response) {
                         $scope.result = {};
                         $scope.loading = false;
@@ -11033,6 +11035,9 @@ var EntitiesCountResultTableController = /** @class */ (function () {
     EntitiesCountResultTableController.prototype.$onChanges = function () {
         this.table = this.asTable();
         this.localizedTotal = this.LocalizedValues.formatNumber(this.result.total ? this.result.total : 0);
+        if (this.result.belowPrivacyThreshold) {
+            this.localizedTotal = "<" + this.localizedTotal;
+        }
     };
     EntitiesCountResultTableController.prototype.showStudyColumn = function () {
         return !this.EntitiesCountService.isSingleStudy();
@@ -11095,7 +11100,7 @@ var EntitiesCountResultTableController = /** @class */ (function () {
                                     link: undefined,
                                     rowspan: 1,
                                     title: undefined,
-                                    value: variableResult.count,
+                                    value: _this.LocalizedValues.formatNumber(variableResult.count),
                                 });
                                 table.rows.push(row);
                                 studyRowCount_1++;
@@ -11117,7 +11122,8 @@ var EntitiesCountResultTableController = /** @class */ (function () {
                         colspan: 1,
                         rowspan: 1,
                         title: undefined,
-                        value: studyResult.total,
+                        value: (studyResult.belowPrivacyThreshold ? "<" : "")
+                            + _this.LocalizedValues.formatNumber(studyResult.total),
                     }));
                 }
             });
@@ -13917,7 +13923,7 @@ angular.module("analysis/components/entities-count-result-table/component.html",
     "            <variable-criteria query=\"row[3].value\"></variable-criteria>  \n" +
     "          </td>\n" +
     "          <td ng-if=\"row.length===5\" colspan=\"{{row[4].colspan}}\">\n" +
-    "            <localized-number value=\"row[4].value\"></localized-number>\n" +
+    "            {{row[4].value}}\n" +
     "          </td>\n" +
     "\n" +
     "          <!-- all criteria -->\n" +
@@ -13926,7 +13932,7 @@ angular.module("analysis/components/entities-count-result-table/component.html",
     "          </td>\n" +
     "          <td ng-if=\"row.length===3\" colspan=\"{{row[2].colspan}}\">\n" +
     "            <span ng-if=\"$ctrl.studyCount === 1\" class=\"badge\">{{$ctrl.localizedTotal}}</span>\n" +
-    "            <b ng-if=\"$ctrl.studyCount > 1\"><localized-number value=\"row[2].value\"></localized-number></b>\n" +
+    "            <b ng-if=\"$ctrl.studyCount > 1\">{{row[2].value}}</b>\n" +
     "          </td>\n" +
     "        </tr>\n" +
     "        <tr ng-if=\"$ctrl.studyCount > 1\">\n" +
@@ -14119,7 +14125,7 @@ angular.module("analysis/views/analysis-entities-count.html", []).run(["$templat
     "  <div>\n" +
     "      <span class=\"btn btn-primary\" ng-show=\"result.counts\">\n" +
     "        <span ng-show=\"result.counts.length>0\" translate>{{result.counts[0].entityType}}</span>\n" +
-    "        <span class=\"badge\">{{result.total}}</span>\n" +
+    "        <span class=\"badge\">{{localizedTotal}}</span>\n" +
     "      </span>\n" +
     "      <span ng-if=\"loading\" class=\"voffset2 loading\"></span>\n" +
     "  </div>\n" +

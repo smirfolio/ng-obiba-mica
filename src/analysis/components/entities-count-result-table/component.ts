@@ -37,6 +37,9 @@ class EntitiesCountResultTableController implements ng.IComponentController {
   public $onChanges() {
     this.table = this.asTable();
     this.localizedTotal = this.LocalizedValues.formatNumber(this.result.total ? this.result.total : 0);
+    if (this.result.belowPrivacyThreshold) {
+      this.localizedTotal = "<" + this.localizedTotal;
+    }
   }
 
   public showStudyColumn(): boolean {
@@ -106,7 +109,7 @@ class EntitiesCountResultTableController implements ng.IComponentController {
                     link: undefined,
                     rowspan: 1,
                     title: undefined,
-                    value: variableResult.count,
+                    value: this.LocalizedValues.formatNumber(variableResult.count),
                   });
                 table.rows.push(row);
                 studyRowCount++;
@@ -131,7 +134,8 @@ class EntitiesCountResultTableController implements ng.IComponentController {
               colspan: 1,
               rowspan: 1,
               title: undefined,
-              value: studyResult.total,
+              value: (studyResult.belowPrivacyThreshold ? "<" : "")
+                + this.LocalizedValues.formatNumber(studyResult.total),
             }));
         }
       });
