@@ -21,8 +21,13 @@ ngObibaMica.fileBrowser
         docPath: '@',
         docId: '@',
         tokenKey: '@',
-        subject: '='
+        subject: '=',
+        refresh: '=',
+        showTitle: '@'
       },
-      templateUrl: 'file-browser/views/file-browser-template.html'
+      templateUrl: 'file-browser/views/file-browser-template.html',
+      link: function (scope, elem) {
+        scope.selfNode = elem[0];
+      }
     };
   }]);

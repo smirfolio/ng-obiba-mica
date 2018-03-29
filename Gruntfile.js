@@ -50,6 +50,7 @@ module.exports = function (grunt) {
           // order is important!
           'built/ng-obiba-mica.js',
           'built/utils/utils.js',
+          'built/utils/custom-watch-dom-element-service.js',
           'built/file/file.js',
           'built/file/file-filter.js',
           'built/file/file-service.js',

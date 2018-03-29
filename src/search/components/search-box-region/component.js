@@ -22,6 +22,7 @@
     ServerErrorUtils, 
     TaxonomiesSearchResource) {
 
+    var ctrl = this;
     // vocabulary (or term) can be used in search if it doesn't have the 'showSearch' attribute
     function canSearch(taxonomyEntity, hideSearchList) {
       if ((hideSearchList || []).indexOf(taxonomyEntity.name) > -1) {
@@ -176,8 +177,6 @@
     function selectTerm(target, taxonomy, vocabulary, args) {
       ctrl.onSelectTerm({target: target, taxonomy: taxonomy, vocabulary: vocabulary, args: args});
     }
-
-    var ctrl = this;
 
     ctrl.selectedCriteria = null;
     ctrl.target = null;

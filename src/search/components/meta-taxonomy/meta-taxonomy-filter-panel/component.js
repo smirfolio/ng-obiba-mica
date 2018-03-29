@@ -13,7 +13,7 @@
 (function() {
 
   function Controller(MetaTaxonomyService, TaxonomyService) {
-
+    var ctrl = this;
     /**
      * Retrieves all meta taxonomies
      */
@@ -56,7 +56,6 @@
       }
     }
 
-    var ctrl = this;
     ctrl.selectedTaxonomy = null;
     ctrl.onSelectTaxonomy = onSelectTaxonomy;
     ctrl.$onChanges = onChanges;

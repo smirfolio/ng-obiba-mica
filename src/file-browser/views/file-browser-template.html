@@ -1,4 +1,6 @@
 <div ng-cloak>
+  <div ng-if="!noDocument">
+    <h4 ng-show="showTitle">{{documentsTitle | translate}}</h4>
   <div ng-if="!data.document" class="loading"></div>
 
   <div ng-if="data.document">
@@ -27,6 +29,7 @@
         </div>
       </div>
     </div>
+  </div>
   </div>
 
 </div>

@@ -25,7 +25,7 @@ ngObibaMica.fileBrowser
     'FileBrowserSearchResource',
     'ngObibaMicaFileBrowserOptions',
     'FileBrowserDownloadService',
-
+    'CustomWatchDomElementService',
     function ($rootScope,
               $scope,
               $log,
@@ -38,7 +38,8 @@ ngObibaMica.fileBrowser
               FileBrowserFileResource,
               FileBrowserSearchResource,
               ngObibaMicaFileBrowserOptions,
-              FileBrowserDownloadService) {
+              FileBrowserDownloadService,
+              CustomWatchDomElementService) {
 
       var navigateToPath = function (path, keyToken) {
         clearSearchInternal();
@@ -72,26 +73,26 @@ ngObibaMica.fileBrowser
       function getDocument(path, keyToken) {
         var fileParam;
         $scope.data.search.active = false;
-        if(keyToken){
+        if (keyToken) {
           fileParam = {path: path, keyToken: keyToken};
         }
-        else{
+        else {
           fileParam = {path: path};
         }
         FileBrowserFileResource.get(fileParam,
           function onSuccess(response) {
-            $log.info(response);
+          if(response.code !== 404){
             $scope.pagination.selected = -1;
             $scope.data.document = $scope.data.details.document = response;
 
             if (!$scope.data.document.children) {
               $scope.data.document.children = [];
             }
-            if(keyToken){
+            if (keyToken) {
               $scope.data.document.keyToken = keyToken;
             }
             if ($scope.data.document.path === $scope.data.rootPath) {
-              $scope.data.document.children = $scope.data.document.children.filter(function(child){
+              $scope.data.document.children = $scope.data.document.children.filter(function (child) {
                 return ngObibaMicaFileBrowserOptions.folders.excludes.indexOf(child.name) < 0;
               });
               $scope.data.document.size = $scope.data.document.children.length;
@@ -100,6 +101,13 @@ ngObibaMica.fileBrowser
             $scope.data.breadcrumbs = BrowserBreadcrumbHelper.toArray(path, $scope.data.rootPath);
             $scope.data.isFile = FileBrowserService.isFile(response);
             $scope.data.isRoot = FileBrowserService.isRoot(response);
+            if(response.type === 'FOLDER' && response.size < 1){
+              $scope.noDocument = 'false';
+            }
+          }
+          else{
+            $scope.noDocument = 'false';
+          }
           },
           onError
         );
@@ -154,15 +162,14 @@ ngObibaMica.fileBrowser
         var urlParams = angular.extend({}, {path: path}, searchParams);
 
         FileBrowserSearchResource.search(urlParams,
-            function onSuccess(response) {
-              $log.info('Search result', response);
-              var clone = $scope.data.document ? angular.copy($scope.data.document) : {};
-              clone.children = response;
-              $scope.data.document = clone;
-            },
-            function onError(response) {
-              $log.debug('ERROR:',response);
-            }
+          function onSuccess(response) {
+            var clone = $scope.data.document ? angular.copy($scope.data.document) : {};
+            clone.children = response;
+            $scope.data.document = clone;
+          },
+          function onError(response) {
+            $log.debug('ERROR:', response);
+          }
         );
       }
 
@@ -220,24 +227,41 @@ ngObibaMica.fileBrowser
         }
       };
 
-      var showDetails = function(document, index) {
+      var showDetails = function (document, index) {
         $scope.pagination.selected = index;
         $scope.data.details.document = document;
         $scope.data.details.show = true;
       };
 
-      var getTypeParts = function(document) {
+      var getTypeParts = function (document) {
         return FileBrowserService.isFile(document) && document.attachment.type ?
           document.attachment.type.split(/,|\s+/) :
           [];
       };
 
-      var getLocalizedValue = function(values) {
+      var getLocalizedValue = function (values) {
         return FileBrowserService.getLocalizedValue(values, ngObibaMicaFileBrowserOptions.locale);
       };
 
-      var hasLocalizedValue = function(values) {
+      var hasLocalizedValue = function (values) {
         return FileBrowserService.hasLocalizedValue(values, ngObibaMicaFileBrowserOptions.locale);
+      };
+
+      var refresh = function (docPath, docId) {
+        if (docPath && docId) {
+          $scope.docPath = docPath;
+          $scope.docId = docId;
+        }
+        if (($scope.docPath && $scope.docPath !== '/') && $scope.docId) {
+          $scope.data.docRootIcon = BrowserBreadcrumbHelper.rootIcon($scope.docPath);
+          $scope.data.rootPath = $scope.docPath + ($scope.docId !== 'null' ? '/' + $scope.docId : '');
+          if ($scope.tokenKey) {
+            getDocument($scope.data.rootPath, $scope.tokenKey, null);
+          }
+          else {
+            getDocument($scope.data.rootPath, null);
+          }
+        }
       };
 
       $scope.downloadTarget = ngObibaMicaFileBrowserOptions.downloadInline ? '_blank' : '_self';
@@ -260,6 +284,7 @@ ngObibaMica.fileBrowser
       $scope.hideDetails = hideDetails;
       $scope.showDetails = showDetails;
       $scope.getTypeParts = getTypeParts;
+      $scope.documentsTitle = ngObibaMicaFileBrowserOptions.documentsTitle;
 
       $scope.pagination = {
         selected: -1,
@@ -289,17 +314,19 @@ ngObibaMica.fileBrowser
       };
 
       $scope.$watchGroup(['docPath', 'docId'], function () {
-        if ($scope.docPath && $scope.docId) {
-          $scope.data.docRootIcon = BrowserBreadcrumbHelper.rootIcon($scope.docPath);
-            $scope.data.rootPath = $scope.docPath + ($scope.docId !== 'null' ? '/' + $scope.docId : '');
-          if($scope.tokenKey){
-            getDocument($scope.data.rootPath, $scope.tokenKey, null);
-          }
-          else {
-            getDocument($scope.data.rootPath, null);
-          }
+        refresh();
+      });
+
+      $scope.__defineSetter__('selfNode', function (selfNode) {
+        if (selfNode) {
+          CustomWatchDomElementService.configWatch(selfNode, ['refresh', 'show-title']).customWatch(function () {
+            if(selfNode.attributes[4].value === 'true'){
+              refresh(selfNode.attributes[1].value, selfNode.attributes[2].value);
+              $scope.showTitle = selfNode.attributes[6].value;
+            }
+          });
         }
+
       });
 
     }]);
-
