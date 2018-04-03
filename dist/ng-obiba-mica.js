@@ -3554,7 +3554,9 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
         function sortTaxonomies(target, taxonomies) {
             var configTaxonomies = config[target].taxonomies;
             taxonomies.sort(function (a, b) {
-                return configTaxonomies[a.info.name].weight - configTaxonomies[b.info.name].weight;
+                var weighta = configTaxonomies[a.info.name] ? configTaxonomies[a.info.name].weight : 0;
+                var weightb = configTaxonomies[b.info.name] ? configTaxonomies[b.info.name].weight : 0;
+                return weighta - weightb;
             });
         }
         this.config = config;
