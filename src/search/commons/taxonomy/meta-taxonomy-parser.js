@@ -37,7 +37,7 @@
 
         var taxonomyConfig = targetConfig.taxonomies[taxonomy.name];
 
-        if (taxonomyConfig.hasOwnProperty('trKey')) {
+        if (taxonomyConfig && taxonomyConfig.hasOwnProperty('trKey')) {
           result.info.trKey = taxonomyConfig.trKey;
         }
 

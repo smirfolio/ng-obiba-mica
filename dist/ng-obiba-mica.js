@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-03-28
+ * Date: 2018-04-03
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -3538,7 +3538,7 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
                     taxonomies: [taxonomy]
                 };
                 var taxonomyConfig = targetConfig.taxonomies[taxonomy.name];
-                if (taxonomyConfig.hasOwnProperty('trKey')) {
+                if (taxonomyConfig && taxonomyConfig.hasOwnProperty('trKey')) {
                     result.info.trKey = taxonomyConfig.trKey;
                 }
                 return result;
