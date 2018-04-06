@@ -24,7 +24,12 @@ function NgObibaMicaTemplateUrlFactory() {
     'searchResultList': 'search/components/result/search-result/list.html',
     'searchInputList': 'lists/views/input-search-widget/input-search-widget-template.html',
     'searchResultCoverage': 'search/components/result/search-result/coverage.html',
-    'searchResultGraphics': 'search/components/result/search-result/graphics.html'
+    'searchResultGraphics': 'search/components/result/search-result/graphics.html',
+    'variableCrosstab': 'analysis/crosstab/views/crosstab-variable-crosstab.html',
+    'variableFrequencies': 'analysis/crosstab/views/crosstab-variable-frequencies.html',
+    'variableFrequenciesEmpty': 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html',
+    'variableStatistics': 'analysis/crosstab/views/crosstab-variable-statistics.html',
+    'variableStatisticsEmpty': 'analysis/crosstab/views/crosstab-variable-statistics-empty.html',
   };
   var factory = { registry: null };
 
@@ -55,7 +60,6 @@ function NgObibaMicaTemplateUrlFactory() {
       return null;
     };
   }
-
 
   factory.setTemplateUrl = function (key, url) {
     if (key in this.registry) {
@@ -172,7 +176,12 @@ function NgObibaMicaTemplateUrlFactory() {
         'SearchBaseUrl': '#/search',
         'DocumentSuggestion': 'ws/:documentType/_suggest',
         'EntitiesCountResource': 'ws/datasets/entities/_count?query=:query',
-        'EntitiesCountBaseUrl': '#/entities-count'
+        'EntitiesCountBaseUrl': '#/entities-count',
+        'DatasetCategoricalVariablesResource': 'ws/:dsType/:dsId/variables/:query/categorical',
+        'DatasetVariablesResource': 'ws/:dsType/:dsId/variables/:query',
+        'DatasetVariableResource': 'ws/variable/:varId',
+        'DatasetVariablesCrosstabResource': 'ws/:dsType/:dsId/variables/cross/:v1/by/:v2',
+        'DatasetResource': 'ws/dataset/:dsType/:dsId',
       };
 
       function UrlProvider(registry) {

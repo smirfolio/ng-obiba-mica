@@ -17,7 +17,12 @@
     .config(['$provide', function ($provide) {
       $provide.provider('ngObibaMicaAnalysisTemplateUrl', new NgObibaMicaTemplateUrlFactory().create(
         {
-          entities: { header: null, footer: null }
+          entities: { header: null, footer: null },
+            variableCrosstab: { template: null },
+            variableFrequencies: { template: null },
+            variableFrequenciesEmpty: { template: null },
+            variableStatistics: { template: null },
+            variableStatisticsEmpty: { template: null },
         }
       ));
     }]);
