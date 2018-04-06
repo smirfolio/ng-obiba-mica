@@ -259,6 +259,35 @@ ngObibaMica.access
         $scope.showAttachmentsForm = show;
       };
 
+      var getRequest = function () {
+        return DataAccessRequestResource.get({id: $routeParams.id}, function onSuccess(request) {
+          try {
+            $scope.form.model = request.content ? JSON.parse(request.content) : {};
+            var requestDownloadUrlPdf =  ngObibaMicaUrl.getUrl('DataAccessRequestDownloadPdfResource').replace(':id', $scope.dataAccessRequest.id);
+            $scope.requestDownloadUrl = requestDownloadUrlPdf + ((requestDownloadUrlPdf.indexOf('?q=')!==-1)?'&':'?') +'lang=' + $translate.use();
+
+
+            $scope.attachments = angular.copy(request.attachments) || [];
+          } catch (e) {
+            $scope.validForm = false;
+            $scope.form.model = {};
+            AlertService.alert({
+              id: 'DataAccessRequestViewController',
+              type: 'danger',
+              msgKey: 'data-access-request.parse-error'
+            });
+          }
+
+          initializeForm();
+
+          request.attachments = request.attachments || [];
+
+          $scope.lastSubmittedDate = findLastSubmittedDate();
+
+          return request;
+        });
+      };
+
       var updateAttachments = function() {
         var request = angular.copy($scope.dataAccessRequest);
         request.attachments = $scope.attachments;
@@ -371,35 +400,6 @@ ngObibaMica.access
       });
 
       $scope.validForm = true;
-
-      var getRequest = function () {
-        return DataAccessRequestResource.get({id: $routeParams.id}, function onSuccess(request) {
-          try {
-            $scope.form.model = request.content ? JSON.parse(request.content) : {};
-            var requestDownloadUrlPdf =  ngObibaMicaUrl.getUrl('DataAccessRequestDownloadPdfResource').replace(':id', $scope.dataAccessRequest.id);
-            $scope.requestDownloadUrl = requestDownloadUrlPdf + ((requestDownloadUrlPdf.indexOf('?q=')!==-1)?'&':'?') +'lang=' + $translate.use();
-
-
-            $scope.attachments = angular.copy(request.attachments) || [];
-          } catch (e) {
-            $scope.validForm = false;
-            $scope.form.model = {};
-            AlertService.alert({
-              id: 'DataAccessRequestViewController',
-              type: 'danger',
-              msgKey: 'data-access-request.parse-error'
-            });
-          }
-
-          initializeForm();
-
-          request.attachments = request.attachments || [];
-
-          $scope.lastSubmittedDate = findLastSubmittedDate();
-
-          return request;
-        });
-      };
 
       $scope.dataAccessRequest = $routeParams.id ? getRequest() : {};
 

@@ -17,7 +17,8 @@ function NgObibaMicaFileBrowserOptionsProvider() {
     downloadKey: false,
     folders: {
       excludes: ['population']
-    }
+    },
+    documentsTitle: 'file.documents'
   };
 
   this.addExcludeFolder = function (folder) {
@@ -25,6 +26,17 @@ function NgObibaMicaFileBrowserOptionsProvider() {
       options.folders.excludes.push(folder);
     }
   };
+
+  this.setOptions = function (newOptions){
+    if (typeof (newOptions) === 'object') {
+      Object.keys(newOptions).forEach(function (option) {
+        if (option in options) {
+          options[option] = newOptions[option];
+        }
+      });
+    }
+  };
+
 
   this.$get = function () {
     return options;

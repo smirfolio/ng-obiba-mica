@@ -39,6 +39,7 @@
     "inject": false,
     "RqlParser": false,
     "RqlQuery": false,
+    "MutationObserver": true,
     "ngObibaMica": true,
     "obiba": true,
     "RQL_NODE": true,

@@ -61,8 +61,6 @@ ngObibaMica.search
         JoinQuerySearchResource[targetToType(target)]({ query: joinQuery }).$promise.then(function (joinQueryResponse) {
           $scope.state.loading = false;
           $scope.terms = RqlQueryService.getTargetAggregations(joinQueryResponse, $scope.criterion, $scope.lang);
-          console.log($scope.criterion);
-          console.log($scope.terms);
           
           if ($scope.terms) {
             if ($scope.criterion.taxonomy.name.startsWith('Mica_') && $scope.criterion.vocabulary.name === 'sets') {

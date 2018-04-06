@@ -13,7 +13,7 @@
 (function () {
 
   function Controller(EntitySuggestionService) {
-
+    var ctrl = this;
     function init() {
       ctrl.model = EntitySuggestionService.getCurrentSuggestion(ctrl.target, ctrl.rqlQuery) || '';
     }
@@ -43,7 +43,6 @@
       }
     }
 
-    var ctrl = this;
     ctrl.model = '';
     ctrl.suggest = suggest;
     ctrl.select = select;

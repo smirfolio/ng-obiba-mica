@@ -449,6 +449,43 @@ function NgObibaMicaTemplateUrlFactory() {
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+"use strict";
+var CustomWatchDomElementService = /** @class */ (function () {
+    function CustomWatchDomElementService() {
+        this.attributes = [];
+        var that = this;
+    }
+    CustomWatchDomElementService.prototype.configWatch = function (node, attributes) {
+        this.node = node;
+        this.attributes = attributes;
+        this.config = { attributeFilter: this.attributes };
+        return this;
+    };
+    CustomWatchDomElementService.prototype.customWatch = function (callback) {
+        var observable = function (mutationsList) {
+            for (var _i = 0, mutationsList_1 = mutationsList; _i < mutationsList_1.length; _i++) {
+                var mutation = mutationsList_1[_i];
+                if (mutation.type === "attributes") {
+                    callback();
+                }
+            }
+        };
+        var observer = new MutationObserver(observable);
+        observer.observe(this.node, this.config);
+    };
+    return CustomWatchDomElementService;
+}());
+ngObibaMica.utils.service("CustomWatchDomElementService", [CustomWatchDomElementService]);
+//# sourceMappingURL=custom-watch-dom-element-service.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 'use strict';
 ngObibaMica.file = angular.module('obiba.mica.file', ['ngResource']);
 //# sourceMappingURL=file.js.map
@@ -854,6 +891,29 @@ ngObibaMica.access
             }
             $scope.showAttachmentsForm = show;
         };
+        var getRequest = function () {
+            return DataAccessRequestResource.get({ id: $routeParams.id }, function onSuccess(request) {
+                try {
+                    $scope.form.model = request.content ? JSON.parse(request.content) : {};
+                    var requestDownloadUrlPdf = ngObibaMicaUrl.getUrl('DataAccessRequestDownloadPdfResource').replace(':id', $scope.dataAccessRequest.id);
+                    $scope.requestDownloadUrl = requestDownloadUrlPdf + ((requestDownloadUrlPdf.indexOf('?q=') !== -1) ? '&' : '?') + 'lang=' + $translate.use();
+                    $scope.attachments = angular.copy(request.attachments) || [];
+                }
+                catch (e) {
+                    $scope.validForm = false;
+                    $scope.form.model = {};
+                    AlertService.alert({
+                        id: 'DataAccessRequestViewController',
+                        type: 'danger',
+                        msgKey: 'data-access-request.parse-error'
+                    });
+                }
+                initializeForm();
+                request.attachments = request.attachments || [];
+                $scope.lastSubmittedDate = findLastSubmittedDate();
+                return request;
+            });
+        };
         var updateAttachments = function () {
             var request = angular.copy($scope.dataAccessRequest);
             request.attachments = $scope.attachments;
@@ -951,29 +1011,6 @@ ngObibaMica.access
             $scope.getStatusHistoryInfo = statusHistoryInfo;
         });
         $scope.validForm = true;
-        var getRequest = function () {
-            return DataAccessRequestResource.get({ id: $routeParams.id }, function onSuccess(request) {
-                try {
-                    $scope.form.model = request.content ? JSON.parse(request.content) : {};
-                    var requestDownloadUrlPdf = ngObibaMicaUrl.getUrl('DataAccessRequestDownloadPdfResource').replace(':id', $scope.dataAccessRequest.id);
-                    $scope.requestDownloadUrl = requestDownloadUrlPdf + ((requestDownloadUrlPdf.indexOf('?q=') !== -1) ? '&' : '?') + 'lang=' + $translate.use();
-                    $scope.attachments = angular.copy(request.attachments) || [];
-                }
-                catch (e) {
-                    $scope.validForm = false;
-                    $scope.form.model = {};
-                    AlertService.alert({
-                        id: 'DataAccessRequestViewController',
-                        type: 'danger',
-                        msgKey: 'data-access-request.parse-error'
-                    });
-                }
-                initializeForm();
-                request.attachments = request.attachments || [];
-                $scope.lastSubmittedDate = findLastSubmittedDate();
-                return request;
-            });
-        };
         $scope.dataAccessRequest = $routeParams.id ? getRequest() : {};
         $scope.delete = function () {
             $scope.requestToDelete = $scope.dataAccessRequest.id;
@@ -7501,8 +7538,6 @@ ngObibaMica.search
             JoinQuerySearchResource[targetToType(target)]({ query: joinQuery }).$promise.then(function (joinQueryResponse) {
                 $scope.state.loading = false;
                 $scope.terms = RqlQueryService.getTargetAggregations(joinQueryResponse, $scope.criterion, $scope.lang);
-                console.log($scope.criterion);
-                console.log($scope.terms);
                 if ($scope.terms) {
                     if ($scope.criterion.taxonomy.name.startsWith('Mica_') && $scope.criterion.vocabulary.name === 'sets') {
                         var vocTerms = $scope.criterion.vocabulary.terms;
@@ -7719,6 +7754,7 @@ ngObibaMica.search
 'use strict';
 (function () {
     function Controller(EntitySuggestionService) {
+        var ctrl = this;
         function init() {
             ctrl.model = EntitySuggestionService.getCurrentSuggestion(ctrl.target, ctrl.rqlQuery) || '';
         }
@@ -7742,7 +7778,6 @@ ngObibaMica.search
                 init();
             }
         }
-        var ctrl = this;
         ctrl.model = '';
         ctrl.suggest = suggest;
         ctrl.select = select;
@@ -8204,6 +8239,7 @@ ngObibaMica.search
 'use strict';
 (function () {
     function Controller(MetaTaxonomyService, TaxonomyService) {
+        var ctrl = this;
         /**
          * Retrieves all meta taxonomies
          */
@@ -8241,7 +8277,6 @@ ngObibaMica.search
                 ctrl.selectedTaxonomy = null;
             }
         }
-        var ctrl = this;
         ctrl.selectedTaxonomy = null;
         ctrl.onSelectTaxonomy = onSelectTaxonomy;
         ctrl.$onChanges = onChanges;
@@ -9291,7 +9326,6 @@ ngObibaMica.search
                         }
                     }
                 });
-                console.log('selected=' + Math.round(selected.length * 100 / $scope.table.rows.length) + '%');
             }
             updateFilterCriteriaInternal(selected, true);
         };
@@ -10128,6 +10162,7 @@ ngObibaMica.search
 'use strict';
 (function () {
     function Controller($translate, VocabularyService, RqlQueryService, AlertService, StringUtils, LocaleStringUtils, ServerErrorUtils, TaxonomiesSearchResource) {
+        var ctrl = this;
         // vocabulary (or term) can be used in search if it doesn't have the 'showSearch' attribute
         function canSearch(taxonomyEntity, hideSearchList) {
             if ((hideSearchList || []).indexOf(taxonomyEntity.name) > -1) {
@@ -10265,7 +10300,6 @@ ngObibaMica.search
         function selectTerm(target, taxonomy, vocabulary, args) {
             ctrl.onSelectTerm({ target: target, taxonomy: taxonomy, vocabulary: vocabulary, args: args });
         }
-        var ctrl = this;
         ctrl.selectedCriteria = null;
         ctrl.target = null;
         ctrl.documents = {
@@ -12907,11 +12941,21 @@ function NgObibaMicaFileBrowserOptionsProvider() {
         downloadKey: false,
         folders: {
             excludes: ['population']
-        }
+        },
+        documentsTitle: 'file.documents'
     };
     this.addExcludeFolder = function (folder) {
         if (folder) {
             options.folders.excludes.push(folder);
+        }
+    };
+    this.setOptions = function (newOptions) {
+        if (typeof (newOptions) === 'object') {
+            Object.keys(newOptions).forEach(function (option) {
+                if (option in options) {
+                    options[option] = newOptions[option];
+                }
+            });
         }
     };
     this.$get = function () {
@@ -12946,9 +12990,14 @@ ngObibaMica.fileBrowser
                 docPath: '@',
                 docId: '@',
                 tokenKey: '@',
-                subject: '='
+                subject: '=',
+                refresh: '=',
+                showTitle: '@'
             },
-            templateUrl: 'file-browser/views/file-browser-template.html'
+            templateUrl: 'file-browser/views/file-browser-template.html',
+            link: function (scope, elem) {
+                scope.selfNode = elem[0];
+            }
         };
     }]);
 //# sourceMappingURL=file-browser-directive.js.map
@@ -12977,7 +13026,8 @@ ngObibaMica.fileBrowser
     'FileBrowserSearchResource',
     'ngObibaMicaFileBrowserOptions',
     'FileBrowserDownloadService',
-    function ($rootScope, $scope, $log, $filter, StringUtils, FileBrowserService, BrowserBreadcrumbHelper, AlertService, ServerErrorUtils, FileBrowserFileResource, FileBrowserSearchResource, ngObibaMicaFileBrowserOptions, FileBrowserDownloadService) {
+    'CustomWatchDomElementService',
+    function ($rootScope, $scope, $log, $filter, StringUtils, FileBrowserService, BrowserBreadcrumbHelper, AlertService, ServerErrorUtils, FileBrowserFileResource, FileBrowserSearchResource, ngObibaMicaFileBrowserOptions, FileBrowserDownloadService, CustomWatchDomElementService) {
         var navigateToPath = function (path, keyToken) {
             clearSearchInternal();
             getDocument(path, keyToken);
@@ -13012,24 +13062,31 @@ ngObibaMica.fileBrowser
                 fileParam = { path: path };
             }
             FileBrowserFileResource.get(fileParam, function onSuccess(response) {
-                $log.info(response);
-                $scope.pagination.selected = -1;
-                $scope.data.document = $scope.data.details.document = response;
-                if (!$scope.data.document.children) {
-                    $scope.data.document.children = [];
+                if (response.code !== 404) {
+                    $scope.pagination.selected = -1;
+                    $scope.data.document = $scope.data.details.document = response;
+                    if (!$scope.data.document.children) {
+                        $scope.data.document.children = [];
+                    }
+                    if (keyToken) {
+                        $scope.data.document.keyToken = keyToken;
+                    }
+                    if ($scope.data.document.path === $scope.data.rootPath) {
+                        $scope.data.document.children = $scope.data.document.children.filter(function (child) {
+                            return ngObibaMicaFileBrowserOptions.folders.excludes.indexOf(child.name) < 0;
+                        });
+                        $scope.data.document.size = $scope.data.document.children.length;
+                    }
+                    $scope.data.breadcrumbs = BrowserBreadcrumbHelper.toArray(path, $scope.data.rootPath);
+                    $scope.data.isFile = FileBrowserService.isFile(response);
+                    $scope.data.isRoot = FileBrowserService.isRoot(response);
+                    if (response.type === 'FOLDER' && response.size < 1) {
+                        $scope.noDocument = 'false';
+                    }
                 }
-                if (keyToken) {
-                    $scope.data.document.keyToken = keyToken;
+                else {
+                    $scope.noDocument = 'false';
                 }
-                if ($scope.data.document.path === $scope.data.rootPath) {
-                    $scope.data.document.children = $scope.data.document.children.filter(function (child) {
-                        return ngObibaMicaFileBrowserOptions.folders.excludes.indexOf(child.name) < 0;
-                    });
-                    $scope.data.document.size = $scope.data.document.children.length;
-                }
-                $scope.data.breadcrumbs = BrowserBreadcrumbHelper.toArray(path, $scope.data.rootPath);
-                $scope.data.isFile = FileBrowserService.isFile(response);
-                $scope.data.isRoot = FileBrowserService.isRoot(response);
             }, onError);
         }
         function navigateToParent(event, document, keyToken) {
@@ -13073,7 +13130,6 @@ ngObibaMica.fileBrowser
             searchParams.query = excludeFolders(searchParams.query);
             var urlParams = angular.extend({}, { path: path }, searchParams);
             FileBrowserSearchResource.search(urlParams, function onSuccess(response) {
-                $log.info('Search result', response);
                 var clone = $scope.data.document ? angular.copy($scope.data.document) : {};
                 clone.children = response;
                 $scope.data.document = clone;
@@ -13146,6 +13202,22 @@ ngObibaMica.fileBrowser
         var hasLocalizedValue = function (values) {
             return FileBrowserService.hasLocalizedValue(values, ngObibaMicaFileBrowserOptions.locale);
         };
+        var refresh = function (docPath, docId) {
+            if (docPath && docId) {
+                $scope.docPath = docPath;
+                $scope.docId = docId;
+            }
+            if (($scope.docPath && $scope.docPath !== '/') && $scope.docId) {
+                $scope.data.docRootIcon = BrowserBreadcrumbHelper.rootIcon($scope.docPath);
+                $scope.data.rootPath = $scope.docPath + ($scope.docId !== 'null' ? '/' + $scope.docId : '');
+                if ($scope.tokenKey) {
+                    getDocument($scope.data.rootPath, $scope.tokenKey, null);
+                }
+                else {
+                    getDocument($scope.data.rootPath, null);
+                }
+            }
+        };
         $scope.downloadTarget = ngObibaMicaFileBrowserOptions.downloadInline ? '_blank' : '_self';
         $scope.getDownloadUrl = FileBrowserDownloadService.getUrl;
         $scope.screen = $rootScope.screen;
@@ -13166,6 +13238,7 @@ ngObibaMica.fileBrowser
         $scope.hideDetails = hideDetails;
         $scope.showDetails = showDetails;
         $scope.getTypeParts = getTypeParts;
+        $scope.documentsTitle = ngObibaMicaFileBrowserOptions.documentsTitle;
         $scope.pagination = {
             selected: -1,
             currentPage: 1,
@@ -13192,15 +13265,16 @@ ngObibaMica.fileBrowser
             editDescField: false
         };
         $scope.$watchGroup(['docPath', 'docId'], function () {
-            if ($scope.docPath && $scope.docId) {
-                $scope.data.docRootIcon = BrowserBreadcrumbHelper.rootIcon($scope.docPath);
-                $scope.data.rootPath = $scope.docPath + ($scope.docId !== 'null' ? '/' + $scope.docId : '');
-                if ($scope.tokenKey) {
-                    getDocument($scope.data.rootPath, $scope.tokenKey, null);
-                }
-                else {
-                    getDocument($scope.data.rootPath, null);
-                }
+            refresh();
+        });
+        $scope.__defineSetter__('selfNode', function (selfNode) {
+            if (selfNode) {
+                CustomWatchDomElementService.configWatch(selfNode, ['refresh', 'show-title']).customWatch(function () {
+                    if (selfNode.attributes[4].value === 'true') {
+                        refresh(selfNode.attributes[1].value, selfNode.attributes[2].value);
+                        $scope.showTitle = selfNode.attributes[6].value;
+                    }
+                });
             }
         });
     }
@@ -13220,7 +13294,6 @@ ngObibaMica.fileBrowser
     .factory('FileBrowserFileResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
         var url = ngObibaMicaUrl.getUrl('FileBrowserFileResource');
-        console.log('PATH>', url);
         return $resource(url, { path: '@path', keyToken: '@keyToken' }, {
             'get': { method: 'GET', errorHandler: true }
         });
@@ -14430,6 +14503,8 @@ angular.module("file-browser/views/documents-table-template.html", []).run(["$te
 angular.module("file-browser/views/file-browser-template.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("file-browser/views/file-browser-template.html",
     "<div ng-cloak>\n" +
+    "  <div ng-if=\"!noDocument\">\n" +
+    "    <h4 ng-show=\"showTitle\">{{documentsTitle | translate}}</h4>\n" +
     "  <div ng-if=\"!data.document\" class=\"loading\"></div>\n" +
     "\n" +
     "  <div ng-if=\"data.document\">\n" +
@@ -14458,6 +14533,7 @@ angular.module("file-browser/views/file-browser-template.html", []).run(["$templ
     "        </div>\n" +
     "      </div>\n" +
     "    </div>\n" +
+    "  </div>\n" +
     "  </div>\n" +
     "\n" +
     "</div>");

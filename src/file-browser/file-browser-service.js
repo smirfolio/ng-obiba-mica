@@ -14,7 +14,6 @@ ngObibaMica.fileBrowser
   .factory('FileBrowserFileResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       var url = ngObibaMicaUrl.getUrl('FileBrowserFileResource');
-      console.log('PATH>', url);
       return $resource(url, {path: '@path', keyToken: '@keyToken'}, {
         'get': {method: 'GET', errorHandler: true}
       });
