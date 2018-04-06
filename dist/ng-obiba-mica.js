@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-04-03
+ * Date: 2018-04-06
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -2464,10 +2464,7 @@ ngObibaMica.search = angular.module('obiba.mica.search', [
                 },
                 variable: {
                     taxonomies: {
-                        'Mlstr_area': { weight: 0 },
-                        'Scales': { weight: 1 },
-                        'Mlstr_additional': { weight: 2 },
-                        'Mica_variable': { trKey: 'properties', weight: 3 }
+                        'Mica_variable': { trKey: 'properties' }
                     }
                 },
                 fieldsToFilter: FIELDS_TO_FILTER
@@ -3516,6 +3513,14 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
  */
 'use strict';
 (function () {
+    function getTaxonomyWeightAttribute(taxonomy) {
+        var defaultWeight = 0;
+        if (taxonomy.attributes) {
+            var weightAttribute = taxonomy.attributes.filter(function (attribute) { return 'weight' === attribute.key; })[0];
+            defaultWeight = weightAttribute ? parseInt(weightAttribute.value) || 0 : 0;
+        }
+        return defaultWeight;
+    }
     /**
      * Parses each metaTaxonomies taxonomy and returns a list of :
      * [
@@ -3534,7 +3539,8 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
             return terms.map(function (taxonomy, index) {
                 var result = {
                     state: new ngObibaMica.search.PanelTaxonomyState(index + ''),
-                    info: { name: taxonomy.name || '', title: taxonomy.title || '', description: taxonomy.description || '' },
+                    info: { name: taxonomy.name || '', title: taxonomy.title || '', description: taxonomy.description || '',
+                        weight: getTaxonomyWeightAttribute(taxonomy) },
                     taxonomies: [taxonomy]
                 };
                 var taxonomyConfig = targetConfig.taxonomies[taxonomy.name];
@@ -3551,12 +3557,9 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
                 taxonomies: taxonomies
             };
         }
-        function sortTaxonomies(target, taxonomies) {
-            var configTaxonomies = config[target].taxonomies;
+        function sortTaxonomies(taxonomies) {
             taxonomies.sort(function (a, b) {
-                var weighta = configTaxonomies[a.info.name] ? configTaxonomies[a.info.name].weight : 0;
-                var weightb = configTaxonomies[b.info.name] ? configTaxonomies[b.info.name].weight : 0;
-                return weighta - weightb;
+                return a.info.weight - b.info.weight;
             });
         }
         this.config = config;
@@ -3592,12 +3595,13 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
                     name: scales.name,
                     names: scales.terms.map(function (t) { return t.name; }),
                     title: scales.title,
-                    description: scales.description || ''
+                    description: scales.description || '',
+                    weight: getTaxonomyWeightAttribute(scales)
                 },
                 taxonomies: scales.terms
             });
         }
-        this.sortTaxonomies(QUERY_TARGETS.VARIABLE, taxonomies);
+        this.sortTaxonomies(taxonomies);
         return this.createResultObject(metaVocabulary, taxonomies);
     };
 })();
