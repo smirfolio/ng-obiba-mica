@@ -31,10 +31,7 @@
         },
         variable: {
           taxonomies: {
-            'Mlstr_area': { weight: 0 },
-            'Scales': { weight: 1 },
-            'Mlstr_additional': { weight: 2 },
-            'Mica_variable': { trKey: 'properties', weight: 3 }
+            'Mica_variable': { trKey: 'properties' }
           }
         },
         fieldsToFilter: FIELDS_TO_FILTER
