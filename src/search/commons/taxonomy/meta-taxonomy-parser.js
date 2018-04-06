@@ -12,6 +12,17 @@
 
 (function() {
 
+  function getTaxonomyWeightAttribute(taxonomy) {
+    var defaultWeight = 0; 
+
+    if (taxonomy.attributes) {
+      var weightAttribute = taxonomy.attributes.filter(attribute => 'weight' === attribute.key)[0];
+      defaultWeight = weightAttribute ? parseInt(weightAttribute.value) || 0 : 0;
+    }
+
+    return defaultWeight;
+  }
+
   /**
    * Parses each metaTaxonomies taxonomy and returns a list of :
    * [
@@ -31,7 +42,8 @@
       return terms.map(function(taxonomy, index) {
         var result = {
           state: new ngObibaMica.search.PanelTaxonomyState(index+''),
-          info: {name: taxonomy.name || '', title: taxonomy.title || '', description: taxonomy.description || ''},
+          info: {name: taxonomy.name || '', title: taxonomy.title || '', description: taxonomy.description || '', 
+          weight: getTaxonomyWeightAttribute(taxonomy)},
           taxonomies: [taxonomy]
         };
 
@@ -53,12 +65,9 @@
       };
     }
 
-    function sortTaxonomies(target, taxonomies) {
-      var configTaxonomies = config[target].taxonomies;
+    function sortTaxonomies(taxonomies) {
       taxonomies.sort(function(a, b) {
-        var weighta = configTaxonomies[a.info.name] ? configTaxonomies[a.info.name].weight : 0;
-        var weightb = configTaxonomies[b.info.name] ? configTaxonomies[b.info.name].weight : 0;
-        return weighta - weightb;
+        return a.info.weight - b.info.weight;
       });
     }
 
@@ -101,13 +110,14 @@
           name: scales.name,
           names: scales.terms.map(function(t){return t.name;}),
           title: scales.title,
-          description: scales.description || ''
+          description: scales.description || '',
+          weight: getTaxonomyWeightAttribute(scales)
         },
         taxonomies: scales.terms
       });
     }
 
-    this.sortTaxonomies(QUERY_TARGETS.VARIABLE, taxonomies);
+    this.sortTaxonomies(taxonomies);
     return this.createResultObject(metaVocabulary, taxonomies);
   };
 
