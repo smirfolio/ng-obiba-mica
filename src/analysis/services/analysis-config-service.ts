@@ -24,6 +24,9 @@ class AnalysisConfigService implements IAnalysisConfigService {
 
   constructor() {
     this.options = {
+        crosstab: {
+            showDetailedStats: true,
+        },
       showAnalysis: true,
     };
   }
