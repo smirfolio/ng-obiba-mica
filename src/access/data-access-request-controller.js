@@ -426,7 +426,9 @@ ngObibaMica.access
       });
 
       var onUpdatStatusSuccess = function () {
-        $scope.dataAccessRequest = getRequest();
+        setTimeout(function () {
+          $scope.dataAccessRequest = getRequest();
+        });        
       };
 
       var confirmStatusChange = function(status, messageKey, statusName) {
@@ -459,12 +461,13 @@ ngObibaMica.access
           DataAccessRequestStatusResource.update({
             id: $scope.dataAccessRequest.id,
             status: DataAccessRequestService.status.SUBMITTED
-          }, function onSubmitted() {
-            onUpdatStatusSuccess();
+          }, function onSubmitted() {            
             $uibModal.open({
               scope: $scope,
               templateUrl:'access/views/data-access-request-submitted-modal.html'
-            });
+            }).result.then(function () {
+              onUpdatStatusSuccess();
+            });         
           }, onError);
         } else {
           AlertService.alert({
