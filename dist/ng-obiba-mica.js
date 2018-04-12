@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-04-11
+ * Date: 2018-04-12
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -1039,7 +1039,9 @@ ngObibaMica.access
             }
         });
         var onUpdatStatusSuccess = function () {
-            $scope.dataAccessRequest = getRequest();
+            setTimeout(function () {
+                $scope.dataAccessRequest = getRequest();
+            });
         };
         var confirmStatusChange = function (status, messageKey, statusName) {
             $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
@@ -1067,10 +1069,11 @@ ngObibaMica.access
                     id: $scope.dataAccessRequest.id,
                     status: DataAccessRequestService.status.SUBMITTED
                 }, function onSubmitted() {
-                    onUpdatStatusSuccess();
                     $uibModal.open({
                         scope: $scope,
                         templateUrl: 'access/views/data-access-request-submitted-modal.html'
+                    }).result.then(function () {
+                        onUpdatStatusSuccess();
                     });
                 }, onError);
             }
@@ -14584,7 +14587,7 @@ angular.module("access/views/data-access-request-submitted-modal.html", []).run(
     "\n" +
     "<div class=\"modal-content\">\n" +
     "  <div class=\"modal-header\">\n" +
-    "    <button type=\"button\" class=\"close\" aria-hidden=\"true\" ng-click=\"$dismiss()\">&times;</button>\n" +
+    "    <button type=\"button\" class=\"close\" aria-hidden=\"true\" ng-click=\"$close('OK')\">&times;</button>\n" +
     "    <h4 class=\"modal-title\">\n" +
     "      <i class=\"fa fa-check fa-lg\"></i>\n" +
     "      {{'data-access-request.submit-confirmation.title' | translate}}\n" +
@@ -14594,7 +14597,7 @@ angular.module("access/views/data-access-request-submitted-modal.html", []).run(
     "    <p>{{'data-access-request.submit-confirmation.message' | translate}}</p>\n" +
     "  </div>\n" +
     "  <div class=\"modal-footer\">\n" +
-    "    <button type=\"button\" class=\"btn btn-primary voffest4\" ng-click=\"$dismiss()\">\n" +
+    "    <button type=\"button\" class=\"btn btn-primary voffest4\" ng-click=\"$close('OK')\">\n" +
     "      <span ng-hide=\"confirm.ok\" translate>ok</span>\n" +
     "      {{confirm.ok}}\n" +
     "    </button>\n" +
