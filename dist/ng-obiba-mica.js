@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-04-12
+ * Date: 2018-04-15
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -2474,6 +2474,7 @@ ngObibaMica.search = angular.module('obiba.mica.search', [
     'obiba.alert',
     'ui.bootstrap',
     'pascalprecht.translate',
+    'ngclipboard',
     'templates-ngObibaMica',
     'obiba.mica.sets'
 ]);
@@ -16519,6 +16520,31 @@ angular.module("search/components/criteria/item-region/region/component.html", [
     "                          {{search.advanced ? 'search.basic' : 'search.advanced' | translate}}\n" +
     "                      </a>\n" +
     "                  </small>\n" +
+    "\n" +
+    "                  <div class=\"btn-group voffset1 hoffset2\" uib-dropdown auto-close=\"outsideClick\" is-open=\"status.isopen\">\n" +
+    "                    <button id=\"single-button\" type=\"button\" class=\"btn btn-xs btn-success\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
+    "                      Copy query <span class=\"caret\"></span>\n" +
+    "                    </button>\n" +
+    "                    <ul class=\"dropdown-menu query-dropdown-menu criteria-list-item\" uib-dropdown-menu role=\"menu\" aria-labelledby=\"single-button\">\n" +
+    "                      <li role=\"menuitem\">\n" +
+    "                        <div class=\"form-group\">\n" +
+    "                          <label class=\"control-label\" translate>search.query</label>\n" +
+    "                          <div class=\"input-group\">\n" +
+    "                            <input id=\"copyQuery\" type=\"text\" class=\"form-control\" ng-model=\"search.query\"/>\n" +
+    "                            <span class=\"input-group-btn\">\n" +
+    "                              <button class=\"btn\"\n" +
+    "                                      ngclipboard data-clipboard-target=\"#copyQuery\" uib-tooltip=\"{{'global.copy-to-clipboard' | translate}}\">\n" +
+    "                                <span class=\"fa fa-copy\" alt=\"Copy to clipboard\"/>\n" +
+    "                              </button>\n" +
+    "                            </span>\n" +
+    "                          </div>\n" +
+    "                          <small>\n" +
+    "                              <span class=\"help-block\" translate>search.query-copy-help</span>   \n" +
+    "                          </small>\n" +
+    "                        </div>\n" +
+    "                      </li>\n" +
+    "                    </ul>\n" +
+    "                  </div>\n" +
     "              </td>\n" +
     "          </tr>\n" +
     "          </tbody>\n" +
