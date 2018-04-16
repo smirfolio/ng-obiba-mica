@@ -4116,13 +4116,6 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
                     }
                 }
             };
-            $scope.showCopiedQueryTooltipStatus = false;
-            var showCopiedQueryTooltip = function () {
-                $scope.showCopiedQueryTooltipStatus = true;
-                $timeout(function () {
-                    $scope.showCopiedQueryTooltipStatus = false;
-                }, 1000);
-            };
             function sortCriteriaItems(items) {
                 items.sort(function (a, b) {
                     if (a.target === 'network' || b.target === 'variable') {
@@ -4620,7 +4613,6 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
             $scope.clearSearchQuery = clearSearchQuery;
             $scope.toggleSearchQuery = toggleSearchQuery;
             $scope.showAdvanced = showAdvanced;
-            $scope.showCopiedQueryTooltip = showCopiedQueryTooltip;
             $scope.onTypeChanged = onTypeChanged;
             $scope.onBucketChanged = onBucketChanged;
             $scope.onDisplayChanged = onDisplayChanged;
@@ -7484,7 +7476,7 @@ ngObibaMica.search
 //# sourceMappingURL=component.js.map
 'use strict';
 ngObibaMica.search
-    .controller('searchCriteriaRegionController', ['$scope', 'RqlQueryService', function ($scope, RqlQueryService) {
+    .controller('searchCriteriaRegionController', ['$scope', 'RqlQueryService', '$timeout', function ($scope, RqlQueryService, $timeout) {
         var canShow = false;
         $scope.$watchCollection('search.criteria', function () {
             $scope.renderableTargets = RqlQueryService.getRenderableTargetCriteriaFromRoot($scope.search.criteria);
@@ -7497,12 +7489,20 @@ ngObibaMica.search
         var canShowCriteriaRegion = function () {
             return ($scope.options.studyTaxonomiesOrder.length || $scope.options.datasetTaxonomiesOrder.length || $scope.options.networkTaxonomiesOrder.length) && canShow;
         };
+        $scope.showCopiedQueryTooltipStatus = false;
+        var showCopiedQueryTooltip = function () {
+            $scope.showCopiedQueryTooltipStatus = true;
+            $timeout(function () {
+                $scope.showCopiedQueryTooltipStatus = false;
+            }, 1000);
+        };
+        $scope.showCopiedQueryTooltip = showCopiedQueryTooltip;
         $scope.canShowCriteriaRegion = canShowCriteriaRegion;
     }])
     .directive('searchCriteriaRegion', ['ngObibaMicaSearchTemplateUrl', function (ngObibaMicaSearchTemplateUrl) {
         return {
             restrict: 'EA',
-            replace: true,
+            transclude: true,
             scope: {
                 options: '=',
                 search: '='
@@ -16510,54 +16510,55 @@ angular.module("search/components/criteria/item-region/numeric/component.html", 
 
 angular.module("search/components/criteria/item-region/region/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/item-region/region/component.html",
-    "<div id=\"search-criteria-region\" ng-class=\"options.showSearchBox || options.showSearchBrowser ? 'voffset2' : ''\" class=\"panel panel-default\" ng-if=\"renderableTargets && renderableTargets.length > 0\">\n" +
+    "<div id=\"search-criteria-region\" ng-class=\"options.showSearchBox || options.showSearchBrowser ? 'voffset2' : ''\" class=\"panel panel-default\"\n" +
+    "  ng-if=\"renderableTargets && renderableTargets.length > 0\">\n" +
     "  <div class=\"panel-body\">\n" +
-    "      <table style=\"border:none\">\n" +
-    "          <tbody>\n" +
-    "          <tr>\n" +
-    "              <td>\n" +
-    "                  <a href class=\"btn btn-sm btn-default\" ng-click=\"clearSearchQuery()\" translate>clear</a>\n" +
-    "              </td>\n" +
-    "              <td style=\"padding-left: 10px\">\n" +
-    "                  <div criteria-root item=\"search.criteria\" query=\"search.query\" advanced=\"search.advanced\" on-remove=\"removeCriteriaItem\"\n" +
-    "                       on-refresh=\"refreshQuery\" class=\"inline\"></div>\n" +
+    "    <table style=\"border:none\">\n" +
+    "      <tbody>\n" +
+    "        <tr>\n" +
+    "          <td>\n" +
+    "            <a href class=\"btn btn-sm btn-default\" ng-click=\"clearSearchQuery()\" translate>clear</a>\n" +
+    "          </td>\n" +
+    "          <td style=\"padding-left: 10px\">\n" +
+    "            <div criteria-root item=\"search.criteria\" query=\"search.query\" advanced=\"search.advanced\" on-remove=\"removeCriteriaItem\"\n" +
+    "              on-refresh=\"refreshQuery\" class=\"inline\"></div>\n" +
     "\n" +
-    "                  <small class=\"hoffset2\" ng-if=\"showAdvanced()\">\n" +
-    "                      <a href ng-click=\"toggleSearchQuery()\"\n" +
-    "                         title=\"{{search.advanced ? 'search.basic-help' : 'search.advanced-help' | translate}}\" translate>\n" +
-    "                          {{search.advanced ? 'search.basic' : 'search.advanced' | translate}}\n" +
-    "                      </a>\n" +
-    "                  </small>\n" +
+    "            <small class=\"hoffset2\" ng-if=\"showAdvanced()\">\n" +
+    "              <a href ng-click=\"toggleSearchQuery()\" title=\"{{search.advanced ? 'search.basic-help' : 'search.advanced-help' | translate}}\"\n" +
+    "                translate>\n" +
+    "                {{search.advanced ? 'search.basic' : 'search.advanced' | translate}}\n" +
+    "              </a>\n" +
+    "            </small>\n" +
     "\n" +
-    "                  <div class=\"btn-group voffset1 hoffset2\" uib-dropdown auto-close=\"outsideClick\" is-open=\"status.isopen\">\n" +
-    "                    <button id=\"single-button\" type=\"button\" class=\"btn btn-xs btn-success\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
-    "                      Copy query <span class=\"caret\"></span>\n" +
-    "                    </button>\n" +
-    "                    <ul class=\"dropdown-menu query-dropdown-menu criteria-list-item\" uib-dropdown-menu role=\"menu\" aria-labelledby=\"single-button\">\n" +
-    "                      <li role=\"menuitem\">\n" +
-    "                        <div class=\"form-group\">\n" +
-    "                          <label class=\"control-label\" translate>search.query</label>\n" +
-    "                          <div class=\"input-group\">\n" +
-    "                            <input id=\"copyQuery\" type=\"text\" class=\"form-control\" value=\"{{search.query}}\"\n" +
-    "                              tooltip-is-open=\"showCopiedQueryTooltipStatus\" uib-tooltip=\"{{'global.copied' | translate}}\" tooltip-trigger=\"'none'\"/>\n" +
-    "                            <span class=\"input-group-btn\">\n" +
-    "                              <button class=\"btn\" ng-click=\"showCopiedQueryTooltip()\"\n" +
-    "                                      ngclipboard data-clipboard-target=\"#copyQuery\" uib-tooltip=\"{{'global.copy-to-clipboard' | translate}}\">\n" +
-    "                                <span class=\"fa fa-copy\" alt=\"Copy to clipboard\"/>\n" +
-    "                              </button>\n" +
-    "                            </span>\n" +
-    "                          </div>\n" +
-    "                          <small>\n" +
-    "                              <span class=\"help-block\" translate>search.query-copy-help</span>   \n" +
-    "                          </small>\n" +
-    "                        </div>\n" +
-    "                      </li>\n" +
-    "                    </ul>\n" +
+    "            <div class=\"btn-group voffset1 hoffset2\" uib-dropdown auto-close=\"outsideClick\" is-open=\"status.isopen\">\n" +
+    "              <button id=\"single-button\" type=\"button\" class=\"btn btn-xs btn-success\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
+    "                Copy query\n" +
+    "                <span class=\"caret\"></span>\n" +
+    "              </button>\n" +
+    "              <ul class=\"dropdown-menu query-dropdown-menu criteria-list-item\" uib-dropdown-menu role=\"menu\" aria-labelledby=\"single-button\">\n" +
+    "                <li role=\"menuitem\">\n" +
+    "                  <div class=\"form-group\">\n" +
+    "                    <label class=\"control-label\" translate>search.query</label>\n" +
+    "                    <div class=\"input-group\">\n" +
+    "                      <input id=\"copyQuery\" type=\"text\" class=\"form-control\" value=\"{{search.query}}\" tooltip-is-open=\"$parent.showCopiedQueryTooltipStatus\"\n" +
+    "                        uib-tooltip=\"{{'global.copied' | translate}}\" tooltip-trigger=\"'none'\" />\n" +
+    "                      <span class=\"input-group-btn\">\n" +
+    "                        <button class=\"btn\" ng-click=\"showCopiedQueryTooltip()\" ngclipboard data-clipboard-target=\"#copyQuery\" uib-tooltip=\"{{'global.copy-to-clipboard' | translate}}\">\n" +
+    "                          <span class=\"fa fa-copy\" alt=\"Copy to clipboard\" />\n" +
+    "                        </button>\n" +
+    "                      </span>\n" +
+    "                    </div>\n" +
+    "                    <small>\n" +
+    "                      <span class=\"help-block\" translate>search.query-copy-help</span>\n" +
+    "                    </small>\n" +
     "                  </div>\n" +
-    "              </td>\n" +
-    "          </tr>\n" +
-    "          </tbody>\n" +
-    "      </table>\n" +
+    "                </li>\n" +
+    "              </ul>\n" +
+    "            </div>\n" +
+    "          </td>\n" +
+    "        </tr>\n" +
+    "      </tbody>\n" +
+    "    </table>\n" +
     "  </div>\n" +
     "</div>");
 }]);

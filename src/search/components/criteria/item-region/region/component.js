@@ -1,7 +1,7 @@
 'use strict';
 
 ngObibaMica.search
-  .controller('searchCriteriaRegionController', ['$scope', 'RqlQueryService', function ($scope, RqlQueryService) {
+  .controller('searchCriteriaRegionController', ['$scope', 'RqlQueryService', '$timeout', function ($scope, RqlQueryService, $timeout) {
     var canShow = false;
 
     $scope.$watchCollection('search.criteria', function () {
@@ -16,13 +16,23 @@ ngObibaMica.search
     var canShowCriteriaRegion = function () {
       return ($scope.options.studyTaxonomiesOrder.length || $scope.options.datasetTaxonomiesOrder.length || $scope.options.networkTaxonomiesOrder.length) && canShow;
     };
+
+    $scope.showCopiedQueryTooltipStatus = false;
+    var showCopiedQueryTooltip = function() {
+      $scope.showCopiedQueryTooltipStatus = true;
+        $timeout(function () {
+          $scope.showCopiedQueryTooltipStatus = false;
+        }, 1000);
+    };
+
+    $scope.showCopiedQueryTooltip = showCopiedQueryTooltip;
     $scope.canShowCriteriaRegion = canShowCriteriaRegion;
   }])
 
   .directive('searchCriteriaRegion', ['ngObibaMicaSearchTemplateUrl', function (ngObibaMicaSearchTemplateUrl) {
     return {
       restrict: 'EA',
-      replace: true,
+      transclude: true,
       scope: {
         options: '=',
         search: '='
