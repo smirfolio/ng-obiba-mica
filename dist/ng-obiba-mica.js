@@ -10842,25 +10842,25 @@ ngObibaMica.search
                 ServerErrorAlertService.alert('MainController', response);
             };
             var searchCategoricalVariables = function (queryString) {
-                if (!queryString) {
+                if (!queryString || queryString.trim().length < 2) {
                     return;
                 }
                 DatasetCategoricalVariablesResource.get({
                     dsType: $routeParams.type,
                     dsId: $routeParams.ds,
-                    query: queryString
+                    query: queryString.trim() + '*'
                 }, function onSuccess(response) {
                     $scope.crosstab.lhs.variables = response.variables;
                 }, onError);
             };
             var searchVariables = function (queryString) {
-                if (!queryString) {
+                if (!queryString || queryString.trim().length < 2) {
                     return;
                 }
                 DatasetVariablesResource.get({
                     dsType: $routeParams.type,
                     dsId: $routeParams.ds,
-                    query: queryString
+                    query: queryString.trim() + '*'
                 }, function onSuccess(response) {
                     $scope.crosstab.rhs.variables = response.variables;
                 }, onError);
