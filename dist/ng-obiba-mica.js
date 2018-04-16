@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-04-15
+ * Date: 2018-04-16
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -4116,6 +4116,13 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
                     }
                 }
             };
+            $scope.showCopiedQueryTooltipStatus = false;
+            var showCopiedQueryTooltip = function () {
+                $scope.showCopiedQueryTooltipStatus = true;
+                $timeout(function () {
+                    $scope.showCopiedQueryTooltipStatus = false;
+                }, 1000);
+            };
             function sortCriteriaItems(items) {
                 items.sort(function (a, b) {
                     if (a.target === 'network' || b.target === 'variable') {
@@ -4613,6 +4620,7 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
             $scope.clearSearchQuery = clearSearchQuery;
             $scope.toggleSearchQuery = toggleSearchQuery;
             $scope.showAdvanced = showAdvanced;
+            $scope.showCopiedQueryTooltip = showCopiedQueryTooltip;
             $scope.onTypeChanged = onTypeChanged;
             $scope.onBucketChanged = onBucketChanged;
             $scope.onDisplayChanged = onDisplayChanged;
@@ -16530,9 +16538,10 @@ angular.module("search/components/criteria/item-region/region/component.html", [
     "                        <div class=\"form-group\">\n" +
     "                          <label class=\"control-label\" translate>search.query</label>\n" +
     "                          <div class=\"input-group\">\n" +
-    "                            <input id=\"copyQuery\" type=\"text\" class=\"form-control\" ng-model=\"search.query\"/>\n" +
+    "                            <input id=\"copyQuery\" type=\"text\" class=\"form-control\" value=\"{{search.query}}\"\n" +
+    "                              tooltip-is-open=\"showCopiedQueryTooltipStatus\" uib-tooltip=\"{{'global.copied' | translate}}\" tooltip-trigger=\"'none'\"/>\n" +
     "                            <span class=\"input-group-btn\">\n" +
-    "                              <button class=\"btn\"\n" +
+    "                              <button class=\"btn\" ng-click=\"showCopiedQueryTooltip()\"\n" +
     "                                      ngclipboard data-clipboard-target=\"#copyQuery\" uib-tooltip=\"{{'global.copy-to-clipboard' | translate}}\">\n" +
     "                                <span class=\"fa fa-copy\" alt=\"Copy to clipboard\"/>\n" +
     "                              </button>\n" +

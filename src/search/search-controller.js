@@ -271,6 +271,15 @@
           }
         };
 
+
+        $scope.showCopiedQueryTooltipStatus = false;
+        var showCopiedQueryTooltip = function() {
+          $scope.showCopiedQueryTooltipStatus = true;
+            $timeout(function () {
+              $scope.showCopiedQueryTooltipStatus = false;
+            }, 1000);
+        };
+
         function sortCriteriaItems(items) {
           items.sort(function (a, b) {
             if (a.target === 'network' || b.target === 'variable') {
@@ -847,6 +856,7 @@
         $scope.clearSearchQuery = clearSearchQuery;
         $scope.toggleSearchQuery = toggleSearchQuery;
         $scope.showAdvanced = showAdvanced;
+        $scope.showCopiedQueryTooltip = showCopiedQueryTooltip;
 
         $scope.onTypeChanged = onTypeChanged;
         $scope.onBucketChanged = onBucketChanged;
