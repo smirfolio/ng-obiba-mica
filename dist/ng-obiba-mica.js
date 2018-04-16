@@ -7502,7 +7502,7 @@ ngObibaMica.search
     .directive('searchCriteriaRegion', ['ngObibaMicaSearchTemplateUrl', function (ngObibaMicaSearchTemplateUrl) {
         return {
             restrict: 'EA',
-            transclude: true,
+            replace: true,
             scope: {
                 options: '=',
                 search: '='
@@ -16543,7 +16543,7 @@ angular.module("search/components/criteria/item-region/region/component.html", [
     "                      <input id=\"copyQuery\" type=\"text\" class=\"form-control\" value=\"{{search.query}}\" tooltip-is-open=\"$parent.showCopiedQueryTooltipStatus\"\n" +
     "                        uib-tooltip=\"{{'global.copied' | translate}}\" tooltip-trigger=\"'none'\" />\n" +
     "                      <span class=\"input-group-btn\">\n" +
-    "                        <button class=\"btn\" ng-click=\"showCopiedQueryTooltip()\" ngclipboard data-clipboard-target=\"#copyQuery\" uib-tooltip=\"{{'global.copy-to-clipboard' | translate}}\">\n" +
+    "                        <button class=\"btn\" ng-click=\"$parent.showCopiedQueryTooltip()\" ngclipboard data-clipboard-target=\"#copyQuery\" uib-tooltip=\"{{'global.copy-to-clipboard' | translate}}\">\n" +
     "                          <span class=\"fa fa-copy\" alt=\"Copy to clipboard\" />\n" +
     "                        </button>\n" +
     "                      </span>\n" +

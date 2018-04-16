@@ -18,11 +18,11 @@ ngObibaMica.search
     };
 
     $scope.showCopiedQueryTooltipStatus = false;
-    var showCopiedQueryTooltip = function() {
+    var showCopiedQueryTooltip = function () {
       $scope.showCopiedQueryTooltipStatus = true;
-        $timeout(function () {
-          $scope.showCopiedQueryTooltipStatus = false;
-        }, 1000);
+      $timeout(function () {
+        $scope.showCopiedQueryTooltipStatus = false;
+      }, 1000);
     };
 
     $scope.showCopiedQueryTooltip = showCopiedQueryTooltip;
@@ -32,7 +32,7 @@ ngObibaMica.search
   .directive('searchCriteriaRegion', ['ngObibaMicaSearchTemplateUrl', function (ngObibaMicaSearchTemplateUrl) {
     return {
       restrict: 'EA',
-      transclude: true,
+      replace: true,
       scope: {
         options: '=',
         search: '='
