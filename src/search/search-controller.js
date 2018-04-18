@@ -230,6 +230,7 @@
             $scope.search.display = display;
             $scope.search.query = query;
             $scope.search.rqlQuery = RqlQueryService.parseQuery(query);
+            
             $scope.search.layout = setLayout(search.layout ? search.layout : resolveLayout($scope.options));
 
             return true;

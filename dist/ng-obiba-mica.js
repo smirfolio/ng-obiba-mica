@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-04-16
+ * Date: 2018-04-18
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -7485,6 +7485,30 @@ ngObibaMica.search
             if ($scope.search.criteriaItemMap) {
                 canShow = Object.keys($scope.search.criteriaItemMap).length > 1;
             }
+        });
+        $scope.$watchCollection('search.rqlQuery', function () {
+            var args = angular.copy($scope.search.rqlQuery.args);
+            if (args) {
+                // remove limit or sort statements as these will be handled by other clients
+                angular.forEach(args, function (arg) {
+                    if (arg.args) {
+                        var i = arg.args.length;
+                        while (i--) {
+                            if (arg.args[i].name === 'limit' || arg.args[i].name === 'sort') {
+                                arg.args.splice(i, 1);
+                            }
+                        }
+                    }
+                });
+                // remove empty RQL nodes
+                var i = args.length;
+                while (i--) {
+                    if (!args[i].args || args[i].args.length === 0) {
+                        args.splice(i, 1);
+                    }
+                }
+            }
+            $scope.query = new RqlQuery().serializeArgs(args);
         });
         var canShowCriteriaRegion = function () {
             return ($scope.options.studyTaxonomiesOrder.length || $scope.options.datasetTaxonomiesOrder.length || $scope.options.networkTaxonomiesOrder.length) && canShow;
@@ -16540,7 +16564,7 @@ angular.module("search/components/criteria/item-region/region/component.html", [
     "                  <div class=\"form-group\">\n" +
     "                    <label class=\"control-label\" translate>search.query</label>\n" +
     "                    <div class=\"input-group\">\n" +
-    "                      <input id=\"copyQuery\" type=\"text\" class=\"form-control\" value=\"{{search.query}}\" tooltip-is-open=\"$parent.showCopiedQueryTooltipStatus\"\n" +
+    "                      <input id=\"copyQuery\" type=\"text\" class=\"form-control\" value=\"{{$parent.query}}\" tooltip-is-open=\"$parent.showCopiedQueryTooltipStatus\"\n" +
     "                        uib-tooltip=\"{{'global.copied' | translate}}\" tooltip-trigger=\"'none'\" />\n" +
     "                      <span class=\"input-group-btn\">\n" +
     "                        <button class=\"btn\" ng-click=\"$parent.showCopiedQueryTooltip()\" ngclipboard data-clipboard-target=\"#copyQuery\" uib-tooltip=\"{{'global.copy-to-clipboard' | translate}}\">\n" +

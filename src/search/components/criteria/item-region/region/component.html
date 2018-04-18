@@ -28,7 +28,7 @@
                   <div class="form-group">
                     <label class="control-label" translate>search.query</label>
                     <div class="input-group">
-                      <input id="copyQuery" type="text" class="form-control" value="{{search.query}}" tooltip-is-open="$parent.showCopiedQueryTooltipStatus"
+                      <input id="copyQuery" type="text" class="form-control" value="{{$parent.query}}" tooltip-is-open="$parent.showCopiedQueryTooltipStatus"
                         uib-tooltip="{{'global.copied' | translate}}" tooltip-trigger="'none'" />
                       <span class="input-group-btn">
                         <button class="btn" ng-click="$parent.showCopiedQueryTooltip()" ngclipboard data-clipboard-target="#copyQuery" uib-tooltip="{{'global.copy-to-clipboard' | translate}}">
