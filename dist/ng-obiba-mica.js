@@ -14515,6 +14515,7 @@ angular.module("access/views/data-access-request-list.html", []).run(["$template
     "              </li>\n" +
     "              <li>\n" +
     "                <a ng-if=\"actions.canDelete(request)\"\n" +
+    "                    href=\"#/data-access-requests\"\n" +
     "                    ng-click=\"deleteRequest(request)\"\n" +
     "                    title=\"{{'delete' | translate}}\"><i\n" +
     "                    class=\"fa fa-trash-o\"></i></a>\n" +
