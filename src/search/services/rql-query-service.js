@@ -649,7 +649,8 @@ function typeToTarget(type) {
      * Append the aggregate and facet for criteria term listing.
      *
      * @param query
-     * @para
+     * @param item
+     * @param lang
      * @returns the new query
      */
     this.prepareCriteriaTermsQuery = function (query, item, lang) {
@@ -1033,6 +1034,37 @@ function typeToTarget(type) {
       }
 
       return inner(criteria, id);
+    };
+
+    /**
+     * Clean a RQL query node from limit, sort, fields, locale nodes.
+     *
+     * @param rqlRuery The RQL query root node
+     * @returns the new query
+     */
+    this.cleanQuery = function (rqlQuery) {
+      var query = angular.copy(rqlQuery);
+      if (query.args) {
+        // remove limit or sort statements as these will be handled by other clients
+        angular.forEach(query.args, function(arg) {
+          if (arg.args) {
+            var i = arg.args.length;
+            while(i--) {
+              if (arg.args[i].name === 'limit' || arg.args[i].name === 'sort' || arg.args[i].name === 'fields') {
+                arg.args.splice(i, 1);
+              }
+            }
+          }
+        });
+        // remove empty RQL nodes and locale node
+        var i = query.args.length;
+        while(i--) {
+          if (query.args[i].name === 'locale' || !query.args[i].args || query.args[i].args.length === 0) {
+            query.args.splice(i, 1);
+          }
+        }
+      }
+      return query;
     };
   }
 

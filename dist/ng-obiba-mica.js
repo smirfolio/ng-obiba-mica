@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-04-18
+ * Date: 2018-04-19
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -5822,7 +5822,8 @@ function typeToTarget(type) {
          * Append the aggregate and facet for criteria term listing.
          *
          * @param query
-         * @para
+         * @param item
+         * @param lang
          * @returns the new query
          */
         this.prepareCriteriaTermsQuery = function (query, item, lang) {
@@ -6156,6 +6157,36 @@ function typeToTarget(type) {
                 }
             }
             return inner(criteria, id);
+        };
+        /**
+         * Clean a RQL query node from limit, sort, fields, locale nodes.
+         *
+         * @param rqlRuery The RQL query root node
+         * @returns the new query
+         */
+        this.cleanQuery = function (rqlQuery) {
+            var query = angular.copy(rqlQuery);
+            if (query.args) {
+                // remove limit or sort statements as these will be handled by other clients
+                angular.forEach(query.args, function (arg) {
+                    if (arg.args) {
+                        var i = arg.args.length;
+                        while (i--) {
+                            if (arg.args[i].name === 'limit' || arg.args[i].name === 'sort' || arg.args[i].name === 'fields') {
+                                arg.args.splice(i, 1);
+                            }
+                        }
+                    }
+                });
+                // remove empty RQL nodes and locale node
+                var i = query.args.length;
+                while (i--) {
+                    if (query.args[i].name === 'locale' || !query.args[i].args || query.args[i].args.length === 0) {
+                        query.args.splice(i, 1);
+                    }
+                }
+            }
+            return query;
         };
     }
     ngObibaMica.search.service('RqlQueryService', ['$q',
@@ -7487,28 +7518,8 @@ ngObibaMica.search
             }
         });
         $scope.$watchCollection('search.rqlQuery', function () {
-            var args = angular.copy($scope.search.rqlQuery.args);
-            if (args) {
-                // remove limit or sort statements as these will be handled by other clients
-                angular.forEach(args, function (arg) {
-                    if (arg.args) {
-                        var i = arg.args.length;
-                        while (i--) {
-                            if (arg.args[i].name === 'limit' || arg.args[i].name === 'sort') {
-                                arg.args.splice(i, 1);
-                            }
-                        }
-                    }
-                });
-                // remove empty RQL nodes
-                var i = args.length;
-                while (i--) {
-                    if (!args[i].args || args[i].args.length === 0) {
-                        args.splice(i, 1);
-                    }
-                }
-            }
-            $scope.query = new RqlQuery().serializeArgs(args);
+            var rqlQuery = RqlQueryService.cleanQuery(angular.copy($scope.search.rqlQuery));
+            $scope.query = new RqlQuery().serializeArgs(rqlQuery.args);
         });
         var canShowCriteriaRegion = function () {
             return ($scope.options.studyTaxonomiesOrder.length || $scope.options.datasetTaxonomiesOrder.length || $scope.options.networkTaxonomiesOrder.length) && canShow;
