@@ -57,6 +57,8 @@ module.exports = function (grunt) {
           'built/attachment/attachment.js',
           'built/attachment/attachment-directives.js',
           'built/access/data-access-request.js',
+          'built/access/components/**/*.js',
+          'built/access/services/**/*.js',
           'built/access/data-access-request-controller.js',
           'built/access/data-access-request-router.js',
           'built/access/data-access-request-service.js',

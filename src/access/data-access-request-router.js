@@ -28,6 +28,7 @@ ngObibaMica.access
         })
         .when('/data-access-request/:id', {
           templateUrl: 'access/views/data-access-request-view.html',
-          controller: 'DataAccessRequestViewController'
+          controller: 'DataAccessRequestViewController',
+          reloadOnSearch: false
         });
     }]);

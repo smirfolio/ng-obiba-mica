@@ -11,152 +11,26 @@
 'use strict';
 
 ngObibaMica.access
-  .controller('DataAccessRequestListController', ['$rootScope',
+  .controller('DataAccessRequestListController', [
     '$scope',
-    '$uibModal',
-    'DataAccessRequestsResource',
-    'DataAccessRequestResource',
-    'DataAccessRequestService',
-    'NOTIFICATION_EVENTS',
-    'SessionProxy',
-    'USER_ROLES',
     'ngObibaMicaAccessTemplateUrl',
-    'DataAccessRequestConfig',
-    'ngObibaMicaUrl',
-    '$translate',
 
-    function ($rootScope,
-              $scope,
-              $uibModal,
-              DataAccessRequestsResource,
-              DataAccessRequestResource,
-              DataAccessRequestService,
-              NOTIFICATION_EVENTS,
-              SessionProxy,
-              USER_ROLES,
-              ngObibaMicaAccessTemplateUrl,
-              DataAccessRequestConfig,
-              ngObibaMicaUrl,
-              $translate) {
-
-      var onSuccess = function(reqs) {
-        for (var i = 0; i < reqs.length; i++) {
-          var req = reqs[i];
-          if (req.status !== 'OPENED') {
-            for (var j = 0; j < req.statusChangeHistory.length; j++) {
-              var change = req.statusChangeHistory[j];
-              if (change.from === 'OPENED' && change.to === 'SUBMITTED') {
-                req.submissionDate = change.changedOn;
-              }
-            }
-          }
-        }
-        $scope.requests = reqs;
-        $scope.loading = false;
-      };
-
-      var onError = function() {
-        $scope.loading = false;
-      };
-
-      DataAccessRequestService.getStatusFilterData(function(translated) {
-        $scope.REQUEST_STATUS  = translated;
-      });
-
+    function ($scope, ngObibaMicaAccessTemplateUrl) {
       $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('list');
       $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('list');
-      $scope.config = DataAccessRequestConfig.getOptions();
-      $scope.searchStatus = {};
-      $scope.loading = true;
-      DataAccessRequestsResource.query({}, onSuccess, onError);
-      $scope.actions = DataAccessRequestService.actions;
-      $scope.showApplicant = SessionProxy.roles().filter(function(role) {
-        return [USER_ROLES.dao, USER_ROLES.admin].indexOf(role) > -1;
-      }).length > 0;
-
-      $scope.deleteRequest = function (request) {
-        $scope.requestToDelete = request.id;
-        $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog,
-          {
-            titleKey: 'data-access-request.delete-dialog.title',
-            messageKey:'data-access-request.delete-dialog.message',
-            messageArgs: [request.title, request.applicant]
-          }, request.id
-        );
-      };
-
-      $scope.userProfile = function (profile) {
-        $scope.applicant = profile;
-        $uibModal.open({
-          scope: $scope,
-          templateUrl: 'access/views/data-access-request-profile-user-modal.html'
-        });
-      };
-
-      var getAttributeValue = function(attributes, key) {
-        var result = attributes.filter(function (attribute) {
-          return attribute.key === key;
-        });
-
-        return result && result.length > 0 ? result[0].value : null;
-      };
-
-      $scope.getFullName = function (profile) {
-        if (profile) {
-          if (profile.attributes) {
-            return getAttributeValue(profile.attributes, 'firstName') + ' ' + getAttributeValue(profile.attributes, 'lastName');
-          }
-          return profile.username;
-        }
-        return null;
-      };
-
-      $scope.getProfileEmail = function (profile) {
-        if (profile) {
-          if (profile.attributes) {
-            return getAttributeValue(profile.attributes, 'email');
-          }
-        }
-        return null;
-      };
-
-      $scope.getCsvExportHref = function () {
-        return ngObibaMicaUrl.getUrl('DataAccessRequestsExportCsvResource').replace(':lang', $translate.use());
-      };
-
-      $scope.getDataAccessRequestPageUrl = function () {
-        var DataAccessClientDetailPath = ngObibaMicaUrl.getUrl('DataAccessClientDetailPath');
-        if(DataAccessClientDetailPath){
-          return ngObibaMicaUrl.getUrl('BaseUrl') + ngObibaMicaUrl.getUrl('DataAccessClientDetailPath');
-        }
-        else{
-          return null;
-        }
-      };
-
-      $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, id) {
-        if ($scope.requestToDelete === id) {
-          DataAccessRequestResource.delete({id: $scope.requestToDelete},
-            function () {
-              $scope.loading = true;
-              DataAccessRequestsResource.query({}, onSuccess, onError);
-            });
-
-          delete $scope.requestToDelete;
-        }
-      });
     }])
 
   .controller('DataAccessRequestViewController',
     ['$rootScope',
       '$scope',
+      '$route',
       '$location',
       '$uibModal',
       '$routeParams',
       '$filter',
       '$translate',
       'DataAccessRequestResource',
-      'DataAccessRequestService',
+      'DataAccessEntityService',
       'DataAccessRequestStatusResource',
       'DataAccessFormConfigResource',
       'JsonUtils',
@@ -176,13 +50,14 @@ ngObibaMica.access
 
     function ($rootScope,
               $scope,
+              $route,
               $location,
               $uibModal,
               $routeParams,
               $filter,
               $translate,
               DataAccessRequestResource,
-              DataAccessRequestService,
+              DataAccessEntityService,
               DataAccessRequestStatusResource,
               DataAccessFormConfigResource,
               JsonUtils,
@@ -208,6 +83,10 @@ ngObibaMica.access
         });
       };
 
+      $scope.$on('$destroy', function() {
+        console.log('$onDestroy');
+      });
+
       function onAttachmentError(attachment) {
         AlertService.alert({
           id: 'DataAccessRequestViewController',
@@ -224,16 +103,25 @@ ngObibaMica.access
       var selectTab = function(id) {
         $scope.selectedTab = id;
         switch (id) {
-          case 'form':
+          case 'amendments':
+            $scope.parentId = $scope.dataAccessRequest.id;
             break;
           case 'comments':
+            var search = $location.search();
+            search.tab = TABS.amendments;
+            $location.search(search);
             retrieveComments();
-            break;
+            /* falls through */
+          case 'form':
+            /* falls through */
+          default:
+            // so next time selecting amendments the list is refreshed
+            $scope.parentId = undefined;
         }
       };
 
       var submitComment = function(comment) {
-        DataAccessRequestCommentsResource.save({id: $routeParams.id}, comment.message, retrieveComments, onError);
+        DataAccessRequestCommentsResource.update({id: $routeParams.id}, comment.message, retrieveComments, onError);
       };
 
       var updateComment = function(comment) {
@@ -291,7 +179,7 @@ ngObibaMica.access
       var updateAttachments = function() {
         var request = angular.copy($scope.dataAccessRequest);
         request.attachments = $scope.attachments;
-        DataAccessRequestAttachmentsUpdateResource.save(request, function() {
+        DataAccessRequestAttachmentsUpdateResource.update(request, function() {
           toggleAttachmentsForm(false);
           $scope.dataAccessRequest = getRequest();
         });
@@ -342,7 +230,7 @@ ngObibaMica.access
       function findLastSubmittedDate() {
         var history = $scope.dataAccessRequest.statusChangeHistory || [];
         return history.filter(function(item) {
-          return item.to === DataAccessRequestService.status.SUBMITTED;
+          return item.to === DataAccessEntityService.status.SUBMITTED;
         }).sort(function (a, b) {
           if (moment(a).isBefore(b)) {
             return -1;
@@ -356,6 +244,21 @@ ngObibaMica.access
             return 1;
           }
         }).pop();
+      }
+
+      var TABS = Object.freeze({
+        form: 'form',
+        amendments: 'amendments',
+        documents: 'documents',
+        comments: 'comments',
+        history: 'history'
+      });
+
+      function validateTabs() {
+        var search = $location.search();
+        search.tab = TABS[search.tab] || TABS.form;
+        $scope.activeTab = Object.keys(TABS).indexOf(search.tab);
+        $location.search(search);
       }
 
       $scope.form = {
@@ -375,10 +278,10 @@ ngObibaMica.access
         return ngObibaMicaUrl.getUrl('DataAccessRequestAttachmentDownloadResource')
           .replace(':id', $scope.dataAccessRequest.id).replace(':attachmentId', attachment.id);
       };
-      
+
       $scope.config = DataAccessRequestConfig.getOptions();
-      $scope.actions = DataAccessRequestService.actions;
-      $scope.nextStatus = DataAccessRequestService.nextStatus;
+      $scope.actions = DataAccessEntityService.actions;
+      $scope.nextStatus = DataAccessEntityService.nextStatus;
       $scope.selectTab = selectTab;
       $scope.submitComment = submitComment;
       $scope.updateComment = updateComment;
@@ -394,14 +297,15 @@ ngObibaMica.access
       $scope.onAttachmentError = onAttachmentError;
       $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('view');
       $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('view');
-      $scope.getStatusHistoryInfoId = DataAccessRequestService.getStatusHistoryInfoId;
-      DataAccessRequestService.getStatusHistoryInfo(function(statusHistoryInfo) {
+      $scope.getStatusHistoryInfoId = DataAccessEntityService.getStatusHistoryInfoId;
+      DataAccessEntityService.getStatusHistoryInfo(function(statusHistoryInfo) {
         $scope.getStatusHistoryInfo = statusHistoryInfo;
       });
 
+      $scope.parentId = undefined;
       $scope.validForm = true;
 
-      $scope.dataAccessRequest = $routeParams.id ? getRequest() : {};
+      validateTabs();
 
       $scope.delete = function () {
         $scope.requestToDelete = $scope.dataAccessRequest.id;
@@ -428,7 +332,7 @@ ngObibaMica.access
       var onUpdatStatusSuccess = function () {
         setTimeout(function () {
           $scope.dataAccessRequest = getRequest();
-        });        
+        });
       };
 
       var confirmStatusChange = function(status, messageKey, statusName) {
@@ -460,14 +364,14 @@ ngObibaMica.access
         if ($scope.forms.requestForm.$valid) {
           DataAccessRequestStatusResource.update({
             id: $scope.dataAccessRequest.id,
-            status: DataAccessRequestService.status.SUBMITTED
-          }, function onSubmitted() {            
+            status: DataAccessEntityService.status.SUBMITTED
+          }, function onSubmitted() {
             $uibModal.open({
               scope: $scope,
               templateUrl:'access/views/data-access-request-submitted-modal.html'
             }).result.then(function () {
               onUpdatStatusSuccess();
-            });         
+            });
           }, onError);
         } else {
           AlertService.alert({
@@ -478,20 +382,54 @@ ngObibaMica.access
         }
       };
 
+      $scope.dataAccessRequest = $routeParams.id ? getRequest() : {};
+      $route.current.params.activeTab = 'amendments';
+
+      function update() {
+        var current = Object.keys(TABS).filter(function(key, index) {
+          return index === $scope.activeTab;
+        }).pop() || 'form';
+
+        switch (current) {
+          case TABS.form:
+            $scope.dataAccessRequest = $routeParams.id ? getRequest() : {};
+            break;
+          case TABS.amendments:
+            $scope.parentId = $scope.dataAccessRequest.id;
+            retrieveComments();
+            break;
+        }
+      }
+
+      function onLocationChange(event, newLocation, oldLocation) {
+        console.log('onLocationChange', newLocation, oldLocation, $location.path());
+        if (newLocation !== oldLocation) {
+          validateTabs();
+          update();
+          console.log('Active Tab', $scope.activeTab);
+          var search = $location.search;
+          console.log(search.tab);
+          if ('form' === search.tab) {
+            $scope.activeTab = 0;
+            $scope.dataAccessRequest = $routeParams.id ? getRequest() : {};
+          }
+        }
+      }
+
       $scope.reopen = function () {
-        confirmStatusChange(DataAccessRequestService.status.OPENED, null, 'reopen');
+        confirmStatusChange(DataAccessEntityService.status.OPENED, null, 'reopen');
       };
       $scope.review = function () {
-        confirmStatusChange(DataAccessRequestService.status.REVIEWED, 'data-access-request.status-change-confirmation.message-review', null);
+        confirmStatusChange(DataAccessEntityService.status.REVIEWED, 'data-access-request.status-change-confirmation.message-review', null);
       };
       $scope.approve = function () {
-        confirmStatusChange(DataAccessRequestService.status.APPROVED, null, 'approve');
+        confirmStatusChange(DataAccessEntityService.status.APPROVED, null, 'approve');
       };
       $scope.reject = function () {
-        confirmStatusChange(DataAccessRequestService.status.REJECTED, null, 'reject');
+        confirmStatusChange(DataAccessEntityService.status.REJECTED, null, 'reject');
       };
       $scope.conditionallyApprove = function () {
-        confirmStatusChange(DataAccessRequestService.status.CONDITIONALLY_APPROVED, null, 'conditionallyApprove');
+        confirmStatusChange(DataAccessEntityService.status.CONDITIONALLY_APPROVED, null, 'conditionallyApprove');
       };
 
       $scope.userProfile = function (profile) {
@@ -502,7 +440,7 @@ ngObibaMica.access
         });
       };
 
-      $scope.getDataAccessListPageUrl = DataAccessRequestService.getListDataAccessRequestPageUrl();
+      $scope.getDataAccessListPageUrl = DataAccessEntityService.getListDataAccessRequestPageUrl();
 
       var getAttributeValue = function(attributes, key) {
         var result = attributes.filter(function (attribute) {
@@ -536,38 +474,40 @@ ngObibaMica.access
       $scope.$on(
         NOTIFICATION_EVENTS.confirmDialogAccepted,
         function(event, status) {
-          statusChangedConfirmed(DataAccessRequestService.status.OPENED, status);
+          statusChangedConfirmed(DataAccessEntityService.status.OPENED, status);
         }
       );
       $scope.$on(
         NOTIFICATION_EVENTS.confirmDialogAccepted,
         function(event, status) {
-          statusChangedConfirmed(DataAccessRequestService.status.REVIEWED, status);
+          statusChangedConfirmed(DataAccessEntityService.status.REVIEWED, status);
         }
       );
       $scope.$on(
         NOTIFICATION_EVENTS.confirmDialogAccepted,
         function(event, status) {
-          statusChangedConfirmed(DataAccessRequestService.status.CONDITIONALLY_APPROVED, status);
+          statusChangedConfirmed(DataAccessEntityService.status.CONDITIONALLY_APPROVED, status);
         }
       );
       $scope.$on(
         NOTIFICATION_EVENTS.confirmDialogAccepted,
         function(event, status) {
-          statusChangedConfirmed(DataAccessRequestService.status.APPROVED, status);
+          statusChangedConfirmed(DataAccessEntityService.status.APPROVED, status);
         }
       );
       $scope.$on(
         NOTIFICATION_EVENTS.confirmDialogAccepted,
         function(event, status) {
-          statusChangedConfirmed(DataAccessRequestService.status.REJECTED, status);
+          statusChangedConfirmed(DataAccessEntityService.status.REJECTED, status);
         }
       );
 
+      $scope.$on('$locationChangeSuccess', onLocationChange);
       $rootScope.$on('$translateChangeSuccess', function () {
         initializeForm();
       });
 
+      $scope.activeTab = 0;
       $scope.forms = {};
     }])
 
@@ -584,7 +524,7 @@ ngObibaMica.access
     'AlertService',
     'ServerErrorUtils',
     'SessionProxy',
-    'DataAccessRequestService',
+    'DataAccessEntityService',
     'ngObibaMicaAccessTemplateUrl',
     'DataAccessRequestConfig',
     'SfOptionsService',
@@ -606,7 +546,7 @@ ngObibaMica.access
               AlertService,
               ServerErrorUtils,
               SessionProxy,
-              DataAccessRequestService,
+              DataAccessEntityService,
               ngObibaMicaAccessTemplateUrl,
               DataAccessRequestConfig,
               SfOptionsService,
@@ -637,7 +577,7 @@ ngObibaMica.access
         });
       }
 
-      $scope.getDataAccessListPageUrl = DataAccessRequestService.getListDataAccessRequestPageUrl();
+      $scope.getDataAccessListPageUrl = DataAccessEntityService.getListDataAccessRequestPageUrl();
 
       var validate = function(form) {
         $scope.$broadcast('schemaFormValidate');
@@ -660,9 +600,9 @@ ngObibaMica.access
         $scope.dataAccessRequest.content = angular.toJson($scope.sfForm.model);
 
         if ($scope.newRequest) {
-          DataAccessRequestsResource.save($scope.dataAccessRequest, onSuccess, onError);
+          DataAccessRequestsResource.update($scope.dataAccessRequest, onSuccess, onError);
         } else {
-          DataAccessRequestResource.save($scope.dataAccessRequest, function() {
+          DataAccessRequestResource.update($scope.dataAccessRequest, function() {
             FormDirtyStateObserver.unobserve();
             $location.path('/data-access-request' + ($scope.dataAccessRequest.id ? '/' + $scope.dataAccessRequest.id : 's')).replace();
           }, onError);
@@ -714,7 +654,7 @@ ngObibaMica.access
                     });
                   }
 
-                  $scope.canEdit = DataAccessRequestService.actions.canEdit(request);
+                  $scope.canEdit = DataAccessEntityService.actions.canEdit(request);
                   $scope.sfForm.schema.readonly = !$scope.canEdit;
                   $scope.$broadcast('schemaFormRedraw');
 
@@ -722,7 +662,7 @@ ngObibaMica.access
                   return request;
                 }) : {
                   applicant: SessionProxy.login(),
-                  status: DataAccessRequestService.status.OPENED,
+                  status: DataAccessEntityService.status.OPENED,
                   attachments: []
                 };
             }
