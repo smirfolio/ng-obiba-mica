@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-04-30
+ * Date: 2018-05-01
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -118,6 +118,8 @@ function NgObibaMicaTemplateUrlFactory() {
             'DataAccessClientListPath': '',
             'DataAccessFormConfigResource': 'ws/config/data-access-form',
             'DataAccessRequestsResource': 'ws/data-access-requests',
+            'DataAccessAmendmentsResource': 'ws/data-access-request/:parentId/amendments',
+            'DataAccessAmendmentResource': 'ws/data-access-request/:parentId/amendment/:id',
             'DataAccessRequestsExportCsvResource': 'ws/data-access-requests/csv?lang=:lang',
             'DataAccessRequestResource': 'ws/data-access-request/:id',
             'DataAccessRequestAttachmentsUpdateResource': '/ws/data-access-request/:id/_attachments',
@@ -722,22 +724,48 @@ ngObibaMica.access
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 'use strict';
-ngObibaMica.access
-    .controller('DataAccessRequestListController', ['$rootScope',
-    '$scope',
-    '$uibModal',
-    'DataAccessRequestsResource',
-    'DataAccessRequestResource',
-    'DataAccessRequestService',
-    'NOTIFICATION_EVENTS',
-    'SessionProxy',
-    'USER_ROLES',
-    'ngObibaMicaAccessTemplateUrl',
-    'DataAccessRequestConfig',
-    'ngObibaMicaUrl',
-    '$translate',
-    function ($rootScope, $scope, $uibModal, DataAccessRequestsResource, DataAccessRequestResource, DataAccessRequestService, NOTIFICATION_EVENTS, SessionProxy, USER_ROLES, ngObibaMicaAccessTemplateUrl, DataAccessRequestConfig, ngObibaMicaUrl, $translate) {
-        var onSuccess = function (reqs) {
+(function () {
+    function Controller($rootScope, $uibModal, DataAccessEntityUrls, DataAccessEntityResource, DataAccessEntityService, NOTIFICATION_EVENTS, SessionProxy, USER_ROLES, ngObibaMicaAccessTemplateUrl, DataAccessRequestConfig, ngObibaMicaUrl, $translate) {
+        var ctrl = this;
+        function initializeAddButtonCaption() {
+            return ctrl.parentId === null ?
+                ctrl.config.newRequestButtonCaption || 'data-access-request.add' :
+                'data-access-amendment.add';
+        }
+        function onInit() {
+            ctrl.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('list');
+            ctrl.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('list');
+            ctrl.config = DataAccessRequestConfig.getOptions();
+            ctrl.searchStatus = {};
+            ctrl.loading = true;
+            ctrl.addButtonCaption = initializeAddButtonCaption();
+            ctrl.actions = DataAccessEntityService.actions;
+            ctrl.showApplicant = SessionProxy.roles().filter(function (role) {
+                return [USER_ROLES.dao, USER_ROLES.admin].indexOf(role) > -1;
+            }).length > 0;
+            var emitter = $rootScope.$new();
+            ctrl.$on = angular.bind(emitter, emitter.$on);
+            ctrl.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onConfirmDelete);
+            DataAccessEntityService.getStatusFilterData(function (translated) {
+                ctrl.REQUEST_STATUS = translated;
+            });
+        }
+        function onChanges(changed) {
+            console.log('onChanges', changed);
+            if (changed.parentId && changed.parentId.currentValue !== undefined) {
+                console.log('ParentID', ctrl.parentId);
+                if (changed.parentId.currentValue === null) {
+                    ctrl.listUrl = DataAccessEntityUrls.getDataAccessRequestsUrl();
+                    ctrl.entityBaseUrl = DataAccessEntityUrls.getDataAccessRequestBaseUrl();
+                }
+                else {
+                    ctrl.listUrl = DataAccessEntityUrls.getDataAccessAmendmentsUrl(ctrl.parentId);
+                    ctrl.entityBaseUrl = DataAccessEntityUrls.getDataAccessAmendmentBaseUrl(ctrl.parentId);
+                }
+                DataAccessEntityResource.list(ctrl.listUrl).$promise.then(onSuccess, onError);
+            }
+        }
+        function onSuccess(reqs) {
             for (var i = 0; i < reqs.length; i++) {
                 var req = reqs[i];
                 if (req.status !== 'OPENED') {
@@ -749,47 +777,34 @@ ngObibaMica.access
                     }
                 }
             }
-            $scope.requests = reqs;
-            $scope.loading = false;
-        };
+            ctrl.requests = reqs;
+            ctrl.loading = false;
+        }
         var onError = function () {
-            $scope.loading = false;
+            ctrl.loading = false;
         };
-        DataAccessRequestService.getStatusFilterData(function (translated) {
-            $scope.REQUEST_STATUS = translated;
-        });
-        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('list');
-        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('list');
-        $scope.config = DataAccessRequestConfig.getOptions();
-        $scope.searchStatus = {};
-        $scope.loading = true;
-        DataAccessRequestsResource.query({}, onSuccess, onError);
-        $scope.actions = DataAccessRequestService.actions;
-        $scope.showApplicant = SessionProxy.roles().filter(function (role) {
-            return [USER_ROLES.dao, USER_ROLES.admin].indexOf(role) > -1;
-        }).length > 0;
-        $scope.deleteRequest = function (request) {
-            $scope.requestToDelete = request.id;
+        function deleteRequest(request) {
+            ctrl.requestToDelete = request.id;
             $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
                 titleKey: 'data-access-request.delete-dialog.title',
                 messageKey: 'data-access-request.delete-dialog.message',
                 messageArgs: [request.title, request.applicant]
             }, request.id);
-        };
-        $scope.userProfile = function (profile) {
-            $scope.applicant = profile;
+        }
+        function userProfile(profile) {
+            ctrl.applicant = profile;
             $uibModal.open({
-                scope: $scope,
+                scope: ctrl,
                 templateUrl: 'access/views/data-access-request-profile-user-modal.html'
             });
-        };
-        var getAttributeValue = function (attributes, key) {
+        }
+        function getAttributeValue(attributes, key) {
             var result = attributes.filter(function (attribute) {
                 return attribute.key === key;
             });
             return result && result.length > 0 ? result[0].value : null;
-        };
-        $scope.getFullName = function (profile) {
+        }
+        function getFullName(profile) {
             if (profile) {
                 if (profile.attributes) {
                     return getAttributeValue(profile.attributes, 'firstName') + ' ' + getAttributeValue(profile.attributes, 'lastName');
@@ -797,19 +812,19 @@ ngObibaMica.access
                 return profile.username;
             }
             return null;
-        };
-        $scope.getProfileEmail = function (profile) {
+        }
+        function getProfileEmail(profile) {
             if (profile) {
                 if (profile.attributes) {
                     return getAttributeValue(profile.attributes, 'email');
                 }
             }
             return null;
-        };
-        $scope.getCsvExportHref = function () {
+        }
+        function getCsvExportHref() {
             return ngObibaMicaUrl.getUrl('DataAccessRequestsExportCsvResource').replace(':lang', $translate.use());
-        };
-        $scope.getDataAccessRequestPageUrl = function () {
+        }
+        function getDataAccessRequestPageUrl() {
             var DataAccessClientDetailPath = ngObibaMicaUrl.getUrl('DataAccessClientDetailPath');
             if (DataAccessClientDetailPath) {
                 return ngObibaMicaUrl.getUrl('BaseUrl') + ngObibaMicaUrl.getUrl('DataAccessClientDetailPath');
@@ -817,646 +832,119 @@ ngObibaMica.access
             else {
                 return null;
             }
-        };
-        $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, id) {
-            if ($scope.requestToDelete === id) {
-                DataAccessRequestResource.delete({ id: $scope.requestToDelete }, function () {
-                    $scope.loading = true;
-                    DataAccessRequestsResource.query({}, onSuccess, onError);
-                });
-                delete $scope.requestToDelete;
-            }
-        });
-    }])
-    .controller('DataAccessRequestViewController', ['$rootScope',
-    '$scope',
-    '$location',
-    '$uibModal',
-    '$routeParams',
-    '$filter',
-    '$translate',
-    'DataAccessRequestResource',
-    'DataAccessRequestService',
-    'DataAccessRequestStatusResource',
-    'DataAccessFormConfigResource',
-    'JsonUtils',
-    'DataAccessRequestAttachmentsUpdateResource',
-    'DataAccessRequestCommentsResource',
-    'DataAccessRequestCommentResource',
-    'ngObibaMicaUrl',
-    'ngObibaMicaAccessTemplateUrl',
-    'AlertService',
-    'ServerErrorUtils',
-    'NOTIFICATION_EVENTS',
-    'DataAccessRequestConfig',
-    'LocalizedSchemaFormService',
-    'SfOptionsService',
-    'moment',
-    '$timeout',
-    function ($rootScope, $scope, $location, $uibModal, $routeParams, $filter, $translate, DataAccessRequestResource, DataAccessRequestService, DataAccessRequestStatusResource, DataAccessFormConfigResource, JsonUtils, DataAccessRequestAttachmentsUpdateResource, DataAccessRequestCommentsResource, DataAccessRequestCommentResource, ngObibaMicaUrl, ngObibaMicaAccessTemplateUrl, AlertService, ServerErrorUtils, NOTIFICATION_EVENTS, DataAccessRequestConfig, LocalizedSchemaFormService, SfOptionsService, moment, $timeout) {
-        var onError = function (response) {
-            AlertService.alert({
-                id: 'DataAccessRequestViewController',
-                type: 'danger',
-                msg: ServerErrorUtils.buildMessage(response)
-            });
-        };
-        function onAttachmentError(attachment) {
-            AlertService.alert({
-                id: 'DataAccessRequestViewController',
-                type: 'danger',
-                msgKey: 'server.error.file.upload',
-                msgArgs: [attachment.fileName]
-            });
         }
-        var retrieveComments = function () {
-            $scope.form.comments = DataAccessRequestCommentsResource.query({ id: $routeParams.id });
-        };
-        var selectTab = function (id) {
-            $scope.selectedTab = id;
-            switch (id) {
-                case 'form':
-                    break;
-                case 'comments':
-                    retrieveComments();
-                    break;
-            }
-        };
-        var submitComment = function (comment) {
-            DataAccessRequestCommentsResource.save({ id: $routeParams.id }, comment.message, retrieveComments, onError);
-        };
-        var updateComment = function (comment) {
-            DataAccessRequestCommentResource.update({ id: $routeParams.id, commentId: comment.id }, comment.message, retrieveComments, onError);
-        };
-        var deleteComment = function (comment) {
-            $scope.commentToDelete = comment.id;
-            $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
-                titleKey: 'comment.delete-dialog.title',
-                messageKey: 'comment.delete-dialog.message',
-                messageArgs: [comment.createdBy]
-            }, comment.id);
-        };
-        var toggleAttachmentsForm = function (show) {
-            if (show) {
-                $scope.attachments = angular.copy($scope.dataAccessRequest.attachments) || [];
-            }
-            $scope.showAttachmentsForm = show;
-        };
-        var getRequest = function () {
-            return DataAccessRequestResource.get({ id: $routeParams.id }, function onSuccess(request) {
-                try {
-                    $scope.form.model = request.content ? JSON.parse(request.content) : {};
-                    var requestDownloadUrlPdf = ngObibaMicaUrl.getUrl('DataAccessRequestDownloadPdfResource').replace(':id', $scope.dataAccessRequest.id);
-                    $scope.requestDownloadUrl = requestDownloadUrlPdf + ((requestDownloadUrlPdf.indexOf('?q=') !== -1) ? '&' : '?') + 'lang=' + $translate.use();
-                    $scope.attachments = angular.copy(request.attachments) || [];
-                }
-                catch (e) {
-                    $scope.validForm = false;
-                    $scope.form.model = {};
-                    AlertService.alert({
-                        id: 'DataAccessRequestViewController',
-                        type: 'danger',
-                        msgKey: 'data-access-request.parse-error'
-                    });
-                }
-                initializeForm();
-                request.attachments = request.attachments || [];
-                $scope.lastSubmittedDate = findLastSubmittedDate();
-                return request;
-            });
-        };
-        var updateAttachments = function () {
-            var request = angular.copy($scope.dataAccessRequest);
-            request.attachments = $scope.attachments;
-            DataAccessRequestAttachmentsUpdateResource.save(request, function () {
-                toggleAttachmentsForm(false);
-                $scope.dataAccessRequest = getRequest();
-            });
-        };
-        function initializeForm() {
-            SfOptionsService.transform().then(function (options) {
-                $scope.sfOptions = options;
-                $scope.sfOptions.pristine = { errors: true, success: false };
-            });
-            // Retrieve form data
-            DataAccessFormConfigResource.get(function onSuccess(dataAccessForm) {
-                $scope.form.definition = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.definition, []));
-                $scope.form.schema = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.schema, {}));
-                $scope.form.downloadTemplate = dataAccessForm.pdfDownloadType === 'Template';
-                if ($scope.form.definition.length === 0) {
-                    $scope.validForm = false;
-                    $scope.form.definition = [];
-                    AlertService.alert({
-                        id: 'DataAccessRequestViewController',
-                        type: 'danger',
-                        msgKey: 'data-access-config.parse-error.definition'
-                    });
-                }
-                if (Object.getOwnPropertyNames($scope.form.schema).length === 0) {
-                    $scope.validForm = false;
-                    $scope.form.schema = { readonly: true };
-                    AlertService.alert({
-                        id: 'DataAccessRequestViewController',
-                        type: 'danger',
-                        msgKey: 'data-access-config.parse-error.schema'
-                    });
-                }
-                $scope.form.schema.readonly = true;
-                $timeout(function () {
-                    $scope.form = angular.copy($scope.form);
-                    $scope.$broadcast('schemaFormRedraw');
-                }, 250);
-            }, onError);
-        }
-        function findLastSubmittedDate() {
-            var history = $scope.dataAccessRequest.statusChangeHistory || [];
-            return history.filter(function (item) {
-                return item.to === DataAccessRequestService.status.SUBMITTED;
-            }).sort(function (a, b) {
-                if (moment(a).isBefore(b)) {
-                    return -1;
-                }
-                if (moment(a).isSame(b)) {
-                    return 0;
-                }
-                if (moment(a).isAfter(b)) {
-                    return 1;
-                }
-            }).pop();
-        }
-        $scope.form = {
-            schema: null,
-            definition: null,
-            model: {},
-            comments: null
-        };
-        $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, id) {
-            if ($scope.commentToDelete === id) {
-                DataAccessRequestCommentResource.delete({ id: $routeParams.id, commentId: id }, {}, retrieveComments, onError);
-            }
-        });
-        $scope.getDownloadHref = function (attachment) {
-            return ngObibaMicaUrl.getUrl('DataAccessRequestAttachmentDownloadResource')
-                .replace(':id', $scope.dataAccessRequest.id).replace(':attachmentId', attachment.id);
-        };
-        $scope.config = DataAccessRequestConfig.getOptions();
-        $scope.actions = DataAccessRequestService.actions;
-        $scope.nextStatus = DataAccessRequestService.nextStatus;
-        $scope.selectTab = selectTab;
-        $scope.submitComment = submitComment;
-        $scope.updateComment = updateComment;
-        $scope.deleteComment = deleteComment;
-        $scope.showAttachmentsForm = false;
-        $scope.updateAttachments = updateAttachments;
-        $scope.cancelAttachments = function () {
-            toggleAttachmentsForm(false);
-        };
-        $scope.editAttachments = function () {
-            toggleAttachmentsForm(true);
-        };
-        $scope.onAttachmentError = onAttachmentError;
-        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('view');
-        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('view');
-        $scope.getStatusHistoryInfoId = DataAccessRequestService.getStatusHistoryInfoId;
-        DataAccessRequestService.getStatusHistoryInfo(function (statusHistoryInfo) {
-            $scope.getStatusHistoryInfo = statusHistoryInfo;
-        });
-        $scope.validForm = true;
-        $scope.dataAccessRequest = $routeParams.id ? getRequest() : {};
-        $scope.delete = function () {
-            $scope.requestToDelete = $scope.dataAccessRequest.id;
-            $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
-                titleKey: 'data-access-request.delete-dialog.title',
-                messageKey: 'data-access-request.delete-dialog.message',
-                messageArgs: [$scope.dataAccessRequest.title, $scope.dataAccessRequest.applicant]
-            }, $scope.requestToDelete);
-        };
-        $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, id) {
-            if ($scope.requestToDelete === id) {
-                DataAccessRequestResource.delete({ id: $scope.requestToDelete }, function () {
-                    $location.path('/data-access-requests').replace();
-                });
-                delete $scope.requestToDelete;
-            }
-        });
-        var onUpdatStatusSuccess = function () {
-            setTimeout(function () {
-                $scope.dataAccessRequest = getRequest();
-            });
-        };
-        var confirmStatusChange = function (status, messageKey, statusName) {
-            $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
-                titleKey: 'data-access-request.status-change-confirmation.title',
-                messageKey: messageKey !== null ? messageKey : 'data-access-request.status-change-confirmation.message',
-                messageArgs: statusName !== null ? [$filter('translate')(statusName).toLowerCase()] : []
-            }, status);
-        };
-        var statusChangedConfirmed = function (status, expectedStatus) {
-            if (status === expectedStatus) {
-                DataAccessRequestStatusResource.update({
-                    id: $scope.dataAccessRequest.id,
-                    status: status
-                }, onUpdatStatusSuccess, onError);
-            }
-        };
-        var printForm = function () {
-            // let angular digest!
-            setTimeout(function () { window.print(); }, 250);
-        };
-        $scope.submit = function () {
-            $scope.$broadcast('schemaFormValidate');
-            if ($scope.forms.requestForm.$valid) {
-                DataAccessRequestStatusResource.update({
-                    id: $scope.dataAccessRequest.id,
-                    status: DataAccessRequestService.status.SUBMITTED
-                }, function onSubmitted() {
-                    $uibModal.open({
-                        scope: $scope,
-                        templateUrl: 'access/views/data-access-request-submitted-modal.html'
-                    }).result.then(function () {
-                        onUpdatStatusSuccess();
-                    });
+        function onConfirmDelete(event, id) {
+            if (ctrl.requestToDelete === id) {
+                DataAccessEntityResource.delete(ctrl.entityBaseUrl, ctrl.requestToDelete).$promise.then(function () {
+                    ctrl.loading = true;
+                    DataAccessEntityResource.list(ctrl.listUrl).$promise.then(onSuccess, onError);
                 }, onError);
+                delete ctrl.requestToDelete;
             }
-            else {
-                AlertService.alert({
-                    id: 'DataAccessRequestViewController',
-                    type: 'danger',
-                    msgKey: 'data-access-request.submit.invalid'
-                });
-            }
-        };
-        $scope.reopen = function () {
-            confirmStatusChange(DataAccessRequestService.status.OPENED, null, 'reopen');
-        };
-        $scope.review = function () {
-            confirmStatusChange(DataAccessRequestService.status.REVIEWED, 'data-access-request.status-change-confirmation.message-review', null);
-        };
-        $scope.approve = function () {
-            confirmStatusChange(DataAccessRequestService.status.APPROVED, null, 'approve');
-        };
-        $scope.reject = function () {
-            confirmStatusChange(DataAccessRequestService.status.REJECTED, null, 'reject');
-        };
-        $scope.conditionallyApprove = function () {
-            confirmStatusChange(DataAccessRequestService.status.CONDITIONALLY_APPROVED, null, 'conditionallyApprove');
-        };
-        $scope.userProfile = function (profile) {
-            $scope.applicant = profile;
-            $uibModal.open({
-                scope: $scope,
-                templateUrl: 'access/views/data-access-request-profile-user-modal.html'
-            });
-        };
-        $scope.getDataAccessListPageUrl = DataAccessRequestService.getListDataAccessRequestPageUrl();
-        var getAttributeValue = function (attributes, key) {
-            var result = attributes.filter(function (attribute) {
-                return attribute.key === key;
-            });
-            return result && result.length > 0 ? result[0].value : null;
-        };
-        $scope.printForm = printForm;
-        $scope.getFullName = function (profile) {
-            if (profile) {
-                if (profile.attributes) {
-                    return getAttributeValue(profile.attributes, 'firstName') + ' ' + getAttributeValue(profile.attributes, 'lastName');
-                }
-                return profile.username;
-            }
-            return null;
-        };
-        $scope.getProfileEmail = function (profile) {
-            if (profile) {
-                if (profile.attributes) {
-                    return getAttributeValue(profile.attributes, 'email');
-                }
-            }
-            return null;
-        };
-        $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, status) {
-            statusChangedConfirmed(DataAccessRequestService.status.OPENED, status);
-        });
-        $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, status) {
-            statusChangedConfirmed(DataAccessRequestService.status.REVIEWED, status);
-        });
-        $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, status) {
-            statusChangedConfirmed(DataAccessRequestService.status.CONDITIONALLY_APPROVED, status);
-        });
-        $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, status) {
-            statusChangedConfirmed(DataAccessRequestService.status.APPROVED, status);
-        });
-        $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, status) {
-            statusChangedConfirmed(DataAccessRequestService.status.REJECTED, status);
-        });
-        $rootScope.$on('$translateChangeSuccess', function () {
-            initializeForm();
-        });
-        $scope.forms = {};
-    }])
-    .controller('DataAccessRequestEditController', ['$rootScope',
-    '$log',
-    '$scope',
-    '$routeParams',
-    '$location',
-    '$uibModal', 'LocalizedSchemaFormService',
-    'DataAccessRequestsResource',
-    'DataAccessRequestResource',
-    'DataAccessFormConfigResource',
-    'JsonUtils',
-    'AlertService',
-    'ServerErrorUtils',
-    'SessionProxy',
-    'DataAccessRequestService',
-    'ngObibaMicaAccessTemplateUrl',
-    'DataAccessRequestConfig',
-    'SfOptionsService',
-    'FormDirtyStateObserver',
-    'DataAccessRequestDirtyStateService',
-    '$timeout',
-    function ($rootScope, $log, $scope, $routeParams, $location, $uibModal, LocalizedSchemaFormService, DataAccessRequestsResource, DataAccessRequestResource, DataAccessFormConfigResource, JsonUtils, AlertService, ServerErrorUtils, SessionProxy, DataAccessRequestService, ngObibaMicaAccessTemplateUrl, DataAccessRequestConfig, SfOptionsService, FormDirtyStateObserver, DataAccessRequestDirtyStateService, $timeout) {
-        var onSuccess = function (response, getResponseHeaders) {
-            FormDirtyStateObserver.unobserve();
-            var parts = getResponseHeaders().location.split('/');
-            $location.path('/data-access-request/' + parts[parts.length - 1]).replace();
-        };
-        var onError = function (response) {
-            AlertService.alert({
-                id: 'DataAccessRequestEditController',
-                type: 'danger',
-                msg: ServerErrorUtils.buildMessage(response)
-            });
-        };
-        function onAttachmentError(attachment) {
-            AlertService.alert({
-                id: 'DataAccessRequestEditController',
-                type: 'danger',
-                msgKey: 'server.error.file.upload',
-                msgArgs: [attachment.fileName]
-            });
         }
-        $scope.getDataAccessListPageUrl = DataAccessRequestService.getListDataAccessRequestPageUrl();
-        var validate = function (form) {
-            $scope.$broadcast('schemaFormValidate');
-            $uibModal.open({
-                resolve: {
-                    isValid: form.$valid
-                },
-                templateUrl: 'access/views/data-access-request-validation-modal.html',
-                controller: ['$scope', 'isValid', function ($scope, isValid) {
-                        $scope.isValid = isValid;
-                    }]
-            });
-        };
-        var cancel = function () {
-            $location.path('/data-access-request' + ($routeParams.id ? '/' + $routeParams.id : 's')).replace();
-        };
-        var save = function () {
-            $scope.dataAccessRequest.content = angular.toJson($scope.sfForm.model);
-            if ($scope.newRequest) {
-                DataAccessRequestsResource.save($scope.dataAccessRequest, onSuccess, onError);
-            }
-            else {
-                DataAccessRequestResource.save($scope.dataAccessRequest, function () {
-                    FormDirtyStateObserver.unobserve();
-                    $location.path('/data-access-request' + ($scope.dataAccessRequest.id ? '/' + $scope.dataAccessRequest.id : 's')).replace();
-                }, onError);
-            }
-        };
-        function initializeForm() {
-            // Retrieve form data
-            SfOptionsService.transform().then(function (options) {
-                $scope.sfOptions = options;
-                $scope.sfOptions.onError = onAttachmentError;
-            });
-            DataAccessFormConfigResource.get(function onSuccess(dataAccessForm) {
-                $scope.sfForm.definition = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.definition, []));
-                $scope.sfForm.schema = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.schema, {}));
-                if ($scope.sfForm.definition.length === 0) {
-                    $scope.sfForm.definition = [];
-                    $scope.validForm = false;
-                    AlertService.alert({
-                        id: 'DataAccessRequestEditController',
-                        type: 'danger',
-                        msgKey: 'data-access-config.parse-error.definition'
-                    });
-                }
-                if (Object.getOwnPropertyNames($scope.sfForm.schema).length === 0) {
-                    $scope.sfForm.schema = {};
-                    $scope.validForm = false;
-                    AlertService.alert({
-                        id: 'DataAccessRequestEditController',
-                        type: 'danger',
-                        msgKey: 'data-access-config.parse-error.schema'
-                    });
-                }
-                if ($scope.validForm) {
-                    $scope.dataAccessRequest = $routeParams.id ?
-                        DataAccessRequestResource.get({ id: $routeParams.id }, function onSuccess(request) {
-                            try {
-                                $scope.sfForm.model = request.content ? JSON.parse(request.content) : {};
-                            }
-                            catch (e) {
-                                $scope.sfForm.model = {};
-                                AlertService.alert({
-                                    id: 'DataAccessRequestEditController',
-                                    type: 'danger',
-                                    msgKey: 'data-access-request.parse-error'
-                                });
-                            }
-                            $scope.canEdit = DataAccessRequestService.actions.canEdit(request);
-                            $scope.sfForm.schema.readonly = !$scope.canEdit;
-                            $scope.$broadcast('schemaFormRedraw');
-                            request.attachments = request.attachments || [];
-                            return request;
-                        }) : {
-                        applicant: SessionProxy.login(),
-                        status: DataAccessRequestService.status.OPENED,
-                        attachments: []
-                    };
-                }
-                $timeout(function () {
-                    $scope.sfForm = angular.copy($scope.sfForm);
-                    $scope.loaded = true;
-                }, 250);
-            }, onError);
-        }
-        $rootScope.$on('$translateChangeSuccess', function () {
-            initializeForm();
-        });
-        initializeForm();
-        $scope.loaded = false;
-        $scope.config = DataAccessRequestConfig.getOptions();
-        $scope.validForm = true;
-        $scope.requestId = $routeParams.id;
-        $scope.newRequest = $routeParams.id ? false : true;
-        $scope.cancel = cancel;
-        $scope.save = save;
-        $scope.editable = true;
-        $scope.validate = validate;
-        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('form');
-        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('form');
-        $scope.sfForm = {
-            schema: null,
-            definition: null,
-            model: {}
-        };
-        FormDirtyStateObserver.observe($scope);
-        DataAccessRequestDirtyStateService.setForm($scope.form);
-        $scope.$on('$destroy', function () {
-            DataAccessRequestDirtyStateService.setForm(null);
-        });
-    }]);
-//# sourceMappingURL=data-access-request-controller.js.map
-/*
- * Copyright (c) 2018 OBiBa. All rights reserved.
- *
- * This program and the accompanying materials
- * are made available under the terms of the GNU Public License v3.0.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-'use strict';
-ngObibaMica.access
-    .config(['$routeProvider',
-    function ($routeProvider) {
-        $routeProvider
-            .when('/data-access-requests', {
-            templateUrl: 'access/views/data-access-request-list.html',
-            controller: 'DataAccessRequestListController'
-        })
-            .when('/data-access-request/new', {
-            templateUrl: 'access/views/data-access-request-form.html',
-            controller: 'DataAccessRequestEditController'
-        })
-            .when('/data-access-request/:id/edit', {
-            templateUrl: 'access/views/data-access-request-form.html',
-            controller: 'DataAccessRequestEditController'
-        })
-            .when('/data-access-request/:id', {
-            templateUrl: 'access/views/data-access-request-view.html',
-            controller: 'DataAccessRequestViewController'
-        });
-    }]);
-//# sourceMappingURL=data-access-request-router.js.map
-/*
- * Copyright (c) 2018 OBiBa. All rights reserved.
- *
- * This program and the accompanying materials
- * are made available under the terms of the GNU Public License v3.0.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-'use strict';
-ngObibaMica.access
-    .factory('DataAccessFormConfigResource', ['$resource', 'ngObibaMicaUrl',
-    function ($resource, ngObibaMicaUrl) {
-        return $resource(ngObibaMicaUrl.getUrl('DataAccessFormConfigResource'), {}, {
-            'get': { method: 'GET', errorHandler: true }
-        });
-    }])
-    .factory('DataAccessRequestsResource', ['$resource', 'ngObibaMicaUrl',
-    function ($resource, ngObibaMicaUrl) {
-        return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestsResource'), {}, {
-            'save': { method: 'POST', errorHandler: true },
-            'get': { method: 'GET' }
-        });
-    }])
-    .factory('DataAccessRequestsExportCsvResource', ['$resource', 'ngObibaMicaUrl',
-    function ($resource, ngObibaMicaUrl) {
-        return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestsExportCsvResource'), {}, {
-            'get': { method: 'GET' }
-        });
-    }])
-    .factory('DataAccessRequestResource', ['$resource', 'ngObibaMicaUrl',
-    function ($resource, ngObibaMicaUrl) {
-        return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestResource'), {}, {
-            'save': { method: 'PUT', params: { id: '@id' }, errorHandler: true },
-            'get': { method: 'GET' },
-            'delete': { method: 'DELETE' }
-        });
-    }])
-    .factory('DataAccessRequestAttachmentsUpdateResource', ['$resource', 'ngObibaMicaUrl',
-    function ($resource, ngObibaMicaUrl) {
-        return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestAttachmentsUpdateResource'), {}, {
-            'save': { method: 'PUT', params: { id: '@id' }, errorHandler: true }
-        });
-    }])
-    .factory('DataAccessRequestCommentsResource', ['$resource', 'ngObibaMicaUrl',
-    function ($resource, ngObibaMicaUrl) {
-        return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestCommentsResource'), {}, {
-            'save': {
-                method: 'POST',
-                params: { id: '@id' },
-                headers: { 'Content-Type': 'text/plain' },
-                errorHandler: true
-            },
-            'get': { method: 'GET', params: { id: '@id' }, errorHandler: true }
-        });
-    }])
-    .factory('DataAccessRequestCommentResource', ['$resource', 'ngObibaMicaUrl',
-    function ($resource, ngObibaMicaUrl) {
-        return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestCommentResource'), {}, {
-            'delete': {
-                method: 'DELETE',
-                params: { id: '@id', commentId: '@commentId' },
-                errorHandler: true
-            },
-            'update': {
-                method: 'PUT',
-                params: { id: '@id', commentId: '@commentId' },
-                headers: { 'Content-Type': 'text/plain' },
-                errorHandler: true
-            }
-        });
-    }])
-    .factory('DataAccessRequestStatusResource', ['$resource', 'ngObibaMicaUrl',
-    function ($resource, ngObibaMicaUrl) {
-        return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestStatusResource'), {}, {
-            'update': {
-                method: 'PUT',
-                params: { id: '@id', status: '@status' },
-                errorHandler: true
-            }
-        });
-    }])
-    .service('DataAccessRequestConfig', function () {
-    var options = {
-        newRequestButtonCaption: null,
-        documentsSectionTitle: null,
-        documentsSectionHelpText: null,
-        downloadButtonCaption: null,
-        commentsEnabled: true,
-        userListPageTitle: null,
-        newRequestButtonHelpText: null
-    };
-    this.setOptions = function (newOptions) {
-        if (typeof (newOptions) === 'object') {
-            Object.keys(newOptions).forEach(function (option) {
-                if (option in options) {
-                    options[option] = newOptions[option];
-                }
-            });
-        }
-    };
-    this.getOptions = function () {
-        return angular.copy(options);
-    };
-})
-    .service('DataAccessRequestDirtyStateService', [
-    function () {
-        var form = null;
-        this.setForm = function (f) {
-            form = f;
-        };
-        this.isDirty = function () {
-            return form && form.$dirty;
-        };
+        ctrl.userProfile = userProfile;
+        ctrl.getFullName = getFullName;
+        ctrl.getProfileEmail = getProfileEmail;
+        ctrl.getCsvExportHref = getCsvExportHref;
+        ctrl.getDataAccessRequestPageUrl = getDataAccessRequestPageUrl;
+        ctrl.deleteRequest = deleteRequest;
+        ctrl.$onInit = onInit;
+        ctrl.$onChanges = onChanges;
     }
-])
-    .service('DataAccessRequestService', ['$translate', 'SessionProxy', 'USER_ROLES', 'ngObibaMicaUrl',
-    function ($translate, SessionProxy, USER_ROLES, ngObibaMicaUrl) {
+    ngObibaMica.access
+        .component('entityList', {
+        bindings: {
+            parentId: '<'
+        },
+        templateUrl: 'access/components/entity-list/component.html',
+        controller: ['$rootScope',
+            '$uibModal',
+            'DataAccessEntityUrls',
+            'DataAccessEntityResource',
+            'DataAccessEntityService',
+            'NOTIFICATION_EVENTS',
+            'SessionProxy',
+            'USER_ROLES',
+            'ngObibaMicaAccessTemplateUrl',
+            'DataAccessRequestConfig',
+            'ngObibaMicaUrl',
+            '$translate', Controller]
+    });
+})();
+//# sourceMappingURL=component.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+"use strict";
+var DataAccessEntityResource = /** @class */ (function () {
+    function DataAccessEntityResource(DataAccessRequestsResource, DataAccessRequestResource, DataAccessAmendmentsResource, DataAccessAmendmentResource) {
+        this.DataAccessRequestsResource = DataAccessRequestsResource;
+        this.DataAccessRequestResource = DataAccessRequestResource;
+        this.DataAccessAmendmentsResource = DataAccessAmendmentsResource;
+        this.DataAccessAmendmentResource = DataAccessAmendmentResource;
+    }
+    DataAccessEntityResource.prototype.list = function (listUrl) {
+        var parentId = this.getParentId(listUrl);
+        return parentId ?
+            this.DataAccessAmendmentsResource.query({ parentId: parentId }) :
+            this.DataAccessRequestsResource.query();
+    };
+    DataAccessEntityResource.prototype.create = function (listUrl, data) {
+        var parentId = this.getParentId(listUrl);
+        return parentId ?
+            this.DataAccessAmendmentsResource.save(data) :
+            this.DataAccessRequestsResource.save(data);
+    };
+    DataAccessEntityResource.prototype.update = function (entityRootPath, data) {
+        var parentId = this.getParentId(entityRootPath);
+        return parentId ?
+            this.DataAccessAmendmentResource.save(data) :
+            this.DataAccessRequestResource.save(data);
+    };
+    DataAccessEntityResource.prototype.get = function (entityRootPath, id) {
+        var parentId = this.getParentId(entityRootPath);
+        return parentId ?
+            this.DataAccessAmendmentResource.get({ parentId: parentId, id: id }) :
+            this.DataAccessRequestResource.get({ id: id });
+    };
+    DataAccessEntityResource.prototype.delete = function (entityRootPath, id) {
+        var parentId = this.getParentId(entityRootPath);
+        return parentId ?
+            this.DataAccessAmendmentResource.delete({ parentId: parentId, id: id }) :
+            this.DataAccessRequestResource.delete({ id: id });
+    };
+    DataAccessEntityResource.prototype.getParentId = function (url) {
+        var parentId = /data-access-request\/(.*)\/amendment/.exec(url);
+        return parentId && parentId.length === 2 ? parentId[parentId.index] : null;
+    };
+    DataAccessEntityResource.$inject = [
+        "DataAccessRequestsResource",
+        "DataAccessRequestResource",
+        "DataAccessAmendmentsResource",
+        "DataAccessAmendmentResource",
+    ];
+    return DataAccessEntityResource;
+}());
+ngObibaMica.access.service("DataAccessEntityResource", DataAccessEntityResource);
+//# sourceMappingURL=data-access-entity-resource.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+'use strict';
+(function () {
+    function DataAccessEntityService($translate, SessionProxy, USER_ROLES, ngObibaMicaUrl) {
         var statusList = {
             OPENED: 'OPENED',
             SUBMITTED: 'SUBMITTED',
@@ -1618,7 +1106,734 @@ ngObibaMica.access
             }
         };
         return this;
+    }
+    ngObibaMica.access.service('DataAccessEntityService', ['$translate', 'SessionProxy', 'USER_ROLES', 'ngObibaMicaUrl', DataAccessEntityService]);
+})();
+//# sourceMappingURL=data-access-entity-service.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+"use strict";
+var DataAccessEntityUrls = /** @class */ (function () {
+    function DataAccessEntityUrls() {
+    }
+    DataAccessEntityUrls.prototype.getDataAccessRequestsUrl = function () {
+        return "/data-access-requests";
+    };
+    DataAccessEntityUrls.prototype.getDataAccessRequestBaseUrl = function () {
+        return "/data-access-request";
+    };
+    DataAccessEntityUrls.prototype.getDataAccessRequestUrl = function (id) {
+        return this.getDataAccessRequestBaseUrl() + "/" + id;
+    };
+    DataAccessEntityUrls.prototype.getDataAccessAmendmentsUrl = function (parentId) {
+        return "/data-access-request/" + parentId + "/amendments";
+    };
+    DataAccessEntityUrls.prototype.getDataAccessAmendmentBaseUrl = function (parentId) {
+        return "/data-access-request/" + parentId + "/amendment";
+    };
+    DataAccessEntityUrls.prototype.getDataAccessAmendmentUrl = function (parentId, id) {
+        return this.getDataAccessAmendmentBaseUrl(parentId) + "/" + id;
+    };
+    return DataAccessEntityUrls;
+}());
+ngObibaMica.access.service("DataAccessEntityUrls", DataAccessEntityUrls);
+//# sourceMappingURL=data-access-entity-urls.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+'use strict';
+ngObibaMica.access
+    .controller('DataAccessRequestListController', [
+    '$scope',
+    'ngObibaMicaAccessTemplateUrl',
+    function ($scope, ngObibaMicaAccessTemplateUrl) {
+        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('list');
+        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('list');
+    }
+])
+    .controller('DataAccessRequestViewController', ['$rootScope',
+    '$scope',
+    '$route',
+    '$location',
+    '$uibModal',
+    '$routeParams',
+    '$filter',
+    '$translate',
+    'DataAccessRequestResource',
+    'DataAccessEntityService',
+    'DataAccessRequestStatusResource',
+    'DataAccessFormConfigResource',
+    'JsonUtils',
+    'DataAccessRequestAttachmentsUpdateResource',
+    'DataAccessRequestCommentsResource',
+    'DataAccessRequestCommentResource',
+    'ngObibaMicaUrl',
+    'ngObibaMicaAccessTemplateUrl',
+    'AlertService',
+    'ServerErrorUtils',
+    'NOTIFICATION_EVENTS',
+    'DataAccessRequestConfig',
+    'LocalizedSchemaFormService',
+    'SfOptionsService',
+    'moment',
+    '$timeout',
+    function ($rootScope, $scope, $route, $location, $uibModal, $routeParams, $filter, $translate, DataAccessRequestResource, DataAccessEntityService, DataAccessRequestStatusResource, DataAccessFormConfigResource, JsonUtils, DataAccessRequestAttachmentsUpdateResource, DataAccessRequestCommentsResource, DataAccessRequestCommentResource, ngObibaMicaUrl, ngObibaMicaAccessTemplateUrl, AlertService, ServerErrorUtils, NOTIFICATION_EVENTS, DataAccessRequestConfig, LocalizedSchemaFormService, SfOptionsService, moment, $timeout) {
+        var TAB_NAMES = Object.freeze({
+            form: 0,
+            amendments: 1,
+            documents: 2,
+            comments: 3,
+            history: 4
+        });
+        function onError(response) {
+            AlertService.alert({
+                id: 'DataAccessRequestViewController',
+                type: 'danger',
+                msg: ServerErrorUtils.buildMessage(response)
+            });
+        }
+        function onAttachmentError(attachment) {
+            AlertService.alert({
+                id: 'DataAccessRequestViewController',
+                type: 'danger',
+                msgKey: 'server.error.file.upload',
+                msgArgs: [attachment.fileName]
+            });
+        }
+        function retrieveComments() {
+            $scope.form.comments = DataAccessRequestCommentsResource.query({ id: $routeParams.id });
+        }
+        function selectTab(tab) {
+            $scope.parentId = undefined;
+            switch (tab) {
+                case TAB_NAMES.form:
+                case TAB_NAMES.history:
+                case TAB_NAMES.documents:
+                    break;
+                case TAB_NAMES.comments:
+                    retrieveComments();
+                    break;
+                case TAB_NAMES.amendments:
+                    $scope.parentId = $routeParams.id;
+                    break;
+            }
+        }
+        function submitComment(comment) {
+            DataAccessRequestCommentsResource.save({ id: $routeParams.id }, comment.message, retrieveComments, onError);
+        }
+        function updateComment(comment) {
+            DataAccessRequestCommentResource.update({ id: $routeParams.id, commentId: comment.id }, comment.message, retrieveComments, onError);
+        }
+        function deleteComment(comment) {
+            $scope.commentToDelete = comment.id;
+            $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
+                titleKey: 'comment.delete-dialog.title',
+                messageKey: 'comment.delete-dialog.message',
+                messageArgs: [comment.createdBy]
+            }, comment.id);
+        }
+        function toggleAttachmentsForm(show) {
+            if (show) {
+                $scope.attachments = angular.copy($scope.dataAccessRequest.attachments) || [];
+            }
+            $scope.showAttachmentsForm = show;
+        }
+        function getRequest() {
+            console.log('getRequest()');
+            return DataAccessRequestResource.get({ id: $routeParams.id }).$promise.then(function onSuccess(request) {
+                try {
+                    $scope.dataAccessRequest = request;
+                    $scope.form.model = request.content ? JSON.parse(request.content) : {};
+                    var requestDownloadUrlPdf = ngObibaMicaUrl.getUrl('DataAccessRequestDownloadPdfResource').replace(':id', $scope.dataAccessRequest.id);
+                    $scope.requestDownloadUrl = requestDownloadUrlPdf + ((requestDownloadUrlPdf.indexOf('?q=') !== -1) ? '&' : '?') + 'lang=' + $translate.use();
+                    $scope.attachments = angular.copy(request.attachments) || [];
+                }
+                catch (e) {
+                    $scope.validForm = false;
+                    $scope.form.model = {};
+                    AlertService.alert({
+                        id: 'DataAccessRequestViewController',
+                        type: 'danger',
+                        msgKey: 'data-access-request.parse-error'
+                    });
+                }
+                initializeForm();
+                request.attachments = request.attachments || [];
+                $scope.lastSubmittedDate = findLastSubmittedDate();
+                return request;
+            }, onError);
+        }
+        function updateAttachments() {
+            var request = angular.copy($scope.dataAccessRequest);
+            request.attachments = $scope.attachments;
+            DataAccessRequestAttachmentsUpdateResource.save(request, function () {
+                toggleAttachmentsForm(false);
+                $scope.dataAccessRequest = getRequest();
+            });
+        }
+        function initializeForm() {
+            SfOptionsService.transform().then(function (options) {
+                $scope.sfOptions = options;
+                $scope.sfOptions.pristine = { errors: true, success: false };
+            });
+            // Retrieve form data
+            DataAccessFormConfigResource.get(function onSuccess(dataAccessForm) {
+                $scope.form.definition = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.definition, []));
+                $scope.form.schema = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.schema, {}));
+                $scope.form.downloadTemplate = dataAccessForm.pdfDownloadType === 'Template';
+                if ($scope.form.definition.length === 0) {
+                    $scope.validForm = false;
+                    $scope.form.definition = [];
+                    AlertService.alert({
+                        id: 'DataAccessRequestViewController',
+                        type: 'danger',
+                        msgKey: 'data-access-config.parse-error.definition'
+                    });
+                }
+                if (Object.getOwnPropertyNames($scope.form.schema).length === 0) {
+                    $scope.validForm = false;
+                    $scope.form.schema = { readonly: true };
+                    AlertService.alert({
+                        id: 'DataAccessRequestViewController',
+                        type: 'danger',
+                        msgKey: 'data-access-config.parse-error.schema'
+                    });
+                }
+                $scope.form.schema.readonly = true;
+                $timeout(function () {
+                    $scope.form = angular.copy($scope.form);
+                    $scope.$broadcast('schemaFormRedraw');
+                }, 250);
+            }, onError);
+        }
+        function findLastSubmittedDate() {
+            var history = $scope.dataAccessRequest.statusChangeHistory || [];
+            return history.filter(function (item) {
+                return item.to === DataAccessEntityService.status.SUBMITTED;
+            }).sort(function (a, b) {
+                if (moment(a).isBefore(b)) {
+                    return -1;
+                }
+                if (moment(a).isSame(b)) {
+                    return 0;
+                }
+                if (moment(a).isAfter(b)) {
+                    return 1;
+                }
+            }).pop();
+        }
+        function deleteEntity() {
+            $scope.requestToDelete = $scope.dataAccessRequest.id;
+            $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
+                titleKey: 'data-access-request.delete-dialog.title',
+                messageKey: 'data-access-request.delete-dialog.message',
+                messageArgs: [$scope.dataAccessRequest.title, $scope.dataAccessRequest.applicant]
+            }, $scope.requestToDelete);
+        }
+        function getDownloadHref(attachment) {
+            return ngObibaMicaUrl.getUrl('DataAccessRequestAttachmentDownloadResource')
+                .replace(':id', $scope.dataAccessRequest.id).replace(':attachmentId', attachment.id);
+        }
+        function onDeleteConfirmed(event, id) {
+            if ($scope.requestToDelete === id) {
+                DataAccessRequestResource.delete({ id: $scope.requestToDelete }, function () {
+                    $location.path('/data-access-requests').replace();
+                });
+                delete $scope.requestToDelete;
+            }
+        }
+        function onUpdatStatusSuccess() {
+            setTimeout(function () {
+                $scope.dataAccessRequest = getRequest();
+            });
+        }
+        function confirmStatusChange(status, messageKey, statusName) {
+            $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
+                titleKey: 'data-access-request.status-change-confirmation.title',
+                messageKey: messageKey !== null ? messageKey : 'data-access-request.status-change-confirmation.message',
+                messageArgs: statusName !== null ? [$filter('translate')(statusName).toLowerCase()] : []
+            }, status);
+        }
+        function statusChangedConfirmed(status, expectedStatus) {
+            if (status === expectedStatus) {
+                DataAccessRequestStatusResource.update({
+                    id: $scope.dataAccessRequest.id,
+                    status: status
+                }, onUpdatStatusSuccess, onError);
+            }
+        }
+        function printForm() {
+            // let angular digest!
+            setTimeout(function () { window.print(); }, 250);
+        }
+        function submitForm() {
+            $scope.$broadcast('schemaFormValidate');
+            if ($scope.forms.requestForm.$valid) {
+                DataAccessRequestStatusResource.update({
+                    id: $scope.dataAccessRequest.id,
+                    status: DataAccessEntityService.status.SUBMITTED
+                }, function onSubmitted() {
+                    $uibModal.open({
+                        scope: $scope,
+                        templateUrl: 'access/views/data-access-request-submitted-modal.html'
+                    }).result.then(function () {
+                        onUpdatStatusSuccess();
+                    });
+                }, onError);
+            }
+            else {
+                AlertService.alert({
+                    id: 'DataAccessRequestViewController',
+                    type: 'danger',
+                    msgKey: 'data-access-request.submit.invalid'
+                });
+            }
+        }
+        function onDeleteCommentConfirmed(event, id) {
+            if ($scope.commentToDelete === id) {
+                DataAccessRequestCommentResource.delete({ id: $routeParams.id, commentId: id }, {}, retrieveComments, onError);
+            }
+        }
+        function reOpen() {
+            confirmStatusChange(DataAccessEntityService.status.OPENED, null, 'reopen');
+        }
+        function review() {
+            confirmStatusChange(DataAccessEntityService.status.REVIEWED, 'data-access-request.status-change-confirmation.message-review', null);
+        }
+        function approve() {
+            confirmStatusChange(DataAccessEntityService.status.APPROVED, null, 'approve');
+        }
+        function reject() {
+            confirmStatusChange(DataAccessEntityService.status.REJECTED, null, 'reject');
+        }
+        function conditionallyApprove() {
+            confirmStatusChange(DataAccessEntityService.status.CONDITIONALLY_APPROVED, null, 'conditionallyApprove');
+        }
+        function getAttributeValue(attributes, key) {
+            var result = attributes.filter(function (attribute) {
+                return attribute.key === key;
+            });
+            return result && result.length > 0 ? result[0].value : null;
+        }
+        function getFullName(profile) {
+            if (profile) {
+                if (profile.attributes) {
+                    return getAttributeValue(profile.attributes, 'firstName') + ' ' + getAttributeValue(profile.attributes, 'lastName');
+                }
+                return profile.username;
+            }
+            return null;
+        }
+        function getProfileEmail(profile) {
+            if (profile) {
+                if (profile.attributes) {
+                    return getAttributeValue(profile.attributes, 'email');
+                }
+            }
+            return null;
+        }
+        function onStatusOpened(event, status) {
+            statusChangedConfirmed(DataAccessEntityService.status.OPENED, status);
+        }
+        function onStatusReviewed(event, status) {
+            statusChangedConfirmed(DataAccessEntityService.status.REVIEWED, status);
+        }
+        function onStatusConditionallyApproved(event, status) {
+            statusChangedConfirmed(DataAccessEntityService.status.CONDITIONALLY_APPROVED, status);
+        }
+        function onStatusApproved(event, status) {
+            statusChangedConfirmed(DataAccessEntityService.status.APPROVED, status);
+        }
+        function onStatusRejected(event, status) {
+            statusChangedConfirmed(DataAccessEntityService.status.REJECTED, status);
+        }
+        $scope.parentId = undefined;
+        $scope.validForm = true;
+        $scope.config = DataAccessRequestConfig.getOptions();
+        $scope.actions = DataAccessEntityService.actions;
+        $scope.nextStatus = DataAccessEntityService.nextStatus;
+        $scope.showAttachmentsForm = false;
+        $scope.selectTab = selectTab;
+        $scope.delete = deleteEntity;
+        $scope.submitComment = submitComment;
+        $scope.updateComment = updateComment;
+        $scope.deleteComment = deleteComment;
+        $scope.getDownloadHref = getDownloadHref;
+        $scope.updateAttachments = updateAttachments;
+        $scope.cancelAttachments = function () { toggleAttachmentsForm(false); };
+        $scope.editAttachments = function () { toggleAttachmentsForm(true); };
+        $scope.onAttachmentError = onAttachmentError;
+        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('view');
+        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('view');
+        $scope.getStatusHistoryInfoId = DataAccessEntityService.getStatusHistoryInfoId;
+        $scope.submit = submitForm;
+        $scope.reopen = reOpen;
+        $scope.review = review;
+        $scope.approve = approve;
+        $scope.reject = reject;
+        $scope.conditionallyApprove = conditionallyApprove;
+        $scope.userProfile = function (profile) {
+            $scope.applicant = profile;
+            $uibModal.open({
+                scope: $scope,
+                templateUrl: 'access/views/data-access-request-profile-user-modal.html'
+            });
+        };
+        $scope.getDataAccessListPageUrl = DataAccessEntityService.getListDataAccessRequestPageUrl();
+        $scope.printForm = printForm;
+        $scope.getFullName = getFullName;
+        $scope.getProfileEmail = getProfileEmail;
+        $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onDeleteConfirmed);
+        $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onDeleteCommentConfirmed);
+        $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onStatusOpened);
+        $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onStatusReviewed);
+        $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onStatusConditionallyApproved);
+        $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onStatusApproved);
+        $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onStatusRejected);
+        $rootScope.$on('$translateChangeSuccess', initializeForm);
+        console.log('Initialize');
+        $scope.tabs = { activeTab: 0 };
+        $scope.TAB_NAMES = TAB_NAMES;
+        $scope.forms = {};
+        $scope.form = {
+            schema: null,
+            definition: null,
+            model: {},
+            comments: null
+        };
+        $scope.dataAccessRequest = $routeParams.id ? getRequest() : {};
     }])
+    .controller('DataAccessRequestEditController', ['$rootScope',
+    '$log',
+    '$scope',
+    '$routeParams',
+    '$location',
+    '$uibModal', 'LocalizedSchemaFormService',
+    'DataAccessRequestsResource',
+    'DataAccessRequestResource',
+    'DataAccessFormConfigResource',
+    'JsonUtils',
+    'AlertService',
+    'ServerErrorUtils',
+    'SessionProxy',
+    'DataAccessEntityService',
+    'ngObibaMicaAccessTemplateUrl',
+    'DataAccessRequestConfig',
+    'SfOptionsService',
+    'FormDirtyStateObserver',
+    'DataAccessRequestDirtyStateService',
+    '$timeout',
+    function ($rootScope, $log, $scope, $routeParams, $location, $uibModal, LocalizedSchemaFormService, DataAccessRequestsResource, DataAccessRequestResource, DataAccessFormConfigResource, JsonUtils, AlertService, ServerErrorUtils, SessionProxy, DataAccessEntityService, ngObibaMicaAccessTemplateUrl, DataAccessRequestConfig, SfOptionsService, FormDirtyStateObserver, DataAccessRequestDirtyStateService, $timeout) {
+        var onSuccess = function (response, getResponseHeaders) {
+            FormDirtyStateObserver.unobserve();
+            var parts = getResponseHeaders().location.split('/');
+            $location.path('/data-access-request/' + parts[parts.length - 1]).replace();
+        };
+        var onError = function (response) {
+            AlertService.alert({
+                id: 'DataAccessRequestEditController',
+                type: 'danger',
+                msg: ServerErrorUtils.buildMessage(response)
+            });
+        };
+        function onAttachmentError(attachment) {
+            AlertService.alert({
+                id: 'DataAccessRequestEditController',
+                type: 'danger',
+                msgKey: 'server.error.file.upload',
+                msgArgs: [attachment.fileName]
+            });
+        }
+        $scope.getDataAccessListPageUrl = DataAccessEntityService.getListDataAccessRequestPageUrl();
+        var validate = function (form) {
+            $scope.$broadcast('schemaFormValidate');
+            $uibModal.open({
+                resolve: {
+                    isValid: form.$valid
+                },
+                templateUrl: 'access/views/data-access-request-validation-modal.html',
+                controller: ['$scope', 'isValid', function ($scope, isValid) {
+                        $scope.isValid = isValid;
+                    }]
+            });
+        };
+        var cancel = function () {
+            $location.path('/data-access-request' + ($routeParams.id ? '/' + $routeParams.id : 's')).replace();
+        };
+        var save = function () {
+            $scope.dataAccessRequest.content = angular.toJson($scope.sfForm.model);
+            if ($scope.newRequest) {
+                DataAccessRequestsResource.save($scope.dataAccessRequest, onSuccess, onError);
+            }
+            else {
+                DataAccessRequestResource.save($scope.dataAccessRequest, function () {
+                    FormDirtyStateObserver.unobserve();
+                    $location.path('/data-access-request' + ($scope.dataAccessRequest.id ? '/' + $scope.dataAccessRequest.id : 's')).replace();
+                }, onError);
+            }
+        };
+        function initializeForm() {
+            // Retrieve form data
+            SfOptionsService.transform().then(function (options) {
+                $scope.sfOptions = options;
+                $scope.sfOptions.onError = onAttachmentError;
+            });
+            DataAccessFormConfigResource.get(function onSuccess(dataAccessForm) {
+                $scope.sfForm.definition = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.definition, []));
+                $scope.sfForm.schema = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.schema, {}));
+                if ($scope.sfForm.definition.length === 0) {
+                    $scope.sfForm.definition = [];
+                    $scope.validForm = false;
+                    AlertService.alert({
+                        id: 'DataAccessRequestEditController',
+                        type: 'danger',
+                        msgKey: 'data-access-config.parse-error.definition'
+                    });
+                }
+                if (Object.getOwnPropertyNames($scope.sfForm.schema).length === 0) {
+                    $scope.sfForm.schema = {};
+                    $scope.validForm = false;
+                    AlertService.alert({
+                        id: 'DataAccessRequestEditController',
+                        type: 'danger',
+                        msgKey: 'data-access-config.parse-error.schema'
+                    });
+                }
+                if ($scope.validForm) {
+                    $scope.dataAccessRequest = $routeParams.id ?
+                        DataAccessRequestResource.get({ id: $routeParams.id }, function onSuccess(request) {
+                            try {
+                                $scope.sfForm.model = request.content ? JSON.parse(request.content) : {};
+                            }
+                            catch (e) {
+                                $scope.sfForm.model = {};
+                                AlertService.alert({
+                                    id: 'DataAccessRequestEditController',
+                                    type: 'danger',
+                                    msgKey: 'data-access-request.parse-error'
+                                });
+                            }
+                            $scope.canEdit = DataAccessEntityService.actions.canEdit(request);
+                            $scope.sfForm.schema.readonly = !$scope.canEdit;
+                            $scope.$broadcast('schemaFormRedraw');
+                            request.attachments = request.attachments || [];
+                            return request;
+                        }) : {
+                        applicant: SessionProxy.login(),
+                        status: DataAccessEntityService.status.OPENED,
+                        attachments: []
+                    };
+                }
+                $timeout(function () {
+                    $scope.sfForm = angular.copy($scope.sfForm);
+                    $scope.loaded = true;
+                }, 250);
+            }, onError);
+        }
+        $rootScope.$on('$translateChangeSuccess', function () {
+            initializeForm();
+        });
+        initializeForm();
+        $scope.loaded = false;
+        $scope.config = DataAccessRequestConfig.getOptions();
+        $scope.validForm = true;
+        $scope.requestId = $routeParams.id;
+        $scope.newRequest = $routeParams.id ? false : true;
+        $scope.cancel = cancel;
+        $scope.save = save;
+        $scope.editable = true;
+        $scope.validate = validate;
+        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('form');
+        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('form');
+        $scope.sfForm = {
+            schema: null,
+            definition: null,
+            model: {}
+        };
+        FormDirtyStateObserver.observe($scope);
+        DataAccessRequestDirtyStateService.setForm($scope.form);
+        $scope.$on('$destroy', function () {
+            DataAccessRequestDirtyStateService.setForm(null);
+        });
+    }]);
+//# sourceMappingURL=data-access-request-controller.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+'use strict';
+ngObibaMica.access
+    .config(['$routeProvider',
+    function ($routeProvider) {
+        $routeProvider
+            .when('/data-access-requests', {
+            templateUrl: 'access/views/data-access-request-list.html',
+            controller: 'DataAccessRequestListController'
+        })
+            .when('/data-access-request/new', {
+            templateUrl: 'access/views/data-access-request-form.html',
+            controller: 'DataAccessRequestEditController'
+        })
+            .when('/data-access-request/:id/edit', {
+            templateUrl: 'access/views/data-access-request-form.html',
+            controller: 'DataAccessRequestEditController'
+        })
+            .when('/data-access-request/:id', {
+            templateUrl: 'access/views/data-access-request-view.html',
+            controller: 'DataAccessRequestViewController',
+            reloadOnSearch: false
+        });
+    }]);
+//# sourceMappingURL=data-access-request-router.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+'use strict';
+ngObibaMica.access
+    .factory('DataAccessFormConfigResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+        return $resource(ngObibaMicaUrl.getUrl('DataAccessFormConfigResource'), {}, {
+            'get': { method: 'GET', errorHandler: true }
+        });
+    }])
+    .factory('DataAccessRequestsResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+        return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestsResource'), {}, {
+            'save': { method: 'POST', errorHandler: true },
+            'get': { method: 'GET' }
+        });
+    }])
+    .factory('DataAccessRequestsExportCsvResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+        return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestsExportCsvResource'), {}, {
+            'get': { method: 'GET' }
+        });
+    }])
+    .factory('DataAccessRequestResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+        return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestResource'), {}, {
+            'save': { method: 'PUT', params: { id: '@id' }, errorHandler: true },
+            'get': { method: 'GET' },
+            'delete': { method: 'DELETE' }
+        });
+    }])
+    .factory('DataAccessAmendmentsResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+        return $resource(ngObibaMicaUrl.getUrl('DataAccessAmendmentsResource'), {}, {
+            'save': { method: 'POST', params: { parentId: '@parentId' }, errorHandler: true },
+            'get': { method: 'GET', params: { parentId: '@parentId' } }
+        });
+    }])
+    .factory('DataAccessAmendmentResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+        return $resource(ngObibaMicaUrl.getUrl('DataAccessAmendmentResource'), {}, {
+            'save': { method: 'POST', errorHandler: true },
+            'get': { method: 'GET', params: { parentId: '@parentId', id: '@id' } },
+            'delete': { method: 'DELETE' }
+        });
+    }])
+    .factory('DataAccessRequestAttachmentsUpdateResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+        return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestAttachmentsUpdateResource'), {}, {
+            'save': { method: 'PUT', params: { id: '@id' }, errorHandler: true }
+        });
+    }])
+    .factory('DataAccessRequestCommentsResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+        return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestCommentsResource'), {}, {
+            'save': {
+                method: 'POST',
+                params: { id: '@id' },
+                headers: { 'Content-Type': 'text/plain' },
+                errorHandler: true
+            },
+            'get': { method: 'GET', params: { id: '@id' }, errorHandler: true }
+        });
+    }])
+    .factory('DataAccessRequestCommentResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+        return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestCommentResource'), {}, {
+            'delete': {
+                method: 'DELETE',
+                params: { id: '@id', commentId: '@commentId' },
+                errorHandler: true
+            },
+            'update': {
+                method: 'PUT',
+                params: { id: '@id', commentId: '@commentId' },
+                headers: { 'Content-Type': 'text/plain' },
+                errorHandler: true
+            }
+        });
+    }])
+    .factory('DataAccessRequestStatusResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+        return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestStatusResource'), {}, {
+            'update': {
+                method: 'PUT',
+                params: { id: '@id', status: '@status' },
+                errorHandler: true
+            }
+        });
+    }])
+    .service('DataAccessRequestConfig', function () {
+    var options = {
+        newRequestButtonCaption: null,
+        documentsSectionTitle: null,
+        documentsSectionHelpText: null,
+        downloadButtonCaption: null,
+        commentsEnabled: true,
+        userListPageTitle: null,
+        newRequestButtonHelpText: null
+    };
+    this.setOptions = function (newOptions) {
+        if (typeof (newOptions) === 'object') {
+            Object.keys(newOptions).forEach(function (option) {
+                if (option in options) {
+                    options[option] = newOptions[option];
+                }
+            });
+        }
+    };
+    this.getOptions = function () {
+        return angular.copy(options);
+    };
+})
+    .service('DataAccessRequestDirtyStateService', [
+    function () {
+        var form = null;
+        this.setForm = function (f) {
+            form = f;
+        };
+        this.isDirty = function () {
+            return form && form.$dirty;
+        };
+    }
+])
     .filter('filterProfileAttributes', function () {
     return function (attributes) {
         var exclude = ['email', 'firstName', 'lastName', 'createdDate', 'lastLogin', 'username'];
@@ -1908,7 +2123,7 @@ var SetService = /** @class */ (function () {
         var _this = this;
         var did = Array.isArray(documentId) ? documentId.join("\n") : documentId;
         return this.getOrCreateCart(documentType).then(function (set) {
-            return _this.SetImportResource.save({ type: documentType, id: set.id }, did).$promise;
+            return _this.SetImportResource.update({ type: documentType, id: set.id }, did).$promise;
         }).then(function (set) {
             return _this.saveCart(documentType, set);
         });
@@ -1923,7 +2138,7 @@ var SetService = /** @class */ (function () {
         var _this = this;
         this.$log.info("query=" + rqlQuery);
         return this.getOrCreateCart(documentType).then(function (set) {
-            return _this.SetImportQueryResource.save({ type: documentType, id: set.id, query: rqlQuery }).$promise;
+            return _this.SetImportQueryResource.update({ type: documentType, id: set.id, query: rqlQuery }).$promise;
         }).then(function (set) {
             return _this.saveCart(documentType, set);
         });
@@ -2067,7 +2282,7 @@ var SetService = /** @class */ (function () {
      */
     SetService.prototype.createCart = function (documentType, documentId) {
         var _this = this;
-        return this.SetsImportResource.save({ type: documentType }, documentId).$promise
+        return this.SetsImportResource.update({ type: documentType }, documentId).$promise
             .then(function (set) {
             return _this.saveCart(documentType, set);
         });
@@ -4412,6 +4627,7 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
             };
             function onLocationChange(event, newLocation, oldLocation) {
                 if (newLocation !== oldLocation) {
+                    console.log('AAAA');
                     try {
                         validateBucket($location.search().bucket);
                         executeSearchQuery();
@@ -14246,7 +14462,144 @@ ngObibaMica.fileBrowser
         };
     }]);
 //# sourceMappingURL=file-browser-service.js.map
-angular.module('templates-ngObibaMica', ['access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/cart-documents-table/component.html', 'sets/views/cart.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+angular.module('templates-ngObibaMica', ['access/components/entity-list/component.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/cart-documents-table/component.html', 'sets/views/cart.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+
+angular.module("access/components/entity-list/component.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("access/components/entity-list/component.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2018 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
+    "<div>\n" +
+    "  <div class=\"row\">\n" +
+    "    <div class=\"col-xs-12\">\n" +
+    "      <a ng-href=\"#{{$ctrl.entityBaseUrl}}/new\" class=\"btn btn-info\">\n" +
+    "        <i class=\"fa fa-plus\"></i>\n" +
+    "        <span>{{$ctrl.addButtonCaption | translate}}</span>\n" +
+    "      </a>\n" +
+    "\n" +
+    "      <span ng-bind-html=\"config.newRequestButtonHelpText\"></span>\n" +
+    "\n" +
+    "      <a ng-if=\"$ctrl.requests.length > 0\" target=\"_self\" download class=\"btn btn-info pull-right\" ng-href=\"{{$ctrl.getCsvExportHref()}}\">\n" +
+    "        <i class=\"fa fa-download\"></i> {{'report' | translate}}\n" +
+    "      </a>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "\n" +
+    "  <p class=\"help-block\" ng-if=\"requests.length == 0 && !loading\">\n" +
+    "    <span translate>data-access-request.none</span>\n" +
+    "  </p>\n" +
+    "\n" +
+    "  <p ng-if=\"$ctrl.loading\" class=\"voffset2 loading\">\n" +
+    "  </p>\n" +
+    "\n" +
+    "  <div ng-if=\"$ctrl.requests.length > 0\">\n" +
+    "    <div class=\"row voffset2\">\n" +
+    "      <div class=\"col-xs-4\">\n" +
+    "        <span class=\"input-group input-group-sm no-padding-top\">\n" +
+    "          <span class=\"input-group-addon\" id=\"data-access-requests-search\"><i\n" +
+    "            class=\"glyphicon glyphicon-search\"></i></span>\n" +
+    "          <input ng-model=\"$ctrl.searchText\" type=\"text\" class=\"form-control\"\n" +
+    "                 aria-describedby=\"data-access-requests-search\">\n" +
+    "        </span>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-xs-2\">\n" +
+    "        <div class=\"input-group\">\n" +
+    "          <ui-select id=\"status-select\" theme=\"bootstrap\"\n" +
+    "                     ng-model=\"$ctrl.searchStatus.filter\" reset-search-input=\"true\">\n" +
+    "            <ui-select-match allow-clear=\"true\"\n" +
+    "                             placeholder=\"{{'data-access-request.status-placeholder' | translate}}\">\n" +
+    "              <span ng-bind-html=\"$select.selected.translation\"></span>\n" +
+    "            </ui-select-match>\n" +
+    "            <ui-select-choices repeat=\"data in $ctrl.REQUEST_STATUS\">\n" +
+    "              {{data.translation}}\n" +
+    "            </ui-select-choices>\n" +
+    "          </ui-select>\n" +
+    "        </div>\n" +
+    "      </div>\n" +
+    "      <div class=\"col-xs-6\">\n" +
+    "        <dir-pagination-controls class=\"pull-right\"></dir-pagination-controls>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div class=\"table-responsive\">\n" +
+    "      <table class=\"table table-bordered table-striped\" obiba-table-sorter=\"$ctrl.requests\">\n" +
+    "        <thead>\n" +
+    "        <tr>\n" +
+    "          <th data-column-name=\"id\">ID</th>\n" +
+    "          <th ng-if=\"$ctrl.showApplicant\" data-column-name=\"applicant\">{{\"data-access-request.applicant\" | translate}}</th>\n" +
+    "          <th data-column-name=\"title\">{{\"data-access-request.title\" | translate}}</th>\n" +
+    "          <th data-column-name=\"timestamps.lastUpdate\">{{\"data-access-request.lastUpdate\" | translate}}</th>\n" +
+    "          <th data-column-name=\"submissionDate\">{{\"data-access-request.submissionDate\" | translate}}</th>\n" +
+    "          <th data-column-name=\"status\">{{\"data-access-request.status\" | translate}}</th>\n" +
+    "          <th translate>actions</th>\n" +
+    "        </tr>\n" +
+    "        </thead>\n" +
+    "        <tbody>\n" +
+    "        <tr\n" +
+    "          dir-paginate=\"request in $ctrl.requests | filter:{status: $ctrl.searchStatus.filter.key} : true | filter:$ctrl.searchText | itemsPerPage: 20\">\n" +
+    "          <td>\n" +
+    "            <a ng-href=\"{{$ctrl.getDataAccessRequestPageUrl()}}#/data-access-request/{{request.id}}\"\n" +
+    "               ng-if=\"$ctrl.actions.canView(request)\" translate>{{request.id}}</a>\n" +
+    "            <span ng-if=\"!$ctrl.actions.canView(request)\">{{request.id}}</span>\n" +
+    "          </td>\n" +
+    "          <td ng-if=\"$ctrl.showApplicant\">\n" +
+    "            <span ng-if=\"!request.profile.attributes\">\n" +
+    "              {{request.applicant}}\n" +
+    "            </span>\n" +
+    "            <span ng-if=\"request.profile.attributes && $ctrl.actions.canViewProfile('mica-user') && !$ctrl.actions.canViewProfile('mica-data-access-officer')\">\n" +
+    "              {{getFullName(request.profile) || request.applicant}}\n" +
+    "            </span>\n" +
+    "            <a href ng-click=\"$ctrl.userProfile(request.profile)\" ng-if=\"request.profile.attributes && $ctrl.actions.canViewProfile('mica-data-access-officer')\">\n" +
+    "              {{getFullName(request.profile) || request.applicant}}\n" +
+    "            </a>\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            {{request.title}}\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            <span title=\"{{(request.timestamps.lastUpdate || request.timestamps.created) | amDateFormat: 'lll'}}\">\n" +
+    "              {{(request.timestamps.lastUpdate || request.timestamps.created) | amCalendar}}\n" +
+    "            </span>\n" +
+    "\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            <span ng-if=\"request.submissionDate\" title=\"{{ request.submissionDate | amDateFormat: 'lll' }}\">\n" +
+    "              {{request.submissionDate | amCalendar}}\n" +
+    "            </span>\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            {{request.status | translate}}\n" +
+    "          </td>\n" +
+    "          <td>\n" +
+    "            <ul class=\"list-inline\">\n" +
+    "              <li ng-if=\"$ctrl.actions.canEdit(request)\">\n" +
+    "                <a ng-href=\"#{{$ctrl.entityBaseUrl}}/{{request.id}}/edit\"\n" +
+    "                   title=\"{{'edit' | translate}}\"><i class=\"fa fa-pencil\"></i></a>\n" +
+    "              </li>\n" +
+    "              <li>\n" +
+    "                <a ng-if=\"$ctrl.actions.canDelete(request)\"\n" +
+    "                   ng-href=\"#{{$ctrl.listUrl}}\"\n" +
+    "                   ng-click=\"$ctrl.deleteRequest(request)\"\n" +
+    "                   title=\"{{'delete' | translate}}\"><i\n" +
+    "                  class=\"fa fa-trash-o\"></i></a>\n" +
+    "              </li>\n" +
+    "            </ul>\n" +
+    "          </td>\n" +
+    "        </tr>\n" +
+    "        </tbody>\n" +
+    "      </table>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
+    "</div>\n" +
+    "");
+}]);
 
 angular.module("access/views/data-access-request-documents-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-request-documents-view.html",
@@ -14410,127 +14763,26 @@ angular.module("access/views/data-access-request-list.html", []).run(["$template
     "<div id=\"data-access-request-list\">\n" +
     "  <div ng-if=\"headerTemplateUrl\" ng-include=\"headerTemplateUrl\"></div>\n" +
     "\n" +
-    "  <div class=\"row\">\n" +
-    "    <div class=\"col-xs-12\">\n" +
-    "      <a ng-href=\"#/data-access-request/new\" class=\"btn btn-info\">\n" +
-    "        <i class=\"fa fa-plus\"></i>\n" +
-    "        <span>{{config.newRequestButtonCaption || 'data-access-request.add' | translate}}</span>\n" +
-    "      </a>\n" +
+    "  <!--<div class=\"row\">-->\n" +
+    "    <!--<div class=\"col-xs-12\">-->\n" +
+    "      <!--<a ng-href=\"#/data-access-request/new\" class=\"btn btn-info\">-->\n" +
+    "        <!--<i class=\"fa fa-plus\"></i>-->\n" +
+    "        <!--<span>{{config.newRequestButtonCaption || 'data-access-request.add' | translate}}</span>-->\n" +
+    "      <!--</a>-->\n" +
     "\n" +
-    "      <span ng-bind-html=\"config.newRequestButtonHelpText\"></span>\n" +
+    "      <!--<span ng-bind-html=\"config.newRequestButtonHelpText\"></span>-->\n" +
     "\n" +
-    "      <a ng-if=\"requests.length > 0\" target=\"_self\" download class=\"btn btn-info pull-right\" ng-href=\"{{getCsvExportHref()}}\">\n" +
-    "        <i class=\"fa fa-download\"></i> {{'report' | translate}}\n" +
-    "      </a>\n" +
-    "    </div>\n" +
-    "  </div>\n" +
+    "      <!--<a ng-if=\"requests.length > 0\" target=\"_self\" download class=\"btn btn-info pull-right\" ng-href=\"{{getCsvExportHref()}}\">-->\n" +
+    "        <!--<i class=\"fa fa-download\"></i> {{'report' | translate}}-->\n" +
+    "      <!--</a>-->\n" +
+    "    <!--</div>-->\n" +
+    "  <!--</div>-->\n" +
     "\n" +
     "  <p class=\"help-block\" ng-if=\"requests.length == 0 && !loading\">\n" +
     "    <span translate>data-access-request.none</span>\n" +
     "  </p>\n" +
     "\n" +
-    "  <p ng-if=\"loading\" class=\"voffset2 loading\">\n" +
-    "  </p>\n" +
-    "\n" +
-    "  <div ng-if=\"requests.length > 0\">\n" +
-    "    <div class=\"row voffset2\">\n" +
-    "      <div class=\"col-xs-4\">\n" +
-    "        <span class=\"input-group input-group-sm no-padding-top\">\n" +
-    "          <span class=\"input-group-addon\" id=\"data-access-requests-search\"><i\n" +
-    "              class=\"glyphicon glyphicon-search\"></i></span>\n" +
-    "          <input ng-model=\"searchText\" type=\"text\" class=\"form-control\"\n" +
-    "              aria-describedby=\"data-access-requests-search\">\n" +
-    "        </span>\n" +
-    "      </div>\n" +
-    "      <div class=\"col-xs-2\">\n" +
-    "        <div class=\"input-group\">\n" +
-    "          <ui-select id=\"status-select\" theme=\"bootstrap\"\n" +
-    "              ng-model=\"searchStatus.filter\" reset-search-input=\"true\">\n" +
-    "            <ui-select-match allow-clear=\"true\"\n" +
-    "                placeholder=\"{{'data-access-request.status-placeholder' | translate}}\">\n" +
-    "              <span ng-bind-html=\"$select.selected.translation\"></span>\n" +
-    "            </ui-select-match>\n" +
-    "            <ui-select-choices repeat=\"data in REQUEST_STATUS\">\n" +
-    "              {{data.translation}}\n" +
-    "            </ui-select-choices>\n" +
-    "          </ui-select>\n" +
-    "        </div>\n" +
-    "      </div>\n" +
-    "      <div class=\"col-xs-6\">\n" +
-    "        <dir-pagination-controls class=\"pull-right\"></dir-pagination-controls>\n" +
-    "      </div>\n" +
-    "    </div>\n" +
-    "\n" +
-    "    <div class=\"table-responsive\">\n" +
-    "      <table class=\"table table-bordered table-striped\" obiba-table-sorter=\"requests\">\n" +
-    "        <thead>\n" +
-    "        <tr>\n" +
-    "          <th data-column-name=\"id\">ID</th>\n" +
-    "          <th ng-if=\"showApplicant\" data-column-name=\"applicant\">{{\"data-access-request.applicant\" | translate}}</th>\n" +
-    "          <th data-column-name=\"title\">{{\"data-access-request.title\" | translate}}</th>\n" +
-    "          <th data-column-name=\"timestamps.lastUpdate\">{{\"data-access-request.lastUpdate\" | translate}}</th>\n" +
-    "          <th data-column-name=\"submissionDate\">{{\"data-access-request.submissionDate\" | translate}}</th>\n" +
-    "          <th data-column-name=\"status\">{{\"data-access-request.status\" | translate}}</th>\n" +
-    "          <th translate>actions</th>\n" +
-    "        </tr>\n" +
-    "        </thead>\n" +
-    "        <tbody>\n" +
-    "        <tr\n" +
-    "            dir-paginate=\"request in requests | filter:{status: searchStatus.filter.key} : true | filter:searchText | itemsPerPage: 20\">\n" +
-    "          <td>\n" +
-    "            <a ng-href=\"{{getDataAccessRequestPageUrl()}}#/data-access-request/{{request.id}}\"\n" +
-    "                ng-if=\"actions.canView(request)\" translate>{{request.id}}</a>\n" +
-    "            <span ng-if=\"!actions.canView(request)\">{{request.id}}</span>\n" +
-    "          </td>\n" +
-    "          <td ng-if=\"showApplicant\">\n" +
-    "            <span ng-if=\"!request.profile.attributes\">\n" +
-    "              {{request.applicant}}\n" +
-    "            </span>\n" +
-    "            <span ng-if=\"request.profile.attributes && actions.canViewProfile('mica-user') && !actions.canViewProfile('mica-data-access-officer')\">\n" +
-    "              {{getFullName(request.profile) || request.applicant}}\n" +
-    "            </span>\n" +
-    "            <a href ng-click=\"userProfile(request.profile)\" ng-if=\"request.profile.attributes && actions.canViewProfile('mica-data-access-officer')\">\n" +
-    "              {{getFullName(request.profile) || request.applicant}}\n" +
-    "            </a>\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            {{request.title}}\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            <span title=\"{{(request.timestamps.lastUpdate || request.timestamps.created) | amDateFormat: 'lll'}}\">\n" +
-    "              {{(request.timestamps.lastUpdate || request.timestamps.created) | amCalendar}}\n" +
-    "            </span>\n" +
-    "\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            <span ng-if=\"request.submissionDate\" title=\"{{ request.submissionDate | amDateFormat: 'lll' }}\">\n" +
-    "              {{request.submissionDate | amCalendar}}\n" +
-    "            </span>\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            {{request.status | translate}}\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            <ul class=\"list-inline\">\n" +
-    "              <li ng-if=\"actions.canEdit(request)\">\n" +
-    "                <a ng-href=\"#/data-access-request/{{request.id}}/edit\"\n" +
-    "                    title=\"{{'edit' | translate}}\"><i class=\"fa fa-pencil\"></i></a>\n" +
-    "              </li>\n" +
-    "              <li>\n" +
-    "                <a ng-if=\"actions.canDelete(request)\"\n" +
-    "                    href=\"#/data-access-requests\"\n" +
-    "                    ng-click=\"deleteRequest(request)\"\n" +
-    "                    title=\"{{'delete' | translate}}\"><i\n" +
-    "                    class=\"fa fa-trash-o\"></i></a>\n" +
-    "              </li>\n" +
-    "            </ul>\n" +
-    "          </td>\n" +
-    "        </tr>\n" +
-    "        </tbody>\n" +
-    "      </table>\n" +
-    "    </div>\n" +
-    "  </div>\n" +
-    "\n" +
+    "  <entity-list parent-id=\"null\"></entity-list>\n" +
     "\n" +
     "</div>\n" +
     "");
@@ -14706,7 +14958,7 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "\n" +
     "<div>\n" +
     "  <div class=\"visible-print\" print-friendly-view></div>\n" +
-    "  <div class=\"hidden-print\">\n" +
+    "  <div class=\"hidden-print\" ng-if=\"dataAccessRequest || parentId || form.comments\">\n" +
     "    <div ng-if=\"headerTemplateUrl\" ng-include=\"headerTemplateUrl\"></div>\n" +
     "\n" +
     "    <obiba-alert id=\"DataAccessRequestViewController\"></obiba-alert>\n" +
@@ -14776,28 +15028,44 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "          </small>\n" +
     "        </div>\n" +
     "      </div>\n" +
-    "\n" +
-    "      <uib-tabset class=\"voffset5\">\n" +
-    "        <uib-tab ng-click=\"selectTab('form')\" heading=\"{{'data-access-request.form' | translate}}\">\n" +
+    "      <uib-tabset active=\"tabs.activeTab\" class=\"voffset5\">\n" +
+    "        <!--Form-->\n" +
+    "        <uib-tab index=\"0\" select=\"selectTab(TAB_NAMES.form)\" heading=\"{{'data-access-request.form' | translate}}\">\n" +
     "          <form id=\"request-form\" name=\"forms.requestForm\">\n" +
     "            <div sf-model=\"form.model\" sf-form=\"form.definition\" sf-schema=\"form.schema\" sf-options=\"sfOptions\"></div>\n" +
     "          </form>\n" +
     "        </uib-tab>\n" +
-    "        <uib-tab ng-click=\"selectTab('documents')\">\n" +
+    "        <!--Amendments-->\n" +
+    "        <uib-tab index=\"1\" select=\"selectTab(TAB_NAMES.amendments)\">\n" +
+    "          <uib-tab-heading>\n" +
+    "            {{'data-access-amendments' | translate}}\n" +
+    "          </uib-tab-heading>\n" +
+    "\n" +
+    "          <div ng-show=\"parentId\" class=\"voffset1\">\n" +
+    "            <entity-list parent-id=\"parentId\"></entity-list>\n" +
+    "          </div>\n" +
+    "        </uib-tab>\n" +
+    "        <!--Documents-->\n" +
+    "        <uib-tab index=\"2\" select=\"selectTab(TAB_NAMES.documents)\">\n" +
     "          <uib-tab-heading>\n" +
     "            {{config.documentsSectionTitle || 'data-access-request.documents' | translate}}\n" +
     "            <span class=\"badge hoffset1\" ng-show=\"dataAccessRequest.attachments\"><small>{{dataAccessRequest.attachments.length}}</small></span>\n" +
     "          </uib-tab-heading>\n" +
     "          <div ng-include=\"'access/views/data-access-request-documents-view.html'\"></div>\n" +
     "        </uib-tab>\n" +
-    "        <uib-tab ng-if=\"config.commentsEnabled\" ng-click=\"selectTab('comments')\" heading=\"{{'data-access-request.comments' | translate}}\">\n" +
+    "        <!--Comments-->\n" +
+    "        <uib-tab index=\"3\"\n" +
+    "                 ng-if=\"config.commentsEnabled\"\n" +
+    "                 select=\"selectTab(TAB_NAMES.comments)\"\n" +
+    "                 heading=\"{{'data-access-request.comments' | translate}}\">\n" +
     "          <obiba-comments class=\"voffset2\" comments=\"form.comments\"\n" +
     "                          on-update=\"updateComment\" on-delete=\"deleteComment\"\n" +
     "                          name-resolver=\"userProfileService.getFullName\"\n" +
     "                          edit-action=\"EDIT\" delete-action=\"DELETE\"></obiba-comments>\n" +
     "          <obiba-comment-editor on-submit=\"submitComment\"></obiba-comment-editor>\n" +
     "        </uib-tab>\n" +
-    "        <uib-tab ng-click=\"selectTab('history')\" heading=\"{{'data-access-request.history' | translate}}\">\n" +
+    "        <!--History-->\n" +
+    "        <uib-tab index=\"4\" select=\"selectTab(TAB_NAMES.history)\" heading=\"{{'data-access-request.history' | translate}}\">\n" +
     "          <div ng-include=\"'access/views/data-access-request-history-view.html'\"></div>\n" +
     "        </uib-tab>\n" +
     "      </uib-tabset>\n" +
