@@ -186,6 +186,10 @@ ngObibaMica.access
 
         canEditAttachments: function (request) {
           return canDoAction(request, 'EDIT_ATTACHMENTS');
+        },
+
+        canDeleteAttachments: function (request) {
+          return canDoAction(request, 'DELETE_ATTACHMENTS');
         }
       };
 

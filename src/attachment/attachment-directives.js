@@ -47,7 +47,8 @@ ngObibaMica.attachment
         accept: '@',
         files: '=',
         disabled: '=',
-        onError:'='
+        onError:'=',
+        deleteAttachments: '='
       },
       templateUrl: 'attachment/attachment-input-template.html',
       controller: 'AttachmentCtrl'
