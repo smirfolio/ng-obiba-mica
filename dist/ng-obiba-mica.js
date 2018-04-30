@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-04-23
+ * Date: 2018-04-30
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -599,7 +599,8 @@ ngObibaMica.attachment
                 accept: '@',
                 files: '=',
                 disabled: '=',
-                onError: '='
+                onError: '=',
+                deleteAttachments: '='
             },
             templateUrl: 'attachment/attachment-input-template.html',
             controller: 'AttachmentCtrl'
@@ -1502,6 +1503,9 @@ ngObibaMica.access
             },
             canEditAttachments: function (request) {
                 return canDoAction(request, 'EDIT_ATTACHMENTS');
+            },
+            canDeleteAttachments: function (request) {
+                return canDoAction(request, 'DELETE_ATTACHMENTS');
             }
         };
         var canChangeStatus = function (request, to) {
@@ -14263,7 +14267,7 @@ angular.module("access/views/data-access-request-documents-view.html", []).run([
     "\n" +
     "    <div class=\"panel panel-default\" ng-show=\"showAttachmentsForm\">\n" +
     "      <div class=\"panel-body\">\n" +
-    "        <attachment-input files=\"attachments\" multiple=\"true\" on-error=\"onAttachmentError\"></attachment-input>\n" +
+    "        <attachment-input files=\"attachments\" multiple=\"true\" on-error=\"onAttachmentError\" delete-attachments=\"actions.canDeleteAttachments(dataAccessRequest)\"></attachment-input>\n" +
     "\n" +
     "        <div class=\"voffset2\">\n" +
     "          <a ng-click=\"cancelAttachments()\" type=\"button\" class=\"btn btn-default\">\n" +
@@ -14281,10 +14285,9 @@ angular.module("access/views/data-access-request-documents-view.html", []).run([
     "      <p ng-if=\"dataAccessRequest.attachments.length == 0\" class=\"voffset2\" translate>\n" +
     "        data-access-request.no-documents\n" +
     "      </p>\n" +
-    "      <attachment-list files=\"dataAccessRequest.attachments\"\n" +
-    "                       href-builder=\"getDownloadHref\"></attachment-list>\n" +
+    "      <attachment-list files=\"dataAccessRequest.attachments\" href-builder=\"getDownloadHref\"></attachment-list>\n" +
     "      <a ng-if=\"actions.canEditAttachments(dataAccessRequest)\" ng-click=\"editAttachments()\" type=\"button\" class=\"btn btn-info\">\n" +
-    "        <span translate>data-access-request.edit-documents</span>\n" +
+    "        <span>{{actions.canDeleteAttachments(dataAccessRequest) ? 'data-access-request.edit-documents' : 'data-access-request.add-documents' | translate}}</span>\n" +
     "      </a>\n" +
     "    </div>\n" +
     "\n" +
@@ -15475,7 +15478,7 @@ angular.module("attachment/attachment-input-template.html", []).run(["$templateC
     "    <th translate>data-access-request.default.documents.title</th>\n" +
     "    <th class=\"col-xs-2\"><span class=\"pull-right\" translate>file.upload.date</span></th>\n" +
     "    <th translate>size</th>\n" +
-    "    <th translate>actions</th>\n" +
+    "    <th ng-show=\"deleteAttachments\" translate>actions</th>\n" +
     "  </tr>\n" +
     "  </thead>\n" +
     "  <tbody>\n" +
@@ -15494,7 +15497,7 @@ angular.module("attachment/attachment-input-template.html", []).run(["$templateC
     "          {{file.size | bytes}}\n" +
     "        </span>\n" +
     "    </td>\n" +
-    "    <td style=\"width:20px;\">\n" +
+    "    <td style=\"width:20px;\" ng-show=\"deleteAttachments\">\n" +
     "      <a ng-show=\"file.id\" ng-click=\"deleteFile(file.id)\" class=\"action\">\n" +
     "        <i class=\"fa fa-trash-o\"></i>\n" +
     "      </a>\n" +

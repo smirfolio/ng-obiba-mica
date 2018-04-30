@@ -18,7 +18,7 @@
     <th translate>data-access-request.default.documents.title</th>
     <th class="col-xs-2"><span class="pull-right" translate>file.upload.date</span></th>
     <th translate>size</th>
-    <th translate>actions</th>
+    <th ng-show="deleteAttachments" translate>actions</th>
   </tr>
   </thead>
   <tbody>
@@ -37,7 +37,7 @@
           {{file.size | bytes}}
         </span>
     </td>
-    <td style="width:20px;">
+    <td style="width:20px;" ng-show="deleteAttachments">
       <a ng-show="file.id" ng-click="deleteFile(file.id)" class="action">
         <i class="fa fa-trash-o"></i>
       </a>
