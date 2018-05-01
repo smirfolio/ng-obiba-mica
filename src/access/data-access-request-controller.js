@@ -75,17 +75,22 @@ ngObibaMica.access
               moment,
               $timeout) {
 
-      var onError = function (response) {
+
+      var TAB_NAMES = Object.freeze({
+        form: 0,
+        amendments: 1,
+        documents: 2,
+        comments: 3,
+        history: 4
+      });
+
+      function onError (response) {
         AlertService.alert({
           id: 'DataAccessRequestViewController',
           type: 'danger',
           msg: ServerErrorUtils.buildMessage(response)
         });
-      };
-
-      $scope.$on('$destroy', function() {
-        console.log('$onDestroy');
-      });
+      }
 
       function onAttachmentError(attachment) {
         AlertService.alert({
@@ -96,39 +101,36 @@ ngObibaMica.access
         });
       }
 
-      var retrieveComments = function() {
+      function retrieveComments() {
         $scope.form.comments = DataAccessRequestCommentsResource.query({id: $routeParams.id});
-      };
+      }
 
-      var selectTab = function(id) {
-        $scope.selectedTab = id;
-        switch (id) {
-          case 'amendments':
-            $scope.parentId = $scope.dataAccessRequest.id;
+      function selectTab(tab) {
+        $scope.parentId = undefined;
+
+        switch (tab) {
+          case TAB_NAMES.form:
+          case TAB_NAMES.history:
+          case TAB_NAMES.documents:
             break;
-          case 'comments':
-            var search = $location.search();
-            search.tab = TABS.amendments;
-            $location.search(search);
+          case TAB_NAMES.comments:
             retrieveComments();
-            /* falls through */
-          case 'form':
-            /* falls through */
-          default:
-            // so next time selecting amendments the list is refreshed
-            $scope.parentId = undefined;
+            break;
+          case TAB_NAMES.amendments:
+            $scope.parentId = $routeParams.id;
+            break;
         }
-      };
+      }
 
-      var submitComment = function(comment) {
-        DataAccessRequestCommentsResource.update({id: $routeParams.id}, comment.message, retrieveComments, onError);
-      };
+      function submitComment(comment) {
+        DataAccessRequestCommentsResource.save({id: $routeParams.id}, comment.message, retrieveComments, onError);
+      }
 
-      var updateComment = function(comment) {
+      function updateComment(comment) {
         DataAccessRequestCommentResource.update({id: $routeParams.id, commentId: comment.id}, comment.message, retrieveComments, onError);
-      };
+      }
 
-      var deleteComment = function(comment) {
+      function deleteComment(comment) {
         $scope.commentToDelete = comment.id;
 
         $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog,
@@ -138,18 +140,20 @@ ngObibaMica.access
             messageArgs: [comment.createdBy]
           }, comment.id
         );
-      };
+      }
 
-      var toggleAttachmentsForm = function(show) {
+      function toggleAttachmentsForm(show) {
         if (show) {
           $scope.attachments = angular.copy($scope.dataAccessRequest.attachments) || [];
         }
         $scope.showAttachmentsForm = show;
-      };
+      }
 
-      var getRequest = function () {
-        return DataAccessRequestResource.get({id: $routeParams.id}, function onSuccess(request) {
+      function getRequest() {
+        console.log('getRequest()');
+        return DataAccessRequestResource.get({id: $routeParams.id}).$promise.then(function onSuccess(request) {
           try {
+            $scope.dataAccessRequest = request;
             $scope.form.model = request.content ? JSON.parse(request.content) : {};
             var requestDownloadUrlPdf =  ngObibaMicaUrl.getUrl('DataAccessRequestDownloadPdfResource').replace(':id', $scope.dataAccessRequest.id);
             $scope.requestDownloadUrl = requestDownloadUrlPdf + ((requestDownloadUrlPdf.indexOf('?q=')!==-1)?'&':'?') +'lang=' + $translate.use();
@@ -173,17 +177,17 @@ ngObibaMica.access
           $scope.lastSubmittedDate = findLastSubmittedDate();
 
           return request;
-        });
-      };
+        }, onError);
+      }
 
-      var updateAttachments = function() {
+      function updateAttachments() {
         var request = angular.copy($scope.dataAccessRequest);
         request.attachments = $scope.attachments;
-        DataAccessRequestAttachmentsUpdateResource.update(request, function() {
+        DataAccessRequestAttachmentsUpdateResource.save(request, function() {
           toggleAttachmentsForm(false);
           $scope.dataAccessRequest = getRequest();
         });
-      };
+      }
 
       function initializeForm() {
         SfOptionsService.transform().then(function(options) {
@@ -246,68 +250,7 @@ ngObibaMica.access
         }).pop();
       }
 
-      var TABS = Object.freeze({
-        form: 'form',
-        amendments: 'amendments',
-        documents: 'documents',
-        comments: 'comments',
-        history: 'history'
-      });
-
-      function validateTabs() {
-        var search = $location.search();
-        search.tab = TABS[search.tab] || TABS.form;
-        $scope.activeTab = Object.keys(TABS).indexOf(search.tab);
-        $location.search(search);
-      }
-
-      $scope.form = {
-        schema: null,
-        definition: null,
-        model: {},
-        comments: null
-      };
-
-      $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, id) {
-        if ($scope.commentToDelete === id) {
-           DataAccessRequestCommentResource.delete({id: $routeParams.id, commentId: id}, {}, retrieveComments, onError);
-        }
-      });
-
-      $scope.getDownloadHref = function(attachment) {
-        return ngObibaMicaUrl.getUrl('DataAccessRequestAttachmentDownloadResource')
-          .replace(':id', $scope.dataAccessRequest.id).replace(':attachmentId', attachment.id);
-      };
-
-      $scope.config = DataAccessRequestConfig.getOptions();
-      $scope.actions = DataAccessEntityService.actions;
-      $scope.nextStatus = DataAccessEntityService.nextStatus;
-      $scope.selectTab = selectTab;
-      $scope.submitComment = submitComment;
-      $scope.updateComment = updateComment;
-      $scope.deleteComment = deleteComment;
-      $scope.showAttachmentsForm = false;
-      $scope.updateAttachments = updateAttachments;
-      $scope.cancelAttachments = function() {
-        toggleAttachmentsForm(false);
-      };
-      $scope.editAttachments = function() {
-        toggleAttachmentsForm(true);
-      };
-      $scope.onAttachmentError = onAttachmentError;
-      $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('view');
-      $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('view');
-      $scope.getStatusHistoryInfoId = DataAccessEntityService.getStatusHistoryInfoId;
-      DataAccessEntityService.getStatusHistoryInfo(function(statusHistoryInfo) {
-        $scope.getStatusHistoryInfo = statusHistoryInfo;
-      });
-
-      $scope.parentId = undefined;
-      $scope.validForm = true;
-
-      validateTabs();
-
-      $scope.delete = function () {
+      function deleteEntity() {
         $scope.requestToDelete = $scope.dataAccessRequest.id;
         $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog,
           {
@@ -316,9 +259,14 @@ ngObibaMica.access
             messageArgs: [$scope.dataAccessRequest.title, $scope.dataAccessRequest.applicant]
           }, $scope.requestToDelete
         );
-      };
+      }
 
-      $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, id) {
+      function getDownloadHref(attachment) {
+        return ngObibaMicaUrl.getUrl('DataAccessRequestAttachmentDownloadResource')
+          .replace(':id', $scope.dataAccessRequest.id).replace(':attachmentId', attachment.id);
+      }
+
+      function onDeleteConfirmed(event, id) {
         if ($scope.requestToDelete === id) {
           DataAccessRequestResource.delete({id: $scope.requestToDelete},
             function () {
@@ -327,15 +275,15 @@ ngObibaMica.access
 
           delete $scope.requestToDelete;
         }
-      });
+      }
 
-      var onUpdatStatusSuccess = function () {
+      function onUpdatStatusSuccess() {
         setTimeout(function () {
           $scope.dataAccessRequest = getRequest();
         });
-      };
+      }
 
-      var confirmStatusChange = function(status, messageKey, statusName) {
+      function confirmStatusChange(status, messageKey, statusName) {
         $rootScope.$broadcast(
           NOTIFICATION_EVENTS.showConfirmDialog,
           {
@@ -343,23 +291,23 @@ ngObibaMica.access
             messageKey: messageKey !== null ? messageKey : 'data-access-request.status-change-confirmation.message',
             messageArgs: statusName !== null ? [$filter('translate')(statusName).toLowerCase()] : []
           }, status);
-      };
+      }
 
-      var statusChangedConfirmed = function(status, expectedStatus) {
+      function statusChangedConfirmed(status, expectedStatus) {
         if (status === expectedStatus) {
           DataAccessRequestStatusResource.update({
             id: $scope.dataAccessRequest.id,
             status: status
           }, onUpdatStatusSuccess, onError);
         }
-      };
+      }
 
-      var printForm = function() {
+      function printForm() {
         // let angular digest!
         setTimeout(function(){ window.print(); }, 250);
-      };
+      }
 
-      $scope.submit = function () {
+      function submitForm() {
         $scope.$broadcast('schemaFormValidate');
         if ($scope.forms.requestForm.$valid) {
           DataAccessRequestStatusResource.update({
@@ -380,57 +328,106 @@ ngObibaMica.access
             msgKey: 'data-access-request.submit.invalid'
           });
         }
-      };
+      }
 
-      $scope.dataAccessRequest = $routeParams.id ? getRequest() : {};
-      $route.current.params.activeTab = 'amendments';
-
-      function update() {
-        var current = Object.keys(TABS).filter(function(key, index) {
-          return index === $scope.activeTab;
-        }).pop() || 'form';
-
-        switch (current) {
-          case TABS.form:
-            $scope.dataAccessRequest = $routeParams.id ? getRequest() : {};
-            break;
-          case TABS.amendments:
-            $scope.parentId = $scope.dataAccessRequest.id;
-            retrieveComments();
-            break;
+      function onDeleteCommentConfirmed(event, id) {
+        if ($scope.commentToDelete === id) {
+          DataAccessRequestCommentResource.delete({id: $routeParams.id, commentId: id}, {}, retrieveComments, onError);
         }
       }
 
-      function onLocationChange(event, newLocation, oldLocation) {
-        console.log('onLocationChange', newLocation, oldLocation, $location.path());
-        if (newLocation !== oldLocation) {
-          validateTabs();
-          update();
-          console.log('Active Tab', $scope.activeTab);
-          var search = $location.search;
-          console.log(search.tab);
-          if ('form' === search.tab) {
-            $scope.activeTab = 0;
-            $scope.dataAccessRequest = $routeParams.id ? getRequest() : {};
+      function reOpen() {
+        confirmStatusChange(DataAccessEntityService.status.OPENED, null, 'reopen');
+      }
+
+      function review() {
+        confirmStatusChange(DataAccessEntityService.status.REVIEWED, 'data-access-request.status-change-confirmation.message-review', null);
+      }
+
+      function approve() {
+        confirmStatusChange(DataAccessEntityService.status.APPROVED, null, 'approve');
+      }
+
+      function reject() {
+        confirmStatusChange(DataAccessEntityService.status.REJECTED, null, 'reject');
+      }
+
+      function conditionallyApprove() {
+        confirmStatusChange(DataAccessEntityService.status.CONDITIONALLY_APPROVED, null, 'conditionallyApprove');
+      }
+
+      function getAttributeValue(attributes, key) {
+        var result = attributes.filter(function (attribute) {
+          return attribute.key === key;
+        });
+
+        return result && result.length > 0 ? result[0].value : null;
+      }
+
+      function getFullName(profile) {
+        if (profile) {
+          if (profile.attributes) {
+            return getAttributeValue(profile.attributes, 'firstName') + ' ' + getAttributeValue(profile.attributes, 'lastName');
+          }
+          return profile.username;
+        }
+        return null;
+      }
+
+      function getProfileEmail(profile) {
+        if (profile) {
+          if (profile.attributes) {
+            return getAttributeValue(profile.attributes, 'email');
           }
         }
+        return null;
       }
 
-      $scope.reopen = function () {
-        confirmStatusChange(DataAccessEntityService.status.OPENED, null, 'reopen');
-      };
-      $scope.review = function () {
-        confirmStatusChange(DataAccessEntityService.status.REVIEWED, 'data-access-request.status-change-confirmation.message-review', null);
-      };
-      $scope.approve = function () {
-        confirmStatusChange(DataAccessEntityService.status.APPROVED, null, 'approve');
-      };
-      $scope.reject = function () {
-        confirmStatusChange(DataAccessEntityService.status.REJECTED, null, 'reject');
-      };
-      $scope.conditionallyApprove = function () {
-        confirmStatusChange(DataAccessEntityService.status.CONDITIONALLY_APPROVED, null, 'conditionallyApprove');
-      };
+      function onStatusOpened(event, status) {
+        statusChangedConfirmed(DataAccessEntityService.status.OPENED, status);
+      }
+
+      function onStatusReviewed(event, status) {
+        statusChangedConfirmed(DataAccessEntityService.status.REVIEWED, status);
+      }
+
+      function onStatusConditionallyApproved(event, status) {
+        statusChangedConfirmed(DataAccessEntityService.status.CONDITIONALLY_APPROVED, status);
+      }
+
+      function onStatusApproved(event, status) {
+        statusChangedConfirmed(DataAccessEntityService.status.APPROVED, status);
+      }
+
+      function onStatusRejected(event, status) {
+        statusChangedConfirmed(DataAccessEntityService.status.REJECTED, status);
+      }
+
+      $scope.parentId = undefined;
+      $scope.validForm = true;
+      $scope.config = DataAccessRequestConfig.getOptions();
+      $scope.actions = DataAccessEntityService.actions;
+      $scope.nextStatus = DataAccessEntityService.nextStatus;
+      $scope.showAttachmentsForm = false;
+      $scope.selectTab = selectTab;
+      $scope.delete = deleteEntity;
+      $scope.submitComment = submitComment;
+      $scope.updateComment = updateComment;
+      $scope.deleteComment = deleteComment;
+      $scope.getDownloadHref = getDownloadHref;
+      $scope.updateAttachments = updateAttachments;
+      $scope.cancelAttachments = function() {toggleAttachmentsForm(false);};
+      $scope.editAttachments = function() {toggleAttachmentsForm(true);};
+      $scope.onAttachmentError = onAttachmentError;
+      $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('view');
+      $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('view');
+      $scope.getStatusHistoryInfoId = DataAccessEntityService.getStatusHistoryInfoId;
+      $scope.submit = submitForm;
+      $scope.reopen = reOpen;
+      $scope.review = review;
+      $scope.approve = approve;
+      $scope.reject = reject;
+      $scope.conditionallyApprove = conditionallyApprove;
 
       $scope.userProfile = function (profile) {
         $scope.applicant = profile;
@@ -441,74 +438,30 @@ ngObibaMica.access
       };
 
       $scope.getDataAccessListPageUrl = DataAccessEntityService.getListDataAccessRequestPageUrl();
-
-      var getAttributeValue = function(attributes, key) {
-        var result = attributes.filter(function (attribute) {
-          return attribute.key === key;
-        });
-
-        return result && result.length > 0 ? result[0].value : null;
-      };
-
       $scope.printForm = printForm;
+      $scope.getFullName = getFullName;
+      $scope.getProfileEmail = getProfileEmail;
+      $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onDeleteConfirmed);
+      $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onDeleteCommentConfirmed);
+      $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onStatusOpened);
+      $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onStatusReviewed);
+      $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted,onStatusConditionallyApproved);
+      $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted,onStatusApproved);
+      $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted,onStatusRejected);
+      $rootScope.$on('$translateChangeSuccess', initializeForm);
 
-      $scope.getFullName = function (profile) {
-        if (profile) {
-          if (profile.attributes) {
-            return getAttributeValue(profile.attributes, 'firstName') + ' ' + getAttributeValue(profile.attributes, 'lastName');
-          }
-          return profile.username;
-        }
-        return null;
-      };
-
-      $scope.getProfileEmail = function (profile) {
-        if (profile) {
-          if (profile.attributes) {
-            return getAttributeValue(profile.attributes, 'email');
-          }
-        }
-        return null;
-      };
-
-      $scope.$on(
-        NOTIFICATION_EVENTS.confirmDialogAccepted,
-        function(event, status) {
-          statusChangedConfirmed(DataAccessEntityService.status.OPENED, status);
-        }
-      );
-      $scope.$on(
-        NOTIFICATION_EVENTS.confirmDialogAccepted,
-        function(event, status) {
-          statusChangedConfirmed(DataAccessEntityService.status.REVIEWED, status);
-        }
-      );
-      $scope.$on(
-        NOTIFICATION_EVENTS.confirmDialogAccepted,
-        function(event, status) {
-          statusChangedConfirmed(DataAccessEntityService.status.CONDITIONALLY_APPROVED, status);
-        }
-      );
-      $scope.$on(
-        NOTIFICATION_EVENTS.confirmDialogAccepted,
-        function(event, status) {
-          statusChangedConfirmed(DataAccessEntityService.status.APPROVED, status);
-        }
-      );
-      $scope.$on(
-        NOTIFICATION_EVENTS.confirmDialogAccepted,
-        function(event, status) {
-          statusChangedConfirmed(DataAccessEntityService.status.REJECTED, status);
-        }
-      );
-
-      $scope.$on('$locationChangeSuccess', onLocationChange);
-      $rootScope.$on('$translateChangeSuccess', function () {
-        initializeForm();
-      });
-
-      $scope.activeTab = 0;
+      console.log('Initialize');
+      $scope.tabs = {activeTab: 0};
+      $scope.TAB_NAMES = TAB_NAMES;
       $scope.forms = {};
+      $scope.form = {
+        schema: null,
+        definition: null,
+        model: {},
+        comments: null
+      };
+
+      $scope.dataAccessRequest = $routeParams.id ? getRequest() : {};
     }])
 
   .controller('DataAccessRequestEditController', ['$rootScope',
@@ -600,9 +553,9 @@ ngObibaMica.access
         $scope.dataAccessRequest.content = angular.toJson($scope.sfForm.model);
 
         if ($scope.newRequest) {
-          DataAccessRequestsResource.update($scope.dataAccessRequest, onSuccess, onError);
+          DataAccessRequestsResource.save($scope.dataAccessRequest, onSuccess, onError);
         } else {
-          DataAccessRequestResource.update($scope.dataAccessRequest, function() {
+          DataAccessRequestResource.save($scope.dataAccessRequest, function() {
             FormDirtyStateObserver.unobserve();
             $location.path('/data-access-request' + ($scope.dataAccessRequest.id ? '/' + $scope.dataAccessRequest.id : 's')).replace();
           }, onError);

@@ -25,12 +25,21 @@
                        $translate) {
     var ctrl = this;
 
+
+    function initializeAddButtonCaption() {
+      return ctrl.parentId === null ?
+        ctrl.config.newRequestButtonCaption || 'data-access-request.add' :
+        'data-access-amendment.add';
+
+    }
+
     function onInit () {
       ctrl.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl ('list');
       ctrl.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl ('list');
       ctrl.config = DataAccessRequestConfig.getOptions ();
       ctrl.searchStatus = {};
       ctrl.loading = true;
+      ctrl.addButtonCaption = initializeAddButtonCaption();
       ctrl.actions = DataAccessEntityService.actions;
       ctrl.showApplicant = SessionProxy.roles ().filter (function (role) {
         return [USER_ROLES.dao, USER_ROLES.admin].indexOf (role) > -1;
