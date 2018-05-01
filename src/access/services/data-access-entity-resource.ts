@@ -31,18 +31,23 @@ class DataAccessEntityResource implements IDataAccessEntityResourceFactory {
     "DataAccessRequestResource",
     "DataAccessAmendmentsResource",
     "DataAccessAmendmentResource",
+    "DataAccessRequestStatusResource",
+    "DataAccessAmendmentStatusResource",
   ];
 
-  constructor(private DataAccessRequestsResource: any,
-              private DataAccessRequestResource: any,
-              private DataAccessAmendmentsResource: any,
-              private DataAccessAmendmentResource: any) {
-  }
+  constructor(
+    private DataAccessRequestsResource: any,
+    private DataAccessRequestResource: any,
+    private DataAccessAmendmentsResource: any,
+    private DataAccessAmendmentResource: any,
+    private DataAccessRequestStatusResource: any,
+    private DataAccessAmendmentStatusResource: any,
+  ) { }
 
   public list(listUrl: string): any {
     const parentId: string = this.getParentId(listUrl);
     return parentId ?
-      this.DataAccessAmendmentsResource.query({parentId}) :
+      this.DataAccessAmendmentsResource.query({ parentId }) :
       this.DataAccessRequestsResource.query();
   }
 
@@ -63,15 +68,22 @@ class DataAccessEntityResource implements IDataAccessEntityResourceFactory {
   public get(entityRootPath: string, id: string): any {
     const parentId: string = this.getParentId(entityRootPath);
     return parentId ?
-      this.DataAccessAmendmentResource.get({parentId, id}) :
-      this.DataAccessRequestResource.get({id});
+      this.DataAccessAmendmentResource.get({ parentId, id }) :
+      this.DataAccessRequestResource.get({ id });
   }
 
   public delete(entityRootPath: string, id: string): any {
     const parentId: string = this.getParentId(entityRootPath);
     return parentId ?
-      this.DataAccessAmendmentResource.delete({parentId, id}) :
-      this.DataAccessRequestResource.delete({id});
+      this.DataAccessAmendmentResource.delete({ parentId, id }) :
+      this.DataAccessRequestResource.delete({ id });
+  }
+
+  public updateStatus(entityRootPath: string, id: string, status: string): any {
+    const parentId: string = this.getParentId(entityRootPath);
+    return parentId ?
+      this.DataAccessAmendmentStatusResource.update({ parentId, id, status }) :
+      this.DataAccessRequestStatusResource.update({ id, status });
   }
 
   private getParentId(url: string) {
