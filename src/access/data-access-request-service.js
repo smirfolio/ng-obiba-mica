@@ -14,68 +14,75 @@ ngObibaMica.access
   .factory('DataAccessFormConfigResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('DataAccessFormConfigResource'), {}, {
-        'get': {method: 'GET', errorHandler: true}
+        'get': { method: 'GET', errorHandler: true }
+      });
+    }])
+
+  .factory('DataAccessAmendmentFormConfigResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+      return $resource(ngObibaMicaUrl.getUrl('DataAccessAmendmentFormConfigResource'), {}, {
+        'get': { method: 'GET', errorHandler: true }
       });
     }])
 
   .factory('DataAccessRequestsResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestsResource'), {}, {
-        'save': {method: 'POST', errorHandler: true},
-        'get': {method: 'GET'}
+        'save': { method: 'POST', errorHandler: true },
+        'get': { method: 'GET' }
       });
     }])
 
   .factory('DataAccessRequestsExportCsvResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestsExportCsvResource'), {}, {
-        'get': {method: 'GET'}
+        'get': { method: 'GET' }
       });
     }])
 
   .factory('DataAccessRequestResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestResource'), {}, {
-        'save': {method: 'PUT', params: {id: '@id'}, errorHandler: true},
-        'get': {method: 'GET'},
-        'delete': {method: 'DELETE'}
+        'save': { method: 'PUT', params: { id: '@id' }, errorHandler: true },
+        'get': { method: 'GET' },
+        'delete': { method: 'DELETE' }
       });
     }])
 
   .factory('DataAccessAmendmentsResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('DataAccessAmendmentsResource'), {}, {
-        'save': {method: 'POST', params:{parentId: '@parentId'}, errorHandler: true},
-        'get': {method: 'GET', params:{parentId: '@parentId'}}
+        'save': { method: 'POST', params: { parentId: '@parentId' }, errorHandler: true },
+        'get': { method: 'GET', params: { parentId: '@parentId' } }
       });
     }])
 
   .factory('DataAccessAmendmentResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('DataAccessAmendmentResource'), {}, {
-        'save': {method: 'POST', errorHandler: true},
-        'get': {method: 'GET', params:{parentId: '@parentId', id: '@id'}},
-        'delete': {method: 'DELETE'}
+        'save': { method: 'POST', errorHandler: true },
+        'get': { method: 'GET', params: { parentId: '@parentId', id: '@id' } },
+        'delete': { method: 'DELETE' }
       });
     }])
 
   .factory('DataAccessRequestAttachmentsUpdateResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestAttachmentsUpdateResource'), {}, {
-        'save': {method: 'PUT', params: {id: '@id'}, errorHandler: true}
+        'save': { method: 'PUT', params: { id: '@id' }, errorHandler: true }
       });
     }])
 
-    .factory('DataAccessRequestCommentsResource', ['$resource', 'ngObibaMicaUrl',
+  .factory('DataAccessRequestCommentsResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestCommentsResource'), {}, {
         'save': {
           method: 'POST',
-          params: {id: '@id'},
-          headers: {'Content-Type': 'text/plain'},
+          params: { id: '@id' },
+          headers: { 'Content-Type': 'text/plain' },
           errorHandler: true
         },
-        'get': {method: 'GET', params: {id: '@id'}, errorHandler: true}
+        'get': { method: 'GET', params: { id: '@id' }, errorHandler: true }
       });
     }])
 
@@ -84,13 +91,13 @@ ngObibaMica.access
       return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestCommentResource'), {}, {
         'delete': {
           method: 'DELETE',
-          params: {id: '@id', commentId: '@commentId'},
+          params: { id: '@id', commentId: '@commentId' },
           errorHandler: true
         },
         'update': {
           method: 'PUT',
-          params: {id: '@id', commentId: '@commentId'},
-          headers: {'Content-Type': 'text/plain'},
+          params: { id: '@id', commentId: '@commentId' },
+          headers: { 'Content-Type': 'text/plain' },
           errorHandler: true
         }
       });
@@ -101,7 +108,18 @@ ngObibaMica.access
       return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestStatusResource'), {}, {
         'update': {
           method: 'PUT',
-          params: {id: '@id', status: '@status'},
+          params: { id: '@id', status: '@status' },
+          errorHandler: true
+        }
+      });
+    }])
+
+  .factory('DataAccessAmendmentStatusResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+      return $resource(ngObibaMicaUrl.getUrl('DataAccessAmendmentStatusResource'), {}, {
+        'update': {
+          method: 'PUT',
+          params: { id: '@id', parentId: '@parentId', status: '@status' },
           errorHandler: true
         }
       });
@@ -119,7 +137,7 @@ ngObibaMica.access
     };
 
     this.setOptions = function (newOptions) {
-      if (typeof(newOptions) === 'object') {
+      if (typeof (newOptions) === 'object') {
         Object.keys(newOptions).forEach(function (option) {
           if (option in options) {
             options[option] = newOptions[option];
@@ -135,7 +153,7 @@ ngObibaMica.access
   })
 
   .service('DataAccessRequestDirtyStateService', [
-    function() {
+    function () {
       var form = null;
 
       this.setForm = function (f) {
@@ -157,8 +175,8 @@ ngObibaMica.access
     };
   })
 
-  .filter('capitalizeFirstLetter', ['StringUtils', function(StringUtils){
-    return function(text) {
+  .filter('capitalizeFirstLetter', ['StringUtils', function (StringUtils) {
+    return function (text) {
       return StringUtils.capitaliseFirstLetter(text);
     };
   }]);

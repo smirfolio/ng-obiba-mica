@@ -77,7 +77,7 @@
         <tr
           dir-paginate="request in $ctrl.requests | filter:{status: $ctrl.searchStatus.filter.key} : true | filter:$ctrl.searchText | itemsPerPage: 20">
           <td>
-            <a ng-href="{{$ctrl.getDataAccessRequestPageUrl()}}#/data-access-request/{{request.id}}"
+            <a ng-href="#{{$ctrl.entityBaseUrl}}/{{request.id}}"
                ng-if="$ctrl.actions.canView(request)" translate>{{request.id}}</a>
             <span ng-if="!$ctrl.actions.canView(request)">{{request.id}}</span>
           </td>

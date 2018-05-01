@@ -117,6 +117,7 @@ function NgObibaMicaTemplateUrlFactory() {
             'DataAccessClientDetailPath': '',
             'DataAccessClientListPath': '',
             'DataAccessFormConfigResource': 'ws/config/data-access-form',
+            'DataAccessAmendmentFormConfigResource': 'ws/config/data-access-amendment-form',
             'DataAccessRequestsResource': 'ws/data-access-requests',
             'DataAccessAmendmentsResource': 'ws/data-access-request/:parentId/amendments',
             'DataAccessAmendmentResource': 'ws/data-access-request/:parentId/amendment/:id',
@@ -129,6 +130,7 @@ function NgObibaMicaTemplateUrlFactory() {
             'DataAccessRequestCommentsResource': 'ws/data-access-request/:id/comments',
             'DataAccessRequestCommentResource': 'ws/data-access-request/:id/comment/:commentId',
             'DataAccessRequestStatusResource': 'ws/data-access-request/:id/_status?to=:status',
+            'DataAccessAmendmentStatusResource': 'ws/data-access-request/:parentId/amendment/:id/_status?to=:status',
             'TempFileUploadResource': 'ws/files/temp',
             'TempFileResource': 'ws/files/temp/:id',
             'TaxonomiesSearchResource': 'ws/taxonomies/_search',
@@ -489,6 +491,79 @@ var CustomWatchDomElementService = /** @class */ (function () {
 }());
 ngObibaMica.utils.service("CustomWatchDomElementService", [CustomWatchDomElementService]);
 //# sourceMappingURL=custom-watch-dom-element-service.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+'use strict';
+(function () {
+    function Controller($rootScope, $timeout, LocalizedSchemaFormService, SfOptionsService, JsonUtils) {
+        var ctrl = this, scope = $rootScope.$new();
+        ctrl.form = {};
+        ctrl.sfOptions = {};
+        function broadcastSchemaFormRedraw() {
+            $timeout(function () {
+                ctrl.form = angular.copy(ctrl.form);
+                scope.$broadcast('schemaFormRedraw');
+            }, 250);
+        }
+        function validateSchemaParsing(schema, parseErrorCallback) {
+            if (Object.getOwnPropertyNames(schema).length === 0) {
+                schema = {};
+                if (typeof parseErrorCallback === 'function') {
+                    parseErrorCallback();
+                }
+            }
+            return schema;
+        }
+        function validateDefinitionParsing(definition, parseErrorCallback) {
+            if (definition.length === 0) {
+                definition = [];
+                if (typeof parseErrorCallback === 'function') {
+                    parseErrorCallback();
+                }
+            }
+            return definition;
+        }
+        function getParsingErrorCallback(type) {
+            if (typeof ctrl.parsingErrorCallbacks !== 'object') {
+                return null;
+            }
+            return ctrl.parsingErrorCallbacks[type];
+        }
+        function onChanges(changes) {
+            if (changes && changes.schemaForm && changes.schemaForm.currentValue) {
+                var form = changes.schemaForm.currentValue;
+                ctrl.form.definition = validateDefinitionParsing(LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(form.definition, [])), getParsingErrorCallback('definition'));
+                ctrl.form.schema = validateSchemaParsing(LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(form.schema, {})), getParsingErrorCallback('schema'));
+                ctrl.form.downloadTemplate = form.pdfDownloadType === 'Template';
+                ctrl.form.schema.readonly = ctrl.readOnly;
+            }
+            broadcastSchemaFormRedraw();
+        }
+        SfOptionsService.transform().then(function (options) {
+            ctrl.sfOptions = options;
+            ctrl.sfOptions.pristine = { errors: true, success: false };
+        });
+        ctrl.$onChanges = onChanges;
+    }
+    angular.module('obiba.mica.utils').component('obibaSchemaFormRenderer', {
+        bindings: {
+            schemaForm: '<',
+            model: '<',
+            readOnly: '<',
+            parsingErrorCallbacks: '<'
+        },
+        templateUrl: 'utils/components/entity-schema-form/component.html',
+        controller: ['$rootScope', '$timeout', 'LocalizedSchemaFormService', 'SfOptionsService', 'JsonUtils', Controller]
+    });
+})();
+//# sourceMappingURL=component.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
@@ -872,6 +947,63 @@ ngObibaMica.access
     });
 })();
 //# sourceMappingURL=component.js.map
+'use strict';
+(function () {
+    function Service($rootScope, $filter, DataAccessEntityResource, DataAccessEntityService, NOTIFICATION_EVENTS) {
+        this.for = function (accessEntity, successCallback, errorCallback) {
+            var entityRootpath = accessEntity['obiba.mica.DataAccessAmendmentDto.amendment'] ?
+                '/data-access-request/' + accessEntity['obiba.mica.DataAccessAmendmentDto.amendment'].parentId + '/amendment/' + accessEntity.id :
+                '/data-access-request/' + accessEntity.id;
+            var scope = $rootScope.$new();
+            var confirmStatusChange = function (status, messageKey, statusName) {
+                scope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
+                    titleKey: 'data-access-request.status-change-confirmation.title',
+                    messageKey: messageKey !== null ? messageKey : 'data-access-request.status-change-confirmation.message',
+                    messageArgs: statusName !== null ? [$filter('translate')(statusName).toLowerCase()] : []
+                }, status);
+            };
+            var statusChangedConfirmed = function (status, expectedStatus) {
+                if (status === expectedStatus) {
+                    DataAccessEntityResource.updateStatus(entityRootpath, accessEntity.id, status).then(successCallback, errorCallback);
+                }
+            };
+            this.reopen = function () {
+                confirmStatusChange(DataAccessEntityService.status.OPENED, null, 'reopen');
+            };
+            this.review = function () {
+                confirmStatusChange(DataAccessEntityService.status.REVIEWED, 'data-access-request.status-change-confirmation.message-review', null);
+            };
+            this.approve = function () {
+                confirmStatusChange(DataAccessEntityService.status.APPROVED, null, 'approve');
+            };
+            this.reject = function () {
+                confirmStatusChange(DataAccessEntityService.status.REJECTED, null, 'reject');
+            };
+            this.conditionallyApprove = function () {
+                confirmStatusChange(DataAccessEntityService.status.CONDITIONALLY_APPROVED, null, 'conditionallyApprove');
+            };
+            scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, status) {
+                statusChangedConfirmed(DataAccessEntityService.status.OPENED, status);
+            });
+            scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, status) {
+                statusChangedConfirmed(DataAccessEntityService.status.REVIEWED, status);
+            });
+            scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, status) {
+                statusChangedConfirmed(DataAccessEntityService.status.CONDITIONALLY_APPROVED, status);
+            });
+            scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, status) {
+                statusChangedConfirmed(DataAccessEntityService.status.APPROVED, status);
+            });
+            scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, status) {
+                statusChangedConfirmed(DataAccessEntityService.status.REJECTED, status);
+            });
+            return entityRootpath;
+        };
+        console.log(DataAccessEntityService);
+    }
+    angular.module('obiba.mica.access').service('DataAccessEntityFormService', ['$rootScope', '$filter', 'DataAccessEntityResource', 'DataAccessEntityService', 'NOTIFICATION_EVENTS', Service]);
+})();
+//# sourceMappingURL=data-access-entity-form-service.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
@@ -883,11 +1015,13 @@ ngObibaMica.access
  */
 "use strict";
 var DataAccessEntityResource = /** @class */ (function () {
-    function DataAccessEntityResource(DataAccessRequestsResource, DataAccessRequestResource, DataAccessAmendmentsResource, DataAccessAmendmentResource) {
+    function DataAccessEntityResource(DataAccessRequestsResource, DataAccessRequestResource, DataAccessAmendmentsResource, DataAccessAmendmentResource, DataAccessRequestStatusResource, DataAccessAmendmentStatusResource) {
         this.DataAccessRequestsResource = DataAccessRequestsResource;
         this.DataAccessRequestResource = DataAccessRequestResource;
         this.DataAccessAmendmentsResource = DataAccessAmendmentsResource;
         this.DataAccessAmendmentResource = DataAccessAmendmentResource;
+        this.DataAccessRequestStatusResource = DataAccessRequestStatusResource;
+        this.DataAccessAmendmentStatusResource = DataAccessAmendmentStatusResource;
     }
     DataAccessEntityResource.prototype.list = function (listUrl) {
         var parentId = this.getParentId(listUrl);
@@ -919,6 +1053,12 @@ var DataAccessEntityResource = /** @class */ (function () {
             this.DataAccessAmendmentResource.delete({ parentId: parentId, id: id }) :
             this.DataAccessRequestResource.delete({ id: id });
     };
+    DataAccessEntityResource.prototype.updateStatus = function (entityRootPath, id, status) {
+        var parentId = this.getParentId(entityRootPath);
+        return parentId ?
+            this.DataAccessAmendmentStatusResource.update({ parentId: parentId, id: id, status: status }) :
+            this.DataAccessRequestStatusResource.update({ id: id, status: status });
+    };
     DataAccessEntityResource.prototype.getParentId = function (url) {
         var parentId = /data-access-request\/(.*)\/amendment/.exec(url);
         return parentId && parentId.length === 2 ? parentId[parentId.index] : null;
@@ -928,6 +1068,8 @@ var DataAccessEntityResource = /** @class */ (function () {
         "DataAccessRequestResource",
         "DataAccessAmendmentsResource",
         "DataAccessAmendmentResource",
+        "DataAccessRequestStatusResource",
+        "DataAccessAmendmentStatusResource",
     ];
     return DataAccessEntityResource;
 }());
@@ -1670,6 +1812,65 @@ ngObibaMica.access
         });
     }]);
 //# sourceMappingURL=data-access-request-controller.js.map
+'use strict';
+(function () {
+    function Controller($scope, $routeParams, $uibModal, DataAccessEntityResource, DataAccessEntityService, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, ngObibaMicaAccessTemplateUrl) {
+        console.log($routeParams);
+        $scope.entityUrl = DataAccessEntityUrls.getDataAccessAmendmentUrl($routeParams.parentId, $routeParams.id);
+        var amendment = DataAccessEntityResource.get($scope.entityUrl, $routeParams.id);
+        var model = amendment.$promise.then(function (data) {
+            return data.content ? JSON.parse(data.content) : {};
+        });
+        var dataAccessForm = DataAccessAmendmentFormConfigResource.get();
+        var response = Promise.all([amendment, model, dataAccessForm]).then(function (values) {
+            $scope.requestEntity = values[0];
+            $scope.model = values[1];
+            $scope.dataAccessForm = values[2];
+            $scope.actions = DataAccessEntityService.actions;
+            $scope.nextStatus = DataAccessEntityService.nextStatus;
+            return values;
+        }, function (reason) {
+            return reason;
+        });
+        console.log('response', response);
+        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('view');
+        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('view');
+        // Begin profileService    
+        function getAttributeValue(attributes, key) {
+            var result = attributes.filter(function (attribute) {
+                return attribute.key === key;
+            });
+            return result && result.length > 0 ? result[0].value : null;
+        }
+        $scope.userProfile = function (profile) {
+            $scope.applicant = profile;
+            $uibModal.open({
+                scope: $scope,
+                templateUrl: 'access/views/data-access-request-profile-user-modal.html'
+            });
+        };
+        $scope.getFullName = function (profile) {
+            if (profile) {
+                if (profile.attributes) {
+                    return getAttributeValue(profile.attributes, 'firstName') + ' ' + getAttributeValue(profile.attributes, 'lastName');
+                }
+                return profile.username;
+            }
+            return null;
+        };
+        $scope.getProfileEmail = function (profile) {
+            if (profile) {
+                if (profile.attributes) {
+                    return getAttributeValue(profile.attributes, 'email');
+                }
+            }
+            return null;
+        };
+        // End profileService
+    }
+    angular.module('obiba.mica.access').controller('DataAccessAmendmentViewController', ['$scope', '$routeParams', '$uibModal', 'DataAccessEntityResource', 'DataAccessEntityService', 'DataAccessAmendmentFormConfigResource', 'DataAccessEntityUrls', 'ngObibaMicaAccessTemplateUrl', Controller]);
+})();
+//# sourceMappingURL=data-access-amendment-view-controller.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
@@ -1700,6 +1901,21 @@ ngObibaMica.access
             templateUrl: 'access/views/data-access-request-view.html',
             controller: 'DataAccessRequestViewController',
             reloadOnSearch: false
+        })
+            .when('/data-access-request/:parentId/amendment/new', {
+            templateUrl: 'access/views/data-access-amendment-view.html',
+            controller: 'DataAccessAmendmentEditController',
+            reloadOnSearch: false
+        })
+            .when('/data-access-request/:parentId/amendment/:id/edit', {
+            templateUrl: 'access/views/data-access-amendment-view.html',
+            controller: 'DataAccessAmendmentEditController',
+            reloadOnSearch: false
+        })
+            .when('/data-access-request/:parentId/amendment/:id', {
+            templateUrl: 'access/views/data-access-amendment-view.html',
+            controller: 'DataAccessAmendmentViewController',
+            reloadOnSearch: false
         });
     }]);
 //# sourceMappingURL=data-access-request-router.js.map
@@ -1717,6 +1933,12 @@ ngObibaMica.access
     .factory('DataAccessFormConfigResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
         return $resource(ngObibaMicaUrl.getUrl('DataAccessFormConfigResource'), {}, {
+            'get': { method: 'GET', errorHandler: true }
+        });
+    }])
+    .factory('DataAccessAmendmentFormConfigResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+        return $resource(ngObibaMicaUrl.getUrl('DataAccessAmendmentFormConfigResource'), {}, {
             'get': { method: 'GET', errorHandler: true }
         });
     }])
@@ -1796,6 +2018,16 @@ ngObibaMica.access
             'update': {
                 method: 'PUT',
                 params: { id: '@id', status: '@status' },
+                errorHandler: true
+            }
+        });
+    }])
+    .factory('DataAccessAmendmentStatusResource', ['$resource', 'ngObibaMicaUrl',
+    function ($resource, ngObibaMicaUrl) {
+        return $resource(ngObibaMicaUrl.getUrl('DataAccessAmendmentStatusResource'), {}, {
+            'update': {
+                method: 'PUT',
+                params: { id: '@id', parentId: '@parentId', status: '@status' },
                 errorHandler: true
             }
         });
@@ -4627,7 +4859,6 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
             };
             function onLocationChange(event, newLocation, oldLocation) {
                 if (newLocation !== oldLocation) {
-                    console.log('AAAA');
                     try {
                         validateBucket($location.search().bucket);
                         executeSearchQuery();
@@ -14462,7 +14693,7 @@ ngObibaMica.fileBrowser
         };
     }]);
 //# sourceMappingURL=file-browser-service.js.map
-angular.module('templates-ngObibaMica', ['access/components/entity-list/component.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/cart-documents-table/component.html', 'sets/views/cart.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+angular.module('templates-ngObibaMica', ['access/components/entity-list/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-print-preview.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/cart-documents-table/component.html', 'sets/views/cart.html', 'utils/components/entity-schema-form/component.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/components/entity-list/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/components/entity-list/component.html",
@@ -14545,7 +14776,7 @@ angular.module("access/components/entity-list/component.html", []).run(["$templa
     "        <tr\n" +
     "          dir-paginate=\"request in $ctrl.requests | filter:{status: $ctrl.searchStatus.filter.key} : true | filter:$ctrl.searchText | itemsPerPage: 20\">\n" +
     "          <td>\n" +
-    "            <a ng-href=\"{{$ctrl.getDataAccessRequestPageUrl()}}#/data-access-request/{{request.id}}\"\n" +
+    "            <a ng-href=\"#{{$ctrl.entityBaseUrl}}/{{request.id}}\"\n" +
     "               ng-if=\"$ctrl.actions.canView(request)\" translate>{{request.id}}</a>\n" +
     "            <span ng-if=\"!$ctrl.actions.canView(request)\">{{request.id}}</span>\n" +
     "          </td>\n" +
@@ -14599,6 +14830,79 @@ angular.module("access/components/entity-list/component.html", []).run(["$templa
     "  </div>\n" +
     "</div>\n" +
     "");
+}]);
+
+angular.module("access/views/data-access-amendment-view.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("access/views/data-access-amendment-view.html",
+    "<div>\n" +
+    "  <div class=\"visible-print\" print-friendly-view></div>\n" +
+    "  <div class=\"hidden-print\">\n" +
+    "    <div ng-if=\"headerTemplateUrl\" ng-include=\"headerTemplateUrl\"></div>\n" +
+    "\n" +
+    "    <obiba-alert id=\"DataAccessAmendmentViewController\"></obiba-alert>\n" +
+    "\n" +
+    "    <p class=\"help-block pull-left\"><span translate>created-by</span>\n" +
+    "      <span ng-if=\"!actions.canViewProfile('mica-data-access-officer')\">\n" +
+    "         {{getFullName(requestEntity.profile) || requestEntity.applicant}}\n" +
+    "      </span>      \n" +
+    "      <a href ng-click=\"userProfile(requestEntity.profile)\"\n" +
+    "          ng-if=\"actions.canViewProfile('mica-data-access-officer')\">\n" +
+    "        {{getFullName(requestEntity.profile) || requestEntity.applicant}}</a>,\n" +
+    "      <span title=\"{{requestEntity.timestamps.created | amDateFormat: 'lll'}}\">{{requestEntity.timestamps.created | amCalendar}}</span>\n" +
+    "      <span class=\"label label-success\">{{requestEntity.status | translate}}</span>\n" +
+    "    </p>\n" +
+    "\n" +
+    "    <div class=\"pull-right\">\n" +
+    "      <a ng-click=\"submit()\"\n" +
+    "        ng-if=\"actions.canEditStatus(requestEntity) && nextStatus.canSubmit(requestEntity)\"\n" +
+    "        class=\"btn btn-info\" translate>submit\n" +
+    "      </a>\n" +
+    "      <a ng-click=\"reopen()\"\n" +
+    "        ng-if=\"actions.canEditStatus(requestEntity) && nextStatus.canReopen(requestEntity)\"\n" +
+    "        class=\"btn btn-info\" translate>reopen\n" +
+    "      </a>\n" +
+    "      <a ng-click=\"review()\"\n" +
+    "        ng-if=\"actions.canEditStatus(requestEntity) && nextStatus.canReview(requestEntity)\"\n" +
+    "        class=\"btn btn-info\" translate>review\n" +
+    "      </a>\n" +
+    "      <a ng-click=\"conditionallyApprove()\"\n" +
+    "         ng-if=\"actions.canEditStatus(requestEntity) && nextStatus.canConditionallyApprove(requestEntity)\"\n" +
+    "         class=\"btn btn-info\" translate>conditionallyApprove\n" +
+    "      </a>\n" +
+    "      <a ng-click=\"approve()\"\n" +
+    "        ng-if=\"actions.canEditStatus(requestEntity) && nextStatus.canApprove(requestEntity)\"\n" +
+    "        class=\"btn btn-info\" translate>approve\n" +
+    "      </a>\n" +
+    "      <a ng-click=\"reject()\"\n" +
+    "        ng-if=\"actions.canEditStatus(requestEntity) && nextStatus.canReject(requestEntity)\"\n" +
+    "        class=\"btn btn-info\" translate>reject\n" +
+    "      </a>\n" +
+    "      <a ng-href=\"#{{entityUrl}}/edit\"\n" +
+    "        ng-if=\"actions.canEdit(requestEntity)\"\n" +
+    "        class=\"btn btn-primary\" title=\"{{'edit' | translate}}\">\n" +
+    "        <i class=\"fa fa-pencil-square-o\"></i>\n" +
+    "      </a>\n" +
+    "      <a ng-if=\"dataAccessForm.pdfDownloadType !== 'Template'\" ng-click=\"printForm()\"\n" +
+    "         class=\"btn btn-default\" title=\"{{'global.print' | translate}}\">\n" +
+    "        <i class=\"fa fa-print\"></i> <span translate>global.print</span>\n" +
+    "      </a>\n" +
+    "      <a ng-if=\"dataAccessForm.pdfDownloadType === 'Template'\" target=\"_self\" href=\"{{requestDownloadUrl}}\" class=\"btn btn-default\">\n" +
+    "        <i class=\"fa fa-download\"></i> <span>{{config.downloadButtonCaption || 'download' | translate}}</span>\n" +
+    "      </a>\n" +
+    "      <a ng-click=\"delete()\"\n" +
+    "        ng-if=\"actions.canDelete(requestEntity)\"\n" +
+    "        class=\"btn btn-danger\" title=\"{{'delete' | translate}}\">\n" +
+    "        <i class=\"fa fa-trash-o\"></i>\n" +
+    "      </a>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div class=\"clearfix\"></div>\n" +
+    "\n" +
+    "    <form id=\"request-form\" name=\"forms.requestForm\">\n" +
+    "      <obiba-schema-form-renderer model=\"model\" schema-form=\"dataAccessForm\" read-only=\"true\"></obiba-schema-form-renderer>\n" +
+    "    </form>\n" +
+    "  </div>\n" +
+    "</div>");
 }]);
 
 angular.module("access/views/data-access-request-documents-view.html", []).run(["$templateCache", function($templateCache) {
@@ -14958,7 +15262,7 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "\n" +
     "<div>\n" +
     "  <div class=\"visible-print\" print-friendly-view></div>\n" +
-    "  <div class=\"hidden-print\" ng-if=\"dataAccessRequest || parentId || form.comments\">\n" +
+    "  <div class=\"hidden-print\">\n" +
     "    <div ng-if=\"headerTemplateUrl\" ng-include=\"headerTemplateUrl\"></div>\n" +
     "\n" +
     "    <obiba-alert id=\"DataAccessRequestViewController\"></obiba-alert>\n" +
@@ -19101,6 +19405,11 @@ angular.module("sets/views/cart.html", []).run(["$templateCache", function($temp
     "    on-page-change=\"onPaginate\"></cart-documents-table>\n" +
     "  <p ng-hide=\"loading || variables && variables.total>0\" translate>sets.cart.no-variables</p>\n" +
     "</div>");
+}]);
+
+angular.module("utils/components/entity-schema-form/component.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("utils/components/entity-schema-form/component.html",
+    "<div sf-model=\"$ctrl.model\" sf-form=\"$ctrl.form.definition\" sf-schema=\"$ctrl.form.schema\" sf-options=\"$ctrl.sfOptions\"></div>");
 }]);
 
 angular.module("utils/views/unsaved-modal.html", []).run(["$templateCache", function($templateCache) {
