@@ -1,15 +1,14 @@
 'use strict';
 
 (function () {
-  function Service($rootScope, $filter, DataAccessEntityResource, DataAccessEntityService, NOTIFICATION_EVENTS) {
+  function Service($rootScope, $filter, DataAccessEntityUrls, DataAccessEntityResource, DataAccessEntityService, NOTIFICATION_EVENTS) {
     this.for = function (accessEntity, successCallback, errorCallback) {
-      var entityRootpath = accessEntity['obiba.mica.DataAccessAmendmentDto.amendment'] ?
-        '/data-access-request/' + accessEntity['obiba.mica.DataAccessAmendmentDto.amendment'].parentId + '/amendment/' + accessEntity.id :
-        '/data-access-request/' + accessEntity.id;
+      var entityRootpath = accessEntity['obiba.mica.DataAccessAmendmentDto.amendment'] ? DataAccessEntityUrls.getDataAccessAmendmentUrl(accessEntity['obiba.mica.DataAccessAmendmentDto.amendment'].parentId, accessEntity.id) :
+        DataAccessEntityUrls.getDataAccessRequestUrl(accessEntity.id);
 
       var scope = $rootScope.$new();
 
-      var confirmStatusChange = function (status, messageKey, statusName) {
+      function confirmStatusChange(status, messageKey, statusName) {
         scope.$broadcast(
           NOTIFICATION_EVENTS.showConfirmDialog,
           {
@@ -17,13 +16,13 @@
             messageKey: messageKey !== null ? messageKey : 'data-access-request.status-change-confirmation.message',
             messageArgs: statusName !== null ? [$filter('translate')(statusName).toLowerCase()] : []
           }, status);
-      };
+      }
 
-      var statusChangedConfirmed = function (status, expectedStatus) {
+      function statusChangedConfirmed(status, expectedStatus) {
         if (status === expectedStatus) {
-          DataAccessEntityResource.updateStatus(entityRootpath, accessEntity.id, status).then(successCallback, errorCallback);
+          DataAccessEntityResource.updateStatus(entityRootpath, accessEntity.id, status).$promise.then(successCallback, errorCallback);
         }
-      };
+      }
 
       this.reopen = function () {
         confirmStatusChange(DataAccessEntityService.status.OPENED, null, 'reopen');
@@ -80,11 +79,9 @@
         }
       );
 
-      return entityRootpath;
+      return this;
     };
-
-    console.log(DataAccessEntityService);
   }
 
-  angular.module('obiba.mica.access').service('DataAccessEntityFormService', ['$rootScope', '$filter', 'DataAccessEntityResource', 'DataAccessEntityService', 'NOTIFICATION_EVENTS', Service]);
+  angular.module('obiba.mica.access').service('DataAccessEntityFormService', ['$rootScope', '$filter', 'DataAccessEntityUrls', 'DataAccessEntityResource', 'DataAccessEntityService', 'NOTIFICATION_EVENTS', Service]);
 })();

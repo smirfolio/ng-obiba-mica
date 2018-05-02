@@ -60,8 +60,8 @@ ngObibaMica.access
   .factory('DataAccessAmendmentResource', ['$resource', 'ngObibaMicaUrl',
     function ($resource, ngObibaMicaUrl) {
       return $resource(ngObibaMicaUrl.getUrl('DataAccessAmendmentResource'), {}, {
-        'save': { method: 'POST', errorHandler: true },
-        'get': { method: 'GET', params: { parentId: '@parentId', id: '@id' } },
+        'save': { method: 'PUT', params: { parentId: '@parentId', id: '@id' }, errorHandler: true },
+        'get': { method: 'GET' },
         'delete': { method: 'DELETE' }
       });
     }])

@@ -55,9 +55,7 @@
     }
 
     function onChanges (changed) {
-      console.log('onChanges', changed);
       if (changed.parentId && changed.parentId.currentValue !== undefined) {
-        console.log('ParentID', ctrl.parentId);
         if (changed.parentId.currentValue === null) {
           ctrl.listUrl = DataAccessEntityUrls.getDataAccessRequestsUrl();
           ctrl.entityBaseUrl = DataAccessEntityUrls.getDataAccessRequestBaseUrl();
