@@ -150,7 +150,6 @@ ngObibaMica.access
       }
 
       function getRequest() {
-        console.log('getRequest()');
         return DataAccessRequestResource.get({id: $routeParams.id}).$promise.then(function onSuccess(request) {
           try {
             $scope.dataAccessRequest = request;
@@ -450,7 +449,6 @@ ngObibaMica.access
       $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted,onStatusRejected);
       $rootScope.$on('$translateChangeSuccess', initializeForm);
 
-      console.log('Initialize');
       $scope.tabs = {activeTab: 0};
       $scope.TAB_NAMES = TAB_NAMES;
       $scope.forms = {};
