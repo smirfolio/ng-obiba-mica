@@ -982,11 +982,11 @@ ngObibaMica.access.component("printFriendlyView", new PrintFriendlyComponent());
 (function () {
     function Service($rootScope, $filter, DataAccessEntityUrls, DataAccessEntityResource, DataAccessEntityService, NOTIFICATION_EVENTS) {
         this.for = function (accessEntity, successCallback, errorCallback) {
-            var entityRootpath = accessEntity['obiba.mica.DataAccessAmendmentDto.amendment'] ? DataAccessEntityUrls.getDataAccessAmendmentUrl(accessEntity['obiba.mica.DataAccessAmendmentDto.amendment'].parentId, accessEntity.id) :
+            var entityRootpath = accessEntity.parentId ? DataAccessEntityUrls.getDataAccessAmendmentUrl(accessEntity.parentId, accessEntity.id) :
                 DataAccessEntityUrls.getDataAccessRequestUrl(accessEntity.id);
             var scope = $rootScope.$new();
             function confirmStatusChange(status, messageKey, statusName) {
-                scope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
+                $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
                     titleKey: 'data-access-request.status-change-confirmation.title',
                     messageKey: messageKey !== null ? messageKey : 'data-access-request.status-change-confirmation.message',
                     messageArgs: statusName !== null ? [$filter('translate')(statusName).toLowerCase()] : []
@@ -1011,6 +1011,9 @@ ngObibaMica.access.component("printFriendlyView", new PrintFriendlyComponent());
             };
             this.conditionallyApprove = function () {
                 confirmStatusChange(DataAccessEntityService.status.CONDITIONALLY_APPROVED, null, 'conditionallyApprove');
+            };
+            this.printForm = function () {
+                setTimeout(function () { window.print(); }, 250);
             };
             scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, status) {
                 statusChangedConfirmed(DataAccessEntityService.status.OPENED, status);
@@ -1454,7 +1457,6 @@ ngObibaMica.access
             });
         }
         function initializeForm() {
-            console.log('initializeForm');
             SfOptionsService.transform().then(function (options) {
                 $scope.sfOptions = options;
                 $scope.sfOptions.pristine = { errors: true, success: false };
@@ -1462,7 +1464,6 @@ ngObibaMica.access
             // Retrieve form data
             DataAccessFormConfigResource.get(function onSuccess(dataAccessForm) {
                 $scope.dataAccessForm = dataAccessForm;
-                console.log('dataAccessForm', $scope.dataAccessForm);
             }, onError);
         }
         function findLastSubmittedDate() {
@@ -1817,7 +1818,7 @@ ngObibaMica.access
 //# sourceMappingURL=data-access-request-controller.js.map
 'use strict';
 (function () {
-    function Controller($scope, $location, $routeParams, $uibModal, DataAccessEntityResource, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, ServerErrorUtils, AlertService, DataAccessRequestDirtyStateService, FormDirtyStateObserver) {
+    function Controller($scope, $location, $routeParams, $uibModal, DataAccessEntityResource, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, ServerErrorUtils, AlertService, DataAccessRequestDirtyStateService, FormDirtyStateObserver, ngObibaMicaAccessTemplateUrl) {
         function getDataContent(data) {
             return data.content ? JSON.parse(data.content) : {};
         }
@@ -1834,7 +1835,9 @@ ngObibaMica.access
         }
         $scope.entityUrl = $routeParams.id ? DataAccessEntityUrls.getDataAccessAmendmentUrl($routeParams.parentId, $routeParams.id) : DataAccessEntityUrls.getDataAccessRequestUrl($routeParams.parentId);
         $scope.read = false;
-        var amendment = DataAccessEntityResource.get($scope.entityUrl, $routeParams.id);
+        var amendment = $routeParams.id ?
+            DataAccessEntityResource.get($scope.entityUrl, $routeParams.id) :
+            { $promise: new Promise(function (resolve) { setTimeout(resolve, 0, {}); }) };
         var model = amendment.$promise.then(getDataContent);
         var dataAccessForm = DataAccessAmendmentFormConfigResource.get();
         Promise.all([amendment, model, dataAccessForm]).then(function (values) {
@@ -1845,9 +1848,12 @@ ngObibaMica.access
         }, function (reason) {
             console.error('Failed to resolve amendment promises because', reason);
         });
+        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('view');
+        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('view');
         FormDirtyStateObserver.observe($scope);
         DataAccessRequestDirtyStateService.setForm($scope.form);
         $scope.$on('$destroy', function () {
+            FormDirtyStateObserver.unobserve();
             DataAccessRequestDirtyStateService.setForm(null);
         });
         $scope.cancel = function () {
@@ -1879,7 +1885,7 @@ ngObibaMica.access
             });
         };
     }
-    angular.module('obiba.mica.access').controller('DataAccessAmendmentEditController', ['$scope', '$location', '$routeParams', '$uibModal', 'DataAccessEntityResource', 'DataAccessAmendmentFormConfigResource', 'DataAccessEntityUrls', 'ServerErrorUtils', 'AlertService', 'DataAccessRequestDirtyStateService', 'FormDirtyStateObserver', Controller]);
+    angular.module('obiba.mica.access').controller('DataAccessAmendmentEditController', ['$scope', '$location', '$routeParams', '$uibModal', 'DataAccessEntityResource', 'DataAccessAmendmentFormConfigResource', 'DataAccessEntityUrls', 'ServerErrorUtils', 'AlertService', 'DataAccessRequestDirtyStateService', 'FormDirtyStateObserver', 'ngObibaMicaAccessTemplateUrl', Controller]);
 })();
 //# sourceMappingURL=data-access-amendment-edit-controller.js.map
 'use strict';
@@ -1939,7 +1945,7 @@ ngObibaMica.access
             $scope.dataAccessForm = values[2];
             $scope.actions = DataAccessEntityService.actions;
             $scope.nextStatus = DataAccessEntityService.nextStatus;
-            Object.assign($scope, DataAccessEntityFormService.for($scope.requestEntity, resetRequestEntity));
+            Object.assign($scope, DataAccessEntityFormService.for({ id: $scope.requestEntity.id, parentId: $scope.requestEntity['obiba.mica.DataAccessAmendmentDto.amendment'].parentId }, resetRequestEntity));
             return values;
         }, function (reason) {
             console.error('Failed to resolve amendment promises because', reason);
@@ -14949,11 +14955,11 @@ angular.module("access/components/print-friendly-view/component.html", []).run([
 
 angular.module("access/views/data-access-amendment-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-amendment-view.html",
-    "<div>\n" +
+    "<div class=\"row\">\n" +
     "  <print-friendly-view\n" +
     "    class=\"visible-print\"\n" +
     "    valid-form=\"true\"\n" +
-    "    model=\"requestEntity\"\n" +
+    "    model=\"model\"\n" +
     "    access-form=\"dataAccessForm\"\n" +
     "    last-submitted-date=\"lastSubmittedDate\">\n" +
     "  </print-friendly-view>\n" +
@@ -14963,7 +14969,7 @@ angular.module("access/views/data-access-amendment-view.html", []).run(["$templa
     "\n" +
     "    <obiba-alert id=\"DataAccessAmendmentViewController\"></obiba-alert>\n" +
     "\n" +
-    "    <p class=\"help-block pull-left\">\n" +
+    "    <p class=\"help-block pull-left\" ng-if=\"requestEntity.applicant\">\n" +
     "      <span translate>created-by</span>\n" +
     "      <span ng-if=\"!actions.canViewProfile('mica-data-access-officer')\">\n" +
     "        {{getFullName(requestEntity.profile) || requestEntity.applicant}}\n" +
@@ -15022,6 +15028,8 @@ angular.module("access/views/data-access-amendment-view.html", []).run(["$templa
     "          <span translate>validate</span>\n" +
     "        </a>\n" +
     "      </div>\n" +
+    "\n" +
+    "      <div class=\"clearfix\"></div>\n" +
     "\n" +
     "      <obiba-schema-form-renderer model=\"model\" schema-form=\"dataAccessForm\" read-only=\"read\"></obiba-schema-form-renderer>\n" +
     "\n" +

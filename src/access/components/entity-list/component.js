@@ -30,7 +30,6 @@
       return ctrl.parentId === null ?
         ctrl.config.newRequestButtonCaption || 'data-access-request.add' :
         'data-access-amendment.add';
-
     }
 
     function onInit () {

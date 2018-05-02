@@ -67,7 +67,7 @@
       $scope.actions = DataAccessEntityService.actions;
       $scope.nextStatus = DataAccessEntityService.nextStatus;
 
-      Object.assign($scope, DataAccessEntityFormService.for($scope.requestEntity, resetRequestEntity));
+      Object.assign($scope, DataAccessEntityFormService.for({ id: $scope.requestEntity.id, parentId: $scope.requestEntity['obiba.mica.DataAccessAmendmentDto.amendment'].parentId }, resetRequestEntity));
 
       return values;
     }, function (reason) {

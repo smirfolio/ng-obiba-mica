@@ -3,13 +3,13 @@
 (function () {
   function Service($rootScope, $filter, DataAccessEntityUrls, DataAccessEntityResource, DataAccessEntityService, NOTIFICATION_EVENTS) {
     this.for = function (accessEntity, successCallback, errorCallback) {
-      var entityRootpath = accessEntity['obiba.mica.DataAccessAmendmentDto.amendment'] ? DataAccessEntityUrls.getDataAccessAmendmentUrl(accessEntity['obiba.mica.DataAccessAmendmentDto.amendment'].parentId, accessEntity.id) :
+      var entityRootpath = accessEntity.parentId ? DataAccessEntityUrls.getDataAccessAmendmentUrl(accessEntity.parentId, accessEntity.id) :
         DataAccessEntityUrls.getDataAccessRequestUrl(accessEntity.id);
 
       var scope = $rootScope.$new();
 
       function confirmStatusChange(status, messageKey, statusName) {
-        scope.$broadcast(
+        $rootScope.$broadcast(
           NOTIFICATION_EVENTS.showConfirmDialog,
           {
             titleKey: 'data-access-request.status-change-confirmation.title',
@@ -42,6 +42,10 @@
 
       this.conditionallyApprove = function () {
         confirmStatusChange(DataAccessEntityService.status.CONDITIONALLY_APPROVED, null, 'conditionallyApprove');
+      };
+
+      this.printForm = function () {
+        setTimeout(function () { window.print(); }, 250);
       };
 
       scope.$on(
