@@ -9,7 +9,15 @@
   -->
 
 <div>
-  <div class="visible-print" print-friendly-view></div>
+  <!--<div class="visible-print" print-friendly-view></div>-->
+  <print-friendly-view
+    class="visible-print"
+    project="dataAccessRequest.project"
+    valid-form="validForm"
+    model="form.model"
+    access-form="dataAccessForm"
+    last-submitted-date="lastSubmittedDate">
+  </print-friendly-view>
   <div class="hidden-print">
     <div ng-if="headerTemplateUrl" ng-include="headerTemplateUrl"></div>
 
@@ -84,7 +92,7 @@
         <!--Form-->
         <uib-tab index="0" select="selectTab(TAB_NAMES.form)" heading="{{'data-access-request.form' | translate}}">
           <form id="request-form" name="forms.requestForm">
-            <div sf-model="form.model" sf-form="form.definition" sf-schema="form.schema" sf-options="sfOptions"></div>
+            <obiba-schema-form-renderer model="form.model" schema-form="dataAccessForm" read-only="true"></obiba-schema-form-renderer>
           </form>
         </uib-tab>
         <!--Amendments-->

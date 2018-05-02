@@ -46,7 +46,6 @@ ngObibaMica.access
       'LocalizedSchemaFormService',
       'SfOptionsService',
       'moment',
-      '$timeout',
 
     function ($rootScope,
               $scope,
@@ -72,8 +71,7 @@ ngObibaMica.access
               DataAccessRequestConfig,
               LocalizedSchemaFormService,
               SfOptionsService,
-              moment,
-              $timeout) {
+              moment) {
 
 
       var TAB_NAMES = Object.freeze({
@@ -189,6 +187,7 @@ ngObibaMica.access
       }
 
       function initializeForm() {
+        console.log('initializeForm');
         SfOptionsService.transform().then(function(options) {
           $scope.sfOptions = options;
           $scope.sfOptions.pristine = {errors: true, success: false};
@@ -197,34 +196,7 @@ ngObibaMica.access
         // Retrieve form data
         DataAccessFormConfigResource.get(
           function onSuccess(dataAccessForm) {
-            $scope.form.definition = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.definition, []));
-            $scope.form.schema = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.schema, {}));
-            $scope.form.downloadTemplate = dataAccessForm.pdfDownloadType === 'Template';
-
-            if ($scope.form.definition.length === 0) {
-              $scope.validForm = false;
-              $scope.form.definition = [];
-              AlertService.alert({
-                id: 'DataAccessRequestViewController',
-                type: 'danger',
-                msgKey: 'data-access-config.parse-error.definition'
-              });
-            }
-            if (Object.getOwnPropertyNames($scope.form.schema).length === 0) {
-              $scope.validForm = false;
-              $scope.form.schema = {readonly: true};
-              AlertService.alert({
-                id: 'DataAccessRequestViewController',
-                type: 'danger',
-                msgKey: 'data-access-config.parse-error.schema'
-              });
-            }
-            $scope.form.schema.readonly = true;
-
-            $timeout(function () {
-              $scope.form = angular.copy($scope.form);
-              $scope.$broadcast('schemaFormRedraw');
-            }, 250);
+            $scope.dataAccessForm = dataAccessForm;
           },
           onError
         );

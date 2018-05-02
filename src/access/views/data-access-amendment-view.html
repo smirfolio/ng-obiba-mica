@@ -1,5 +1,12 @@
 <div>
-  <div class="visible-print" print-friendly-view></div>
+  <print-friendly-view
+    class="visible-print"
+    valid-form="true"
+    model="requestEntity"
+    access-form="dataAccessForm"
+    last-submitted-date="lastSubmittedDate">
+  </print-friendly-view>
+
   <div class="hidden-print">
     <div ng-if="headerTemplateUrl" ng-include="headerTemplateUrl"></div>
 
