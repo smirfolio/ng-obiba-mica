@@ -9,7 +9,15 @@
   -->
 
 <div>
-  <div class="visible-print" print-friendly-view></div>
+  <!--<div class="visible-print" print-friendly-view></div>-->
+  <print-friendly-view
+    class="visible-print"
+    project="dataAccessRequest.project"
+    valid-form="validForm"
+    model="form.model"
+    access-form="dataAccessForm"
+    last-submitted-date="lastSubmittedDate">
+  </print-friendly-view>
   <div class="hidden-print">
     <div ng-if="headerTemplateUrl" ng-include="headerTemplateUrl"></div>
 
@@ -80,28 +88,44 @@
           </small>
         </div>
       </div>
-
-      <uib-tabset class="voffset5">
-        <uib-tab ng-click="selectTab('form')" heading="{{'data-access-request.form' | translate}}">
+      <uib-tabset active="tabs.activeTab" class="voffset5">
+        <!--Form-->
+        <uib-tab index="0" select="selectTab(TAB_NAMES.form)" heading="{{'data-access-request.form' | translate}}">
           <form id="request-form" name="forms.requestForm">
-            <div sf-model="form.model" sf-form="form.definition" sf-schema="form.schema" sf-options="sfOptions"></div>
+            <obiba-schema-form-renderer model="form.model" schema-form="dataAccessForm" read-only="true"></obiba-schema-form-renderer>
           </form>
         </uib-tab>
-        <uib-tab ng-click="selectTab('documents')">
+        <!--Amendments-->
+        <uib-tab index="1" select="selectTab(TAB_NAMES.amendments)">
+          <uib-tab-heading>
+            {{'data-access-amendments' | translate}}
+          </uib-tab-heading>
+
+          <div ng-show="parentId" class="voffset1">
+            <entity-list parent-id="parentId" can-add="actions.canAddAmendments(dataAccessRequest)"></entity-list>
+          </div>
+        </uib-tab>
+        <!--Documents-->
+        <uib-tab index="2" select="selectTab(TAB_NAMES.documents)">
           <uib-tab-heading>
             {{config.documentsSectionTitle || 'data-access-request.documents' | translate}}
             <span class="badge hoffset1" ng-show="dataAccessRequest.attachments"><small>{{dataAccessRequest.attachments.length}}</small></span>
           </uib-tab-heading>
           <div ng-include="'access/views/data-access-request-documents-view.html'"></div>
         </uib-tab>
-        <uib-tab ng-if="config.commentsEnabled" ng-click="selectTab('comments')" heading="{{'data-access-request.comments' | translate}}">
+        <!--Comments-->
+        <uib-tab index="3"
+                 ng-if="config.commentsEnabled"
+                 select="selectTab(TAB_NAMES.comments)"
+                 heading="{{'data-access-request.comments' | translate}}">
           <obiba-comments class="voffset2" comments="form.comments"
                           on-update="updateComment" on-delete="deleteComment"
                           name-resolver="userProfileService.getFullName"
                           edit-action="EDIT" delete-action="DELETE"></obiba-comments>
           <obiba-comment-editor on-submit="submitComment"></obiba-comment-editor>
         </uib-tab>
-        <uib-tab ng-click="selectTab('history')" heading="{{'data-access-request.history' | translate}}">
+        <!--History-->
+        <uib-tab index="4" select="selectTab(TAB_NAMES.history)" heading="{{'data-access-request.history' | translate}}">
           <div ng-include="'access/views/data-access-request-history-view.html'"></div>
         </uib-tab>
       </uib-tabset>

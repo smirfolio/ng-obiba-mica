@@ -109,7 +109,7 @@ class SetService implements ISetService {
   public addDocumentToCart(documentType: string, documentId: string | string[]): any {
     const did = Array.isArray(documentId) ? documentId.join("\n") : documentId;
     return this.getOrCreateCart(documentType).then((set) => {
-      return this.SetImportResource.save({type: documentType, id: set.id}, did).$promise;
+      return this.SetImportResource.update({type: documentType, id: set.id}, did).$promise;
     }).then((set) => {
       return this.saveCart(documentType, set);
     });
@@ -124,7 +124,7 @@ class SetService implements ISetService {
   public addDocumentQueryToCart(documentType: string, rqlQuery: string): any {
     this.$log.info("query=" + rqlQuery);
     return this.getOrCreateCart(documentType).then((set) => {
-      return this.SetImportQueryResource.save({type: documentType, id: set.id, query: rqlQuery}).$promise;
+      return this.SetImportQueryResource.update({type: documentType, id: set.id, query: rqlQuery}).$promise;
     }).then((set) => {
       return this.saveCart(documentType, set);
     });
@@ -270,7 +270,7 @@ class SetService implements ISetService {
    * @param documentId the document ID to be added to the cart (can be empty)
    */
   private createCart(documentType: string, documentId: string): any {
-    return this.SetsImportResource.save({type: documentType}, documentId).$promise
+    return this.SetsImportResource.update({type: documentType}, documentId).$promise
     .then((set) => {
       return this.saveCart(documentType, set);
     });
