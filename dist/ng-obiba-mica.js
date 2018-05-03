@@ -14824,25 +14824,21 @@ angular.module("access/components/entity-list/component.html", []).run(["$templa
     "    <div class=\"row voffset2\">\n" +
     "      <div class=\"col-xs-4\">\n" +
     "        <span class=\"input-group input-group-sm no-padding-top\">\n" +
-    "          <span class=\"input-group-addon\" id=\"data-access-requests-search\"><i\n" +
-    "            class=\"glyphicon glyphicon-search\"></i></span>\n" +
-    "          <input ng-model=\"$ctrl.searchText\" type=\"text\" class=\"form-control\"\n" +
-    "                 aria-describedby=\"data-access-requests-search\">\n" +
+    "          <span class=\"input-group-addon\" id=\"data-access-requests-search\">\n" +
+    "            <i class=\"glyphicon glyphicon-search\"></i>\n" +
+    "          </span>\n" +
+    "          <input ng-model=\"$ctrl.searchText\" type=\"text\" class=\"form-control\" aria-describedby=\"data-access-requests-search\">\n" +
     "        </span>\n" +
     "      </div>\n" +
-    "      <div class=\"col-xs-2\">\n" +
-    "        <div class=\"input-group\">\n" +
-    "          <ui-select id=\"status-select\" theme=\"bootstrap\"\n" +
-    "                     ng-model=\"$ctrl.searchStatus.filter\" reset-search-input=\"true\">\n" +
-    "            <ui-select-match allow-clear=\"true\"\n" +
-    "                             placeholder=\"{{'data-access-request.status-placeholder' | translate}}\">\n" +
-    "              <span ng-bind-html=\"$select.selected.translation\"></span>\n" +
-    "            </ui-select-match>\n" +
-    "            <ui-select-choices repeat=\"data in $ctrl.REQUEST_STATUS\">\n" +
-    "              {{data.translation}}\n" +
-    "            </ui-select-choices>\n" +
-    "          </ui-select>\n" +
-    "        </div>\n" +
+    "      <div class=\"col-xs-3\">\n" +
+    "        <ui-select id=\"status-select\" theme=\"bootstrap\" ng-model=\"$ctrl.searchStatus.filter\" reset-search-input=\"true\">\n" +
+    "          <ui-select-match allow-clear=\"true\" placeholder=\"{{'data-access-request.status-placeholder' | translate}}\">\n" +
+    "            <span ng-bind-html=\"$select.selected.translation\"></span>\n" +
+    "          </ui-select-match>\n" +
+    "          <ui-select-choices repeat=\"data in $ctrl.REQUEST_STATUS\">\n" +
+    "            {{data.translation}}\n" +
+    "          </ui-select-choices>\n" +
+    "        </ui-select>\n" +
     "      </div>\n" +
     "      <div class=\"col-xs-6\">\n" +
     "        <dir-pagination-controls class=\"pull-right\"></dir-pagination-controls>\n" +
@@ -14852,74 +14848,70 @@ angular.module("access/components/entity-list/component.html", []).run(["$templa
     "    <div class=\"table-responsive\">\n" +
     "      <table class=\"table table-bordered table-striped\" obiba-table-sorter=\"$ctrl.requests\">\n" +
     "        <thead>\n" +
-    "        <tr>\n" +
-    "          <th data-column-name=\"id\">ID</th>\n" +
-    "          <th ng-if=\"$ctrl.showApplicant\" data-column-name=\"applicant\">{{\"data-access-request.applicant\" | translate}}</th>\n" +
-    "          <th data-column-name=\"title\">{{\"data-access-request.title\" | translate}}</th>\n" +
-    "          <th data-column-name=\"timestamps.lastUpdate\">{{\"data-access-request.lastUpdate\" | translate}}</th>\n" +
-    "          <th data-column-name=\"submissionDate\">{{\"data-access-request.submissionDate\" | translate}}</th>\n" +
-    "          <th data-column-name=\"status\">{{\"data-access-request.status\" | translate}}</th>\n" +
-    "          <th translate>actions</th>\n" +
-    "        </tr>\n" +
+    "          <tr>\n" +
+    "            <th data-column-name=\"id\">ID</th>\n" +
+    "            <th ng-if=\"$ctrl.showApplicant\" data-column-name=\"applicant\">{{\"data-access-request.applicant\" | translate}}</th>\n" +
+    "            <th data-column-name=\"title\">{{\"data-access-request.title\" | translate}}</th>\n" +
+    "            <th data-column-name=\"timestamps.lastUpdate\">{{\"data-access-request.lastUpdate\" | translate}}</th>\n" +
+    "            <th data-column-name=\"submissionDate\">{{\"data-access-request.submissionDate\" | translate}}</th>\n" +
+    "            <th data-column-name=\"status\">{{\"data-access-request.status\" | translate}}</th>\n" +
+    "            <th translate>actions</th>\n" +
+    "          </tr>\n" +
     "        </thead>\n" +
     "        <tbody>\n" +
-    "        <tr\n" +
-    "          dir-paginate=\"request in $ctrl.requests | filter:{status: $ctrl.searchStatus.filter.key} : true | filter:$ctrl.searchText | itemsPerPage: 20\">\n" +
-    "          <td>\n" +
-    "            <a ng-href=\"#{{$ctrl.entityBaseUrl}}/{{request.id}}\"\n" +
-    "               ng-if=\"$ctrl.actions.canView(request)\" translate>{{request.id}}</a>\n" +
-    "            <span ng-if=\"!$ctrl.actions.canView(request)\">{{request.id}}</span>\n" +
-    "          </td>\n" +
-    "          <td ng-if=\"$ctrl.showApplicant\">\n" +
-    "            <span ng-if=\"!request.profile.attributes\">\n" +
-    "              {{request.applicant}}\n" +
-    "            </span>\n" +
-    "            <span ng-if=\"request.profile.attributes && $ctrl.actions.canViewProfile('mica-user') && !$ctrl.actions.canViewProfile('mica-data-access-officer')\">\n" +
-    "              {{getFullName(request.profile) || request.applicant}}\n" +
-    "            </span>\n" +
-    "            <a href ng-click=\"$ctrl.userProfile(request.profile)\" ng-if=\"request.profile.attributes && $ctrl.actions.canViewProfile('mica-data-access-officer')\">\n" +
-    "              {{getFullName(request.profile) || request.applicant}}\n" +
-    "            </a>\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            {{request.title}}\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            <span title=\"{{(request.timestamps.lastUpdate || request.timestamps.created) | amDateFormat: 'lll'}}\">\n" +
-    "              {{(request.timestamps.lastUpdate || request.timestamps.created) | amCalendar}}\n" +
-    "            </span>\n" +
+    "          <tr dir-paginate=\"request in $ctrl.requests | filter:{status: $ctrl.searchStatus.filter.key} : true | filter:$ctrl.searchText | itemsPerPage: 20\">\n" +
+    "            <td>\n" +
+    "              <a ng-href=\"#{{$ctrl.entityBaseUrl}}/{{request.id}}\" ng-if=\"$ctrl.actions.canView(request)\" translate>{{request.id}}</a>\n" +
+    "              <span ng-if=\"!$ctrl.actions.canView(request)\">{{request.id}}</span>\n" +
+    "            </td>\n" +
+    "            <td ng-if=\"$ctrl.showApplicant\">\n" +
+    "              <span ng-if=\"!request.profile.attributes\">\n" +
+    "                {{request.applicant}}\n" +
+    "              </span>\n" +
+    "              <span ng-if=\"request.profile.attributes && $ctrl.actions.canViewProfile('mica-user') && !$ctrl.actions.canViewProfile('mica-data-access-officer')\">\n" +
+    "                {{getFullName(request.profile) || request.applicant}}\n" +
+    "              </span>\n" +
+    "              <a href ng-click=\"$ctrl.userProfile(request.profile)\" ng-if=\"request.profile.attributes && $ctrl.actions.canViewProfile('mica-data-access-officer')\">\n" +
+    "                {{getFullName(request.profile) || request.applicant}}\n" +
+    "              </a>\n" +
+    "            </td>\n" +
+    "            <td>\n" +
+    "              {{request.title}}\n" +
+    "            </td>\n" +
+    "            <td>\n" +
+    "              <span title=\"{{(request.timestamps.lastUpdate || request.timestamps.created) | amDateFormat: 'lll'}}\">\n" +
+    "                {{(request.timestamps.lastUpdate || request.timestamps.created) | amCalendar}}\n" +
+    "              </span>\n" +
     "\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            <span ng-if=\"request.submissionDate\" title=\"{{ request.submissionDate | amDateFormat: 'lll' }}\">\n" +
-    "              {{request.submissionDate | amCalendar}}\n" +
-    "            </span>\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            {{request.status | translate}}\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            <ul class=\"list-inline\">\n" +
-    "              <li ng-if=\"$ctrl.actions.canEdit(request)\">\n" +
-    "                <a ng-href=\"#{{$ctrl.entityBaseUrl}}/{{request.id}}/edit\"\n" +
-    "                   title=\"{{'edit' | translate}}\"><i class=\"fa fa-pencil\"></i></a>\n" +
-    "              </li>\n" +
-    "              <li>\n" +
-    "                <a ng-if=\"$ctrl.actions.canDelete(request)\"\n" +
-    "                   ng-href=\"#{{$ctrl.listUrl}}\"\n" +
-    "                   ng-click=\"$ctrl.deleteRequest(request)\"\n" +
-    "                   title=\"{{'delete' | translate}}\"><i\n" +
-    "                  class=\"fa fa-trash-o\"></i></a>\n" +
-    "              </li>\n" +
-    "            </ul>\n" +
-    "          </td>\n" +
-    "        </tr>\n" +
+    "            </td>\n" +
+    "            <td>\n" +
+    "              <span ng-if=\"request.submissionDate\" title=\"{{ request.submissionDate | amDateFormat: 'lll' }}\">\n" +
+    "                {{request.submissionDate | amCalendar}}\n" +
+    "              </span>\n" +
+    "            </td>\n" +
+    "            <td>\n" +
+    "              {{request.status | translate}}\n" +
+    "            </td>\n" +
+    "            <td>\n" +
+    "              <ul class=\"list-inline\">\n" +
+    "                <li ng-if=\"$ctrl.actions.canEdit(request)\">\n" +
+    "                  <a ng-href=\"#{{$ctrl.entityBaseUrl}}/{{request.id}}/edit\" title=\"{{'edit' | translate}}\">\n" +
+    "                    <i class=\"fa fa-pencil\"></i>\n" +
+    "                  </a>\n" +
+    "                </li>\n" +
+    "                <li>\n" +
+    "                  <a ng-if=\"$ctrl.actions.canDelete(request)\" ng-href=\"#{{$ctrl.listUrl}}\" ng-click=\"$ctrl.deleteRequest(request)\" title=\"{{'delete' | translate}}\">\n" +
+    "                    <i class=\"fa fa-trash-o\"></i>\n" +
+    "                  </a>\n" +
+    "                </li>\n" +
+    "              </ul>\n" +
+    "            </td>\n" +
+    "          </tr>\n" +
     "        </tbody>\n" +
     "      </table>\n" +
     "    </div>\n" +
     "  </div>\n" +
-    "</div>\n" +
-    "");
+    "</div>");
 }]);
 
 angular.module("access/components/print-friendly-view/component.html", []).run(["$templateCache", function($templateCache) {
