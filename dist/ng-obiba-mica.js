@@ -986,10 +986,11 @@ ngObibaMica.access.component("printFriendlyView", new PrintFriendlyComponent());
             var entityRootpath = accessEntity.parentId ? DataAccessEntityUrls.getDataAccessAmendmentUrl(accessEntity.parentId, accessEntity.id) :
                 DataAccessEntityUrls.getDataAccessRequestUrl(accessEntity.id);
             var scope = $rootScope.$new();
+            var prefix = accessEntity.parentId ? 'data-access-amendment' : 'data-access-request';
             function confirmStatusChange(status, messageKey, statusName) {
                 $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
-                    titleKey: 'data-access-request.status-change-confirmation.title',
-                    messageKey: messageKey !== null ? messageKey : 'data-access-request.status-change-confirmation.message',
+                    titleKey: prefix + '.status-change-confirmation.title',
+                    messageKey: messageKey !== null ? messageKey : prefix + '.status-change-confirmation.message',
                     messageArgs: statusName !== null ? [$filter('translate')(statusName).toLowerCase()] : []
                 }, status);
             }
@@ -1002,7 +1003,7 @@ ngObibaMica.access.component("printFriendlyView", new PrintFriendlyComponent());
                 confirmStatusChange(DataAccessEntityService.status.OPENED, null, 'reopen');
             };
             this.review = function () {
-                confirmStatusChange(DataAccessEntityService.status.REVIEWED, 'data-access-request.status-change-confirmation.message-review', null);
+                confirmStatusChange(DataAccessEntityService.status.REVIEWED, prefix + '.status-change-confirmation.message-review', null);
             };
             this.approve = function () {
                 confirmStatusChange(DataAccessEntityService.status.APPROVED, null, 'approve');
