@@ -1,15 +1,16 @@
 'use strict';
 
 (function () {
-  function Service($rootScope, $filter, DataAccessEntityUrls, DataAccessEntityResource, DataAccessEntityService, NOTIFICATION_EVENTS) {
-    this.for = function (accessEntity, successCallback, errorCallback) {
+  function Service($rootScope, $filter, $location, DataAccessEntityUrls, DataAccessEntityResource, DataAccessEntityService, NOTIFICATION_EVENTS) {
+
+    this.for = function (scope, accessEntity, successCallback, errorCallback) {
+      var self = {};
       var entityRootpath = accessEntity.parentId ? DataAccessEntityUrls.getDataAccessAmendmentUrl(accessEntity.parentId, accessEntity.id) :
         DataAccessEntityUrls.getDataAccessRequestUrl(accessEntity.id);
 
-      var scope = $rootScope.$new();
       var prefix = accessEntity.parentId ? 'data-access-amendment' : 'data-access-request';
 
-      function confirmStatusChange(status, messageKey, statusName) {        
+      function confirmStatusChange(status, messageKey, statusName) {
         $rootScope.$broadcast(
           NOTIFICATION_EVENTS.showConfirmDialog,
           {
@@ -25,29 +26,50 @@
         }
       }
 
-      this.reopen = function () {
+      function onDeleteConfirmed(event, id) {
+        if (accessEntity.id === id) {
+          DataAccessEntityResource.delete(entityRootpath, id).$promise.then(
+            function () {
+              $location.path(accessEntity.parentId ? '/data-access-request/' + accessEntity.parentId : '/data-access-requests').replace();
+            });
+        }
+      }
+
+      self.reopen = function () {
         confirmStatusChange(DataAccessEntityService.status.OPENED, null, 'reopen');
       };
 
-      this.review = function () {
+      self.review = function () {
         confirmStatusChange(DataAccessEntityService.status.REVIEWED, prefix + '.status-change-confirmation.message-review', null);
       };
 
-      this.approve = function () {
+      self.approve = function () {
         confirmStatusChange(DataAccessEntityService.status.APPROVED, null, 'approve');
       };
 
-      this.reject = function () {
+      self.reject = function () {
         confirmStatusChange(DataAccessEntityService.status.REJECTED, null, 'reject');
       };
 
-      this.conditionallyApprove = function () {
+      self.conditionallyApprove = function () {
         confirmStatusChange(DataAccessEntityService.status.CONDITIONALLY_APPROVED, null, 'conditionallyApprove');
       };
 
-      this.printForm = function () {
+      self.delete = function () {
+        $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog,
+          {
+            titleKey: prefix + '.delete-dialog.title',
+            messageKey: prefix + '.delete-dialog.message',
+            messageArgs: [accessEntity.title, accessEntity.applicant]
+          }, accessEntity.id
+        );
+      };
+
+      self.printForm = function () {
         setTimeout(function () { window.print(); }, 250);
       };
+
+      scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onDeleteConfirmed);
 
       scope.$on(
         NOTIFICATION_EVENTS.confirmDialogAccepted,
@@ -84,9 +106,9 @@
         }
       );
 
-      return this;
+      return self;
     };
   }
 
-  angular.module('obiba.mica.access').service('DataAccessEntityFormService', ['$rootScope', '$filter', 'DataAccessEntityUrls', 'DataAccessEntityResource', 'DataAccessEntityService', 'NOTIFICATION_EVENTS', Service]);
+  angular.module('obiba.mica.access').service('DataAccessEntityFormService', ['$rootScope', '$filter', '$location', 'DataAccessEntityUrls', 'DataAccessEntityResource', 'DataAccessEntityService', 'NOTIFICATION_EVENTS', Service]);
 })();

@@ -64,10 +64,12 @@
       $scope.model = values[1];
       $scope.dataAccessForm = values[2];
 
-      $scope.actions = DataAccessEntityService.actions;
-      $scope.nextStatus = DataAccessEntityService.nextStatus;
+      $scope.requestEntity.parentId = $scope.requestEntity['obiba.mica.DataAccessAmendmentDto.amendment'].parentId;
 
-      Object.assign($scope, DataAccessEntityFormService.for({ id: $scope.requestEntity.id, parentId: $scope.requestEntity['obiba.mica.DataAccessAmendmentDto.amendment'].parentId }, resetRequestEntity));
+      $scope.actions = DataAccessEntityService.actions;
+      $scope.nextStatus = DataAccessEntityService.nextStatus;      
+
+      Object.assign($scope, DataAccessEntityFormService.for($scope, $scope.requestEntity, resetRequestEntity));
 
       return values;
     }, function (reason) {

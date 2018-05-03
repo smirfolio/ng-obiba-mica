@@ -28,22 +28,18 @@ ngObibaMica.access
         })
         .when('/data-access-request/:id', {
           templateUrl: 'access/views/data-access-request-view.html',
-          controller: 'DataAccessRequestViewController',
-          reloadOnSearch: false
+          controller: 'DataAccessRequestViewController'
         })
         .when('/data-access-request/:parentId/amendment/new', {
           templateUrl: 'access/views/data-access-amendment-view.html',
-          controller: 'DataAccessAmendmentEditController',
-          reloadOnSearch: false
+          controller: 'DataAccessAmendmentEditController'
         })
         .when('/data-access-request/:parentId/amendment/:id/edit', {
           templateUrl: 'access/views/data-access-amendment-view.html',
-          controller: 'DataAccessAmendmentEditController',
-          reloadOnSearch: false
+          controller: 'DataAccessAmendmentEditController'
         })
         .when('/data-access-request/:parentId/amendment/:id', {
           templateUrl: 'access/views/data-access-amendment-view.html',
-          controller: 'DataAccessAmendmentViewController',
-          reloadOnSearch: false
+          controller: 'DataAccessAmendmentViewController'
         });
     }]);
