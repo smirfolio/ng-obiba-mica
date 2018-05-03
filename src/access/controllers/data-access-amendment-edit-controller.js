@@ -25,7 +25,10 @@
 
     var amendment = $routeParams.id ?
       DataAccessEntityResource.get($scope.entityUrl, $routeParams.id) :
-      { $promise: new Promise(function (resolve) { setTimeout(resolve, 0, {}); }) };
+      {
+        'obiba.mica.DataAccessAmendmentDto.amendment': { parentId: $routeParams.parentId },
+        $promise: new Promise(function (resolve) { setTimeout(resolve, 0, {}); })
+      };
     var model = amendment.$promise.then(getDataContent);
     var dataAccessForm = DataAccessAmendmentFormConfigResource.get();
 
@@ -39,8 +42,8 @@
       console.error('Failed to resolve amendment promises because', reason);
     });
 
-    $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('view');
-    $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('view');
+    $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('amendment');
+    $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('amendment');
 
     FormDirtyStateObserver.observe($scope);
 

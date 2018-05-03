@@ -74,8 +74,8 @@
       console.error('Failed to resolve amendment promises because', reason);
     });
 
-    $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('view');
-    $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('view');
+    $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('amendment');
+    $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('amendment');
 
     $scope.submit = function () {
       $scope.$broadcast('schemaFormValidate');

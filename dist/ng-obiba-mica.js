@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-05-02
+ * Date: 2018-05-03
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -785,7 +785,8 @@ ngObibaMica.access
         $provide.provider('ngObibaMicaAccessTemplateUrl', new NgObibaMicaTemplateUrlFactory().create({
             list: { header: null, footer: null },
             view: { header: null, footer: null },
-            form: { header: null, footer: null }
+            form: { header: null, footer: null },
+            amendment: { header: null, footer: null }
         }));
     }]);
 //# sourceMappingURL=data-access-request.js.map
@@ -1837,7 +1838,10 @@ ngObibaMica.access
         $scope.read = false;
         var amendment = $routeParams.id ?
             DataAccessEntityResource.get($scope.entityUrl, $routeParams.id) :
-            { $promise: new Promise(function (resolve) { setTimeout(resolve, 0, {}); }) };
+            {
+                'obiba.mica.DataAccessAmendmentDto.amendment': { parentId: $routeParams.parentId },
+                $promise: new Promise(function (resolve) { setTimeout(resolve, 0, {}); })
+            };
         var model = amendment.$promise.then(getDataContent);
         var dataAccessForm = DataAccessAmendmentFormConfigResource.get();
         Promise.all([amendment, model, dataAccessForm]).then(function (values) {
@@ -1848,8 +1852,8 @@ ngObibaMica.access
         }, function (reason) {
             console.error('Failed to resolve amendment promises because', reason);
         });
-        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('view');
-        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('view');
+        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('amendment');
+        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('amendment');
         FormDirtyStateObserver.observe($scope);
         DataAccessRequestDirtyStateService.setForm($scope.form);
         $scope.$on('$destroy', function () {
@@ -1950,8 +1954,8 @@ ngObibaMica.access
         }, function (reason) {
             console.error('Failed to resolve amendment promises because', reason);
         });
-        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('view');
-        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('view');
+        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('amendment');
+        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('amendment');
         $scope.submit = function () {
             $scope.$broadcast('schemaFormValidate');
             if ($scope.forms.requestForm.$valid) {

@@ -13,22 +13,23 @@
 /* global NgObibaMicaTemplateUrlFactory */
 
 ngObibaMica.access = angular.module('obiba.mica.access', [
-    'pascalprecht.translate',
-    'obiba.alert',
-    'obiba.comments',
-    'obiba.mica.attachment',
-    'obiba.utils',
-    'angularMoment',
-    'templates-ngObibaMica'
-  ]);
+  'pascalprecht.translate',
+  'obiba.alert',
+  'obiba.comments',
+  'obiba.mica.attachment',
+  'obiba.utils',
+  'angularMoment',
+  'templates-ngObibaMica'
+]);
 
 ngObibaMica.access
   .config(['$provide', function ($provide) {
     $provide.provider('ngObibaMicaAccessTemplateUrl', new NgObibaMicaTemplateUrlFactory().create(
       {
-        list: {header: null, footer: null},
-        view: {header: null, footer: null},
-        form: {header: null, footer: null}
+        list: { header: null, footer: null },
+        view: { header: null, footer: null },
+        form: { header: null, footer: null },
+        amendment: { header: null, footer: null }
       }
     ));
   }]);
