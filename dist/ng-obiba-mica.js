@@ -928,7 +928,8 @@ ngObibaMica.access
     ngObibaMica.access
         .component('entityList', {
         bindings: {
-            parentId: '<'
+            parentId: '<',
+            canAdd: '<'
         },
         templateUrl: 'access/components/entity-list/component.html',
         controller: ['$rootScope',
@@ -986,10 +987,11 @@ ngObibaMica.access.component("printFriendlyView", new PrintFriendlyComponent());
             var entityRootpath = accessEntity.parentId ? DataAccessEntityUrls.getDataAccessAmendmentUrl(accessEntity.parentId, accessEntity.id) :
                 DataAccessEntityUrls.getDataAccessRequestUrl(accessEntity.id);
             var scope = $rootScope.$new();
+            var prefix = accessEntity.parentId ? 'data-access-amendment' : 'data-access-request';
             function confirmStatusChange(status, messageKey, statusName) {
                 $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
-                    titleKey: 'data-access-request.status-change-confirmation.title',
-                    messageKey: messageKey !== null ? messageKey : 'data-access-request.status-change-confirmation.message',
+                    titleKey: prefix + '.status-change-confirmation.title',
+                    messageKey: messageKey !== null ? messageKey : prefix + '.status-change-confirmation.message',
                     messageArgs: statusName !== null ? [$filter('translate')(statusName).toLowerCase()] : []
                 }, status);
             }
@@ -1002,7 +1004,7 @@ ngObibaMica.access.component("printFriendlyView", new PrintFriendlyComponent());
                 confirmStatusChange(DataAccessEntityService.status.OPENED, null, 'reopen');
             };
             this.review = function () {
-                confirmStatusChange(DataAccessEntityService.status.REVIEWED, 'data-access-request.status-change-confirmation.message-review', null);
+                confirmStatusChange(DataAccessEntityService.status.REVIEWED, prefix + '.status-change-confirmation.message-review', null);
             };
             this.approve = function () {
                 confirmStatusChange(DataAccessEntityService.status.APPROVED, null, 'approve');
@@ -1139,7 +1141,7 @@ ngObibaMica.access.service("DataAccessEntityResource", DataAccessEntityResource)
             }
         };
         var canDoAction = function (request, action) {
-            return request.actions ? request.actions.indexOf(action) !== -1 : null;
+            return request.actions ? request.actions.indexOf(action) !== -1 : false;
         };
         this.actions = {
             canViewProfile: function (role) {
@@ -1169,6 +1171,9 @@ ngObibaMica.access.service("DataAccessEntityResource", DataAccessEntityResource)
             },
             canDeleteAttachments: function (request) {
                 return canDoAction(request, 'DELETE_ATTACHMENTS');
+            },
+            canAddAmendments: function (request) {
+                return request['obiba.mica.DataAccessAmendmentDto.amendment'] ? true : canDoAction(request, 'ADD_AMENDMENTS');
             }
         };
         var canChangeStatus = function (request, to) {
@@ -14806,14 +14811,14 @@ angular.module("access/components/entity-list/component.html", []).run(["$templa
     "<div>\n" +
     "  <div class=\"row\">\n" +
     "    <div class=\"col-xs-12\">\n" +
-    "      <a ng-href=\"#{{$ctrl.entityBaseUrl}}/new\" class=\"btn btn-info\">\n" +
+    "      <a ng-href=\"#{{$ctrl.entityBaseUrl}}/new\" class=\"btn btn-info\" ng-if=\"$ctrl.canAdd\">\n" +
     "        <i class=\"fa fa-plus\"></i>\n" +
     "        <span>{{$ctrl.addButtonCaption | translate}}</span>\n" +
     "      </a>\n" +
     "\n" +
-    "      <span ng-bind-html=\"config.newRequestButtonHelpText\"></span>\n" +
+    "      <span ng-bind-html=\"config.newRequestButtonHelpText\" ng-if=\"$ctrl.canAdd\"></span>\n" +
     "\n" +
-    "      <a ng-if=\"$ctrl.requests.length > 0\" target=\"_self\" download class=\"btn btn-info pull-right\" ng-href=\"{{$ctrl.getCsvExportHref()}}\">\n" +
+    "      <a ng-if=\"$ctrl.requests.length > 0 && !$ctrl.parentId\" target=\"_self\" download class=\"btn btn-info pull-right\" ng-href=\"{{$ctrl.getCsvExportHref()}}\">\n" +
     "        <i class=\"fa fa-download\"></i> {{'report' | translate}}\n" +
     "      </a>\n" +
     "    </div>\n" +
@@ -15217,26 +15222,11 @@ angular.module("access/views/data-access-request-list.html", []).run(["$template
     "<div id=\"data-access-request-list\">\n" +
     "  <div ng-if=\"headerTemplateUrl\" ng-include=\"headerTemplateUrl\"></div>\n" +
     "\n" +
-    "  <!--<div class=\"row\">-->\n" +
-    "    <!--<div class=\"col-xs-12\">-->\n" +
-    "      <!--<a ng-href=\"#/data-access-request/new\" class=\"btn btn-info\">-->\n" +
-    "        <!--<i class=\"fa fa-plus\"></i>-->\n" +
-    "        <!--<span>{{config.newRequestButtonCaption || 'data-access-request.add' | translate}}</span>-->\n" +
-    "      <!--</a>-->\n" +
-    "\n" +
-    "      <!--<span ng-bind-html=\"config.newRequestButtonHelpText\"></span>-->\n" +
-    "\n" +
-    "      <!--<a ng-if=\"requests.length > 0\" target=\"_self\" download class=\"btn btn-info pull-right\" ng-href=\"{{getCsvExportHref()}}\">-->\n" +
-    "        <!--<i class=\"fa fa-download\"></i> {{'report' | translate}}-->\n" +
-    "      <!--</a>-->\n" +
-    "    <!--</div>-->\n" +
-    "  <!--</div>-->\n" +
-    "\n" +
     "  <p class=\"help-block\" ng-if=\"requests.length == 0 && !loading\">\n" +
     "    <span translate>data-access-request.none</span>\n" +
     "  </p>\n" +
     "\n" +
-    "  <entity-list parent-id=\"null\"></entity-list>\n" +
+    "  <entity-list parent-id=\"null\" can-add=\"true\"></entity-list>\n" +
     "\n" +
     "</div>\n" +
     "");
@@ -15477,7 +15467,7 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "          </uib-tab-heading>\n" +
     "\n" +
     "          <div ng-show=\"parentId\" class=\"voffset1\">\n" +
-    "            <entity-list parent-id=\"parentId\"></entity-list>\n" +
+    "            <entity-list parent-id=\"parentId\" can-add=\"actions.canAddAmendments(dataAccessRequest)\"></entity-list>\n" +
     "          </div>\n" +
     "        </uib-tab>\n" +
     "        <!--Documents-->\n" +

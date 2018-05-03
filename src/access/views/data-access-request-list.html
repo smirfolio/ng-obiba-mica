@@ -11,25 +11,10 @@
 <div id="data-access-request-list">
   <div ng-if="headerTemplateUrl" ng-include="headerTemplateUrl"></div>
 
-  <!--<div class="row">-->
-    <!--<div class="col-xs-12">-->
-      <!--<a ng-href="#/data-access-request/new" class="btn btn-info">-->
-        <!--<i class="fa fa-plus"></i>-->
-        <!--<span>{{config.newRequestButtonCaption || 'data-access-request.add' | translate}}</span>-->
-      <!--</a>-->
-
-      <!--<span ng-bind-html="config.newRequestButtonHelpText"></span>-->
-
-      <!--<a ng-if="requests.length > 0" target="_self" download class="btn btn-info pull-right" ng-href="{{getCsvExportHref()}}">-->
-        <!--<i class="fa fa-download"></i> {{'report' | translate}}-->
-      <!--</a>-->
-    <!--</div>-->
-  <!--</div>-->
-
   <p class="help-block" ng-if="requests.length == 0 && !loading">
     <span translate>data-access-request.none</span>
   </p>
 
-  <entity-list parent-id="null"></entity-list>
+  <entity-list parent-id="null" can-add="true"></entity-list>
 
 </div>

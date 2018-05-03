@@ -11,14 +11,14 @@
 <div>
   <div class="row">
     <div class="col-xs-12">
-      <a ng-href="#{{$ctrl.entityBaseUrl}}/new" class="btn btn-info">
+      <a ng-href="#{{$ctrl.entityBaseUrl}}/new" class="btn btn-info" ng-if="$ctrl.canAdd">
         <i class="fa fa-plus"></i>
         <span>{{$ctrl.addButtonCaption | translate}}</span>
       </a>
 
-      <span ng-bind-html="config.newRequestButtonHelpText"></span>
+      <span ng-bind-html="config.newRequestButtonHelpText" ng-if="$ctrl.canAdd"></span>
 
-      <a ng-if="$ctrl.requests.length > 0" target="_self" download class="btn btn-info pull-right" ng-href="{{$ctrl.getCsvExportHref()}}">
+      <a ng-if="$ctrl.requests.length > 0 && !$ctrl.parentId" target="_self" download class="btn btn-info pull-right" ng-href="{{$ctrl.getCsvExportHref()}}">
         <i class="fa fa-download"></i> {{'report' | translate}}
       </a>
     </div>
