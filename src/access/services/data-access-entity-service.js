@@ -34,7 +34,7 @@
     };
 
     var canDoAction = function (request, action) {
-      return request.actions ? request.actions.indexOf(action) !== - 1 : null;
+      return request.actions ? request.actions.indexOf(action) !== - 1 : false;
     };
 
     this.actions = {
@@ -70,6 +70,10 @@
 
       canDeleteAttachments: function (request) {
         return canDoAction(request, 'DELETE_ATTACHMENTS');
+      },
+
+      canAddAmendments: function (request) {
+        return request['obiba.mica.DataAccessAmendmentDto.amendment'] ? true : canDoAction(request, 'ADD_AMENDMENTS');
       }
     };
 

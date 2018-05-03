@@ -174,7 +174,8 @@
   ngObibaMica.access
     .component ('entityList', {
       bindings: {
-        parentId: '<'
+        parentId: '<',
+        canAdd: '<'
       },
       templateUrl: 'access/components/entity-list/component.html',
       controller: ['$rootScope',
