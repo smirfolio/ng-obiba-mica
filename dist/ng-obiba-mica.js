@@ -1062,11 +1062,11 @@ var DataAccessEntityResource = /** @class */ (function () {
             this.DataAccessAmendmentsResource.query({ parentId: parentId }) :
             this.DataAccessRequestsResource.query();
     };
-    DataAccessEntityResource.prototype.create = function (listUrl, data) {
+    DataAccessEntityResource.prototype.create = function (listUrl, data, successCallback, errorCallback) {
         var parentId = this.getParentId(listUrl);
         return parentId ?
-            this.DataAccessAmendmentsResource.save(data) :
-            this.DataAccessRequestsResource.save(data);
+            this.DataAccessAmendmentsResource.save(data, successCallback, errorCallback) :
+            this.DataAccessRequestsResource.save(data, successCallback, errorCallback);
     };
     DataAccessEntityResource.prototype.update = function (entityRootPath, data) {
         var parentId = this.getParentId(entityRootPath);
@@ -1093,7 +1093,7 @@ var DataAccessEntityResource = /** @class */ (function () {
             this.DataAccessRequestStatusResource.update({ id: id, status: status });
     };
     DataAccessEntityResource.prototype.getParentId = function (url) {
-        var parentId = /data-access-request\/(.*)\/amendment/.exec(url);
+        var parentId = /data-access-request\/(\w+)(?:\/amendment)?/.exec(url);
         return parentId && parentId.length === 2 ? parentId[parentId.index] : null;
     };
     DataAccessEntityResource.$inject = [
@@ -1819,13 +1819,14 @@ ngObibaMica.access
 //# sourceMappingURL=data-access-request-controller.js.map
 'use strict';
 (function () {
-    function Controller($scope, $location, $routeParams, $uibModal, DataAccessEntityResource, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, ServerErrorUtils, AlertService, DataAccessRequestDirtyStateService, FormDirtyStateObserver, ngObibaMicaAccessTemplateUrl) {
+    function Controller($scope, $location, $routeParams, $uibModal, DataAccessEntityResource, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, DataAccessEntityService, ServerErrorUtils, AlertService, DataAccessRequestDirtyStateService, FormDirtyStateObserver, SessionProxy, ngObibaMicaAccessTemplateUrl) {
         function getDataContent(data) {
             return data.content ? JSON.parse(data.content) : {};
         }
-        function onSuccess() {
+        function onSuccess(response, headersFunction) {
             FormDirtyStateObserver.unobserve();
-            $location.path($scope.entityUrl).replace();
+            var parts = headersFunction().location.split('/');
+            $location.path($scope.entityUrl + '/amendment/' + parts[parts.length - 1]).replace();
         }
         function onError(response) {
             AlertService.alert({
@@ -1840,7 +1841,8 @@ ngObibaMica.access
             DataAccessEntityResource.get($scope.entityUrl, $routeParams.id) :
             {
                 'obiba.mica.DataAccessAmendmentDto.amendment': { parentId: $routeParams.parentId },
-                $promise: new Promise(function (resolve) { setTimeout(resolve, 0, {}); })
+                $promise: new Promise(function (resolve) { setTimeout(resolve, 0, {}); }),
+                status: DataAccessEntityService.status.OPENED
             };
         var model = amendment.$promise.then(getDataContent);
         var dataAccessForm = DataAccessAmendmentFormConfigResource.get();
@@ -1866,8 +1868,12 @@ ngObibaMica.access
         $scope.save = function () {
             $scope.requestEntity.content = angular.toJson($scope.model);
             $scope.requestEntity.parentId = $routeParams.parentId;
+            delete $scope.requestEntity.$promise;
+            if (!$scope.requestEntity.applicant) {
+                $scope.requestEntity.applicant = SessionProxy.login();
+            }
             if (!$routeParams.id) {
-                DataAccessEntityResource.create($scope.entityUrl, $scope.requestEntity).$promise.then(onSuccess, onError);
+                DataAccessEntityResource.create($scope.entityUrl, $scope.requestEntity, onSuccess, onError);
             }
             else {
                 DataAccessEntityResource.update($scope.entityUrl, $scope.requestEntity).$promise.then(function () {
@@ -1889,7 +1895,7 @@ ngObibaMica.access
             });
         };
     }
-    angular.module('obiba.mica.access').controller('DataAccessAmendmentEditController', ['$scope', '$location', '$routeParams', '$uibModal', 'DataAccessEntityResource', 'DataAccessAmendmentFormConfigResource', 'DataAccessEntityUrls', 'ServerErrorUtils', 'AlertService', 'DataAccessRequestDirtyStateService', 'FormDirtyStateObserver', 'ngObibaMicaAccessTemplateUrl', Controller]);
+    angular.module('obiba.mica.access').controller('DataAccessAmendmentEditController', ['$scope', '$location', '$routeParams', '$uibModal', 'DataAccessEntityResource', 'DataAccessAmendmentFormConfigResource', 'DataAccessEntityUrls', 'DataAccessEntityService', 'ServerErrorUtils', 'AlertService', 'DataAccessRequestDirtyStateService', 'FormDirtyStateObserver', 'SessionProxy', 'ngObibaMicaAccessTemplateUrl', Controller]);
 })();
 //# sourceMappingURL=data-access-amendment-edit-controller.js.map
 'use strict';
@@ -14900,7 +14906,7 @@ angular.module("access/components/entity-list/component.html", []).run(["$templa
     "                  </a>\n" +
     "                </li>\n" +
     "                <li>\n" +
-    "                  <a ng-if=\"$ctrl.actions.canDelete(request)\" ng-href=\"#{{$ctrl.listUrl}}\" ng-click=\"$ctrl.deleteRequest(request)\" title=\"{{'delete' | translate}}\">\n" +
+    "                  <a ng-if=\"$ctrl.actions.canDelete(request)\" ng-click=\"$ctrl.deleteRequest(request)\" title=\"{{'delete' | translate}}\">\n" +
     "                    <i class=\"fa fa-trash-o\"></i>\n" +
     "                  </a>\n" +
     "                </li>\n" +
