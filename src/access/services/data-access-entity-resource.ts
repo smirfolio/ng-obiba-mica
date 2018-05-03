@@ -15,7 +15,7 @@ declare var ngObibaMica: any;
 interface IDataAccessEntityResourceFactory {
   list(listUrl: string): any;
 
-  create(listUrl: string, data: any): any;
+  create(listUrl: string, data: any, successCallback: any, errorCallback: any): any;
 
   get(entityRootPath: string, id: string): any;
 
@@ -51,11 +51,11 @@ class DataAccessEntityResource implements IDataAccessEntityResourceFactory {
       this.DataAccessRequestsResource.query();
   }
 
-  public create(listUrl: string, data: any): any {
+  public create(listUrl: string, data: any, successCallback: any, errorCallback: any): any {
     const parentId: string = this.getParentId(listUrl);
     return parentId ?
-      this.DataAccessAmendmentsResource.save(data) :
-      this.DataAccessRequestsResource.save(data);
+      this.DataAccessAmendmentsResource.save(data, successCallback, errorCallback) :
+      this.DataAccessRequestsResource.save(data, successCallback, errorCallback);
   }
 
   public update(entityRootPath: string, data: any): any {
@@ -87,7 +87,7 @@ class DataAccessEntityResource implements IDataAccessEntityResourceFactory {
   }
 
   private getParentId(url: string) {
-    const parentId = /data-access-request\/(.*)\/amendment/.exec(url);
+    const parentId = /data-access-request\/(\w+)(?:\/amendment)?/.exec(url);
     return parentId && parentId.length === 2 ? parentId[parentId.index] : null;
   }
 }

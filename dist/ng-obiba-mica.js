@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-05-02
+ * Date: 2018-05-03
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -785,7 +785,8 @@ ngObibaMica.access
         $provide.provider('ngObibaMicaAccessTemplateUrl', new NgObibaMicaTemplateUrlFactory().create({
             list: { header: null, footer: null },
             view: { header: null, footer: null },
-            form: { header: null, footer: null }
+            form: { header: null, footer: null },
+            amendment: { header: null, footer: null }
         }));
     }]);
 //# sourceMappingURL=data-access-request.js.map
@@ -982,11 +983,11 @@ ngObibaMica.access.component("printFriendlyView", new PrintFriendlyComponent());
 (function () {
     function Service($rootScope, $filter, DataAccessEntityUrls, DataAccessEntityResource, DataAccessEntityService, NOTIFICATION_EVENTS) {
         this.for = function (accessEntity, successCallback, errorCallback) {
-            var entityRootpath = accessEntity['obiba.mica.DataAccessAmendmentDto.amendment'] ? DataAccessEntityUrls.getDataAccessAmendmentUrl(accessEntity['obiba.mica.DataAccessAmendmentDto.amendment'].parentId, accessEntity.id) :
+            var entityRootpath = accessEntity.parentId ? DataAccessEntityUrls.getDataAccessAmendmentUrl(accessEntity.parentId, accessEntity.id) :
                 DataAccessEntityUrls.getDataAccessRequestUrl(accessEntity.id);
             var scope = $rootScope.$new();
             function confirmStatusChange(status, messageKey, statusName) {
-                scope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
+                $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
                     titleKey: 'data-access-request.status-change-confirmation.title',
                     messageKey: messageKey !== null ? messageKey : 'data-access-request.status-change-confirmation.message',
                     messageArgs: statusName !== null ? [$filter('translate')(statusName).toLowerCase()] : []
@@ -1011,6 +1012,9 @@ ngObibaMica.access.component("printFriendlyView", new PrintFriendlyComponent());
             };
             this.conditionallyApprove = function () {
                 confirmStatusChange(DataAccessEntityService.status.CONDITIONALLY_APPROVED, null, 'conditionallyApprove');
+            };
+            this.printForm = function () {
+                setTimeout(function () { window.print(); }, 250);
             };
             scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, function (event, status) {
                 statusChangedConfirmed(DataAccessEntityService.status.OPENED, status);
@@ -1058,11 +1062,11 @@ var DataAccessEntityResource = /** @class */ (function () {
             this.DataAccessAmendmentsResource.query({ parentId: parentId }) :
             this.DataAccessRequestsResource.query();
     };
-    DataAccessEntityResource.prototype.create = function (listUrl, data) {
+    DataAccessEntityResource.prototype.create = function (listUrl, data, successCallback, errorCallback) {
         var parentId = this.getParentId(listUrl);
         return parentId ?
-            this.DataAccessAmendmentsResource.save(data) :
-            this.DataAccessRequestsResource.save(data);
+            this.DataAccessAmendmentsResource.save(data, successCallback, errorCallback) :
+            this.DataAccessRequestsResource.save(data, successCallback, errorCallback);
     };
     DataAccessEntityResource.prototype.update = function (entityRootPath, data) {
         var parentId = this.getParentId(entityRootPath);
@@ -1089,7 +1093,7 @@ var DataAccessEntityResource = /** @class */ (function () {
             this.DataAccessRequestStatusResource.update({ id: id, status: status });
     };
     DataAccessEntityResource.prototype.getParentId = function (url) {
-        var parentId = /data-access-request\/(.*)\/amendment/.exec(url);
+        var parentId = /data-access-request\/(\w+)(?:\/amendment)?/.exec(url);
         return parentId && parentId.length === 2 ? parentId[parentId.index] : null;
     };
     DataAccessEntityResource.$inject = [
@@ -1454,7 +1458,6 @@ ngObibaMica.access
             });
         }
         function initializeForm() {
-            console.log('initializeForm');
             SfOptionsService.transform().then(function (options) {
                 $scope.sfOptions = options;
                 $scope.sfOptions.pristine = { errors: true, success: false };
@@ -1462,7 +1465,6 @@ ngObibaMica.access
             // Retrieve form data
             DataAccessFormConfigResource.get(function onSuccess(dataAccessForm) {
                 $scope.dataAccessForm = dataAccessForm;
-                console.log('dataAccessForm', $scope.dataAccessForm);
             }, onError);
         }
         function findLastSubmittedDate() {
@@ -1817,13 +1819,14 @@ ngObibaMica.access
 //# sourceMappingURL=data-access-request-controller.js.map
 'use strict';
 (function () {
-    function Controller($scope, $location, $routeParams, $uibModal, DataAccessEntityResource, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, ServerErrorUtils, AlertService, DataAccessRequestDirtyStateService, FormDirtyStateObserver) {
+    function Controller($scope, $location, $routeParams, $uibModal, DataAccessEntityResource, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, DataAccessEntityService, ServerErrorUtils, AlertService, DataAccessRequestDirtyStateService, FormDirtyStateObserver, SessionProxy, ngObibaMicaAccessTemplateUrl) {
         function getDataContent(data) {
             return data.content ? JSON.parse(data.content) : {};
         }
-        function onSuccess() {
+        function onSuccess(response, headersFunction) {
             FormDirtyStateObserver.unobserve();
-            $location.path($scope.entityUrl).replace();
+            var parts = headersFunction().location.split('/');
+            $location.path($scope.entityUrl + '/amendment/' + parts[parts.length - 1]).replace();
         }
         function onError(response) {
             AlertService.alert({
@@ -1834,7 +1837,13 @@ ngObibaMica.access
         }
         $scope.entityUrl = $routeParams.id ? DataAccessEntityUrls.getDataAccessAmendmentUrl($routeParams.parentId, $routeParams.id) : DataAccessEntityUrls.getDataAccessRequestUrl($routeParams.parentId);
         $scope.read = false;
-        var amendment = DataAccessEntityResource.get($scope.entityUrl, $routeParams.id);
+        var amendment = $routeParams.id ?
+            DataAccessEntityResource.get($scope.entityUrl, $routeParams.id) :
+            {
+                'obiba.mica.DataAccessAmendmentDto.amendment': { parentId: $routeParams.parentId },
+                $promise: new Promise(function (resolve) { setTimeout(resolve, 0, {}); }),
+                status: DataAccessEntityService.status.OPENED
+            };
         var model = amendment.$promise.then(getDataContent);
         var dataAccessForm = DataAccessAmendmentFormConfigResource.get();
         Promise.all([amendment, model, dataAccessForm]).then(function (values) {
@@ -1845,9 +1854,12 @@ ngObibaMica.access
         }, function (reason) {
             console.error('Failed to resolve amendment promises because', reason);
         });
+        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('amendment');
+        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('amendment');
         FormDirtyStateObserver.observe($scope);
         DataAccessRequestDirtyStateService.setForm($scope.form);
         $scope.$on('$destroy', function () {
+            FormDirtyStateObserver.unobserve();
             DataAccessRequestDirtyStateService.setForm(null);
         });
         $scope.cancel = function () {
@@ -1856,8 +1868,12 @@ ngObibaMica.access
         $scope.save = function () {
             $scope.requestEntity.content = angular.toJson($scope.model);
             $scope.requestEntity.parentId = $routeParams.parentId;
+            delete $scope.requestEntity.$promise;
+            if (!$scope.requestEntity.applicant) {
+                $scope.requestEntity.applicant = SessionProxy.login();
+            }
             if (!$routeParams.id) {
-                DataAccessEntityResource.create($scope.entityUrl, $scope.requestEntity).$promise.then(onSuccess, onError);
+                DataAccessEntityResource.create($scope.entityUrl, $scope.requestEntity, onSuccess, onError);
             }
             else {
                 DataAccessEntityResource.update($scope.entityUrl, $scope.requestEntity).$promise.then(function () {
@@ -1879,7 +1895,7 @@ ngObibaMica.access
             });
         };
     }
-    angular.module('obiba.mica.access').controller('DataAccessAmendmentEditController', ['$scope', '$location', '$routeParams', '$uibModal', 'DataAccessEntityResource', 'DataAccessAmendmentFormConfigResource', 'DataAccessEntityUrls', 'ServerErrorUtils', 'AlertService', 'DataAccessRequestDirtyStateService', 'FormDirtyStateObserver', Controller]);
+    angular.module('obiba.mica.access').controller('DataAccessAmendmentEditController', ['$scope', '$location', '$routeParams', '$uibModal', 'DataAccessEntityResource', 'DataAccessAmendmentFormConfigResource', 'DataAccessEntityUrls', 'DataAccessEntityService', 'ServerErrorUtils', 'AlertService', 'DataAccessRequestDirtyStateService', 'FormDirtyStateObserver', 'SessionProxy', 'ngObibaMicaAccessTemplateUrl', Controller]);
 })();
 //# sourceMappingURL=data-access-amendment-edit-controller.js.map
 'use strict';
@@ -1939,13 +1955,13 @@ ngObibaMica.access
             $scope.dataAccessForm = values[2];
             $scope.actions = DataAccessEntityService.actions;
             $scope.nextStatus = DataAccessEntityService.nextStatus;
-            Object.assign($scope, DataAccessEntityFormService.for($scope.requestEntity, resetRequestEntity));
+            Object.assign($scope, DataAccessEntityFormService.for({ id: $scope.requestEntity.id, parentId: $scope.requestEntity['obiba.mica.DataAccessAmendmentDto.amendment'].parentId }, resetRequestEntity));
             return values;
         }, function (reason) {
             console.error('Failed to resolve amendment promises because', reason);
         });
-        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('view');
-        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('view');
+        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('amendment');
+        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('amendment');
         $scope.submit = function () {
             $scope.$broadcast('schemaFormValidate');
             if ($scope.forms.requestForm.$valid) {
@@ -14814,25 +14830,21 @@ angular.module("access/components/entity-list/component.html", []).run(["$templa
     "    <div class=\"row voffset2\">\n" +
     "      <div class=\"col-xs-4\">\n" +
     "        <span class=\"input-group input-group-sm no-padding-top\">\n" +
-    "          <span class=\"input-group-addon\" id=\"data-access-requests-search\"><i\n" +
-    "            class=\"glyphicon glyphicon-search\"></i></span>\n" +
-    "          <input ng-model=\"$ctrl.searchText\" type=\"text\" class=\"form-control\"\n" +
-    "                 aria-describedby=\"data-access-requests-search\">\n" +
+    "          <span class=\"input-group-addon\" id=\"data-access-requests-search\">\n" +
+    "            <i class=\"glyphicon glyphicon-search\"></i>\n" +
+    "          </span>\n" +
+    "          <input ng-model=\"$ctrl.searchText\" type=\"text\" class=\"form-control\" aria-describedby=\"data-access-requests-search\">\n" +
     "        </span>\n" +
     "      </div>\n" +
-    "      <div class=\"col-xs-2\">\n" +
-    "        <div class=\"input-group\">\n" +
-    "          <ui-select id=\"status-select\" theme=\"bootstrap\"\n" +
-    "                     ng-model=\"$ctrl.searchStatus.filter\" reset-search-input=\"true\">\n" +
-    "            <ui-select-match allow-clear=\"true\"\n" +
-    "                             placeholder=\"{{'data-access-request.status-placeholder' | translate}}\">\n" +
-    "              <span ng-bind-html=\"$select.selected.translation\"></span>\n" +
-    "            </ui-select-match>\n" +
-    "            <ui-select-choices repeat=\"data in $ctrl.REQUEST_STATUS\">\n" +
-    "              {{data.translation}}\n" +
-    "            </ui-select-choices>\n" +
-    "          </ui-select>\n" +
-    "        </div>\n" +
+    "      <div class=\"col-xs-3\">\n" +
+    "        <ui-select id=\"status-select\" theme=\"bootstrap\" ng-model=\"$ctrl.searchStatus.filter\" reset-search-input=\"true\">\n" +
+    "          <ui-select-match allow-clear=\"true\" placeholder=\"{{'data-access-request.status-placeholder' | translate}}\">\n" +
+    "            <span ng-bind-html=\"$select.selected.translation\"></span>\n" +
+    "          </ui-select-match>\n" +
+    "          <ui-select-choices repeat=\"data in $ctrl.REQUEST_STATUS\">\n" +
+    "            {{data.translation}}\n" +
+    "          </ui-select-choices>\n" +
+    "        </ui-select>\n" +
     "      </div>\n" +
     "      <div class=\"col-xs-6\">\n" +
     "        <dir-pagination-controls class=\"pull-right\"></dir-pagination-controls>\n" +
@@ -14842,74 +14854,70 @@ angular.module("access/components/entity-list/component.html", []).run(["$templa
     "    <div class=\"table-responsive\">\n" +
     "      <table class=\"table table-bordered table-striped\" obiba-table-sorter=\"$ctrl.requests\">\n" +
     "        <thead>\n" +
-    "        <tr>\n" +
-    "          <th data-column-name=\"id\">ID</th>\n" +
-    "          <th ng-if=\"$ctrl.showApplicant\" data-column-name=\"applicant\">{{\"data-access-request.applicant\" | translate}}</th>\n" +
-    "          <th data-column-name=\"title\">{{\"data-access-request.title\" | translate}}</th>\n" +
-    "          <th data-column-name=\"timestamps.lastUpdate\">{{\"data-access-request.lastUpdate\" | translate}}</th>\n" +
-    "          <th data-column-name=\"submissionDate\">{{\"data-access-request.submissionDate\" | translate}}</th>\n" +
-    "          <th data-column-name=\"status\">{{\"data-access-request.status\" | translate}}</th>\n" +
-    "          <th translate>actions</th>\n" +
-    "        </tr>\n" +
+    "          <tr>\n" +
+    "            <th data-column-name=\"id\">ID</th>\n" +
+    "            <th ng-if=\"$ctrl.showApplicant\" data-column-name=\"applicant\">{{\"data-access-request.applicant\" | translate}}</th>\n" +
+    "            <th data-column-name=\"title\">{{\"data-access-request.title\" | translate}}</th>\n" +
+    "            <th data-column-name=\"timestamps.lastUpdate\">{{\"data-access-request.lastUpdate\" | translate}}</th>\n" +
+    "            <th data-column-name=\"submissionDate\">{{\"data-access-request.submissionDate\" | translate}}</th>\n" +
+    "            <th data-column-name=\"status\">{{\"data-access-request.status\" | translate}}</th>\n" +
+    "            <th translate>actions</th>\n" +
+    "          </tr>\n" +
     "        </thead>\n" +
     "        <tbody>\n" +
-    "        <tr\n" +
-    "          dir-paginate=\"request in $ctrl.requests | filter:{status: $ctrl.searchStatus.filter.key} : true | filter:$ctrl.searchText | itemsPerPage: 20\">\n" +
-    "          <td>\n" +
-    "            <a ng-href=\"#{{$ctrl.entityBaseUrl}}/{{request.id}}\"\n" +
-    "               ng-if=\"$ctrl.actions.canView(request)\" translate>{{request.id}}</a>\n" +
-    "            <span ng-if=\"!$ctrl.actions.canView(request)\">{{request.id}}</span>\n" +
-    "          </td>\n" +
-    "          <td ng-if=\"$ctrl.showApplicant\">\n" +
-    "            <span ng-if=\"!request.profile.attributes\">\n" +
-    "              {{request.applicant}}\n" +
-    "            </span>\n" +
-    "            <span ng-if=\"request.profile.attributes && $ctrl.actions.canViewProfile('mica-user') && !$ctrl.actions.canViewProfile('mica-data-access-officer')\">\n" +
-    "              {{getFullName(request.profile) || request.applicant}}\n" +
-    "            </span>\n" +
-    "            <a href ng-click=\"$ctrl.userProfile(request.profile)\" ng-if=\"request.profile.attributes && $ctrl.actions.canViewProfile('mica-data-access-officer')\">\n" +
-    "              {{getFullName(request.profile) || request.applicant}}\n" +
-    "            </a>\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            {{request.title}}\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            <span title=\"{{(request.timestamps.lastUpdate || request.timestamps.created) | amDateFormat: 'lll'}}\">\n" +
-    "              {{(request.timestamps.lastUpdate || request.timestamps.created) | amCalendar}}\n" +
-    "            </span>\n" +
+    "          <tr dir-paginate=\"request in $ctrl.requests | filter:{status: $ctrl.searchStatus.filter.key} : true | filter:$ctrl.searchText | itemsPerPage: 20\">\n" +
+    "            <td>\n" +
+    "              <a ng-href=\"#{{$ctrl.entityBaseUrl}}/{{request.id}}\" ng-if=\"$ctrl.actions.canView(request)\" translate>{{request.id}}</a>\n" +
+    "              <span ng-if=\"!$ctrl.actions.canView(request)\">{{request.id}}</span>\n" +
+    "            </td>\n" +
+    "            <td ng-if=\"$ctrl.showApplicant\">\n" +
+    "              <span ng-if=\"!request.profile.attributes\">\n" +
+    "                {{request.applicant}}\n" +
+    "              </span>\n" +
+    "              <span ng-if=\"request.profile.attributes && $ctrl.actions.canViewProfile('mica-user') && !$ctrl.actions.canViewProfile('mica-data-access-officer')\">\n" +
+    "                {{getFullName(request.profile) || request.applicant}}\n" +
+    "              </span>\n" +
+    "              <a href ng-click=\"$ctrl.userProfile(request.profile)\" ng-if=\"request.profile.attributes && $ctrl.actions.canViewProfile('mica-data-access-officer')\">\n" +
+    "                {{getFullName(request.profile) || request.applicant}}\n" +
+    "              </a>\n" +
+    "            </td>\n" +
+    "            <td>\n" +
+    "              {{request.title}}\n" +
+    "            </td>\n" +
+    "            <td>\n" +
+    "              <span title=\"{{(request.timestamps.lastUpdate || request.timestamps.created) | amDateFormat: 'lll'}}\">\n" +
+    "                {{(request.timestamps.lastUpdate || request.timestamps.created) | amCalendar}}\n" +
+    "              </span>\n" +
     "\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            <span ng-if=\"request.submissionDate\" title=\"{{ request.submissionDate | amDateFormat: 'lll' }}\">\n" +
-    "              {{request.submissionDate | amCalendar}}\n" +
-    "            </span>\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            {{request.status | translate}}\n" +
-    "          </td>\n" +
-    "          <td>\n" +
-    "            <ul class=\"list-inline\">\n" +
-    "              <li ng-if=\"$ctrl.actions.canEdit(request)\">\n" +
-    "                <a ng-href=\"#{{$ctrl.entityBaseUrl}}/{{request.id}}/edit\"\n" +
-    "                   title=\"{{'edit' | translate}}\"><i class=\"fa fa-pencil\"></i></a>\n" +
-    "              </li>\n" +
-    "              <li>\n" +
-    "                <a ng-if=\"$ctrl.actions.canDelete(request)\"\n" +
-    "                   ng-href=\"#{{$ctrl.listUrl}}\"\n" +
-    "                   ng-click=\"$ctrl.deleteRequest(request)\"\n" +
-    "                   title=\"{{'delete' | translate}}\"><i\n" +
-    "                  class=\"fa fa-trash-o\"></i></a>\n" +
-    "              </li>\n" +
-    "            </ul>\n" +
-    "          </td>\n" +
-    "        </tr>\n" +
+    "            </td>\n" +
+    "            <td>\n" +
+    "              <span ng-if=\"request.submissionDate\" title=\"{{ request.submissionDate | amDateFormat: 'lll' }}\">\n" +
+    "                {{request.submissionDate | amCalendar}}\n" +
+    "              </span>\n" +
+    "            </td>\n" +
+    "            <td>\n" +
+    "              {{request.status | translate}}\n" +
+    "            </td>\n" +
+    "            <td>\n" +
+    "              <ul class=\"list-inline\">\n" +
+    "                <li ng-if=\"$ctrl.actions.canEdit(request)\">\n" +
+    "                  <a ng-href=\"#{{$ctrl.entityBaseUrl}}/{{request.id}}/edit\" title=\"{{'edit' | translate}}\">\n" +
+    "                    <i class=\"fa fa-pencil\"></i>\n" +
+    "                  </a>\n" +
+    "                </li>\n" +
+    "                <li>\n" +
+    "                  <a ng-if=\"$ctrl.actions.canDelete(request)\" ng-click=\"$ctrl.deleteRequest(request)\" title=\"{{'delete' | translate}}\">\n" +
+    "                    <i class=\"fa fa-trash-o\"></i>\n" +
+    "                  </a>\n" +
+    "                </li>\n" +
+    "              </ul>\n" +
+    "            </td>\n" +
+    "          </tr>\n" +
     "        </tbody>\n" +
     "      </table>\n" +
     "    </div>\n" +
     "  </div>\n" +
-    "</div>\n" +
-    "");
+    "</div>");
 }]);
 
 angular.module("access/components/print-friendly-view/component.html", []).run(["$templateCache", function($templateCache) {
@@ -14949,11 +14957,11 @@ angular.module("access/components/print-friendly-view/component.html", []).run([
 
 angular.module("access/views/data-access-amendment-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-amendment-view.html",
-    "<div>\n" +
+    "<div class=\"row\">\n" +
     "  <print-friendly-view\n" +
     "    class=\"visible-print\"\n" +
     "    valid-form=\"true\"\n" +
-    "    model=\"requestEntity\"\n" +
+    "    model=\"model\"\n" +
     "    access-form=\"dataAccessForm\"\n" +
     "    last-submitted-date=\"lastSubmittedDate\">\n" +
     "  </print-friendly-view>\n" +
@@ -14963,7 +14971,7 @@ angular.module("access/views/data-access-amendment-view.html", []).run(["$templa
     "\n" +
     "    <obiba-alert id=\"DataAccessAmendmentViewController\"></obiba-alert>\n" +
     "\n" +
-    "    <p class=\"help-block pull-left\">\n" +
+    "    <p class=\"help-block pull-left\" ng-if=\"requestEntity.applicant\">\n" +
     "      <span translate>created-by</span>\n" +
     "      <span ng-if=\"!actions.canViewProfile('mica-data-access-officer')\">\n" +
     "        {{getFullName(requestEntity.profile) || requestEntity.applicant}}\n" +
@@ -15022,6 +15030,8 @@ angular.module("access/views/data-access-amendment-view.html", []).run(["$templa
     "          <span translate>validate</span>\n" +
     "        </a>\n" +
     "      </div>\n" +
+    "\n" +
+    "      <div class=\"clearfix\"></div>\n" +
     "\n" +
     "      <obiba-schema-form-renderer model=\"model\" schema-form=\"dataAccessForm\" read-only=\"read\"></obiba-schema-form-renderer>\n" +
     "\n" +
