@@ -23,6 +23,7 @@
 
     $scope.entityUrl = $routeParams.id ? DataAccessEntityUrls.getDataAccessAmendmentUrl($routeParams.parentId, $routeParams.id) : DataAccessEntityUrls.getDataAccessRequestUrl($routeParams.parentId);
     $scope.read = false;
+    $scope.formDrawn = false;
 
     var amendment = $routeParams.id ?
       DataAccessEntityResource.get($scope.entityUrl, $routeParams.id) :
@@ -90,6 +91,10 @@
           $scope.isValid = isValid;
         }]
       });
+    };
+
+    $scope.toggleFormDrawnStatus = function (value) {
+      $scope.formDrawn = value;
     };
   }
 

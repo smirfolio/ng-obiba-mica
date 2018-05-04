@@ -50,14 +50,21 @@
 
     function getParsingErrorCallback(type) {
       if (typeof ctrl.parsingErrorCallbacks !== 'object') {
-        return null;
+        return function () { console.error('Error parsing ', type, ctrl.schemaForm); };
       }
 
       return ctrl.parsingErrorCallbacks[type];
     }
 
+    function callOnRedraw(value) {
+      if (typeof ctrl.onRedraw === 'function') {
+        ctrl.onRedraw(value);
+      } 
+    }
+
     function onChanges(changes) {
-      if (changes && changes.schemaForm && changes.schemaForm.currentValue) {
+      if (changes && changes.schemaForm && changes.schemaForm.currentValue) {        
+        callOnRedraw(false);
         var form = changes.schemaForm.currentValue;
 
         ctrl.form.definition = validateDefinitionParsing(
@@ -67,10 +74,11 @@
           LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(form.schema, {})), getParsingErrorCallback('schema'));
 
         ctrl.form.downloadTemplate = form.pdfDownloadType === 'Template';
-        ctrl.form.schema.readonly = ctrl.readOnly;        
+        ctrl.form.schema.readonly = ctrl.readOnly;
       }
 
       broadcastSchemaFormRedraw();
+      callOnRedraw(true);
     }
 
     SfOptionsService.transform().then(function (options) {
@@ -86,7 +94,8 @@
       schemaForm: '<',
       model: '<',
       readOnly: '<',
-      parsingErrorCallbacks: '<'
+      parsingErrorCallbacks: '<',
+      onRedraw: '<'
     },
     templateUrl: 'utils/components/entity-schema-form/component.html',
     controller: ['$rootScope', '$timeout', 'LocalizedSchemaFormService', 'SfOptionsService', 'JsonUtils', Controller]

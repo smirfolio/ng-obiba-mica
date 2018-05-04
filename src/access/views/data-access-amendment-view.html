@@ -23,7 +23,7 @@
       <span class="label label-success">{{requestEntity.status | translate}}</span>
     </p>
 
-    <div class="pull-right" ng-if="read">
+    <div class="pull-right" ng-if="read && formDrawn">
       <a ng-click="submit()" ng-if="actions.canEditStatus(requestEntity) && nextStatus.canSubmit(requestEntity)" class="btn btn-info"
         translate>submit</a>
 
@@ -58,7 +58,7 @@
     <div class="clearfix"></div>
 
     <form id="request-form" name="forms.requestForm">
-      <div class="pull-right" ng-if="!read">
+      <div class="pull-right" ng-if="!read && formDrawn">
         <a ng-click="cancel()" type="button" class="btn btn-default">
           <span translate>cancel</span>
         </a>
@@ -74,11 +74,11 @@
 
       <div class="clearfix"></div>
 
-      <obiba-schema-form-renderer model="model" schema-form="dataAccessForm" read-only="read"></obiba-schema-form-renderer>
+      <obiba-schema-form-renderer model="model" schema-form="dataAccessForm" read-only="read" on-redraw="toggleFormDrawnStatus"></obiba-schema-form-renderer>
 
       <div class="clearfix"></div>
 
-      <div class="pull-right" ng-if="!read">
+      <div class="pull-right" ng-if="!read && formDrawn">
         <a ng-click="cancel()" type="button" class="btn btn-default">
           <span translate>cancel</span>
         </a>
