@@ -373,7 +373,7 @@ function NgObibaMicaTemplateUrlFactory() {
                         onLocationChangeOff();
                     }
                     onLocationChangeOff = scope.$on('$locationChangeStart', function (event, newUrl) {
-                        if (scope.form.$dirty) {
+                        if (scope.form && scope.form.$dirty) {
                             $uibModal.open({
                                 backdrop: 'static',
                                 controller: ['$scope', '$uibModalInstance', function ($scope, $uibModalInstance) {
@@ -510,6 +510,7 @@ ngObibaMica.utils.service("CustomWatchDomElementService", [CustomWatchDomElement
             $timeout(function () {
                 ctrl.form = angular.copy(ctrl.form);
                 scope.$broadcast('schemaFormRedraw');
+                callOnRedraw(true);
             }, 250);
         }
         function validateSchemaParsing(schema, parseErrorCallback) {
@@ -551,7 +552,6 @@ ngObibaMica.utils.service("CustomWatchDomElementService", [CustomWatchDomElement
                 ctrl.form.schema.readonly = ctrl.readOnly;
             }
             broadcastSchemaFormRedraw();
-            callOnRedraw(true);
         }
         SfOptionsService.transform().then(function (options) {
             ctrl.sfOptions = options;
@@ -1863,6 +1863,10 @@ ngObibaMica.access
                 msg: ServerErrorUtils.buildMessage(response)
             });
         }
+        function destroyFormObserver() {
+            FormDirtyStateObserver.unobserve();
+            DataAccessRequestDirtyStateService.setForm(null);
+        }
         $scope.entityUrl = $routeParams.id ? DataAccessEntityUrls.getDataAccessAmendmentUrl($routeParams.parentId, $routeParams.id) : DataAccessEntityUrls.getDataAccessRequestUrl($routeParams.parentId);
         $scope.read = false;
         $scope.formDrawn = false;
@@ -1887,11 +1891,9 @@ ngObibaMica.access
         $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('amendment');
         FormDirtyStateObserver.observe($scope);
         DataAccessRequestDirtyStateService.setForm($scope.form);
-        $scope.$on('$destroy', function () {
-            FormDirtyStateObserver.unobserve();
-            DataAccessRequestDirtyStateService.setForm(null);
-        });
+        $scope.$on('$destroy', destroyFormObserver);
         $scope.cancel = function () {
+            destroyFormObserver();
             $location.path($scope.entityUrl).replace();
         };
         $scope.save = function () {

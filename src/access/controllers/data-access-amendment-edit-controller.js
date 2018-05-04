@@ -21,6 +21,11 @@
       });
     }
 
+    function destroyFormObserver() {      
+      FormDirtyStateObserver.unobserve();
+      DataAccessRequestDirtyStateService.setForm(null);   
+    }
+
     $scope.entityUrl = $routeParams.id ? DataAccessEntityUrls.getDataAccessAmendmentUrl($routeParams.parentId, $routeParams.id) : DataAccessEntityUrls.getDataAccessRequestUrl($routeParams.parentId);
     $scope.read = false;
     $scope.formDrawn = false;
@@ -51,12 +56,10 @@
     FormDirtyStateObserver.observe($scope);
 
     DataAccessRequestDirtyStateService.setForm($scope.form);
-    $scope.$on('$destroy', function () {
-      FormDirtyStateObserver.unobserve();
-      DataAccessRequestDirtyStateService.setForm(null);
-    });
+    $scope.$on('$destroy', destroyFormObserver);
 
     $scope.cancel = function () {
+      destroyFormObserver();
       $location.path($scope.entityUrl).replace();
     };
 

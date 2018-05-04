@@ -197,7 +197,7 @@ ngObibaMica.utils
           }
 
           onLocationChangeOff = scope.$on('$locationChangeStart', function (event, newUrl) {
-            if (scope.form.$dirty) {
+            if (scope.form && scope.form.$dirty) {
               $uibModal.open({
                 backdrop: 'static',
                 controller: ['$scope', '$uibModalInstance', function ($scope, $uibModalInstance) {
