@@ -32,6 +32,10 @@
         'data-access-amendment.add';
     }
 
+    function initializeNoneCaption() {
+      return ctrl.parentId === null ? 'data-access-request.none' : 'data-access-amendment.none';
+    }
+
     function onInit () {
       ctrl.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl ('list');
       ctrl.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl ('list');
@@ -39,6 +43,7 @@
       ctrl.searchStatus = {};
       ctrl.loading = true;
       ctrl.addButtonCaption = initializeAddButtonCaption();
+      ctrl.noneCaption = initializeNoneCaption();
       ctrl.actions = DataAccessEntityService.actions;
       ctrl.showApplicant = SessionProxy.roles ().filter (function (role) {
         return [USER_ROLES.dao, USER_ROLES.admin].indexOf (role) > -1;
