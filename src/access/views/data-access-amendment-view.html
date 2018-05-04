@@ -1,10 +1,5 @@
 <div class="row">
-  <print-friendly-view
-    class="visible-print"
-    valid-form="true"
-    model="model"
-    access-form="dataAccessForm"
-    last-submitted-date="lastSubmittedDate">
+  <print-friendly-view class="visible-print" valid-form="true" model="model" access-form="dataAccessForm" last-submitted-date="lastSubmittedDate">
   </print-friendly-view>
 
   <div class="hidden-print">
@@ -38,6 +33,7 @@
 
       <a ng-click="approve()" ng-if="actions.canEditStatus(requestEntity) && nextStatus.canApprove(requestEntity)" class="btn btn-info"
         translate>approve</a>
+
       <a ng-click="reject()" ng-if="actions.canEditStatus(requestEntity) && nextStatus.canReject(requestEntity)" class="btn btn-info"
         translate>reject</a>
 

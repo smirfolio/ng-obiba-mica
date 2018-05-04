@@ -24,8 +24,8 @@
     </div>
   </div>
 
-  <p class="help-block" ng-if="requests.length == 0 && !loading">
-    <span translate>data-access-request.none</span>
+  <p class="help-block" ng-if="$ctrl.requests.length == 0 && !loading">
+    <span>{{$ctrl.noneCaption | translate}}</span>
   </p>
 
   <p ng-if="$ctrl.loading" class="voffset2 loading">

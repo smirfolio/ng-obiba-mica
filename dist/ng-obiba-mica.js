@@ -816,6 +816,9 @@ ngObibaMica.access
                 ctrl.config.newRequestButtonCaption || 'data-access-request.add' :
                 'data-access-amendment.add';
         }
+        function initializeNoneCaption() {
+            return ctrl.parentId === null ? 'data-access-request.none' : 'data-access-amendment.none';
+        }
         function onInit() {
             ctrl.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('list');
             ctrl.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('list');
@@ -823,6 +826,7 @@ ngObibaMica.access
             ctrl.searchStatus = {};
             ctrl.loading = true;
             ctrl.addButtonCaption = initializeAddButtonCaption();
+            ctrl.noneCaption = initializeNoneCaption();
             ctrl.actions = DataAccessEntityService.actions;
             ctrl.showApplicant = SessionProxy.roles().filter(function (role) {
                 return [USER_ROLES.dao, USER_ROLES.admin].indexOf(role) > -1;
@@ -1879,7 +1883,7 @@ ngObibaMica.access
             };
         var model = amendment.$promise.then(getDataContent);
         var dataAccessForm = DataAccessAmendmentFormConfigResource.get();
-        Promise.all([amendment, model, dataAccessForm]).then(function (values) {
+        Promise.all([amendment, model, dataAccessForm.$promise]).then(function (values) {
             $scope.requestEntity = values[0];
             $scope.model = values[1];
             $scope.dataAccessForm = values[2];
@@ -14854,8 +14858,8 @@ angular.module("access/components/entity-list/component.html", []).run(["$templa
     "    </div>\n" +
     "  </div>\n" +
     "\n" +
-    "  <p class=\"help-block\" ng-if=\"requests.length == 0 && !loading\">\n" +
-    "    <span translate>data-access-request.none</span>\n" +
+    "  <p class=\"help-block\" ng-if=\"$ctrl.requests.length == 0 && !loading\">\n" +
+    "    <span>{{$ctrl.noneCaption | translate}}</span>\n" +
     "  </p>\n" +
     "\n" +
     "  <p ng-if=\"$ctrl.loading\" class=\"voffset2 loading\">\n" +
@@ -14993,12 +14997,7 @@ angular.module("access/components/print-friendly-view/component.html", []).run([
 angular.module("access/views/data-access-amendment-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-amendment-view.html",
     "<div class=\"row\">\n" +
-    "  <print-friendly-view\n" +
-    "    class=\"visible-print\"\n" +
-    "    valid-form=\"true\"\n" +
-    "    model=\"model\"\n" +
-    "    access-form=\"dataAccessForm\"\n" +
-    "    last-submitted-date=\"lastSubmittedDate\">\n" +
+    "  <print-friendly-view class=\"visible-print\" valid-form=\"true\" model=\"model\" access-form=\"dataAccessForm\" last-submitted-date=\"lastSubmittedDate\">\n" +
     "  </print-friendly-view>\n" +
     "\n" +
     "  <div class=\"hidden-print\">\n" +
@@ -15032,6 +15031,7 @@ angular.module("access/views/data-access-amendment-view.html", []).run(["$templa
     "\n" +
     "      <a ng-click=\"approve()\" ng-if=\"actions.canEditStatus(requestEntity) && nextStatus.canApprove(requestEntity)\" class=\"btn btn-info\"\n" +
     "        translate>approve</a>\n" +
+    "\n" +
     "      <a ng-click=\"reject()\" ng-if=\"actions.canEditStatus(requestEntity) && nextStatus.canReject(requestEntity)\" class=\"btn btn-info\"\n" +
     "        translate>reject</a>\n" +
     "\n" +
@@ -15251,10 +15251,6 @@ angular.module("access/views/data-access-request-list.html", []).run(["$template
     "\n" +
     "<div id=\"data-access-request-list\">\n" +
     "  <div ng-if=\"headerTemplateUrl\" ng-include=\"headerTemplateUrl\"></div>\n" +
-    "\n" +
-    "  <p class=\"help-block\" ng-if=\"requests.length == 0 && !loading\">\n" +
-    "    <span translate>data-access-request.none</span>\n" +
-    "  </p>\n" +
     "\n" +
     "  <entity-list parent-id=\"null\" can-add=\"true\"></entity-list>\n" +
     "\n" +
