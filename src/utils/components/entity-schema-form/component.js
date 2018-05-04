@@ -21,6 +21,7 @@
       $timeout(function () {
         ctrl.form = angular.copy(ctrl.form);
         scope.$broadcast('schemaFormRedraw');
+        callOnRedraw(true);
       }, 250);
     }
 
@@ -78,7 +79,6 @@
       }
 
       broadcastSchemaFormRedraw();
-      callOnRedraw(true);
     }
 
     SfOptionsService.transform().then(function (options) {
