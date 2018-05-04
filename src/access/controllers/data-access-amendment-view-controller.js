@@ -54,6 +54,7 @@
 
     $scope.entityUrl = DataAccessEntityUrls.getDataAccessAmendmentUrl($routeParams.parentId, $routeParams.id);
     $scope.read = true;
+    $scope.formDrawn = false;
 
     var amendment = DataAccessEntityResource.get($scope.entityUrl, $routeParams.id);
     var model = amendment.$promise.then(getDataContent);
@@ -98,6 +99,10 @@
           msgKey: 'data-access-request.submit.invalid'
         });
       }
+    };
+
+    $scope.toggleFormDrawnStatus = function (value) {
+      $scope.formDrawn = value;
     };
   }
 

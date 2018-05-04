@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-05-03
+ * Date: 2018-05-04
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -532,12 +532,18 @@ ngObibaMica.utils.service("CustomWatchDomElementService", [CustomWatchDomElement
         }
         function getParsingErrorCallback(type) {
             if (typeof ctrl.parsingErrorCallbacks !== 'object') {
-                return null;
+                return function () { console.error('Error parsing ', type, ctrl.schemaForm); };
             }
             return ctrl.parsingErrorCallbacks[type];
         }
+        function callOnRedraw(value) {
+            if (typeof ctrl.onRedraw === 'function') {
+                ctrl.onRedraw(value);
+            }
+        }
         function onChanges(changes) {
             if (changes && changes.schemaForm && changes.schemaForm.currentValue) {
+                callOnRedraw(false);
                 var form = changes.schemaForm.currentValue;
                 ctrl.form.definition = validateDefinitionParsing(LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(form.definition, [])), getParsingErrorCallback('definition'));
                 ctrl.form.schema = validateSchemaParsing(LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(form.schema, {})), getParsingErrorCallback('schema'));
@@ -545,6 +551,7 @@ ngObibaMica.utils.service("CustomWatchDomElementService", [CustomWatchDomElement
                 ctrl.form.schema.readonly = ctrl.readOnly;
             }
             broadcastSchemaFormRedraw();
+            callOnRedraw(true);
         }
         SfOptionsService.transform().then(function (options) {
             ctrl.sfOptions = options;
@@ -557,7 +564,8 @@ ngObibaMica.utils.service("CustomWatchDomElementService", [CustomWatchDomElement
             schemaForm: '<',
             model: '<',
             readOnly: '<',
-            parsingErrorCallbacks: '<'
+            parsingErrorCallbacks: '<',
+            onRedraw: '<'
         },
         templateUrl: 'utils/components/entity-schema-form/component.html',
         controller: ['$rootScope', '$timeout', 'LocalizedSchemaFormService', 'SfOptionsService', 'JsonUtils', Controller]
@@ -1857,6 +1865,7 @@ ngObibaMica.access
         }
         $scope.entityUrl = $routeParams.id ? DataAccessEntityUrls.getDataAccessAmendmentUrl($routeParams.parentId, $routeParams.id) : DataAccessEntityUrls.getDataAccessRequestUrl($routeParams.parentId);
         $scope.read = false;
+        $scope.formDrawn = false;
         var amendment = $routeParams.id ?
             DataAccessEntityResource.get($scope.entityUrl, $routeParams.id) :
             {
@@ -1914,6 +1923,9 @@ ngObibaMica.access
                     }]
             });
         };
+        $scope.toggleFormDrawnStatus = function (value) {
+            $scope.formDrawn = value;
+        };
     }
     angular.module('obiba.mica.access').controller('DataAccessAmendmentEditController', ['$scope', '$location', '$routeParams', '$uibModal', 'DataAccessEntityResource', 'DataAccessAmendmentFormConfigResource', 'DataAccessEntityUrls', 'DataAccessEntityService', 'ServerErrorUtils', 'AlertService', 'DataAccessRequestDirtyStateService', 'FormDirtyStateObserver', 'SessionProxy', 'ngObibaMicaAccessTemplateUrl', Controller]);
 })();
@@ -1966,6 +1978,7 @@ ngObibaMica.access
         }
         $scope.entityUrl = DataAccessEntityUrls.getDataAccessAmendmentUrl($routeParams.parentId, $routeParams.id);
         $scope.read = true;
+        $scope.formDrawn = false;
         var amendment = DataAccessEntityResource.get($scope.entityUrl, $routeParams.id);
         var model = amendment.$promise.then(getDataContent);
         var dataAccessForm = DataAccessAmendmentFormConfigResource.get();
@@ -2003,6 +2016,9 @@ ngObibaMica.access
                     msgKey: 'data-access-request.submit.invalid'
                 });
             }
+        };
+        $scope.toggleFormDrawnStatus = function (value) {
+            $scope.formDrawn = value;
         };
     }
     angular.module('obiba.mica.access').controller('DataAccessAmendmentViewController', ['$scope', '$routeParams', '$uibModal', 'DataAccessEntityResource', 'DataAccessEntityService', 'DataAccessEntityFormService', 'DataAccessAmendmentFormConfigResource', 'DataAccessEntityUrls', 'AlertService', 'ngObibaMicaAccessTemplateUrl', Controller]);
@@ -14999,7 +15015,7 @@ angular.module("access/views/data-access-amendment-view.html", []).run(["$templa
     "      <span class=\"label label-success\">{{requestEntity.status | translate}}</span>\n" +
     "    </p>\n" +
     "\n" +
-    "    <div class=\"pull-right\" ng-if=\"read\">\n" +
+    "    <div class=\"pull-right\" ng-if=\"read && formDrawn\">\n" +
     "      <a ng-click=\"submit()\" ng-if=\"actions.canEditStatus(requestEntity) && nextStatus.canSubmit(requestEntity)\" class=\"btn btn-info\"\n" +
     "        translate>submit</a>\n" +
     "\n" +
@@ -15034,7 +15050,7 @@ angular.module("access/views/data-access-amendment-view.html", []).run(["$templa
     "    <div class=\"clearfix\"></div>\n" +
     "\n" +
     "    <form id=\"request-form\" name=\"forms.requestForm\">\n" +
-    "      <div class=\"pull-right\" ng-if=\"!read\">\n" +
+    "      <div class=\"pull-right\" ng-if=\"!read && formDrawn\">\n" +
     "        <a ng-click=\"cancel()\" type=\"button\" class=\"btn btn-default\">\n" +
     "          <span translate>cancel</span>\n" +
     "        </a>\n" +
@@ -15050,11 +15066,11 @@ angular.module("access/views/data-access-amendment-view.html", []).run(["$templa
     "\n" +
     "      <div class=\"clearfix\"></div>\n" +
     "\n" +
-    "      <obiba-schema-form-renderer model=\"model\" schema-form=\"dataAccessForm\" read-only=\"read\"></obiba-schema-form-renderer>\n" +
+    "      <obiba-schema-form-renderer model=\"model\" schema-form=\"dataAccessForm\" read-only=\"read\" on-redraw=\"toggleFormDrawnStatus\"></obiba-schema-form-renderer>\n" +
     "\n" +
     "      <div class=\"clearfix\"></div>\n" +
     "\n" +
-    "      <div class=\"pull-right\" ng-if=\"!read\">\n" +
+    "      <div class=\"pull-right\" ng-if=\"!read && formDrawn\">\n" +
     "        <a ng-click=\"cancel()\" type=\"button\" class=\"btn btn-default\">\n" +
     "          <span translate>cancel</span>\n" +
     "        </a>\n" +
