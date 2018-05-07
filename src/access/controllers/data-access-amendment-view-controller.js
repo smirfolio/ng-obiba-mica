@@ -65,8 +65,6 @@
       $scope.model = values[1];
       $scope.dataAccessForm = values[2];
 
-      $scope.requestEntity.parentId = $scope.requestEntity['obiba.mica.DataAccessAmendmentDto.amendment'].parentId;
-
       $scope.actions = DataAccessEntityService.actions;
       $scope.nextStatus = DataAccessEntityService.nextStatus;      
 

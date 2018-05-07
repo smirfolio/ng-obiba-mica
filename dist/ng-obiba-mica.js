@@ -997,9 +997,10 @@ ngObibaMica.access.component("printFriendlyView", new PrintFriendlyComponent());
     function Service($rootScope, $filter, $location, DataAccessEntityUrls, DataAccessEntityResource, DataAccessEntityService, NOTIFICATION_EVENTS) {
         this.for = function (scope, accessEntity, successCallback, errorCallback) {
             var self = {};
-            var entityRootpath = accessEntity.parentId ? DataAccessEntityUrls.getDataAccessAmendmentUrl(accessEntity.parentId, accessEntity.id) :
+            var parentId = accessEntity['obiba.mica.DataAccessAmendmentDto.amendment'];
+            var entityRootpath = parentId ? DataAccessEntityUrls.getDataAccessAmendmentUrl(parentId, accessEntity.id) :
                 DataAccessEntityUrls.getDataAccessRequestUrl(accessEntity.id);
-            var prefix = accessEntity.parentId ? 'data-access-amendment' : 'data-access-request';
+            var prefix = parentId ? 'data-access-amendment' : 'data-access-request';
             function confirmStatusChange(status, messageKey, statusName) {
                 $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
                     titleKey: prefix + '.status-change-confirmation.title',
@@ -1015,7 +1016,7 @@ ngObibaMica.access.component("printFriendlyView", new PrintFriendlyComponent());
             function onDeleteConfirmed(event, id) {
                 if (accessEntity.id === id) {
                     DataAccessEntityResource.delete(entityRootpath, id).$promise.then(function () {
-                        $location.path(accessEntity.parentId ? '/data-access-request/' + accessEntity.parentId : '/data-access-requests').replace();
+                        $location.path(parentId ? '/data-access-request/' + parentId : '/data-access-requests').replace();
                     });
                 }
             }
@@ -1995,7 +1996,6 @@ ngObibaMica.access
             $scope.requestEntity = values[0];
             $scope.model = values[1];
             $scope.dataAccessForm = values[2];
-            $scope.requestEntity.parentId = $scope.requestEntity['obiba.mica.DataAccessAmendmentDto.amendment'].parentId;
             $scope.actions = DataAccessEntityService.actions;
             $scope.nextStatus = DataAccessEntityService.nextStatus;
             Object.assign($scope, DataAccessEntityFormService.for($scope, $scope.requestEntity, resetRequestEntity));
