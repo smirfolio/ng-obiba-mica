@@ -373,6 +373,10 @@ ngObibaMica.access
         statusChangedConfirmed(DataAccessEntityService.status.REJECTED, status);
       }
 
+      DataAccessEntityService.getStatusHistoryInfo(function(statusHistoryInfo) {
+        $scope.getStatusHistoryInfo = statusHistoryInfo;
+      });
+
       $scope.parentId = undefined;
       $scope.validForm = true;
       $scope.config = DataAccessRequestConfig.getOptions();
