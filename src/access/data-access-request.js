@@ -29,7 +29,8 @@ ngObibaMica.access
         list: { header: null, footer: null },
         view: { header: null, footer: null },
         form: { header: null, footer: null },
-        amendment: { header: null, footer: null }
+        amendmentView: { header: null, footer: null },
+        amendmentForm: { header: null, footer: null }
       }
     ));
   }]);

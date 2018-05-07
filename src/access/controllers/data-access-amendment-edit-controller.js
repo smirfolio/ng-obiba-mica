@@ -64,8 +64,8 @@
       console.error('Failed to resolve amendment promises because', reason);
     });
 
-    $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('amendment');
-    $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('amendment');
+    $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('amendmentForm');
+    $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('amendmentForm');
 
     FormDirtyStateObserver.observe($scope);
 
