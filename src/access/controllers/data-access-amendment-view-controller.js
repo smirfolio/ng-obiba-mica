@@ -60,7 +60,7 @@
     var model = amendment.$promise.then(getDataContent);
     var dataAccessForm = DataAccessAmendmentFormConfigResource.get();
 
-    Promise.all([amendment, model, dataAccessForm]).then(function (values) {
+    Promise.all([amendment, model, dataAccessForm.$promise]).then(function (values) {
       $scope.requestEntity = values[0];
       $scope.model = values[1];
       $scope.dataAccessForm = values[2];
