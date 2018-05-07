@@ -794,7 +794,8 @@ ngObibaMica.access
             list: { header: null, footer: null },
             view: { header: null, footer: null },
             form: { header: null, footer: null },
-            amendment: { header: null, footer: null }
+            amendmentView: { header: null, footer: null },
+            amendmentForm: { header: null, footer: null }
         }));
     }]);
 //# sourceMappingURL=data-access-request.js.map
@@ -1895,8 +1896,8 @@ ngObibaMica.access
         }, function (reason) {
             console.error('Failed to resolve amendment promises because', reason);
         });
-        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('amendment');
-        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('amendment');
+        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('amendmentForm');
+        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('amendmentForm');
         FormDirtyStateObserver.observe($scope);
         DataAccessRequestDirtyStateService.setForm($scope.form);
         $scope.$on('$destroy', destroyFormObserver);
@@ -2020,8 +2021,8 @@ ngObibaMica.access
         }, function (reason) {
             console.error('Failed to resolve amendment promises because', reason);
         });
-        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('amendment');
-        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('amendment');
+        $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('amendmentView');
+        $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('amendmentView');
         $scope.submit = function () {
             $scope.$broadcast('schemaFormValidate');
             if ($scope.forms.requestForm.$valid) {
@@ -15029,7 +15030,7 @@ angular.module("access/components/print-friendly-view/component.html", []).run([
 
 angular.module("access/views/data-access-amendment-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-amendment-view.html",
-    "<div class=\"row\">\n" +
+    "<div>\n" +
     "  <print-friendly-view class=\"visible-print\" valid-form=\"true\" model=\"model\" access-form=\"dataAccessForm\" last-submitted-date=\"lastSubmittedDate\">\n" +
     "  </print-friendly-view>\n" +
     "\n" +
