@@ -1855,7 +1855,7 @@ ngObibaMica.access
 //# sourceMappingURL=data-access-request-controller.js.map
 'use strict';
 (function () {
-    function Controller($scope, $location, $routeParams, $uibModal, DataAccessEntityResource, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, DataAccessEntityService, ServerErrorUtils, AlertService, DataAccessRequestDirtyStateService, FormDirtyStateObserver, SessionProxy, ngObibaMicaAccessTemplateUrl) {
+    function Controller($scope, $location, $q, $routeParams, $uibModal, DataAccessEntityResource, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, DataAccessEntityService, ServerErrorUtils, AlertService, DataAccessRequestDirtyStateService, FormDirtyStateObserver, SessionProxy, ngObibaMicaAccessTemplateUrl) {
         function getDataContent(data) {
             return data.content ? JSON.parse(data.content) : {};
         }
@@ -1887,7 +1887,7 @@ ngObibaMica.access
             };
         var model = amendment.$promise.then(getDataContent);
         var dataAccessForm = DataAccessAmendmentFormConfigResource.get();
-        Promise.all([amendment, model, dataAccessForm.$promise]).then(function (values) {
+        $q.all([amendment, model, dataAccessForm.$promise]).then(function (values) {
             $scope.requestEntity = values[0];
             $scope.model = values[1];
             $scope.dataAccessForm = values[2];
@@ -1937,13 +1937,30 @@ ngObibaMica.access
             $scope.formDrawn = value;
         };
     }
-    angular.module('obiba.mica.access').controller('DataAccessAmendmentEditController', ['$scope', '$location', '$routeParams', '$uibModal', 'DataAccessEntityResource', 'DataAccessAmendmentFormConfigResource', 'DataAccessEntityUrls', 'DataAccessEntityService', 'ServerErrorUtils', 'AlertService', 'DataAccessRequestDirtyStateService', 'FormDirtyStateObserver', 'SessionProxy', 'ngObibaMicaAccessTemplateUrl', Controller]);
+    angular.module('obiba.mica.access')
+        .controller('DataAccessAmendmentEditController', ['$scope',
+        '$location',
+        '$q',
+        '$routeParams',
+        '$uibModal',
+        'DataAccessEntityResource',
+        'DataAccessAmendmentFormConfigResource',
+        'DataAccessEntityUrls',
+        'DataAccessEntityService',
+        'ServerErrorUtils',
+        'AlertService',
+        'DataAccessRequestDirtyStateService',
+        'FormDirtyStateObserver',
+        'SessionProxy',
+        'ngObibaMicaAccessTemplateUrl',
+        Controller
+    ]);
 })();
 //# sourceMappingURL=data-access-amendment-edit-controller.js.map
 'use strict';
 (function () {
-    function Controller($scope, $routeParams, $uibModal, DataAccessEntityResource, DataAccessEntityService, DataAccessEntityFormService, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, AlertService, ngObibaMicaAccessTemplateUrl) {
-        // Begin profileService    
+    function Controller($scope, $routeParams, $q, $uibModal, DataAccessEntityResource, DataAccessEntityService, DataAccessEntityFormService, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, AlertService, ngObibaMicaAccessTemplateUrl) {
+        // Begin profileService
         function getAttributeValue(attributes, key) {
             var result = attributes.filter(function (attribute) {
                 return attribute.key === key;
@@ -1992,7 +2009,7 @@ ngObibaMica.access
         var amendment = DataAccessEntityResource.get($scope.entityUrl, $routeParams.id);
         var model = amendment.$promise.then(getDataContent);
         var dataAccessForm = DataAccessAmendmentFormConfigResource.get();
-        Promise.all([amendment, model, dataAccessForm.$promise]).then(function (values) {
+        $q.all([amendment, model, dataAccessForm.$promise]).then(function (values) {
             $scope.requestEntity = values[0];
             $scope.model = values[1];
             $scope.dataAccessForm = values[2];
@@ -2030,7 +2047,20 @@ ngObibaMica.access
             $scope.formDrawn = value;
         };
     }
-    angular.module('obiba.mica.access').controller('DataAccessAmendmentViewController', ['$scope', '$routeParams', '$uibModal', 'DataAccessEntityResource', 'DataAccessEntityService', 'DataAccessEntityFormService', 'DataAccessAmendmentFormConfigResource', 'DataAccessEntityUrls', 'AlertService', 'ngObibaMicaAccessTemplateUrl', Controller]);
+    angular.module('obiba.mica.access').controller('DataAccessAmendmentViewController', [
+        '$scope',
+        '$routeParams',
+        '$q',
+        '$uibModal',
+        'DataAccessEntityResource',
+        'DataAccessEntityService',
+        'DataAccessEntityFormService',
+        'DataAccessAmendmentFormConfigResource',
+        'DataAccessEntityUrls',
+        'AlertService',
+        'ngObibaMicaAccessTemplateUrl',
+        Controller
+    ]);
 })();
 //# sourceMappingURL=data-access-amendment-view-controller.js.map
 /*
@@ -15015,7 +15045,7 @@ angular.module("access/views/data-access-amendment-view.html", []).run(["$templa
     "      </span>\n" +
     "      <span ng-if=\"actions.canViewProfile('mica-data-access-officer')\">\n" +
     "        <a href ng-click=\"userProfile(requestEntity.profile)\">\n" +
-    "          {{getFullName(requestEntity.profile) || requestEntity.applicant}}</a>, \n" +
+    "          {{getFullName(requestEntity.profile) || requestEntity.applicant}}</a>,\n" +
     "      </span>\n" +
     "      <span title=\"{{requestEntity.timestamps.created | amDateFormat: 'lll'}}\">{{requestEntity.timestamps.created | amCalendar}}</span>\n" +
     "      <span class=\"label label-success\">{{requestEntity.status | translate}}</span>\n" +
