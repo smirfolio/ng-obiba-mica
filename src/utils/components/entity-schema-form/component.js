@@ -13,7 +13,7 @@
 (function () {
   function Controller($rootScope, $timeout, LocalizedSchemaFormService, SfOptionsService, JsonUtils) {
     var ctrl = this,
-      scope = $rootScope.$new();
+    scope = $rootScope.$new();
     ctrl.form = {};
     ctrl.sfOptions = {};
 
@@ -64,7 +64,7 @@
     }
 
     function onChanges(changes) {
-      if (changes && changes.schemaForm && changes.schemaForm.currentValue) {        
+      if (changes && changes.schemaForm && changes.schemaForm.currentValue) {
         callOnRedraw(false);
         var form = changes.schemaForm.currentValue;
 

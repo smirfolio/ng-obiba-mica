@@ -1,8 +1,18 @@
 'use strict';
 
 (function () {
-  function Controller($scope, $routeParams, $uibModal, DataAccessEntityResource, DataAccessEntityService, DataAccessEntityFormService, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, AlertService, ngObibaMicaAccessTemplateUrl) {
-    // Begin profileService    
+  function Controller($scope,
+                      $routeParams,
+                      $q,
+                      $uibModal,
+                      DataAccessEntityResource,
+                      DataAccessEntityService,
+                      DataAccessEntityFormService,
+                      DataAccessAmendmentFormConfigResource,
+                      DataAccessEntityUrls,
+                      AlertService,
+                      ngObibaMicaAccessTemplateUrl) {
+    // Begin profileService
     function getAttributeValue(attributes, key) {
       var result = attributes.filter(function (attribute) {
         return attribute.key === key;
@@ -60,13 +70,13 @@
     var model = amendment.$promise.then(getDataContent);
     var dataAccessForm = DataAccessAmendmentFormConfigResource.get();
 
-    Promise.all([amendment, model, dataAccessForm.$promise]).then(function (values) {
+    $q.all([amendment, model, dataAccessForm.$promise]).then(function (values) {
       $scope.requestEntity = values[0];
       $scope.model = values[1];
       $scope.dataAccessForm = values[2];
 
       $scope.actions = DataAccessEntityService.actions;
-      $scope.nextStatus = DataAccessEntityService.nextStatus;      
+      $scope.nextStatus = DataAccessEntityService.nextStatus;
 
       Object.assign($scope, DataAccessEntityFormService.for($scope, $scope.requestEntity, resetRequestEntity));
 
@@ -104,5 +114,18 @@
     };
   }
 
-  angular.module('obiba.mica.access').controller('DataAccessAmendmentViewController', ['$scope', '$routeParams', '$uibModal', 'DataAccessEntityResource', 'DataAccessEntityService', 'DataAccessEntityFormService', 'DataAccessAmendmentFormConfigResource', 'DataAccessEntityUrls', 'AlertService', 'ngObibaMicaAccessTemplateUrl', Controller]);
+  angular.module('obiba.mica.access').controller('DataAccessAmendmentViewController', [
+    '$scope',
+    '$routeParams',
+    '$q' ,
+    '$uibModal',
+    'DataAccessEntityResource',
+    'DataAccessEntityService',
+    'DataAccessEntityFormService',
+    'DataAccessAmendmentFormConfigResource',
+    'DataAccessEntityUrls',
+    'AlertService',
+    'ngObibaMicaAccessTemplateUrl',
+    Controller
+  ]);
 })();

@@ -1,7 +1,21 @@
 'use strict';
 
 (function () {
-  function Controller($scope, $location, $routeParams, $uibModal, DataAccessEntityResource, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, DataAccessEntityService, ServerErrorUtils, AlertService, DataAccessRequestDirtyStateService, FormDirtyStateObserver, SessionProxy, ngObibaMicaAccessTemplateUrl) {
+  function Controller($scope,
+                      $location,
+                      $q,
+                      $routeParams,
+                      $uibModal,
+                      DataAccessEntityResource,
+                      DataAccessAmendmentFormConfigResource,
+                      DataAccessEntityUrls,
+                      DataAccessEntityService,
+                      ServerErrorUtils,
+                      AlertService,
+                      DataAccessRequestDirtyStateService,
+                      FormDirtyStateObserver,
+                      SessionProxy,
+                      ngObibaMicaAccessTemplateUrl) {
 
     function getDataContent(data) {
       return data.content ? JSON.parse(data.content) : {};
@@ -40,7 +54,7 @@
     var model = amendment.$promise.then(getDataContent);
     var dataAccessForm = DataAccessAmendmentFormConfigResource.get();
 
-    Promise.all([amendment, model, dataAccessForm.$promise]).then(function (values) {
+    $q.all([amendment, model, dataAccessForm.$promise]).then(function (values) {
       $scope.requestEntity = values[0];
       $scope.model = values[1];
       $scope.dataAccessForm = values[2];
@@ -101,5 +115,22 @@
     };
   }
 
-  angular.module('obiba.mica.access').controller('DataAccessAmendmentEditController', ['$scope', '$location', '$routeParams', '$uibModal', 'DataAccessEntityResource', 'DataAccessAmendmentFormConfigResource', 'DataAccessEntityUrls', 'DataAccessEntityService', 'ServerErrorUtils', 'AlertService', 'DataAccessRequestDirtyStateService', 'FormDirtyStateObserver', 'SessionProxy', 'ngObibaMicaAccessTemplateUrl', Controller]);
+  angular.module('obiba.mica.access')
+    .controller('DataAccessAmendmentEditController', ['$scope',
+      '$location',
+      '$q',
+      '$routeParams',
+      '$uibModal',
+      'DataAccessEntityResource',
+      'DataAccessAmendmentFormConfigResource',
+      'DataAccessEntityUrls',
+      'DataAccessEntityService',
+      'ServerErrorUtils',
+      'AlertService',
+      'DataAccessRequestDirtyStateService',
+      'FormDirtyStateObserver',
+      'SessionProxy',
+      'ngObibaMicaAccessTemplateUrl',
+      Controller
+    ]);
 })();
