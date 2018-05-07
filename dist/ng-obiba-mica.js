@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-05-04
+ * Date: 2018-05-07
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -15008,10 +15008,12 @@ angular.module("access/views/data-access-amendment-view.html", []).run(["$templa
     "    <p class=\"help-block pull-left\" ng-if=\"requestEntity.applicant\">\n" +
     "      <span translate>created-by</span>\n" +
     "      <span ng-if=\"!actions.canViewProfile('mica-data-access-officer')\">\n" +
-    "        {{getFullName(requestEntity.profile) || requestEntity.applicant}}\n" +
+    "        {{getFullName(requestEntity.profile) || requestEntity.applicant}},\n" +
     "      </span>\n" +
-    "      <a href ng-click=\"userProfile(requestEntity.profile)\" ng-if=\"actions.canViewProfile('mica-data-access-officer')\">\n" +
-    "        {{getFullName(requestEntity.profile) || requestEntity.applicant}}</a>,\n" +
+    "      <span ng-if=\"actions.canViewProfile('mica-data-access-officer')\">\n" +
+    "        <a href ng-click=\"userProfile(requestEntity.profile)\">\n" +
+    "          {{getFullName(requestEntity.profile) || requestEntity.applicant}}</a>, \n" +
+    "      </span>\n" +
     "      <span title=\"{{requestEntity.timestamps.created | amDateFormat: 'lll'}}\">{{requestEntity.timestamps.created | amCalendar}}</span>\n" +
     "      <span class=\"label label-success\">{{requestEntity.status | translate}}</span>\n" +
     "    </p>\n" +
@@ -15418,11 +15420,12 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "\n" +
     "      <p class=\"help-block pull-left\"><span translate>created-by</span>\n" +
     "        <span ng-if=\"!actions.canViewProfile('mica-data-access-officer')\">\n" +
-    "           {{getFullName(dataAccessRequest.profile) || dataAccessRequest.applicant}}\n" +
+    "           {{getFullName(dataAccessRequest.profile) || dataAccessRequest.applicant}},\n" +
     "        </span>\n" +
-    "        <a href ng-click=\"userProfile(dataAccessRequest.profile)\"\n" +
-    "            ng-if=\"actions.canViewProfile('mica-data-access-officer')\">\n" +
-    "          {{getFullName(dataAccessRequest.profile) || dataAccessRequest.applicant}}</a>,\n" +
+    "        <span ng-if=\"actions.canViewProfile('mica-data-access-officer')\">\n" +
+    "          <a href ng-click=\"userProfile(dataAccessRequest.profile)\">\n" +
+    "            {{getFullName(dataAccessRequest.profile) || dataAccessRequest.applicant}}</a>,\n" +
+    "        </span>\n" +
     "        <span title=\"{{dataAccessRequest.timestamps.created | amDateFormat: 'lll'}}\">{{dataAccessRequest.timestamps.created | amCalendar}}</span>\n" +
     "        <span class=\"label label-success\">{{dataAccessRequest.status | translate}}</span></p>\n" +
     "\n" +
