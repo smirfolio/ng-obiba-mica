@@ -5,10 +5,11 @@
 
     this.for = function (scope, accessEntity, successCallback, errorCallback) {
       var self = {};
-      var entityRootpath = accessEntity.parentId ? DataAccessEntityUrls.getDataAccessAmendmentUrl(accessEntity.parentId, accessEntity.id) :
+      var parentId = accessEntity['obiba.mica.DataAccessAmendmentDto.amendment'];
+      var entityRootpath = parentId ? DataAccessEntityUrls.getDataAccessAmendmentUrl(parentId, accessEntity.id) :
         DataAccessEntityUrls.getDataAccessRequestUrl(accessEntity.id);
 
-      var prefix = accessEntity.parentId ? 'data-access-amendment' : 'data-access-request';
+      var prefix = parentId ? 'data-access-amendment' : 'data-access-request';
 
       function confirmStatusChange(status, messageKey, statusName) {
         $rootScope.$broadcast(
@@ -30,7 +31,7 @@
         if (accessEntity.id === id) {
           DataAccessEntityResource.delete(entityRootpath, id).$promise.then(
             function () {
-              $location.path(accessEntity.parentId ? '/data-access-request/' + accessEntity.parentId : '/data-access-requests').replace();
+              $location.path(parentId ? '/data-access-request/' + parentId : '/data-access-requests').replace();
             });
         }
       }
