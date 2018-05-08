@@ -5,7 +5,7 @@
 
     this.for = function (scope, accessEntity, successCallback, errorCallback) {
       var self = {};
-      var parentId = accessEntity['obiba.mica.DataAccessAmendmentDto.amendment'];
+      var parentId = accessEntity['obiba.mica.DataAccessAmendmentDto.amendment'].parentId;
       var entityRootpath = parentId ? DataAccessEntityUrls.getDataAccessAmendmentUrl(parentId, accessEntity.id) :
         DataAccessEntityUrls.getDataAccessRequestUrl(accessEntity.id);
 
