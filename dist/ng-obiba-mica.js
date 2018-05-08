@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-05-07
+ * Date: 2018-05-08
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -2524,7 +2524,7 @@ var SetService = /** @class */ (function () {
         var _this = this;
         var did = Array.isArray(documentId) ? documentId.join("\n") : documentId;
         return this.getOrCreateCart(documentType).then(function (set) {
-            return _this.SetImportResource.update({ type: documentType, id: set.id }, did).$promise;
+            return _this.SetImportResource.save({ type: documentType, id: set.id }, did).$promise;
         }).then(function (set) {
             return _this.saveCart(documentType, set);
         });
@@ -2539,7 +2539,7 @@ var SetService = /** @class */ (function () {
         var _this = this;
         this.$log.info("query=" + rqlQuery);
         return this.getOrCreateCart(documentType).then(function (set) {
-            return _this.SetImportQueryResource.update({ type: documentType, id: set.id, query: rqlQuery }).$promise;
+            return _this.SetImportQueryResource.save({ type: documentType, id: set.id, query: rqlQuery }).$promise;
         }).then(function (set) {
             return _this.saveCart(documentType, set);
         });
@@ -2683,7 +2683,7 @@ var SetService = /** @class */ (function () {
      */
     SetService.prototype.createCart = function (documentType, documentId) {
         var _this = this;
-        return this.SetsImportResource.update({ type: documentType }, documentId).$promise
+        return this.SetsImportResource.save({ type: documentType }, documentId).$promise
             .then(function (set) {
             return _this.saveCart(documentType, set);
         });
