@@ -998,7 +998,7 @@ ngObibaMica.access.component("printFriendlyView", new PrintFriendlyComponent());
     function Service($rootScope, $filter, $location, DataAccessEntityUrls, DataAccessEntityResource, DataAccessEntityService, NOTIFICATION_EVENTS) {
         this.for = function (scope, accessEntity, successCallback, errorCallback) {
             var self = {};
-            var parentId = accessEntity['obiba.mica.DataAccessAmendmentDto.amendment'];
+            var parentId = accessEntity['obiba.mica.DataAccessAmendmentDto.amendment'].parentId;
             var entityRootpath = parentId ? DataAccessEntityUrls.getDataAccessAmendmentUrl(parentId, accessEntity.id) :
                 DataAccessEntityUrls.getDataAccessRequestUrl(accessEntity.id);
             var prefix = parentId ? 'data-access-amendment' : 'data-access-request';
@@ -1998,7 +1998,7 @@ ngObibaMica.access
         }
         function resetRequestEntity() {
             var entity = DataAccessEntityResource.get($scope.entityUrl, $routeParams.id);
-            Promise.all([entity, entity.$promise.then(getDataContent)])
+            $q.all([entity, entity.$promise.then(getDataContent)])
                 .then(function (values) {
                 $scope.requestEntity = values[0];
                 $scope.model = values[1];
