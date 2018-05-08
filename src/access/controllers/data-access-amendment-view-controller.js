@@ -55,7 +55,7 @@
 
     function resetRequestEntity() {
       var entity = DataAccessEntityResource.get($scope.entityUrl, $routeParams.id);
-      Promise.all([entity, entity.$promise.then(getDataContent)])
+      $q.all([entity, entity.$promise.then(getDataContent)])
         .then(function (values) {
           $scope.requestEntity = values[0];
           $scope.model = values[1];
