@@ -46,6 +46,7 @@ ngObibaMica.access
       'LocalizedSchemaFormService',
       'SfOptionsService',
       'moment',
+      'UserProfileService',
 
     function ($rootScope,
               $scope,
@@ -71,7 +72,8 @@ ngObibaMica.access
               DataAccessRequestConfig,
               LocalizedSchemaFormService,
               SfOptionsService,
-              moment) {
+              moment,
+              UserProfileService) {
 
 
       var TAB_NAMES = Object.freeze({
@@ -402,6 +404,7 @@ ngObibaMica.access
       $scope.approve = approve;
       $scope.reject = reject;
       $scope.conditionallyApprove = conditionallyApprove;
+      $scope.UserProfileService = UserProfileService;
 
       $scope.userProfile = function (profile) {
         $scope.applicant = profile;

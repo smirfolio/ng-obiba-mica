@@ -12,7 +12,6 @@
 (function () {
 
   function Controller ($rootScope,
-                       $uibModal,
                        DataAccessEntityUrls,
                        DataAccessEntityResource,
                        DataAccessEntityService,
@@ -22,9 +21,10 @@
                        ngObibaMicaAccessTemplateUrl,
                        DataAccessRequestConfig,
                        ngObibaMicaUrl,
-                       $translate) {
+                       $translate,
+                       UserProfileService,
+                       UserProfileModalService) {
     var ctrl = this;
-
 
     function initializeAddButtonCaption() {
       return ctrl.parentId === null ?
@@ -100,42 +100,8 @@
           messageKey: 'data-access-request.delete-dialog.message',
           messageArgs: [request.title, request.applicant]
         }, request.id
+
       );
-    }
-
-    function userProfile (profile) {
-      ctrl.applicant = profile;
-      $uibModal.open ({
-        scope: ctrl,
-        templateUrl: 'access/views/data-access-request-profile-user-modal.html'
-      });
-    }
-
-    function getAttributeValue(attributes, key) {
-      var result = attributes.filter (function (attribute) {
-        return attribute.key === key;
-      });
-
-      return result && result.length > 0 ? result[0].value : null;
-    }
-
-    function getFullName(profile) {
-      if (profile) {
-        if (profile.attributes) {
-          return getAttributeValue (profile.attributes, 'firstName') + ' ' + getAttributeValue (profile.attributes, 'lastName');
-        }
-        return profile.username;
-      }
-      return null;
-    }
-
-    function getProfileEmail(profile) {
-      if (profile) {
-        if (profile.attributes) {
-          return getAttributeValue (profile.attributes, 'email');
-        }
-      }
-      return null;
     }
 
     function getCsvExportHref() {
@@ -166,14 +132,13 @@
       }
     }
 
-    ctrl.userProfile = userProfile;
-    ctrl.getFullName = getFullName;
-    ctrl.getProfileEmail = getProfileEmail;
     ctrl.getCsvExportHref = getCsvExportHref;
     ctrl.getDataAccessRequestPageUrl = getDataAccessRequestPageUrl;
     ctrl.deleteRequest = deleteRequest;
     ctrl.$onInit = onInit;
     ctrl.$onChanges = onChanges;
+    ctrl.UserProfileService = UserProfileService;
+    ctrl.UserProfileModalService = UserProfileModalService;
   }
 
   ngObibaMica.access
@@ -184,7 +149,6 @@
       },
       templateUrl: 'access/components/entity-list/component.html',
       controller: ['$rootScope',
-        '$uibModal',
         'DataAccessEntityUrls',
         'DataAccessEntityResource',
         'DataAccessEntityService',
@@ -194,6 +158,8 @@
         'ngObibaMicaAccessTemplateUrl',
         'DataAccessRequestConfig',
         'ngObibaMicaUrl',
-        '$translate', Controller]
+        '$translate',
+        'UserProfileService',
+        'UserProfileModalService', Controller]
     });
 }) ();
