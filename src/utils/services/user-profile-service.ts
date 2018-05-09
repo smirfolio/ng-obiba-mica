@@ -24,7 +24,7 @@ interface IUserProfileService {
 class UserProfileService implements IUserProfileService {
 
   public getAttribute(attributes: any[], key: string): string {
-    return this.getAttibutesValue(attributes, key);
+    return this.getAttibuteValue(attributes, key);
   }
 
   public getFullName(profile: any): string {
@@ -39,13 +39,13 @@ class UserProfileService implements IUserProfileService {
 
   private getProfileAttributeValue(profile: any, key: string) {
     if (profile) {
-      return this.getAttibutesValue(profile.attributes, key);
+      return this.getAttibuteValue(profile.attributes, key);
     }
 
     return null;
   }
 
-  private getAttibutesValue(attributes: any[], key: string) {
+  private getAttibuteValue(attributes: any[], key: string) {
     if (attributes) {
       const result = attributes.filter((attribute: any) => {
         return attribute.key === key;
