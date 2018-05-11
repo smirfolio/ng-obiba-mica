@@ -107,18 +107,18 @@ function NgObibaMicaTemplateUrlFactory() {
 
     function ServerConfigResourceProvider () {
       var provider = this;
-    
+
       function setFactory(value) {
         provider.$get = value;
       }
-    
+
       /**
        * Default
        */
       provider.$get = function () {
         throw new Error('The provider factory method $get() must be overridden by client code.');
       };
-    
+
       /**
        * Clients can override the $get() method to provide their MicaConfigResource object.
        * @type {setFactory}
@@ -137,6 +137,7 @@ function NgObibaMicaTemplateUrlFactory() {
         'DataAccessAmendmentResource': 'ws/data-access-request/:parentId/amendment/:id',
         'DataAccessRequestsExportCsvResource': 'ws/data-access-requests/csv?lang=:lang',
         'DataAccessRequestResource': 'ws/data-access-request/:id',
+        'DataAccessRequestLogHistoryResource': '/ws/data-access-request/:id/_history',
         'DataAccessRequestAttachmentsUpdateResource': '/ws/data-access-request/:id/_attachments',
         'DataAccessRequestAttachmentDownloadResource': '/ws/data-access-request/:id/attachments/:attachmentId/_download',
         'SchemaFormAttachmentDownloadResource': '/ws/:path/form/attachments/:attachmentName/:attachmentId/_download',

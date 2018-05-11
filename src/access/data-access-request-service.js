@@ -45,6 +45,7 @@ ngObibaMica.access
       return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestResource'), {}, {
         'save': { method: 'PUT', params: { id: '@id' }, errorHandler: true },
         'get': { method: 'GET' },
+        'getLogHistory': { method: 'GET', isArray: true, url: ngObibaMicaUrl.getUrl('DataAccessRequestLogHistoryResource') },
         'delete': { method: 'DELETE' }
       });
     }])
