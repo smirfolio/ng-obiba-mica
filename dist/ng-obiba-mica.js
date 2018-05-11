@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-05-09
+ * Date: 2018-05-11
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -123,6 +123,7 @@ function NgObibaMicaTemplateUrlFactory() {
             'DataAccessAmendmentResource': 'ws/data-access-request/:parentId/amendment/:id',
             'DataAccessRequestsExportCsvResource': 'ws/data-access-requests/csv?lang=:lang',
             'DataAccessRequestResource': 'ws/data-access-request/:id',
+            'DataAccessRequestLogHistoryResource': '/ws/data-access-request/:id/_history',
             'DataAccessRequestAttachmentsUpdateResource': '/ws/data-access-request/:id/_attachments',
             'DataAccessRequestAttachmentDownloadResource': '/ws/data-access-request/:id/attachments/:attachmentId/_download',
             'SchemaFormAttachmentDownloadResource': '/ws/:path/form/attachments/:attachmentName/:attachmentId/_download',
@@ -1448,14 +1449,15 @@ ngObibaMica.access
             $scope.form.comments = DataAccessRequestCommentsResource.query({ id: $routeParams.id });
         }
         function selectTab(tab) {
-            $scope.parentId = undefined;
             switch (tab) {
                 case TAB_NAMES.form:
                 case TAB_NAMES.history:
                 case TAB_NAMES.documents:
                     break;
                 case TAB_NAMES.comments:
-                    retrieveComments();
+                    if ($scope.parentId === undefined) {
+                        retrieveComments();
+                    }
                     break;
                 case TAB_NAMES.amendments:
                     $scope.parentId = $routeParams.id;
@@ -1482,8 +1484,17 @@ ngObibaMica.access
             }
             $scope.showAttachmentsForm = show;
         }
+        function setLogHistory() {
+            return DataAccessRequestResource.getLogHistory({ id: $routeParams.id }).$promise.then(function (result) {
+                $scope.statusChangeHistory = (result || []);
+                return $scope.statusChangeHistory;
+            }, function (reason) {
+                console.error('Error getting log history for DAR', $routeParams.id, reason);
+            });
+        }
         function getRequest() {
             return DataAccessRequestResource.get({ id: $routeParams.id }).$promise.then(function onSuccess(request) {
+                setLogHistory();
                 try {
                     $scope.dataAccessRequest = request;
                     $scope.form.model = request.content ? JSON.parse(request.content) : {};
@@ -1668,6 +1679,7 @@ ngObibaMica.access
         DataAccessEntityService.getStatusHistoryInfo(function (statusHistoryInfo) {
             $scope.getStatusHistoryInfo = statusHistoryInfo;
         });
+        $scope.statusChangeHistory = [];
         $scope.parentId = undefined;
         $scope.validForm = true;
         $scope.config = DataAccessRequestConfig.getOptions();
@@ -2173,6 +2185,7 @@ ngObibaMica.access
         return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestResource'), {}, {
             'save': { method: 'PUT', params: { id: '@id' }, errorHandler: true },
             'get': { method: 'GET' },
+            'getLogHistory': { method: 'GET', isArray: true, url: ngObibaMicaUrl.getUrl('DataAccessRequestLogHistoryResource') },
             'delete': { method: 'DELETE' }
         });
     }])
@@ -15271,30 +15284,35 @@ angular.module("access/views/data-access-request-history-view.html", []).run(["$
     "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
     "  -->\n" +
     "\n" +
-    "<table id=\"data-access-request-history\" class=\"table table-striped\">\n" +
+    "<table id=\"data-access-request-history\" class=\"table table-striped\" obiba-table-sorter=\"statusChangeHistory\">\n" +
     "  <thead>\n" +
-    "  <tr>\n" +
-    "    <th class=\"status-icon\"></th>\n" +
-    "    <th translate>status</th>\n" +
-    "    <th translate>changed-by</th>\n" +
-    "    <th translate>changed-on</th>\n" +
-    "  </tr>\n" +
+    "    <tr>\n" +
+    "      <th class=\"status-icon\"></th>\n" +
+    "      <th translate>status</th>\n" +
+    "      <th translate>changed-by</th>\n" +
+    "      <th data-column-name=\"changedOn\" translate>changed-on</th>\n" +
+    "    </tr>\n" +
     "  </thead>\n" +
     "  <tbody>\n" +
-    "  <tr ng-repeat=\"status in dataAccessRequest.statusChangeHistory\"\n" +
-    "    ng-init=\"info = getStatusHistoryInfo[getStatusHistoryInfoId(status)]\">\n" +
-    "    <td><span><i class=\"{{info.icon}} hoffset\"></i></span></td>\n" +
-    "    <td>{{info.msg}}</span></span></td>\n" +
-    "    <td>{{userProfileService.getFullName(status.profile) || status.author}}</td>\n" +
-    "    <td>\n" +
-    "      <span title=\"{{status.changedOn | amDateFormat: 'lll'}}\">\n" +
-    "        {{status.changedOn | amCalendar}}\n" +
-    "      </span>\n" +
-    "    </td>\n" +
-    "  </tr>\n" +
+    "    <tr ng-repeat=\"status in statusChangeHistory\" ng-init=\"info = getStatusHistoryInfo[getStatusHistoryInfoId(status)]\">\n" +
+    "      <td>\n" +
+    "        <span><i class=\"{{info.icon}} hoffset\"></i></span>\n" +
+    "      </td>\n" +
+    "      <td>\n" +
+    "        <span ng-if=\"status.reference\">{{'data-access-amendment.title' | translate}}\n" +
+    "          <a ng-href=\"#{{'/data-access-request/' + dataAccessRequest.id + '/amendment/' + status.reference}}\">{{status.reference}}</a>\n" +
+    "        </span>\n" +
+    "        {{info.msg}}\n" +
+    "      </td>\n" +
+    "      <td>{{userProfileService.getFullName(status.profile) || status.author}}</td>\n" +
+    "      <td>\n" +
+    "        <span title=\"{{status.changedOn | amDateFormat: 'lll'}}\">\n" +
+    "          {{status.changedOn | amCalendar}}\n" +
+    "        </span>\n" +
+    "      </td>\n" +
+    "    </tr>\n" +
     "  </tbody>\n" +
-    "</table>\n" +
-    "");
+    "</table>");
 }]);
 
 angular.module("access/views/data-access-request-list.html", []).run(["$templateCache", function($templateCache) {

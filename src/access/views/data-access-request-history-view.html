@@ -8,26 +8,32 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
-<table id="data-access-request-history" class="table table-striped">
+<table id="data-access-request-history" class="table table-striped" obiba-table-sorter="statusChangeHistory">
   <thead>
-  <tr>
-    <th class="status-icon"></th>
-    <th translate>status</th>
-    <th translate>changed-by</th>
-    <th translate>changed-on</th>
-  </tr>
+    <tr>
+      <th class="status-icon"></th>
+      <th translate>status</th>
+      <th translate>changed-by</th>
+      <th data-column-name="changedOn" translate>changed-on</th>
+    </tr>
   </thead>
   <tbody>
-  <tr ng-repeat="status in dataAccessRequest.statusChangeHistory"
-    ng-init="info = getStatusHistoryInfo[getStatusHistoryInfoId(status)]">
-    <td><span><i class="{{info.icon}} hoffset"></i></span></td>
-    <td>{{info.msg}}</span></span></td>
-    <td>{{userProfileService.getFullName(status.profile) || status.author}}</td>
-    <td>
-      <span title="{{status.changedOn | amDateFormat: 'lll'}}">
-        {{status.changedOn | amCalendar}}
-      </span>
-    </td>
-  </tr>
+    <tr ng-repeat="status in statusChangeHistory" ng-init="info = getStatusHistoryInfo[getStatusHistoryInfoId(status)]">
+      <td>
+        <span><i class="{{info.icon}} hoffset"></i></span>
+      </td>
+      <td>
+        <span ng-if="status.reference">{{'data-access-amendment.title' | translate}}
+          <a ng-href="#{{'/data-access-request/' + dataAccessRequest.id + '/amendment/' + status.reference}}">{{status.reference}}</a>
+        </span>
+        {{info.msg}}
+      </td>
+      <td>{{userProfileService.getFullName(status.profile) || status.author}}</td>
+      <td>
+        <span title="{{status.changedOn | amDateFormat: 'lll'}}">
+          {{status.changedOn | amCalendar}}
+        </span>
+      </td>
+    </tr>
   </tbody>
 </table>
