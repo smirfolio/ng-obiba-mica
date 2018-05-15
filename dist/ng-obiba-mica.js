@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-05-11
+ * Date: 2018-05-15
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -14929,8 +14929,9 @@ angular.module("access/components/entity-list/component.html", []).run(["$templa
     "    </div>\n" +
     "  </div>\n" +
     "\n" +
-    "  <p class=\"help-block\" ng-if=\"$ctrl.requests.length == 0 && !loading\">\n" +
-    "    <span>{{$ctrl.noneCaption | translate}}</span>\n" +
+    "  <p class=\"help-block\">\n" +
+    "    <span ng-if=\"!$ctrl.canAdd\" translate>data-access-amendment.cannot-add</span>\n" +
+    "    <span ng-if=\"$ctrl.canAdd && $ctrl.requests.length == 0 && !loading\">{{$ctrl.noneCaption | translate}}</span>\n" +
     "  </p>\n" +
     "\n" +
     "  <p ng-if=\"$ctrl.loading\" class=\"voffset2 loading\">\n" +
