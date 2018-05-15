@@ -24,8 +24,9 @@
     </div>
   </div>
 
-  <p class="help-block" ng-if="$ctrl.requests.length == 0 && !loading">
-    <span>{{$ctrl.noneCaption | translate}}</span>
+  <p class="help-block">
+    <span ng-if="!$ctrl.canAdd" translate>data-access-amendment.cannot-add</span>
+    <span ng-if="$ctrl.canAdd && $ctrl.requests.length == 0 && !loading">{{$ctrl.noneCaption | translate}}</span>
   </p>
 
   <p ng-if="$ctrl.loading" class="voffset2 loading">
