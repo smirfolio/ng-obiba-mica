@@ -21,23 +21,7 @@
       REJECTED: 'REJECTED'
     };
 
-    this.status = statusList;
-
-    this.getStatusFilterData = function (userCallback) {
-      if (userCallback) {
-        $translate(Object.keys(statusList)).then(function (translation) {
-          userCallback(Object.keys(translation).map(function (key) {
-            return {key: key, translation: translation[key]};
-          }));
-        });
-      }
-    };
-
-    var canDoAction = function (request, action) {
-      return request.actions ? request.actions.indexOf(action) !== - 1 : false;
-    };
-
-    this.actions = {
+    var actions = {
       canViewProfile: function (role) {
         var found = false;
         var currentUserRoles = SessionProxy.roles();
@@ -77,11 +61,7 @@
       }
     };
 
-    var canChangeStatus = function (request, to) {
-      return request.nextStatus ? request.nextStatus.indexOf(to) !== - 1 : null;
-    };
-
-    this.nextStatus = {
+    var nextStatus = {
       canSubmit: function (request) {
         return canChangeStatus(request, 'SUBMITTED');
       },
@@ -108,69 +88,31 @@
 
     };
 
-    this.getStatusHistoryInfo = function (userCallback) {
-      if (! userCallback) {
-        return;
+    function getStatusFilterData(userCallback) {
+      if (userCallback) {
+        $translate(Object.keys(statusList)).then(function (translation) {
+          userCallback(Object.keys(translation).map(function (key) {
+            return {key: key, translation: translation[key]};
+          }));
+        });
       }
+    }
 
-      var keyIdMap = {
-        'data-access-request.histories.opened': 'opened',
-        'data-access-request.histories.reopened': 'reopened',
-        'data-access-request.histories.submitted': 'submitted',
-        'data-access-request.histories.reviewed': 'reviewed',
-        'data-access-request.histories.conditionallyApproved': 'conditionallyApproved',
-        'data-access-request.histories.approved': 'approved',
-        'data-access-request.histories.rejected': 'rejected'
-      };
+    function canDoAction(request, action) {
+      return request.actions ? request.actions.indexOf(action) !== - 1 : false;
+    }
 
-      var statusHistoryInfo = {
-        opened: {
-          id: 'opened',
-          icon: 'glyphicon glyphicon-saved',
-        },
-        reopened: {
-          id: 'reopened',
-          icon: 'glyphicon glyphicon-repeat',
-        },
-        submitted: {
-          id: 'submitted',
-          icon: 'glyphicon glyphicon-export',
-        },
-        reviewed: {
-          id: 'reviewed',
-          icon: 'glyphicon glyphicon-check',
-        },
-        conditionallyApproved: {
-          id: 'conditionallyApproved',
-          icon: 'glyphicon glyphicon-unchecked',
-        },
-        approved: {
-          id: 'approved',
-          icon: 'glyphicon glyphicon-ok',
-        },
-        rejected: {
-          id: 'rejected',
-          icon: 'glyphicon glyphicon-remove',
-        }
-      };
+    function canChangeStatus(request, to) {
+      return request.nextStatus ? request.nextStatus.indexOf(to) !== - 1 : null;
+    }
 
-      $translate(Object.keys(keyIdMap))
-        .then(
-          function (translation) {
-            Object.keys(translation).forEach(
-              function (key) {
-                statusHistoryInfo[keyIdMap[key]].msg = translation[key];
-              });
-
-            userCallback(statusHistoryInfo);
-          });
-    };
-
-    this.getStatusHistoryInfoId = function (status) {
+    function getHistoryLogId(log) {
       var id = 'opened';
 
-      if (status.from !== 'OPENED' || status.from !== status.to) {
-        switch (status.to) {
+      if (log.action) {
+        id = 'action';
+      } else if (log.from !== 'OPENED' || log.from !== log.to) {
+        switch (log.to) {
           case 'OPENED':
             id = 'reopened';
             break;
@@ -193,9 +135,51 @@
       }
 
       return id;
-    };
+    }
 
-    this.getListDataAccessRequestPageUrl = function () {
+    function processLogsHistory(logs) {
+      return (logs || []).map(function(log) {
+
+        switch (getHistoryLogId(log)) {
+          case 'opened':
+            log.msg = 'data-access-request.histories.opened';
+            log.icon =  'glyphicon glyphicon-saved';
+            break;
+          case 'reopened':
+            log.msg = 'data-access-request.histories.reopened';
+            log.icon =  'glyphicon glyphicon-saved';
+            break;
+          case 'submitted':
+            log.msg = 'data-access-request.histories.submitted';
+            log.icon =  'glyphicon glyphicon-export';
+            break;
+          case 'reviewed':
+            log.msg ='data-access-request.histories.reviewed';
+            log.icon =  'glyphicon glyphicon-check';
+            break;
+          case 'conditionallyApproved':
+            log.msg = 'data-access-request.histories.conditionallyApproved';
+            log.icon =  'glyphicon glyphicon-unchecked';
+            break;
+          case 'approved':
+            log.msg = 'data-access-request.histories.approved';
+            log.icon =  'glyphicon glyphicon-ok';
+            break;
+          case 'rejected':
+            log.msg = 'data-access-request.histories.rejected';
+            log.icon =  'glyphicon glyphicon-remove';
+            break;
+          case 'action':
+            log.msg = log.action;
+            log.icon =  'glyphicon glyphicon-play-circle';
+            break;
+        }
+
+        return log;
+      });
+    }
+
+    function getListDataAccessRequestPageUrl() {
       var DataAccessClientListPath = ngObibaMicaUrl.getUrl('DataAccessClientListPath');
       if(DataAccessClientListPath){
         return ngObibaMicaUrl.getUrl('BaseUrl') + ngObibaMicaUrl.getUrl('DataAccessClientListPath');
@@ -203,7 +187,14 @@
       else{
         return null;
       }
-    };
+    }
+
+    this.status = statusList;
+    this.actions = actions;
+    this.nextStatus = nextStatus;
+    this.getStatusFilterData = getStatusFilterData;
+    this.processLogsHistory = processLogsHistory;
+    this.getListDataAccessRequestPageUrl = getListDataAccessRequestPageUrl;
 
     return this;
   }

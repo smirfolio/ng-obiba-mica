@@ -30,6 +30,7 @@ ngObibaMica.access
       '$filter',
       '$translate',
       'DataAccessRequestResource',
+      'DataAccessAmendmentsResource',
       'DataAccessEntityService',
       'DataAccessRequestStatusResource',
       'DataAccessFormConfigResource',
@@ -57,6 +58,7 @@ ngObibaMica.access
         $filter,
         $translate,
         DataAccessRequestResource,
+        DataAccessAmendmentsResource,
         DataAccessEntityService,
         DataAccessRequestStatusResource,
         DataAccessFormConfigResource,
@@ -149,10 +151,17 @@ ngObibaMica.access
           $scope.showAttachmentsForm = show;
         }
 
-        function setLogHistory() {
-          return DataAccessRequestResource.getLogHistory({ id: $routeParams.id }).$promise.then(function (result) {
-            $scope.statusChangeHistory = (result || []);
-            return $scope.statusChangeHistory;
+        function setLogsHistory(request) {
+          DataAccessAmendmentsResource.getLogHistory({ id: request.id }).$promise.then(function (amendmentHistory) {
+            $scope.logsHistory =
+              DataAccessEntityService.processLogsHistory(
+                [].concat(request.statusChangeHistory, (request.actionLogHistory || []), (amendmentHistory || []))
+                  .sort(function(a, b) {
+                    return a.changedOn.localeCompare(b.changedOn);
+                  })
+              );
+
+            return $scope.logsHistory;
           }, function (reason) {
             console.error('Error getting log history for DAR', $routeParams.id, reason);
           });
@@ -160,7 +169,7 @@ ngObibaMica.access
 
         function getRequest() {
           return DataAccessRequestResource.get({ id: $routeParams.id }).$promise.then(function onSuccess(request) {
-            setLogHistory();
+            setLogsHistory(request);
 
             try {
               $scope.dataAccessRequest = request;
@@ -213,7 +222,7 @@ ngObibaMica.access
         }
 
         function findLastSubmittedDate() {
-          var history = $scope.dataAccessRequest.statusChangeHistory || [];
+          var history = $scope.dataAccessRequest.logsHistory || [];
           return history.filter(function (item) {
             return item.to === DataAccessEntityService.status.SUBMITTED;
           }).sort(function (a, b) {
@@ -384,11 +393,7 @@ ngObibaMica.access
           statusChangedConfirmed(DataAccessEntityService.status.REJECTED, status);
         }
 
-        DataAccessEntityService.getStatusHistoryInfo(function (statusHistoryInfo) {
-          $scope.getStatusHistoryInfo = statusHistoryInfo;
-        });
-
-        $scope.statusChangeHistory = [];
+        $scope.logsHistory = [];
         $scope.parentId = undefined;
         $scope.validForm = true;
         $scope.config = DataAccessRequestConfig.getOptions();
@@ -407,7 +412,6 @@ ngObibaMica.access
         $scope.onAttachmentError = onAttachmentError;
         $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('view');
         $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('view');
-        $scope.getStatusHistoryInfoId = DataAccessEntityService.getStatusHistoryInfoId;
         $scope.submit = submitForm;
         $scope.reopen = reOpen;
         $scope.review = review;

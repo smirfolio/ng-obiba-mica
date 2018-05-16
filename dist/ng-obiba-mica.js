@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-05-15
+ * Date: 2018-05-16
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -123,7 +123,7 @@ function NgObibaMicaTemplateUrlFactory() {
             'DataAccessAmendmentResource': 'ws/data-access-request/:parentId/amendment/:id',
             'DataAccessRequestsExportCsvResource': 'ws/data-access-requests/csv?lang=:lang',
             'DataAccessRequestResource': 'ws/data-access-request/:id',
-            'DataAccessRequestLogHistoryResource': '/ws/data-access-request/:id/_history',
+            'DataAccessAmendmentsLogHistoryResource': '/ws/data-access-request/:id/amendments/_history',
             'DataAccessRequestAttachmentsUpdateResource': '/ws/data-access-request/:id/_attachments',
             'DataAccessRequestAttachmentDownloadResource': '/ws/data-access-request/:id/attachments/:attachmentId/_download',
             'SchemaFormAttachmentDownloadResource': '/ws/:path/form/attachments/:attachmentName/:attachmentId/_download',
@@ -1182,20 +1182,7 @@ ngObibaMica.access.service("DataAccessEntityResource", DataAccessEntityResource)
             APPROVED: 'APPROVED',
             REJECTED: 'REJECTED'
         };
-        this.status = statusList;
-        this.getStatusFilterData = function (userCallback) {
-            if (userCallback) {
-                $translate(Object.keys(statusList)).then(function (translation) {
-                    userCallback(Object.keys(translation).map(function (key) {
-                        return { key: key, translation: translation[key] };
-                    }));
-                });
-            }
-        };
-        var canDoAction = function (request, action) {
-            return request.actions ? request.actions.indexOf(action) !== -1 : false;
-        };
-        this.actions = {
+        var actions = {
             canViewProfile: function (role) {
                 var found = false;
                 var currentUserRoles = SessionProxy.roles();
@@ -1228,10 +1215,7 @@ ngObibaMica.access.service("DataAccessEntityResource", DataAccessEntityResource)
                 return request['obiba.mica.DataAccessAmendmentDto.amendment'] ? true : canDoAction(request, 'ADD_AMENDMENTS');
             }
         };
-        var canChangeStatus = function (request, to) {
-            return request.nextStatus ? request.nextStatus.indexOf(to) !== -1 : null;
-        };
-        this.nextStatus = {
+        var nextStatus = {
             canSubmit: function (request) {
                 return canChangeStatus(request, 'SUBMITTED');
             },
@@ -1251,61 +1235,28 @@ ngObibaMica.access.service("DataAccessEntityResource", DataAccessEntityResource)
                 return canChangeStatus(request, 'REJECTED');
             }
         };
-        this.getStatusHistoryInfo = function (userCallback) {
-            if (!userCallback) {
-                return;
-            }
-            var keyIdMap = {
-                'data-access-request.histories.opened': 'opened',
-                'data-access-request.histories.reopened': 'reopened',
-                'data-access-request.histories.submitted': 'submitted',
-                'data-access-request.histories.reviewed': 'reviewed',
-                'data-access-request.histories.conditionallyApproved': 'conditionallyApproved',
-                'data-access-request.histories.approved': 'approved',
-                'data-access-request.histories.rejected': 'rejected'
-            };
-            var statusHistoryInfo = {
-                opened: {
-                    id: 'opened',
-                    icon: 'glyphicon glyphicon-saved',
-                },
-                reopened: {
-                    id: 'reopened',
-                    icon: 'glyphicon glyphicon-repeat',
-                },
-                submitted: {
-                    id: 'submitted',
-                    icon: 'glyphicon glyphicon-export',
-                },
-                reviewed: {
-                    id: 'reviewed',
-                    icon: 'glyphicon glyphicon-check',
-                },
-                conditionallyApproved: {
-                    id: 'conditionallyApproved',
-                    icon: 'glyphicon glyphicon-unchecked',
-                },
-                approved: {
-                    id: 'approved',
-                    icon: 'glyphicon glyphicon-ok',
-                },
-                rejected: {
-                    id: 'rejected',
-                    icon: 'glyphicon glyphicon-remove',
-                }
-            };
-            $translate(Object.keys(keyIdMap))
-                .then(function (translation) {
-                Object.keys(translation).forEach(function (key) {
-                    statusHistoryInfo[keyIdMap[key]].msg = translation[key];
+        function getStatusFilterData(userCallback) {
+            if (userCallback) {
+                $translate(Object.keys(statusList)).then(function (translation) {
+                    userCallback(Object.keys(translation).map(function (key) {
+                        return { key: key, translation: translation[key] };
+                    }));
                 });
-                userCallback(statusHistoryInfo);
-            });
-        };
-        this.getStatusHistoryInfoId = function (status) {
+            }
+        }
+        function canDoAction(request, action) {
+            return request.actions ? request.actions.indexOf(action) !== -1 : false;
+        }
+        function canChangeStatus(request, to) {
+            return request.nextStatus ? request.nextStatus.indexOf(to) !== -1 : null;
+        }
+        function getHistoryLogId(log) {
             var id = 'opened';
-            if (status.from !== 'OPENED' || status.from !== status.to) {
-                switch (status.to) {
+            if (log.action) {
+                id = 'action';
+            }
+            else if (log.from !== 'OPENED' || log.from !== log.to) {
+                switch (log.to) {
                     case 'OPENED':
                         id = 'reopened';
                         break;
@@ -1327,8 +1278,47 @@ ngObibaMica.access.service("DataAccessEntityResource", DataAccessEntityResource)
                 }
             }
             return id;
-        };
-        this.getListDataAccessRequestPageUrl = function () {
+        }
+        function processLogsHistory(logs) {
+            return (logs || []).map(function (log) {
+                switch (getHistoryLogId(log)) {
+                    case 'opened':
+                        log.msg = 'data-access-request.histories.opened';
+                        log.icon = 'glyphicon glyphicon-saved';
+                        break;
+                    case 'reopened':
+                        log.msg = 'data-access-request.histories.reopened';
+                        log.icon = 'glyphicon glyphicon-saved';
+                        break;
+                    case 'submitted':
+                        log.msg = 'data-access-request.histories.submitted';
+                        log.icon = 'glyphicon glyphicon-export';
+                        break;
+                    case 'reviewed':
+                        log.msg = 'data-access-request.histories.reviewed';
+                        log.icon = 'glyphicon glyphicon-check';
+                        break;
+                    case 'conditionallyApproved':
+                        log.msg = 'data-access-request.histories.conditionallyApproved';
+                        log.icon = 'glyphicon glyphicon-unchecked';
+                        break;
+                    case 'approved':
+                        log.msg = 'data-access-request.histories.approved';
+                        log.icon = 'glyphicon glyphicon-ok';
+                        break;
+                    case 'rejected':
+                        log.msg = 'data-access-request.histories.rejected';
+                        log.icon = 'glyphicon glyphicon-remove';
+                        break;
+                    case 'action':
+                        log.msg = log.action;
+                        log.icon = 'glyphicon glyphicon-play-circle';
+                        break;
+                }
+                return log;
+            });
+        }
+        function getListDataAccessRequestPageUrl() {
             var DataAccessClientListPath = ngObibaMicaUrl.getUrl('DataAccessClientListPath');
             if (DataAccessClientListPath) {
                 return ngObibaMicaUrl.getUrl('BaseUrl') + ngObibaMicaUrl.getUrl('DataAccessClientListPath');
@@ -1336,7 +1326,13 @@ ngObibaMica.access.service("DataAccessEntityResource", DataAccessEntityResource)
             else {
                 return null;
             }
-        };
+        }
+        this.status = statusList;
+        this.actions = actions;
+        this.nextStatus = nextStatus;
+        this.getStatusFilterData = getStatusFilterData;
+        this.processLogsHistory = processLogsHistory;
+        this.getListDataAccessRequestPageUrl = getListDataAccessRequestPageUrl;
         return this;
     }
     ngObibaMica.access.service('DataAccessEntityService', ['$translate', 'SessionProxy', 'USER_ROLES', 'ngObibaMicaUrl', DataAccessEntityService]);
@@ -1405,6 +1401,7 @@ ngObibaMica.access
     '$filter',
     '$translate',
     'DataAccessRequestResource',
+    'DataAccessAmendmentsResource',
     'DataAccessEntityService',
     'DataAccessRequestStatusResource',
     'DataAccessFormConfigResource',
@@ -1422,7 +1419,7 @@ ngObibaMica.access
     'SfOptionsService',
     'moment',
     'UserProfileService',
-    function ($rootScope, $scope, $route, $location, $uibModal, $routeParams, $filter, $translate, DataAccessRequestResource, DataAccessEntityService, DataAccessRequestStatusResource, DataAccessFormConfigResource, JsonUtils, DataAccessRequestAttachmentsUpdateResource, DataAccessRequestCommentsResource, DataAccessRequestCommentResource, ngObibaMicaUrl, ngObibaMicaAccessTemplateUrl, AlertService, ServerErrorUtils, NOTIFICATION_EVENTS, DataAccessRequestConfig, LocalizedSchemaFormService, SfOptionsService, moment, UserProfileService) {
+    function ($rootScope, $scope, $route, $location, $uibModal, $routeParams, $filter, $translate, DataAccessRequestResource, DataAccessAmendmentsResource, DataAccessEntityService, DataAccessRequestStatusResource, DataAccessFormConfigResource, JsonUtils, DataAccessRequestAttachmentsUpdateResource, DataAccessRequestCommentsResource, DataAccessRequestCommentResource, ngObibaMicaUrl, ngObibaMicaAccessTemplateUrl, AlertService, ServerErrorUtils, NOTIFICATION_EVENTS, DataAccessRequestConfig, LocalizedSchemaFormService, SfOptionsService, moment, UserProfileService) {
         var TAB_NAMES = Object.freeze({
             form: 0,
             amendments: 1,
@@ -1484,17 +1481,21 @@ ngObibaMica.access
             }
             $scope.showAttachmentsForm = show;
         }
-        function setLogHistory() {
-            return DataAccessRequestResource.getLogHistory({ id: $routeParams.id }).$promise.then(function (result) {
-                $scope.statusChangeHistory = (result || []);
-                return $scope.statusChangeHistory;
+        function setLogsHistory(request) {
+            DataAccessAmendmentsResource.getLogHistory({ id: request.id }).$promise.then(function (amendmentHistory) {
+                $scope.logsHistory =
+                    DataAccessEntityService.processLogsHistory([].concat(request.statusChangeHistory, (request.actionLogHistory || []), (amendmentHistory || []))
+                        .sort(function (a, b) {
+                        return a.changedOn.localeCompare(b.changedOn);
+                    }));
+                return $scope.logsHistory;
             }, function (reason) {
                 console.error('Error getting log history for DAR', $routeParams.id, reason);
             });
         }
         function getRequest() {
             return DataAccessRequestResource.get({ id: $routeParams.id }).$promise.then(function onSuccess(request) {
-                setLogHistory();
+                setLogsHistory(request);
                 try {
                     $scope.dataAccessRequest = request;
                     $scope.form.model = request.content ? JSON.parse(request.content) : {};
@@ -1536,7 +1537,7 @@ ngObibaMica.access
             }, onError);
         }
         function findLastSubmittedDate() {
-            var history = $scope.dataAccessRequest.statusChangeHistory || [];
+            var history = $scope.dataAccessRequest.logsHistory || [];
             return history.filter(function (item) {
                 return item.to === DataAccessEntityService.status.SUBMITTED;
             }).sort(function (a, b) {
@@ -1676,10 +1677,7 @@ ngObibaMica.access
         function onStatusRejected(event, status) {
             statusChangedConfirmed(DataAccessEntityService.status.REJECTED, status);
         }
-        DataAccessEntityService.getStatusHistoryInfo(function (statusHistoryInfo) {
-            $scope.getStatusHistoryInfo = statusHistoryInfo;
-        });
-        $scope.statusChangeHistory = [];
+        $scope.logsHistory = [];
         $scope.parentId = undefined;
         $scope.validForm = true;
         $scope.config = DataAccessRequestConfig.getOptions();
@@ -1698,7 +1696,6 @@ ngObibaMica.access
         $scope.onAttachmentError = onAttachmentError;
         $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('view');
         $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('view');
-        $scope.getStatusHistoryInfoId = DataAccessEntityService.getStatusHistoryInfoId;
         $scope.submit = submitForm;
         $scope.reopen = reOpen;
         $scope.review = review;
@@ -2185,7 +2182,6 @@ ngObibaMica.access
         return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestResource'), {}, {
             'save': { method: 'PUT', params: { id: '@id' }, errorHandler: true },
             'get': { method: 'GET' },
-            'getLogHistory': { method: 'GET', isArray: true, url: ngObibaMicaUrl.getUrl('DataAccessRequestLogHistoryResource') },
             'delete': { method: 'DELETE' }
         });
     }])
@@ -2193,7 +2189,8 @@ ngObibaMica.access
     function ($resource, ngObibaMicaUrl) {
         return $resource(ngObibaMicaUrl.getUrl('DataAccessAmendmentsResource'), {}, {
             'save': { method: 'POST', params: { parentId: '@parentId' }, errorHandler: true },
-            'get': { method: 'GET', params: { parentId: '@parentId' } }
+            'get': { method: 'GET', params: { parentId: '@parentId' } },
+            'getLogHistory': { method: 'GET', isArray: true, url: ngObibaMicaUrl.getUrl('DataAccessAmendmentsLogHistoryResource') }
         });
     }])
     .factory('DataAccessAmendmentResource', ['$resource', 'ngObibaMicaUrl',
@@ -15285,7 +15282,7 @@ angular.module("access/views/data-access-request-history-view.html", []).run(["$
     "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
     "  -->\n" +
     "\n" +
-    "<table id=\"data-access-request-history\" class=\"table table-striped\" obiba-table-sorter=\"statusChangeHistory\">\n" +
+    "<table id=\"data-access-request-history\" class=\"table table-striped\" obiba-table-sorter=\"logsHistory\">\n" +
     "  <thead>\n" +
     "    <tr>\n" +
     "      <th class=\"status-icon\"></th>\n" +
@@ -15295,20 +15292,20 @@ angular.module("access/views/data-access-request-history-view.html", []).run(["$
     "    </tr>\n" +
     "  </thead>\n" +
     "  <tbody>\n" +
-    "    <tr ng-repeat=\"status in statusChangeHistory\" ng-init=\"info = getStatusHistoryInfo[getStatusHistoryInfoId(status)]\">\n" +
+    "    <tr ng-repeat=\"log in logsHistory track by $index\">\n" +
     "      <td>\n" +
-    "        <span><i class=\"{{info.icon}} hoffset\"></i></span>\n" +
+    "        <span><i class=\"{{log.icon}} hoffset\"></i></span>\n" +
     "      </td>\n" +
     "      <td>\n" +
-    "        <span ng-if=\"status.reference\">{{'data-access-amendment.title' | translate}}\n" +
-    "          <a ng-href=\"#{{'/data-access-request/' + dataAccessRequest.id + '/amendment/' + status.reference}}\">{{status.reference}}</a>\n" +
+    "        <span ng-if=\"log.reference\">{{'data-access-amendment.title' | translate}}\n" +
+    "          <a ng-href=\"#{{'/data-access-request/' + dataAccessRequest.id + '/amendment/' + log.reference}}\">{{log.reference}}</a>\n" +
     "        </span>\n" +
-    "        {{info.msg}}\n" +
+    "        {{log.msg | translate}}\n" +
     "      </td>\n" +
-    "      <td>{{userProfileService.getFullName(status.profile) || status.author}}</td>\n" +
+    "      <td>{{userProfileService.getFullName(log.profile) || log.author}}</td>\n" +
     "      <td>\n" +
-    "        <span title=\"{{status.changedOn | amDateFormat: 'lll'}}\">\n" +
-    "          {{status.changedOn | amCalendar}}\n" +
+    "        <span title=\"{{log.changedOn | amDateFormat: 'lll'}}\">\n" +
+    "          {{log.changedOn | amCalendar}}\n" +
     "        </span>\n" +
     "      </td>\n" +
     "    </tr>\n" +
