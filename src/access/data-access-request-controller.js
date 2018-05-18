@@ -155,7 +155,7 @@ ngObibaMica.access
           DataAccessAmendmentsResource.getLogHistory({ id: request.id }).$promise.then(function (amendmentHistory) {
             $scope.logsHistory =
               DataAccessEntityService.processLogsHistory(
-                [].concat(request.statusChangeHistory, (request.actionLogHistory || []), (amendmentHistory || []))
+                [].concat(angular.copy(request.statusChangeHistory), angular.copy(request.actionLogHistory || []), (amendmentHistory || []))
                   .sort(function(a, b) {
                     return a.changedOn.localeCompare(b.changedOn);
                   })
@@ -326,6 +326,15 @@ ngObibaMica.access
           }
         }
 
+        function updateActionLogs(actionLogs) {
+          if (Array.isArray(actionLogs)) {
+            $scope.dataAccessRequest.actionLogHistory = actionLogs;
+            DataAccessRequestResource.editActionLogs($scope.dataAccessRequest, function () {
+              onUpdatStatusSuccess();
+            });
+          }
+        }
+
         function reOpen() {
           confirmStatusChange(DataAccessEntityService.status.OPENED, null, 'reopen');
         }
@@ -409,6 +418,7 @@ ngObibaMica.access
         $scope.updateAttachments = updateAttachments;
         $scope.cancelAttachments = function () { toggleAttachmentsForm(false); };
         $scope.editAttachments = function () { toggleAttachmentsForm(true); };
+        $scope.updateActionLogs = updateActionLogs;
         $scope.onAttachmentError = onAttachmentError;
         $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('view');
         $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('view');

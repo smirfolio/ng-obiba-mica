@@ -58,6 +58,10 @@
 
       canAddAmendments: function (request) {
         return request['obiba.mica.DataAccessAmendmentDto.amendment'] ? true : canDoAction(request, 'ADD_AMENDMENTS');
+      },
+
+      canEditActionLogs: function (request) {
+        return canDoAction(request, 'EDIT_ACTION_LOGS');
       }
     };
 

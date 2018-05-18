@@ -14,6 +14,7 @@
 
 ngObibaMica.access = angular.module('obiba.mica.access', [
   'pascalprecht.translate',
+  'ui.bootstrap',
   'obiba.alert',
   'obiba.comments',
   'obiba.mica.attachment',

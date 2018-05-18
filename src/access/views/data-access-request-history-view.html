@@ -8,6 +8,10 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
+<div ng-if="actions.canEditActionLogs(dataAccessRequest)">
+  <action-log-editor source-collection="dataAccessRequest.actionLogHistory" update="updateActionLogs"></action-log-editor>
+</div>
+
 <table id="data-access-request-history" class="table table-striped" obiba-table-sorter="logsHistory">
   <thead>
     <tr>
@@ -20,7 +24,9 @@
   <tbody>
     <tr ng-repeat="log in logsHistory track by $index">
       <td>
-        <span><i class="{{log.icon}} hoffset"></i></span>
+        <span>
+          <i class="{{log.icon}} hoffset"></i>
+        </span>
       </td>
       <td>
         <span ng-if="log.reference">{{'data-access-amendment.title' | translate}}
