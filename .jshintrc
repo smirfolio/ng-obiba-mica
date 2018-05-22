@@ -10,7 +10,6 @@
   "white": true,
   "node": true,
   "esnext": true,
-  "bitwise": true,
   "camelcase": true,
   "curly": true,
   "eqeqeq": true,
@@ -24,6 +23,7 @@
   "globals": {
     "angular": false,
     "jQuery": false,
+    "moment": false,
     "$": false,
     "window": false,
     "document": false,

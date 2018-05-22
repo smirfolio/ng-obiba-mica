@@ -176,6 +176,7 @@
           case 'action':
             log.msg = log.action;
             log.icon =  'glyphicon glyphicon-play-circle';
+            log.changedOn = new Date(log.changedOn).toISOString();
             break;
         }
 
