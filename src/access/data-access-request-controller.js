@@ -155,7 +155,7 @@ ngObibaMica.access
           DataAccessAmendmentsResource.getLogHistory({ id: request.id }).$promise.then(function (amendmentHistory) {
             $scope.logsHistory =
               DataAccessEntityService.processLogsHistory(
-                [].concat(angular.copy(request.statusChangeHistory), angular.copy(request.actionLogHistory || []), (amendmentHistory || []))
+                [].concat((request.statusChangeHistory), (request.actionLogHistory || []), (amendmentHistory || []))
                   .sort(function(a, b) {
                     return a.changedOn.localeCompare(b.changedOn);
                   })

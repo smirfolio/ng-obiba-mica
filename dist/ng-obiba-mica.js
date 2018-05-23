@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-05-18
+ * Date: 2018-05-23
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -856,25 +856,31 @@ ngObibaMica.access
 //# sourceMappingURL=data-access-request.js.map
 'use strict';
 (function () {
-    function Controller(SessionProxy) {
+    function ActionLogEditorController(SessionProxy) {
         var ctrl = this;
-        function sourceCollectionWithout(item) {
-            return (ctrl.sourceCollection || []).filter(function (element) {
+        ctrl.filterOutItemFromCollection = function (item, collection) {
+            return (collection || []).filter(function (element) {
                 return element.action !== item.action || element.author !== item.author || element.changedOn !== item.changedOn;
             });
-        }
-        ctrl.add = function (item, date) {
-            if (item && date) {
-                item.changedOn = new Date(date).toISOString();
+        };
+        ctrl.sourceCollectionWithout = function (item) {
+            return ctrl.filterOutItemFromCollection(item, ctrl.sourceCollection);
+        };
+        ctrl.add = function (item) {
+            if (item && item.action && item.changedOn) {
+                item.changedOn = item.changedOn.toISOString();
                 if (!item.author) {
                     item.author = SessionProxy.login();
                 }
-                var result = sourceCollectionWithout(item);
+                var result = ctrl.sourceCollectionWithout(item);
                 result.push(item);
                 if (ctrl.update && typeof ctrl.update === 'function') {
-                    ctrl.update(result);
+                    ctrl.update({ logs: result });
                     ctrl.item = {};
                     ctrl.changedOn = null;
+                }
+                else {
+                    console.error('Did not create', item);
                 }
             }
             else {
@@ -882,13 +888,76 @@ ngObibaMica.access
             }
         };
     }
+    function ActionLogItemEditorController(SessionProxy, $uibModal) {
+        var ctrl = this;
+        ActionLogEditorController.call(ctrl, SessionProxy);
+        function isAnActionLog(item) {
+            return item && item.hasOwnProperty('action') && item.hasOwnProperty('author') && item.hasOwnProperty('changedOn');
+        }
+        ctrl.remove = function (item) {
+            $uibModal.open({
+                templateUrl: 'access/components/action-log/item/delete-modal.html',
+                controller: ['$uibModalInstance', 'actionLogItem', function ($uibModalInstance, actionLogItem) { this.item = actionLogItem; }],
+                controllerAs: '$modal',
+                resolve: {
+                    actionLogItem: function () {
+                        return { action: item.action, author: item.author, changedOn: moment(item.changedOn).calendar() };
+                    }
+                }
+            }).result.then(function () {
+                var result = ctrl.sourceCollectionWithout(item);
+                if (result.length < ctrl.sourceCollection.length && (ctrl.update && typeof ctrl.update === 'function')) {
+                    ctrl.update({ logs: result });
+                }
+                else {
+                    console.error('Did not remove', item);
+                }
+            });
+        };
+        ctrl.edit = function (item) {
+            $uibModal.open({
+                templateUrl: 'access/components/action-log/item/edit-modal.html',
+                controller: ['$uibModalInstance', 'actionLogItem', function ($uibModalInstance, actionLogItem) { this.item = actionLogItem; }],
+                controllerAs: '$modal',
+                size: 'sm',
+                resolve: {
+                    actionLogItem: function () {
+                        return { action: item.action, author: item.author, changedOn: new Date(item.changedOn) };
+                    }
+                }
+            }).result.then(function (editionResult) {
+                editionResult.changedOn = editionResult.changedOn.toISOString();
+                if (ctrl.update && typeof ctrl.update === 'function') {
+                    var result = ctrl.sourceCollectionWithout(item);
+                    result = ctrl.filterOutItemFromCollection(editionResult, result);
+                    result.push(editionResult);
+                    ctrl.update({ logs: result });
+                }
+                else {
+                    console.error('Did not update', item);
+                }
+            });
+        };
+        ctrl.$onChanges = function (changes) {
+            ctrl.showButtons = changes.item && changes.item.currentValue && isAnActionLog(changes.item.currentValue);
+        };
+    }
     angular.module('obiba.mica.access').component('actionLogEditor', {
         bindings: {
             sourceCollection: '<',
-            update: '<'
+            update: '&'
         },
         templateUrl: 'access/components/action-log/component.html',
-        controller: ['SessionProxy', Controller]
+        controller: ['SessionProxy', ActionLogEditorController]
+    });
+    angular.module('obiba.mica.access').component('actionLogItemEditor', {
+        bindings: {
+            item: '<',
+            sourceCollection: '<',
+            update: '&'
+        },
+        templateUrl: 'access/components/action-log/item/component.html',
+        controller: ['SessionProxy', '$uibModal', ActionLogItemEditorController]
     });
 })();
 //# sourceMappingURL=component.js.map
@@ -1356,6 +1425,7 @@ ngObibaMica.access.service("DataAccessEntityResource", DataAccessEntityResource)
                     case 'action':
                         log.msg = log.action;
                         log.icon = 'glyphicon glyphicon-play-circle';
+                        log.changedOn = new Date(log.changedOn).toISOString();
                         break;
                 }
                 return log;
@@ -1527,7 +1597,7 @@ ngObibaMica.access
         function setLogsHistory(request) {
             DataAccessAmendmentsResource.getLogHistory({ id: request.id }).$promise.then(function (amendmentHistory) {
                 $scope.logsHistory =
-                    DataAccessEntityService.processLogsHistory([].concat(angular.copy(request.statusChangeHistory), angular.copy(request.actionLogHistory || []), (amendmentHistory || []))
+                    DataAccessEntityService.processLogsHistory([].concat((request.statusChangeHistory), (request.actionLogHistory || []), (amendmentHistory || []))
                         .sort(function (a, b) {
                         return a.changedOn.localeCompare(b.changedOn);
                     }));
@@ -14949,7 +15019,7 @@ ngObibaMica.fileBrowser
         };
     }]);
 //# sourceMappingURL=file-browser-service.js.map
-angular.module('templates-ngObibaMica', ['access/components/action-log/component.html', 'access/components/entity-list/component.html', 'access/components/print-friendly-view/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/cart-documents-table/component.html', 'sets/views/cart.html', 'utils/components/entity-schema-form/component.html', 'utils/services/user-profile-modal/service.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+angular.module('templates-ngObibaMica', ['access/components/action-log/component.html', 'access/components/action-log/item/component.html', 'access/components/action-log/item/delete-modal.html', 'access/components/action-log/item/edit-modal.html', 'access/components/entity-list/component.html', 'access/components/print-friendly-view/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/cart-documents-table/component.html', 'sets/views/cart.html', 'utils/components/entity-schema-form/component.html', 'utils/services/user-profile-modal/service.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/components/action-log/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/components/action-log/component.html",
@@ -14959,22 +15029,97 @@ angular.module("access/components/action-log/component.html", []).run(["$templat
     "  </div>\n" +
     "\n" +
     "  <div class=\"form-group\">\n" +
-    "    <input type=\"datetime\" class=\"form-control\" uib-datepicker-popup=\"dd/MM/yyyy\" ng-model=\"$ctrl.changedOn\" ng-required=\"true\" ng-focus=\"$ctrl.open = !$ctrl.changedOn\" is-open=\"$ctrl.open\"\n" +
-    "      placeholder=\"dd/MM/yyyy\" show-button-bar=\"false\">\n" +
+    "    <div class=\"input-group\">\n" +
+    "      <input type=\"datetime\" class=\"form-control\" uib-datepicker-popup=\"dd/MM/yyyy\" ng-model=\"$ctrl.item.changedOn\" ng-required=\"true\"\n" +
+    "        ng-focus=\"$ctrl.open = !$ctrl.item.changedOn\" is-open=\"$ctrl.open\" placeholder=\"dd/MM/yyyy\" show-button-bar=\"false\">\n" +
+    "\n" +
+    "      <span class=\"input-group-btn\">\n" +
+    "        <button type=\"button\" class=\"btn btn-sm btn-default\" ng-click=\"$ctrl.open = !$ctrl.open\">\n" +
+    "          <i class=\"glyphicon glyphicon-calendar\"></i>\n" +
+    "        </button>\n" +
+    "      </span>\n" +
+    "    </div>\n" +
     "  </div>\n" +
     "\n" +
-    "  <button type=\"button\" class=\"btn btn-sm btn-default\" ng-click=\"$ctrl.open = !$ctrl.open\">\n" +
-    "    <i class=\"glyphicon glyphicon-calendar\"></i>\n" +
-    "  </button>\n" +
-    "\n" +
-    "  <button type=\"button\" class=\"btn btn-sm btn-info\" ng-click=\"$ctrl.add($ctrl.item, $ctrl.changedOn)\">{{'global.add' | translate}}\n" +
+    "  <button type=\"button\" class=\"btn btn-sm btn-info\" ng-click=\"$ctrl.add($ctrl.item)\">{{'global.add' | translate}}\n" +
     "    <i class=\"fa fa-plus\"></i>\n" +
     "  </button>\n" +
     "\n" +
-    "  <div class=\"form-group has-error\" ng-if=\"$ctrl.showError && (!$ctrl.item.action || !$ctrl.changedOn)\">\n" +
+    "  <div class=\"form-group has-error\" ng-if=\"$ctrl.showError && (!$ctrl.item.action || !$ctrl.item.changedOn)\">\n" +
     "    <span class=\"control-label\">{{'data-access-request.action-log.required' | translate}}</span>\n" +
     "  </div>\n" +
     "</form>");
+}]);
+
+angular.module("access/components/action-log/item/component.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("access/components/action-log/item/component.html",
+    "<ul class=\"list-inline\" ng-if=\"$ctrl.showButtons\">\n" +
+    "  <li>\n" +
+    "    <a ng-click=\"$ctrl.edit($ctrl.item)\">\n" +
+    "      <i class=\"fa fa-pencil\"></i>\n" +
+    "    </a>\n" +
+    "  </li>\n" +
+    "  <li>\n" +
+    "    <a ng-click=\"$ctrl.remove($ctrl.item)\">\n" +
+    "      <i class=\"fa fa-trash-o\"></i>\n" +
+    "    </a>\n" +
+    "  </li>\n" +
+    "</ul>");
+}]);
+
+angular.module("access/components/action-log/item/delete-modal.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("access/components/action-log/item/delete-modal.html",
+    "<div class=\"modal-header\">\n" +
+    "  <h4 class=\"modal-title\">\n" +
+    "    <i class=\"fa fa-exclamation-triangle\"></i>\n" +
+    "    {{'data-access-request.action-log.delete.title' | translate}}\n" +
+    "  </h4>\n" +
+    "</div>\n" +
+    "\n" +
+    "<div class=\"modal-body\">\n" +
+    "  {{'data-access-request.action-log.delete.message' | translate:$modal.item}}\n" +
+    "</div>\n" +
+    "\n" +
+    "<div class=\"modal-footer\">\n" +
+    "  <button class=\"btn btn-responsive btn-default\" type=\"button\" ng-click=\"$dismiss()\" translate>cancel</button>\n" +
+    "  <button class=\"btn btn-responsive btn-primary\" type=\"button\" ng-click=\"$close()\" translate>ok</button>\n" +
+    "</div>");
+}]);
+
+angular.module("access/components/action-log/item/edit-modal.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("access/components/action-log/item/edit-modal.html",
+    "<div class=\"modal-header\">\n" +
+    "  <h4 class=\"modal-title\">\n" +
+    "    {{'data-access-request.action-log.edit.title' | translate}}\n" +
+    "  </h4>\n" +
+    "</div>\n" +
+    "\n" +
+    "<div class=\"modal-body\">\n" +
+    "  <form name=\"actionLogModalForm\">\n" +
+    "    <div class=\"form-group\">\n" +
+    "      <input type=\"text\" class=\"form-control\" ng-model=\"$modal.item.action\" ng-required=\"true\" placeholder=\"{{'data-access-request.action-log.action-placeholder' | translate}}\">\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div class=\"form-group\">\n" +
+    "      <div class=\"input-group\">\n" +
+    "        <input type=\"datetime\" class=\"form-control\" uib-datepicker-popup=\"dd/MM/yyyy\" ng-model=\"$modal.item.changedOn\" ng-required=\"true\"\n" +
+    "          ng-focus=\"$modal.open = !$modal.item.changedOn\" is-open=\"$modal.open\" placeholder=\"dd/MM/yyyy\" show-button-bar=\"false\">\n" +
+    "\n" +
+    "        <span class=\"input-group-btn\">\n" +
+    "          <button type=\"button\" class=\"btn btn-sm btn-default\" ng-click=\"$modal.open = !$modal.open\">\n" +
+    "            <i class=\"glyphicon glyphicon-calendar\"></i>\n" +
+    "          </button>\n" +
+    "        </span>\n" +
+    "      </div>\n" +
+    "    </div>\n" +
+    "  </form>\n" +
+    "</div>\n" +
+    "\n" +
+    "<div class=\"modal-footer\">\n" +
+    "  <button class=\"btn btn-responsive btn-default\" type=\"button\" ng-click=\"$dismiss()\" translate>cancel</button>\n" +
+    "  <button class=\"btn btn-responsive btn-primary\" type=\"button\" ng-disabled=\"!$modal.item.action || !$modal.item.changedOn\"\n" +
+    "    ng-click=\"$close($modal.item)\" translate>ok</button>\n" +
+    "</div>");
 }]);
 
 angular.module("access/components/entity-list/component.html", []).run(["$templateCache", function($templateCache) {
@@ -15362,40 +15507,45 @@ angular.module("access/views/data-access-request-history-view.html", []).run(["$
     "  -->\n" +
     "\n" +
     "<div ng-if=\"actions.canEditActionLogs(dataAccessRequest)\">\n" +
-    "  <action-log-editor source-collection=\"dataAccessRequest.actionLogHistory\" update=\"updateActionLogs\"></action-log-editor>\n" +
+    "  <action-log-editor source-collection=\"dataAccessRequest.actionLogHistory\" update=\"updateActionLogs(logs)\"></action-log-editor>\n" +
     "</div>\n" +
-    "\n" +
-    "<table id=\"data-access-request-history\" class=\"table table-striped\" obiba-table-sorter=\"logsHistory\">\n" +
-    "  <thead>\n" +
-    "    <tr>\n" +
-    "      <th class=\"status-icon\"></th>\n" +
-    "      <th translate>status</th>\n" +
-    "      <th translate>changed-by</th>\n" +
-    "      <th data-column-name=\"changedOn\" translate>changed-on</th>\n" +
-    "    </tr>\n" +
-    "  </thead>\n" +
-    "  <tbody>\n" +
-    "    <tr ng-repeat=\"log in logsHistory track by $index\">\n" +
-    "      <td>\n" +
-    "        <span>\n" +
-    "          <i class=\"{{log.icon}} hoffset\"></i>\n" +
-    "        </span>\n" +
-    "      </td>\n" +
-    "      <td>\n" +
-    "        <span ng-if=\"log.reference\">{{'data-access-amendment.title' | translate}}\n" +
-    "          <a ng-href=\"#{{'/data-access-request/' + dataAccessRequest.id + '/amendment/' + log.reference}}\">{{log.reference}}</a>\n" +
-    "        </span>\n" +
-    "        {{log.msg | translate}}\n" +
-    "      </td>\n" +
-    "      <td>{{userProfileService.getFullName(log.profile) || log.author}}</td>\n" +
-    "      <td>\n" +
-    "        <span title=\"{{log.changedOn | amDateFormat: 'lll'}}\">\n" +
-    "          {{log.changedOn | amCalendar}}\n" +
-    "        </span>\n" +
-    "      </td>\n" +
-    "    </tr>\n" +
-    "  </tbody>\n" +
-    "</table>");
+    "<div class=\"table-responsive\">\n" +
+    "  <table id=\"data-access-request-history\" class=\"table table-bordered table-striped\" obiba-table-sorter=\"logsHistory\">\n" +
+    "    <thead>\n" +
+    "      <tr>\n" +
+    "        <th class=\"status-icon\"></th>\n" +
+    "        <th translate>status</th>\n" +
+    "        <th translate>changed-by</th>\n" +
+    "        <th data-column-name=\"changedOn\" translate>changed-on</th>\n" +
+    "        <th class=\"col-xs-1\" translate>actions</th>\n" +
+    "      </tr>\n" +
+    "    </thead>\n" +
+    "    <tbody>\n" +
+    "      <tr ng-repeat=\"log in logsHistory track by $index\">\n" +
+    "        <td>\n" +
+    "          <span>\n" +
+    "            <i class=\"{{log.icon}} hoffset\"></i>\n" +
+    "          </span>\n" +
+    "        </td>\n" +
+    "        <td>\n" +
+    "          <span ng-if=\"log.reference\">{{'data-access-amendment.title' | translate}}\n" +
+    "            <a ng-href=\"#{{'/data-access-request/' + dataAccessRequest.id + '/amendment/' + log.reference}}\">{{log.reference}}</a>\n" +
+    "          </span>\n" +
+    "          {{log.msg | translate}}\n" +
+    "        </td>\n" +
+    "        <td>{{userProfileService.getFullName(log.profile) || log.author}}</td>\n" +
+    "        <td>\n" +
+    "          <span title=\"{{log.changedOn | amDateFormat: 'lll'}}\">\n" +
+    "            {{log.changedOn | amCalendar}}\n" +
+    "          </span>\n" +
+    "        </td>\n" +
+    "        <td>\n" +
+    "          <action-log-item-editor item=\"log\" source-collection=\"dataAccessRequest.actionLogHistory\" update=\"updateActionLogs(logs)\"></action-log-item-editor>\n" +
+    "        </td>\n" +
+    "      </tr>\n" +
+    "    </tbody>\n" +
+    "  </table>\n" +
+    "</div>");
 }]);
 
 angular.module("access/views/data-access-request-list.html", []).run(["$templateCache", function($templateCache) {
