@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-05-23
+ * Date: 2018-05-24
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -856,7 +856,7 @@ ngObibaMica.access
 //# sourceMappingURL=data-access-request.js.map
 'use strict';
 (function () {
-    function ActionLogEditorController(SessionProxy) {
+    function ActionLogEditorController(SessionProxy, $filter) {
         var ctrl = this;
         ctrl.filterOutItemFromCollection = function (item, collection) {
             return (collection || []).filter(function (element) {
@@ -866,7 +866,15 @@ ngObibaMica.access
         ctrl.sourceCollectionWithout = function (item) {
             return ctrl.filterOutItemFromCollection(item, ctrl.sourceCollection);
         };
+        ctrl.replaceActionNameByTrKey = function (item) {
+            // replace action translation with key if applicable
+            var index = ctrl.predefinedActionNames.indexOf(item.action);
+            if (index > -1) {
+                item.action = ctrl.predefinedActions[index];
+            }
+        };
         ctrl.add = function (item) {
+            ctrl.replaceActionNameByTrKey(item);
             if (item && item.action && item.changedOn) {
                 item.changedOn = item.changedOn.toISOString();
                 if (!item.author) {
@@ -887,10 +895,18 @@ ngObibaMica.access
                 ctrl.showError = true;
             }
         };
+        ctrl.$onInit = function () {
+            if (ctrl.predefinedActions) {
+                console.log('ctrl.predefinedActions:', ctrl.predefinedActions);
+                ctrl.predefinedActionNames = ctrl.predefinedActions.map(function (actionKey) {
+                    return $filter('translate')(actionKey);
+                });
+            }
+        };
     }
-    function ActionLogItemEditorController(SessionProxy, $uibModal) {
+    function ActionLogItemEditorController(SessionProxy, $uibModal, $filter) {
         var ctrl = this;
-        ActionLogEditorController.call(ctrl, SessionProxy);
+        ActionLogEditorController.call(ctrl, SessionProxy, $filter);
         function isAnActionLog(item) {
             return item && item.hasOwnProperty('action') && item.hasOwnProperty('author') && item.hasOwnProperty('changedOn');
         }
@@ -901,7 +917,7 @@ ngObibaMica.access
                 controllerAs: '$modal',
                 resolve: {
                     actionLogItem: function () {
-                        return { action: item.action, author: item.author, changedOn: moment(item.changedOn).calendar() };
+                        return { action: $filter('translate')(item.action), author: item.author, changedOn: moment(item.changedOn).calendar() };
                     }
                 }
             }).result.then(function () {
@@ -917,15 +933,23 @@ ngObibaMica.access
         ctrl.edit = function (item) {
             $uibModal.open({
                 templateUrl: 'access/components/action-log/item/edit-modal.html',
-                controller: ['$uibModalInstance', 'actionLogItem', function ($uibModalInstance, actionLogItem) { this.item = actionLogItem; }],
+                controller: ['$uibModalInstance', 'actionLogItem', 'predefinedActionNames',
+                    function ($uibModalInstance, actionLogItem, predefinedActionNames) {
+                        this.item = actionLogItem;
+                        this.predefinedActionNames = predefinedActionNames;
+                    }],
                 controllerAs: '$modal',
                 size: 'sm',
                 resolve: {
                     actionLogItem: function () {
-                        return { action: item.action, author: item.author, changedOn: new Date(item.changedOn) };
+                        return { action: $filter('translate')(item.action), author: item.author, changedOn: new Date(item.changedOn) };
+                    },
+                    predefinedActionNames: function () {
+                        return ctrl.predefinedActionNames;
                     }
                 }
             }).result.then(function (editionResult) {
+                ctrl.replaceActionNameByTrKey(editionResult);
                 editionResult.changedOn = editionResult.changedOn.toISOString();
                 if (ctrl.update && typeof ctrl.update === 'function') {
                     var result = ctrl.sourceCollectionWithout(item);
@@ -945,19 +969,21 @@ ngObibaMica.access
     angular.module('obiba.mica.access').component('actionLogEditor', {
         bindings: {
             sourceCollection: '<',
+            predefinedActions: '<',
             update: '&'
         },
         templateUrl: 'access/components/action-log/component.html',
-        controller: ['SessionProxy', ActionLogEditorController]
+        controller: ['SessionProxy', '$filter', ActionLogEditorController]
     });
     angular.module('obiba.mica.access').component('actionLogItemEditor', {
         bindings: {
             item: '<',
             sourceCollection: '<',
+            predefinedActions: '<',
             update: '&'
         },
         templateUrl: 'access/components/action-log/item/component.html',
-        controller: ['SessionProxy', '$uibModal', ActionLogItemEditorController]
+        controller: ['SessionProxy', '$uibModal', '$filter', ActionLogItemEditorController]
     });
 })();
 //# sourceMappingURL=component.js.map
@@ -15025,13 +15051,24 @@ angular.module("access/components/action-log/component.html", []).run(["$templat
   $templateCache.put("access/components/action-log/component.html",
     "<form class=\"form-inline voffset2\" name=\"actionLogForm\">\n" +
     "  <div class=\"form-group\">\n" +
-    "    <input type=\"text\" class=\"form-control\" ng-model=\"$ctrl.item.action\" ng-required=\"true\" placeholder=\"{{'data-access-request.action-log.action-placeholder' | translate}}\">\n" +
+    "    <input type=\"text\"\n" +
+    "           class=\"form-control\"\n" +
+    "           ng-model=\"$ctrl.item.action\"\n" +
+    "           ng-required=\"true\"\n" +
+    "           placeholder=\"{{'data-access-request.action-log.action-placeholder' | translate}}\"\n" +
+    "           typeahead-editable=\"true\"\n" +
+    "           uib-typeahead=\"value for value in $ctrl.predefinedActionNames | filter:$viewValue | limitTo:8\">\n" +
     "  </div>\n" +
-    "\n" +
     "  <div class=\"form-group\">\n" +
     "    <div class=\"input-group\">\n" +
-    "      <input type=\"datetime\" class=\"form-control\" uib-datepicker-popup=\"dd/MM/yyyy\" ng-model=\"$ctrl.item.changedOn\" ng-required=\"true\"\n" +
-    "        ng-focus=\"$ctrl.open = !$ctrl.item.changedOn\" is-open=\"$ctrl.open\" placeholder=\"dd/MM/yyyy\" show-button-bar=\"false\">\n" +
+    "      <input type=\"datetime\"\n" +
+    "             class=\"form-control\"\n" +
+    "             uib-datepicker-popup=\"dd/MM/yyyy\"\n" +
+    "             ng-model=\"$ctrl.item.changedOn\"\n" +
+    "             ng-required=\"true\"\n" +
+    "             ng-focus=\"$ctrl.open = !$ctrl.item.changedOn\" is-open=\"$ctrl.open\"\n" +
+    "             placeholder=\"dd/MM/yyyy\"\n" +
+    "             show-button-bar=\"false\">\n" +
     "\n" +
     "      <span class=\"input-group-btn\">\n" +
     "        <button type=\"button\" class=\"btn btn-sm btn-default\" ng-click=\"$ctrl.open = !$ctrl.open\">\n" +
@@ -15097,7 +15134,13 @@ angular.module("access/components/action-log/item/edit-modal.html", []).run(["$t
     "<div class=\"modal-body\">\n" +
     "  <form name=\"actionLogModalForm\">\n" +
     "    <div class=\"form-group\">\n" +
-    "      <input type=\"text\" class=\"form-control\" ng-model=\"$modal.item.action\" ng-required=\"true\" placeholder=\"{{'data-access-request.action-log.action-placeholder' | translate}}\">\n" +
+    "      <input type=\"text\"\n" +
+    "             class=\"form-control\"\n" +
+    "             ng-model=\"$modal.item.action\"\n" +
+    "             ng-required=\"true\"\n" +
+    "             placeholder=\"{{'data-access-request.action-log.action-placeholder' | translate}}\"\n" +
+    "             typeahead-editable=\"true\"\n" +
+    "             uib-typeahead=\"value for value in $modal.predefinedActionNames | filter:$viewValue | limitTo:8\">\n" +
     "    </div>\n" +
     "\n" +
     "    <div class=\"form-group\">\n" +
@@ -15507,7 +15550,9 @@ angular.module("access/views/data-access-request-history-view.html", []).run(["$
     "  -->\n" +
     "\n" +
     "<div ng-if=\"actions.canEditActionLogs(dataAccessRequest)\">\n" +
-    "  <action-log-editor source-collection=\"dataAccessRequest.actionLogHistory\" update=\"updateActionLogs(logs)\"></action-log-editor>\n" +
+    "  <action-log-editor source-collection=\"dataAccessRequest.actionLogHistory\"\n" +
+    "                     predefined-actions=\"dataAccessForm.predefinedActions\"\n" +
+    "                     update=\"updateActionLogs(logs)\"></action-log-editor>\n" +
     "</div>\n" +
     "<div class=\"table-responsive\">\n" +
     "  <table id=\"data-access-request-history\" class=\"table table-bordered table-striped\" obiba-table-sorter=\"logsHistory\">\n" +
@@ -15540,7 +15585,10 @@ angular.module("access/views/data-access-request-history-view.html", []).run(["$
     "          </span>\n" +
     "        </td>\n" +
     "        <td>\n" +
-    "          <action-log-item-editor item=\"log\" source-collection=\"dataAccessRequest.actionLogHistory\" update=\"updateActionLogs(logs)\"></action-log-item-editor>\n" +
+    "          <action-log-item-editor item=\"log\"\n" +
+    "                                  source-collection=\"dataAccessRequest.actionLogHistory\"\n" +
+    "                                  predefined-actions=\"dataAccessForm.predefinedActions\"\n" +
+    "                                  update=\"updateActionLogs(logs)\"></action-log-item-editor>\n" +
     "        </td>\n" +
     "      </tr>\n" +
     "    </tbody>\n" +

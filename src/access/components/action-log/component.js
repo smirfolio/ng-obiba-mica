@@ -14,7 +14,7 @@
       return ctrl.filterOutItemFromCollection(item, ctrl.sourceCollection);
     };
 
-    ctrl.replaceActionNameByTrKey = function(item) {
+    ctrl.replaceActionNameByTranslationKey = function(item) {
       // replace action translation with key if applicable
       var index = ctrl.predefinedActionNames.indexOf(item.action);
       if (index > -1) {
@@ -23,7 +23,7 @@
     };
 
     ctrl.add = function (item) {
-      ctrl.replaceActionNameByTrKey(item);
+      ctrl.replaceActionNameByTranslationKey(item);
 
       if (item && item.action && item.changedOn) {
         item.changedOn = item.changedOn.toISOString();
@@ -106,7 +106,7 @@
           }
         }
       }).result.then(function (editionResult) {
-        ctrl.replaceActionNameByTrKey(editionResult);
+        ctrl.replaceActionNameByTranslationKey(editionResult);
         editionResult.changedOn = editionResult.changedOn.toISOString();
 
         if (ctrl.update && typeof ctrl.update === 'function') {
