@@ -37,7 +37,7 @@
           </span>
           {{log.msg | translate}}
         </td>
-        <td>{{userProfileService.getFullName(log.profile) || log.author}}</td>
+        <td>{{UserProfileService.getFullName(log.profile) || log.author}}</td>
         <td>
           <span title="{{log.changedOn | amDateFormat: 'lll'}}">
             {{log.changedOn | amCalendar}}

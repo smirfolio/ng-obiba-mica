@@ -355,33 +355,6 @@ ngObibaMica.access
           confirmStatusChange(DataAccessEntityService.status.CONDITIONALLY_APPROVED, null, 'conditionallyApprove');
         }
 
-        function getAttributeValue(attributes, key) {
-          var result = attributes.filter(function (attribute) {
-            return attribute.key === key;
-          });
-
-          return result && result.length > 0 ? result[0].value : null;
-        }
-
-        function getFullName(profile) {
-          if (profile) {
-            if (profile.attributes) {
-              return getAttributeValue(profile.attributes, 'firstName') + ' ' + getAttributeValue(profile.attributes, 'lastName');
-            }
-            return profile.username;
-          }
-          return null;
-        }
-
-        function getProfileEmail(profile) {
-          if (profile) {
-            if (profile.attributes) {
-              return getAttributeValue(profile.attributes, 'email');
-            }
-          }
-          return null;
-        }
-
         function onStatusOpened(event, status) {
           statusChangedConfirmed(DataAccessEntityService.status.OPENED, status);
         }
@@ -400,6 +373,10 @@ ngObibaMica.access
 
         function onStatusRejected(event, status) {
           statusChangedConfirmed(DataAccessEntityService.status.REJECTED, status);
+        }
+
+        function getFullName(profile) {
+          return UserProfileService.getFullName(profile);
         }
 
         $scope.logsHistory = [];
@@ -441,7 +418,6 @@ ngObibaMica.access
         $scope.getDataAccessListPageUrl = DataAccessEntityService.getListDataAccessRequestPageUrl();
         $scope.printForm = printForm;
         $scope.getFullName = getFullName;
-        $scope.getProfileEmail = getProfileEmail;
         $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onDeleteConfirmed);
         $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onDeleteCommentConfirmed);
         $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onStatusOpened);
