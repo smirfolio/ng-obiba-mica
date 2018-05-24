@@ -9,7 +9,9 @@
   -->
 
 <div ng-if="actions.canEditActionLogs(dataAccessRequest)">
-  <action-log-editor source-collection="dataAccessRequest.actionLogHistory" update="updateActionLogs(logs)"></action-log-editor>
+  <action-log-editor source-collection="dataAccessRequest.actionLogHistory"
+                     predefined-actions="dataAccessForm.predefinedActions"
+                     update="updateActionLogs(logs)"></action-log-editor>
 </div>
 <div class="table-responsive">
   <table id="data-access-request-history" class="table table-bordered table-striped" obiba-table-sorter="logsHistory">
@@ -42,7 +44,10 @@
           </span>
         </td>
         <td>
-          <action-log-item-editor item="log" source-collection="dataAccessRequest.actionLogHistory" update="updateActionLogs(logs)"></action-log-item-editor>
+          <action-log-item-editor item="log"
+                                  source-collection="dataAccessRequest.actionLogHistory"
+                                  predefined-actions="dataAccessForm.predefinedActions"
+                                  update="updateActionLogs(logs)"></action-log-item-editor>
         </td>
       </tr>
     </tbody>
