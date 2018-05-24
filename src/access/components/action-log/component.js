@@ -50,7 +50,6 @@
 
     ctrl.$onInit = function() {
       if(ctrl.predefinedActions) {
-        console.log('ctrl.predefinedActions:', ctrl.predefinedActions);
         ctrl.predefinedActionNames = ctrl.predefinedActions.map(function(actionKey){
           return $filter('translate')(actionKey);
         });
