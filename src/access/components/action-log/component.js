@@ -1,7 +1,7 @@
 'use strict';
 
 (function () {
-  function ActionLogEditorController(SessionProxy) {
+  function ActionLogEditorController(SessionProxy, $filter) {
     var ctrl = this;
 
     ctrl.filterOutItemFromCollection = function (item, collection) {
@@ -14,7 +14,17 @@
       return ctrl.filterOutItemFromCollection(item, ctrl.sourceCollection);
     };
 
+    ctrl.replaceActionNameByTranslationKey = function(item) {
+      // replace action translation with key if applicable
+      var index = ctrl.predefinedActionNames.indexOf(item.action);
+      if (index > -1) {
+        item.action = ctrl.predefinedActions[index];
+      }
+    };
+
     ctrl.add = function (item) {
+      ctrl.replaceActionNameByTranslationKey(item);
+
       if (item && item.action && item.changedOn) {
         item.changedOn = item.changedOn.toISOString();
 
@@ -37,11 +47,19 @@
         ctrl.showError = true;
       }
     };
+
+    ctrl.$onInit = function() {
+      if(ctrl.predefinedActions) {
+        ctrl.predefinedActionNames = ctrl.predefinedActions.map(function(actionKey){
+          return $filter('translate')(actionKey);
+        });
+      }
+    };
   }
 
-  function ActionLogItemEditorController(SessionProxy, $uibModal) {
+  function ActionLogItemEditorController(SessionProxy, $uibModal, $filter) {
     var ctrl = this;
-    ActionLogEditorController.call(ctrl, SessionProxy);
+    ActionLogEditorController.call(ctrl, SessionProxy, $filter);
 
     function isAnActionLog(item) {
       return item && item.hasOwnProperty('action') && item.hasOwnProperty('author') && item.hasOwnProperty('changedOn');
@@ -54,7 +72,7 @@
         controllerAs: '$modal',
         resolve: {
           actionLogItem: function () {
-            return { action: item.action, author: item.author, changedOn: moment(item.changedOn).calendar() };
+            return { action: $filter('translate')(item.action), author: item.author, changedOn: moment(item.changedOn).calendar() };
           }
         }
       }).result.then(function () {
@@ -71,15 +89,23 @@
     ctrl.edit = function (item) {
       $uibModal.open({
         templateUrl: 'access/components/action-log/item/edit-modal.html',
-        controller: ['$uibModalInstance', 'actionLogItem', function ($uibModalInstance, actionLogItem) { this.item = actionLogItem; }],
+        controller: ['$uibModalInstance', 'actionLogItem', 'predefinedActionNames',
+          function ($uibModalInstance, actionLogItem, predefinedActionNames) {
+            this.item = actionLogItem;
+            this.predefinedActionNames = predefinedActionNames;
+          }],
         controllerAs: '$modal',
         size: 'sm',
         resolve: {
           actionLogItem: function () {
-            return { action: item.action, author: item.author, changedOn: new Date(item.changedOn) };
+            return { action: $filter('translate')(item.action), author: item.author, changedOn: new Date(item.changedOn) };
+          },
+          predefinedActionNames: function() {
+            return ctrl.predefinedActionNames;
           }
         }
       }).result.then(function (editionResult) {
+        ctrl.replaceActionNameByTranslationKey(editionResult);
         editionResult.changedOn = editionResult.changedOn.toISOString();
 
         if (ctrl.update && typeof ctrl.update === 'function') {
@@ -102,19 +128,21 @@
   angular.module('obiba.mica.access').component('actionLogEditor', {
     bindings: {
       sourceCollection: '<',
+      predefinedActions: '<',
       update: '&'
     },
     templateUrl: 'access/components/action-log/component.html',
-    controller: ['SessionProxy', ActionLogEditorController]
+    controller: ['SessionProxy', '$filter', ActionLogEditorController]
   });
 
   angular.module('obiba.mica.access').component('actionLogItemEditor', {
     bindings: {
       item: '<',
       sourceCollection: '<',
+      predefinedActions: '<',
       update: '&'
     },
     templateUrl: 'access/components/action-log/item/component.html',
-    controller: ['SessionProxy', '$uibModal', ActionLogItemEditorController]
+    controller: ['SessionProxy', '$uibModal', '$filter', ActionLogItemEditorController]
   });
 })();
