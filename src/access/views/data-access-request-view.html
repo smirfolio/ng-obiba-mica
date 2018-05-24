@@ -121,7 +121,7 @@
                  heading="{{'data-access-request.comments' | translate}}">
           <obiba-comments class="voffset2" comments="form.comments"
                           on-update="updateComment" on-delete="deleteComment"
-                          name-resolver="UserProfileService.getFullName"
+                          name-resolver="getFullName(profile)"
                           edit-action="EDIT" delete-action="DELETE"></obiba-comments>
           <obiba-comment-editor on-submit="submitComment"></obiba-comment-editor>
         </uib-tab>

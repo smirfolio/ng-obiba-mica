@@ -897,7 +897,6 @@ ngObibaMica.access
         };
         ctrl.$onInit = function () {
             if (ctrl.predefinedActions) {
-                console.log('ctrl.predefinedActions:', ctrl.predefinedActions);
                 ctrl.predefinedActionNames = ctrl.predefinedActions.map(function (actionKey) {
                     return $filter('translate')(actionKey);
                 });
@@ -1786,29 +1785,6 @@ ngObibaMica.access
         function conditionallyApprove() {
             confirmStatusChange(DataAccessEntityService.status.CONDITIONALLY_APPROVED, null, 'conditionallyApprove');
         }
-        function getAttributeValue(attributes, key) {
-            var result = attributes.filter(function (attribute) {
-                return attribute.key === key;
-            });
-            return result && result.length > 0 ? result[0].value : null;
-        }
-        function getFullName(profile) {
-            if (profile) {
-                if (profile.attributes) {
-                    return getAttributeValue(profile.attributes, 'firstName') + ' ' + getAttributeValue(profile.attributes, 'lastName');
-                }
-                return profile.username;
-            }
-            return null;
-        }
-        function getProfileEmail(profile) {
-            if (profile) {
-                if (profile.attributes) {
-                    return getAttributeValue(profile.attributes, 'email');
-                }
-            }
-            return null;
-        }
         function onStatusOpened(event, status) {
             statusChangedConfirmed(DataAccessEntityService.status.OPENED, status);
         }
@@ -1823,6 +1799,9 @@ ngObibaMica.access
         }
         function onStatusRejected(event, status) {
             statusChangedConfirmed(DataAccessEntityService.status.REJECTED, status);
+        }
+        function getFullName(profile) {
+            return UserProfileService.getFullName(profile);
         }
         $scope.logsHistory = [];
         $scope.parentId = undefined;
@@ -1861,7 +1840,6 @@ ngObibaMica.access
         $scope.getDataAccessListPageUrl = DataAccessEntityService.getListDataAccessRequestPageUrl();
         $scope.printForm = printForm;
         $scope.getFullName = getFullName;
-        $scope.getProfileEmail = getProfileEmail;
         $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onDeleteConfirmed);
         $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onDeleteCommentConfirmed);
         $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onStatusOpened);
@@ -15578,7 +15556,7 @@ angular.module("access/views/data-access-request-history-view.html", []).run(["$
     "          </span>\n" +
     "          {{log.msg | translate}}\n" +
     "        </td>\n" +
-    "        <td>{{userProfileService.getFullName(log.profile) || log.author}}</td>\n" +
+    "        <td>{{UserProfileService.getFullName(log.profile) || log.author}}</td>\n" +
     "        <td>\n" +
     "          <span title=\"{{log.changedOn | amDateFormat: 'lll'}}\">\n" +
     "            {{log.changedOn | amCalendar}}\n" +
@@ -15871,7 +15849,7 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "                 heading=\"{{'data-access-request.comments' | translate}}\">\n" +
     "          <obiba-comments class=\"voffset2\" comments=\"form.comments\"\n" +
     "                          on-update=\"updateComment\" on-delete=\"deleteComment\"\n" +
-    "                          name-resolver=\"UserProfileService.getFullName\"\n" +
+    "                          name-resolver=\"getFullName(profile)\"\n" +
     "                          edit-action=\"EDIT\" delete-action=\"DELETE\"></obiba-comments>\n" +
     "          <obiba-comment-editor on-submit=\"submitComment\"></obiba-comment-editor>\n" +
     "        </uib-tab>\n" +
