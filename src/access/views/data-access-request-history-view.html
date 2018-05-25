@@ -21,7 +21,7 @@
         <th translate>status</th>
         <th translate>changed-by</th>
         <th data-column-name="changedOn" translate>changed-on</th>
-        <th class="col-xs-1" translate>actions</th>
+        <th class="col-xs-1" ng-if="actions.canEditActionLogs(dataAccessRequest)" translate>actions</th>
       </tr>
     </thead>
     <tbody>
@@ -43,7 +43,7 @@
             {{log.changedOn | amCalendar}}
           </span>
         </td>
-        <td>
+        <td ng-if="actions.canEditActionLogs(dataAccessRequest)">
           <action-log-item-editor item="log"
                                   source-collection="dataAccessRequest.actionLogHistory"
                                   predefined-actions="dataAccessForm.predefinedActions"
