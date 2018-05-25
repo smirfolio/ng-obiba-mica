@@ -170,6 +170,7 @@ ngObibaMica.access
         }
 
         function getRequest() {
+          $scope.loading = true;
           return DataAccessRequestResource.get({ id: $routeParams.id }).$promise.then(function onSuccess(request) {
             setLogsHistory(request);
 
@@ -197,6 +198,7 @@ ngObibaMica.access
 
             $scope.dataAccessRequest = request;
 
+            $scope.loading = false;
             return request;
           }, onError);
         }
@@ -385,6 +387,7 @@ ngObibaMica.access
 
         $scope.logsHistory = [];
         $scope.parentId = undefined;
+        $scope.loading = false;
         $scope.validForm = true;
         $scope.config = DataAccessRequestConfig.getOptions();
         $scope.actions = DataAccessEntityService.actions;

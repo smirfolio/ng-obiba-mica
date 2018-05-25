@@ -9,9 +9,8 @@
   -->
 
 <div ng-if="actions.canEditActionLogs(dataAccessRequest)">
-  <action-log-editor source-collection="dataAccessRequest.actionLogHistory"
-                     predefined-actions="dataAccessForm.predefinedActions"
-                     update="updateActionLogs(logs)"></action-log-editor>
+  <action-log-editor source-collection="dataAccessRequest.actionLogHistory" predefined-actions="dataAccessForm.predefinedActions"
+    update="updateActionLogs(logs)"></action-log-editor>
 </div>
 <div class="table-responsive">
   <table id="data-access-request-history" class="table table-bordered table-striped" obiba-table-sorter="logsHistory">
@@ -44,10 +43,12 @@
           </span>
         </td>
         <td ng-if="actions.canEditActionLogs(dataAccessRequest)">
-          <action-log-item-editor item="log"
-                                  source-collection="dataAccessRequest.actionLogHistory"
-                                  predefined-actions="dataAccessForm.predefinedActions"
-                                  update="updateActionLogs(logs)"></action-log-item-editor>
+          <span ng-if="!loading">
+            <action-log-item-editor item="log" source-collection="dataAccessRequest.actionLogHistory" predefined-actions="dataAccessForm.predefinedActions"
+              update="updateActionLogs(logs)"></action-log-item-editor>
+          </span>
+          
+          <span class="loading" ng-if="loading"></span>
         </td>
       </tr>
     </tbody>

@@ -874,8 +874,9 @@ ngObibaMica.access
             }
         };
         ctrl.add = function (item) {
-            ctrl.replaceActionNameByTranslationKey(item);
+            ctrl.showError = false;
             if (item && item.action && item.changedOn) {
+                ctrl.replaceActionNameByTranslationKey(item);
                 item.changedOn = item.changedOn.toISOString();
                 if (!item.author) {
                     item.author = SessionProxy.login();
@@ -966,7 +967,7 @@ ngObibaMica.access
         };
         ctrl.$onChanges = function (changes) {
             ctrl.predefinedActionsChanged(changes);
-            ctrl.showButtons = changes.item && changes.item.currentValue && isAnActionLog(changes.item.currentValue);
+            ctrl.showButtons = ctrl.item && isAnActionLog(ctrl.item);
         };
     }
     angular.module('obiba.mica.access').component('actionLogEditor', {
@@ -1638,6 +1639,7 @@ ngObibaMica.access
             });
         }
         function getRequest() {
+            $scope.loading = true;
             return DataAccessRequestResource.get({ id: $routeParams.id }).$promise.then(function onSuccess(request) {
                 setLogsHistory(request);
                 try {
@@ -1660,6 +1662,7 @@ ngObibaMica.access
                 request.attachments = request.attachments || [];
                 $scope.lastSubmittedDate = findLastSubmittedDate();
                 $scope.dataAccessRequest = request;
+                $scope.loading = false;
                 return request;
             }, onError);
         }
@@ -1812,6 +1815,7 @@ ngObibaMica.access
         }
         $scope.logsHistory = [];
         $scope.parentId = undefined;
+        $scope.loading = false;
         $scope.validForm = true;
         $scope.config = DataAccessRequestConfig.getOptions();
         $scope.actions = DataAccessEntityService.actions;
@@ -15538,9 +15542,8 @@ angular.module("access/views/data-access-request-history-view.html", []).run(["$
     "  -->\n" +
     "\n" +
     "<div ng-if=\"actions.canEditActionLogs(dataAccessRequest)\">\n" +
-    "  <action-log-editor source-collection=\"dataAccessRequest.actionLogHistory\"\n" +
-    "                     predefined-actions=\"dataAccessForm.predefinedActions\"\n" +
-    "                     update=\"updateActionLogs(logs)\"></action-log-editor>\n" +
+    "  <action-log-editor source-collection=\"dataAccessRequest.actionLogHistory\" predefined-actions=\"dataAccessForm.predefinedActions\"\n" +
+    "    update=\"updateActionLogs(logs)\"></action-log-editor>\n" +
     "</div>\n" +
     "<div class=\"table-responsive\">\n" +
     "  <table id=\"data-access-request-history\" class=\"table table-bordered table-striped\" obiba-table-sorter=\"logsHistory\">\n" +
@@ -15573,10 +15576,12 @@ angular.module("access/views/data-access-request-history-view.html", []).run(["$
     "          </span>\n" +
     "        </td>\n" +
     "        <td ng-if=\"actions.canEditActionLogs(dataAccessRequest)\">\n" +
-    "          <action-log-item-editor item=\"log\"\n" +
-    "                                  source-collection=\"dataAccessRequest.actionLogHistory\"\n" +
-    "                                  predefined-actions=\"dataAccessForm.predefinedActions\"\n" +
-    "                                  update=\"updateActionLogs(logs)\"></action-log-item-editor>\n" +
+    "          <span ng-if=\"!loading\">\n" +
+    "            <action-log-item-editor item=\"log\" source-collection=\"dataAccessRequest.actionLogHistory\" predefined-actions=\"dataAccessForm.predefinedActions\"\n" +
+    "              update=\"updateActionLogs(logs)\"></action-log-item-editor>\n" +
+    "          </span>\n" +
+    "          \n" +
+    "          <span class=\"loading\" ng-if=\"loading\"></span>\n" +
     "        </td>\n" +
     "      </tr>\n" +
     "    </tbody>\n" +
