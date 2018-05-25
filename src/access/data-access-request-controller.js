@@ -193,6 +193,8 @@ ngObibaMica.access
 
             $scope.lastSubmittedDate = findLastSubmittedDate();
 
+            $scope.dataAccessRequest = request;
+
             return request;
           }, onError);
         }
@@ -202,7 +204,7 @@ ngObibaMica.access
           request.attachments = $scope.attachments;
           DataAccessRequestAttachmentsUpdateResource.save(request, function () {
             toggleAttachmentsForm(false);
-            $scope.dataAccessRequest = getRequest();
+            getRequest();
           });
         }
 
@@ -269,7 +271,7 @@ ngObibaMica.access
 
         function onUpdatStatusSuccess() {
           setTimeout(function () {
-            $scope.dataAccessRequest = getRequest();
+            getRequest();
           });
         }
 
@@ -415,6 +417,7 @@ ngObibaMica.access
           });
         };
 
+        $scope.dataAccessRequest = {};
         $scope.getDataAccessListPageUrl = DataAccessEntityService.getListDataAccessRequestPageUrl();
         $scope.printForm = printForm;
         $scope.getFullName = getFullName;
@@ -437,7 +440,9 @@ ngObibaMica.access
           comments: null
         };
 
-        $scope.dataAccessRequest = $routeParams.id ? getRequest() : {};
+        if ($routeParams.id) {
+          getRequest();
+        }
       }])
 
   .controller('DataAccessRequestEditController', ['$rootScope',
