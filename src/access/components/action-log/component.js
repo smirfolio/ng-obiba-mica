@@ -16,7 +16,7 @@
 
     ctrl.replaceActionNameByTranslationKey = function(item) {
       // replace action translation with key if applicable
-      var index = ctrl.predefinedActionNames.indexOf(item.action);
+      var index = (ctrl.predefinedActionNames || []).indexOf(item.action);
       if (index > -1) {
         item.action = ctrl.predefinedActions[index];
       }
