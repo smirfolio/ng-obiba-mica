@@ -23,9 +23,9 @@
     };
 
     ctrl.add = function (item) {
-      ctrl.replaceActionNameByTranslationKey(item);
-
+      ctrl.showError = false;
       if (item && item.action && item.changedOn) {
+        ctrl.replaceActionNameByTranslationKey(item);
         item.changedOn = item.changedOn.toISOString();
 
         if (!item.author) {
@@ -126,7 +126,7 @@
 
     ctrl.$onChanges = function (changes) {
       ctrl.predefinedActionsChanged(changes);
-      ctrl.showButtons = changes.item && changes.item.currentValue && isAnActionLog(changes.item.currentValue);
+      ctrl.showButtons = ctrl.item && isAnActionLog(ctrl.item);
     };
   }
 
