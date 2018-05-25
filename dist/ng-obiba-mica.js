@@ -1657,6 +1657,7 @@ ngObibaMica.access
                 initializeForm();
                 request.attachments = request.attachments || [];
                 $scope.lastSubmittedDate = findLastSubmittedDate();
+                $scope.dataAccessRequest = request;
                 return request;
             }, onError);
         }
@@ -1665,7 +1666,7 @@ ngObibaMica.access
             request.attachments = $scope.attachments;
             DataAccessRequestAttachmentsUpdateResource.save(request, function () {
                 toggleAttachmentsForm(false);
-                $scope.dataAccessRequest = getRequest();
+                getRequest();
             });
         }
         function initializeForm() {
@@ -1716,7 +1717,7 @@ ngObibaMica.access
         }
         function onUpdatStatusSuccess() {
             setTimeout(function () {
-                $scope.dataAccessRequest = getRequest();
+                getRequest();
             });
         }
         function confirmStatusChange(status, messageKey, statusName) {
@@ -1841,6 +1842,7 @@ ngObibaMica.access
                 templateUrl: 'access/views/data-access-request-profile-user-modal.html'
             });
         };
+        $scope.dataAccessRequest = {};
         $scope.getDataAccessListPageUrl = DataAccessEntityService.getListDataAccessRequestPageUrl();
         $scope.printForm = printForm;
         $scope.getFullName = getFullName;
@@ -1861,7 +1863,9 @@ ngObibaMica.access
             model: {},
             comments: null
         };
-        $scope.dataAccessRequest = $routeParams.id ? getRequest() : {};
+        if ($routeParams.id) {
+            getRequest();
+        }
     }])
     .controller('DataAccessRequestEditController', ['$rootScope',
     '$log',
