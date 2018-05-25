@@ -1639,7 +1639,6 @@ ngObibaMica.access
             });
         }
         function getRequest() {
-            $scope.loading = true;
             return DataAccessRequestResource.get({ id: $routeParams.id }).$promise.then(function onSuccess(request) {
                 setLogsHistory(request);
                 try {
@@ -1774,6 +1773,7 @@ ngObibaMica.access
         }
         function updateActionLogs(actionLogs) {
             if (Array.isArray(actionLogs)) {
+                $scope.loading = true;
                 $scope.dataAccessRequest.actionLogHistory = actionLogs;
                 DataAccessRequestResource.editActionLogs($scope.dataAccessRequest, function () {
                     onUpdatStatusSuccess();
