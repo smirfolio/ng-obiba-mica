@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-05-24
+ * Date: 2018-05-25
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -15540,7 +15540,7 @@ angular.module("access/views/data-access-request-history-view.html", []).run(["$
     "        <th translate>status</th>\n" +
     "        <th translate>changed-by</th>\n" +
     "        <th data-column-name=\"changedOn\" translate>changed-on</th>\n" +
-    "        <th class=\"col-xs-1\" translate>actions</th>\n" +
+    "        <th class=\"col-xs-1\" ng-if=\"actions.canEditActionLogs(dataAccessRequest)\" translate>actions</th>\n" +
     "      </tr>\n" +
     "    </thead>\n" +
     "    <tbody>\n" +
@@ -15562,7 +15562,7 @@ angular.module("access/views/data-access-request-history-view.html", []).run(["$
     "            {{log.changedOn | amCalendar}}\n" +
     "          </span>\n" +
     "        </td>\n" +
-    "        <td>\n" +
+    "        <td ng-if=\"actions.canEditActionLogs(dataAccessRequest)\">\n" +
     "          <action-log-item-editor item=\"log\"\n" +
     "                                  source-collection=\"dataAccessRequest.actionLogHistory\"\n" +
     "                                  predefined-actions=\"dataAccessForm.predefinedActions\"\n" +
