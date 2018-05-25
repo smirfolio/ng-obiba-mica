@@ -14,7 +14,7 @@
       return ctrl.filterOutItemFromCollection(item, ctrl.sourceCollection);
     };
 
-    ctrl.replaceActionNameByTranslationKey = function(item) {
+    ctrl.replaceActionNameByTranslationKey = function (item) {
       // replace action translation with key if applicable
       var index = (ctrl.predefinedActionNames || []).indexOf(item.action);
       if (index > -1) {
@@ -48,12 +48,16 @@
       }
     };
 
-    ctrl.$onInit = function() {
-      if(ctrl.predefinedActions) {
-        ctrl.predefinedActionNames = ctrl.predefinedActions.map(function(actionKey){
+    ctrl.predefinedActionsChanged = function (changes) {
+      if (changes.predefinedActions && changes.predefinedActions.currentValue) {
+        ctrl.predefinedActionNames = ctrl.predefinedActions.map(function (actionKey) {
           return $filter('translate')(actionKey);
         });
       }
+    };
+
+    ctrl.$onChanges = function (changes) {
+      ctrl.predefinedActionsChanged(changes);
     };
   }
 
@@ -100,7 +104,7 @@
           actionLogItem: function () {
             return { action: $filter('translate')(item.action), author: item.author, changedOn: new Date(item.changedOn) };
           },
-          predefinedActionNames: function() {
+          predefinedActionNames: function () {
             return ctrl.predefinedActionNames;
           }
         }
@@ -121,6 +125,7 @@
     };
 
     ctrl.$onChanges = function (changes) {
+      ctrl.predefinedActionsChanged(changes);
       ctrl.showButtons = changes.item && changes.item.currentValue && isAnActionLog(changes.item.currentValue);
     };
   }

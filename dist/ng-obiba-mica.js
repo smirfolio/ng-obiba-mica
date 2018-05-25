@@ -895,12 +895,15 @@ ngObibaMica.access
                 ctrl.showError = true;
             }
         };
-        ctrl.$onInit = function () {
-            if (ctrl.predefinedActions) {
+        ctrl.predefinedActionsChanged = function (changes) {
+            if (changes.predefinedActions && changes.predefinedActions.currentValue) {
                 ctrl.predefinedActionNames = ctrl.predefinedActions.map(function (actionKey) {
                     return $filter('translate')(actionKey);
                 });
             }
+        };
+        ctrl.$onChanges = function (changes) {
+            ctrl.predefinedActionsChanged(changes);
         };
     }
     function ActionLogItemEditorController(SessionProxy, $uibModal, $filter) {
@@ -962,6 +965,7 @@ ngObibaMica.access
             });
         };
         ctrl.$onChanges = function (changes) {
+            ctrl.predefinedActionsChanged(changes);
             ctrl.showButtons = changes.item && changes.item.currentValue && isAnActionLog(changes.item.currentValue);
         };
     }
