@@ -15073,7 +15073,8 @@ angular.module("access/components/action-log/component.html", []).run(["$templat
     "  <div class=\"form-group has-error\" ng-if=\"$ctrl.showError && (!$ctrl.item.action || !$ctrl.item.changedOn)\">\n" +
     "    <span class=\"control-label\">{{'data-access-request.action-log.required' | translate}}</span>\n" +
     "  </div>\n" +
-    "</form>");
+    "</form>\n" +
+    "<p class=\"loading\">");
 }]);
 
 angular.module("access/components/action-log/item/component.html", []).run(["$templateCache", function($templateCache) {
