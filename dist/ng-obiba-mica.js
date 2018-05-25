@@ -1585,7 +1585,9 @@ ngObibaMica.access
             });
         }
         function retrieveComments() {
-            $scope.form.comments = DataAccessRequestCommentsResource.query({ id: $routeParams.id });
+            DataAccessRequestCommentsResource.query({ id: $routeParams.id }, function (comments) {
+                $scope.form.comments = comments || [];
+            });
         }
         function selectTab(tab) {
             switch (tab) {
