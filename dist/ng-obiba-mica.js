@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-05-25
+ * Date: 2018-06-01
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -129,7 +129,7 @@ function NgObibaMicaTemplateUrlFactory() {
             'DataAccessRequestAttachmentDownloadResource': '/ws/data-access-request/:id/attachments/:attachmentId/_download',
             'SchemaFormAttachmentDownloadResource': '/ws/:path/form/attachments/:attachmentName/:attachmentId/_download',
             'DataAccessRequestDownloadPdfResource': '/ws/data-access-request/:id/_pdf',
-            'DataAccessRequestCommentsResource': 'ws/data-access-request/:id/comments',
+            'DataAccessRequestCommentsResource': 'ws/data-access-request/:id/comments?admin=:admin',
             'DataAccessRequestCommentResource': 'ws/data-access-request/:id/comment/:commentId',
             'DataAccessRequestStatusResource': 'ws/data-access-request/:id/_status?to=:status',
             'DataAccessAmendmentStatusResource': 'ws/data-access-request/:parentId/amendment/:id/_status?to=:status',
@@ -1031,19 +1031,6 @@ ngObibaMica.access
                 ctrl.REQUEST_STATUS = translated;
             });
         }
-        function onChanges(changed) {
-            if (changed.parentId && changed.parentId.currentValue !== undefined) {
-                if (changed.parentId.currentValue === null) {
-                    ctrl.listUrl = DataAccessEntityUrls.getDataAccessRequestsUrl();
-                    ctrl.entityBaseUrl = DataAccessEntityUrls.getDataAccessRequestBaseUrl();
-                }
-                else {
-                    ctrl.listUrl = DataAccessEntityUrls.getDataAccessAmendmentsUrl(ctrl.parentId);
-                    ctrl.entityBaseUrl = DataAccessEntityUrls.getDataAccessAmendmentBaseUrl(ctrl.parentId);
-                }
-                DataAccessEntityResource.list(ctrl.listUrl).$promise.then(onSuccess, onError);
-            }
-        }
         function onSuccess(reqs) {
             for (var i = 0; i < reqs.length; i++) {
                 var req = reqs[i];
@@ -1062,6 +1049,19 @@ ngObibaMica.access
         var onError = function () {
             ctrl.loading = false;
         };
+        function onChanges(changed) {
+            if (changed.parentId && changed.parentId.currentValue !== undefined) {
+                if (changed.parentId.currentValue === null) {
+                    ctrl.listUrl = DataAccessEntityUrls.getDataAccessRequestsUrl();
+                    ctrl.entityBaseUrl = DataAccessEntityUrls.getDataAccessRequestBaseUrl();
+                }
+                else {
+                    ctrl.listUrl = DataAccessEntityUrls.getDataAccessAmendmentsUrl(ctrl.parentId);
+                    ctrl.entityBaseUrl = DataAccessEntityUrls.getDataAccessAmendmentBaseUrl(ctrl.parentId);
+                }
+                DataAccessEntityResource.list(ctrl.listUrl).$promise.then(onSuccess, onError);
+            }
+        }
         function deleteRequest(request) {
             ctrl.requestToDelete = request.id;
             $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
@@ -1568,7 +1568,8 @@ ngObibaMica.access
             amendments: 1,
             documents: 2,
             comments: 3,
-            history: 4
+            privateComments: 4,
+            history: 5
         });
         function onError(response) {
             AlertService.alert({
@@ -1586,7 +1587,7 @@ ngObibaMica.access
             });
         }
         function retrieveComments() {
-            DataAccessRequestCommentsResource.query({ id: $routeParams.id }, function (comments) {
+            DataAccessRequestCommentsResource.query({ id: $routeParams.id, admin: ($scope.privateComments === true) ? true : '' }, function (comments) {
                 $scope.form.comments = comments || [];
             });
         }
@@ -1597,7 +1598,14 @@ ngObibaMica.access
                 case TAB_NAMES.documents:
                     break;
                 case TAB_NAMES.comments:
+                    $scope.privateComments = false;
                     if ($scope.parentId === undefined) {
+                        retrieveComments();
+                    }
+                    break;
+                case TAB_NAMES.privateComments:
+                    if ($scope.parentId === undefined) {
+                        $scope.privateComments = true;
                         retrieveComments();
                     }
                     break;
@@ -1607,7 +1615,8 @@ ngObibaMica.access
             }
         }
         function submitComment(comment) {
-            DataAccessRequestCommentsResource.save({ id: $routeParams.id }, comment.message, retrieveComments, onError);
+            console.log($scope.privateComments);
+            DataAccessRequestCommentsResource.save({ id: $routeParams.id, admin: $scope.privateComments === true }, comment.message, retrieveComments, onError);
         }
         function updateComment(comment) {
             DataAccessRequestCommentResource.update({ id: $routeParams.id, commentId: comment.id }, comment.message, retrieveComments, onError);
@@ -2353,11 +2362,11 @@ ngObibaMica.access
         return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestCommentsResource'), {}, {
             'save': {
                 method: 'POST',
-                params: { id: '@id' },
+                params: { id: '@id', admin: '@admin' },
                 headers: { 'Content-Type': 'text/plain' },
                 errorHandler: true
             },
-            'get': { method: 'GET', params: { id: '@id' }, errorHandler: true }
+            'get': { method: 'GET', params: { id: '@id', admin: '@admin' }, errorHandler: true }
         });
     }])
     .factory('DataAccessRequestCommentResource', ['$resource', 'ngObibaMicaUrl',
@@ -15868,8 +15877,18 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "                          edit-action=\"EDIT\" delete-action=\"DELETE\"></obiba-comments>\n" +
     "          <obiba-comment-editor on-submit=\"submitComment\"></obiba-comment-editor>\n" +
     "        </uib-tab>\n" +
+    "        <uib-tab index=\"4\"\n" +
+    "                 ng-if=\"config.commentsEnabled\"\n" +
+    "                 select=\"selectTab(TAB_NAMES.privateComments)\"\n" +
+    "                 heading=\"{{'data-access-request.private-comments' | translate}}\">\n" +
+    "          <obiba-comments class=\"voffset2\" comments=\"form.comments\"\n" +
+    "                          on-update=\"updateComment\" on-delete=\"deleteComment\"\n" +
+    "                          name-resolver=\"getFullName(profile)\"\n" +
+    "                          edit-action=\"EDIT\" delete-action=\"DELETE\"></obiba-comments>\n" +
+    "          <obiba-comment-editor on-submit=\"submitComment\"></obiba-comment-editor>\n" +
+    "        </uib-tab>\n" +
     "        <!--History-->\n" +
-    "        <uib-tab index=\"4\" select=\"selectTab(TAB_NAMES.history)\" heading=\"{{'data-access-request.history' | translate}}\">\n" +
+    "        <uib-tab index=\"5\" select=\"selectTab(TAB_NAMES.history)\" heading=\"{{'data-access-request.history' | translate}}\">\n" +
     "          <div ng-include=\"'access/views/data-access-request-history-view.html'\"></div>\n" +
     "        </uib-tab>\n" +
     "      </uib-tabset>\n" +

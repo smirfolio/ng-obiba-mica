@@ -83,7 +83,8 @@ ngObibaMica.access
           amendments: 1,
           documents: 2,
           comments: 3,
-          history: 4
+          privateComments: 4,
+          history: 5
         });
 
         function onError(response) {
@@ -104,7 +105,7 @@ ngObibaMica.access
         }
 
         function retrieveComments() {
-          DataAccessRequestCommentsResource.query({ id: $routeParams.id }, function (comments) {
+          DataAccessRequestCommentsResource.query({ id: $routeParams.id, admin: ($scope.privateComments === true) ? true : '' }, function (comments) {
             $scope.form.comments = comments || [];
           });
         }
@@ -116,7 +117,14 @@ ngObibaMica.access
             case TAB_NAMES.documents:
               break;
             case TAB_NAMES.comments:
+              $scope.privateComments = false;
               if ($scope.parentId === undefined) {
+                retrieveComments();
+              }
+              break;
+              case TAB_NAMES.privateComments:
+              if ($scope.parentId === undefined) {
+                $scope.privateComments = true;
                 retrieveComments();
               }
               break;
@@ -127,7 +135,8 @@ ngObibaMica.access
         }
 
         function submitComment(comment) {
-          DataAccessRequestCommentsResource.save({ id: $routeParams.id }, comment.message, retrieveComments, onError);
+          console.log($scope.privateComments);
+          DataAccessRequestCommentsResource.save({ id: $routeParams.id, admin: $scope.privateComments === true}, comment.message, retrieveComments, onError);
         }
 
         function updateComment(comment) {

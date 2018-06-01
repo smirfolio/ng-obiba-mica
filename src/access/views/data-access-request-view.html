@@ -125,8 +125,18 @@
                           edit-action="EDIT" delete-action="DELETE"></obiba-comments>
           <obiba-comment-editor on-submit="submitComment"></obiba-comment-editor>
         </uib-tab>
+        <uib-tab index="4"
+                 ng-if="config.commentsEnabled"
+                 select="selectTab(TAB_NAMES.privateComments)"
+                 heading="{{'data-access-request.private-comments' | translate}}">
+          <obiba-comments class="voffset2" comments="form.comments"
+                          on-update="updateComment" on-delete="deleteComment"
+                          name-resolver="getFullName(profile)"
+                          edit-action="EDIT" delete-action="DELETE"></obiba-comments>
+          <obiba-comment-editor on-submit="submitComment"></obiba-comment-editor>
+        </uib-tab>
         <!--History-->
-        <uib-tab index="4" select="selectTab(TAB_NAMES.history)" heading="{{'data-access-request.history' | translate}}">
+        <uib-tab index="5" select="selectTab(TAB_NAMES.history)" heading="{{'data-access-request.history' | translate}}">
           <div ng-include="'access/views/data-access-request-history-view.html'"></div>
         </uib-tab>
       </uib-tabset>

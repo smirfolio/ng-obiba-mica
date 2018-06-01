@@ -80,11 +80,11 @@ ngObibaMica.access
       return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestCommentsResource'), {}, {
         'save': {
           method: 'POST',
-          params: { id: '@id' },
+          params: { id: '@id', admin: '@admin' },
           headers: { 'Content-Type': 'text/plain' },
           errorHandler: true
         },
-        'get': { method: 'GET', params: { id: '@id' }, errorHandler: true }
+        'get': { method: 'GET', params: { id: '@id', admin: '@admin' }, errorHandler: true }
       });
     }])
 

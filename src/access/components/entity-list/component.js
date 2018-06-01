@@ -58,20 +58,6 @@
       });
     }
 
-    function onChanges (changed) {
-      if (changed.parentId && changed.parentId.currentValue !== undefined) {
-        if (changed.parentId.currentValue === null) {
-          ctrl.listUrl = DataAccessEntityUrls.getDataAccessRequestsUrl();
-          ctrl.entityBaseUrl = DataAccessEntityUrls.getDataAccessRequestBaseUrl();
-        } else {
-          ctrl.listUrl = DataAccessEntityUrls.getDataAccessAmendmentsUrl(ctrl.parentId);
-          ctrl.entityBaseUrl = DataAccessEntityUrls.getDataAccessAmendmentBaseUrl(ctrl.parentId);
-        }
-
-        DataAccessEntityResource.list (ctrl.listUrl).$promise.then (onSuccess, onError);
-      }
-    }
-
     function onSuccess (reqs) {
       for (var i = 0; i < reqs.length; i++) {
         var req = reqs[i];
@@ -91,6 +77,20 @@
     var onError = function () {
       ctrl.loading = false;
     };
+
+    function onChanges (changed) {
+      if (changed.parentId && changed.parentId.currentValue !== undefined) {
+        if (changed.parentId.currentValue === null) {
+          ctrl.listUrl = DataAccessEntityUrls.getDataAccessRequestsUrl();
+          ctrl.entityBaseUrl = DataAccessEntityUrls.getDataAccessRequestBaseUrl();
+        } else {
+          ctrl.listUrl = DataAccessEntityUrls.getDataAccessAmendmentsUrl(ctrl.parentId);
+          ctrl.entityBaseUrl = DataAccessEntityUrls.getDataAccessAmendmentBaseUrl(ctrl.parentId);
+        }
+
+        DataAccessEntityResource.list (ctrl.listUrl).$promise.then (onSuccess, onError);
+      }
+    }
 
     function deleteRequest (request) {
       ctrl.requestToDelete = request.id;
