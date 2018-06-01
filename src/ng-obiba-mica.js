@@ -143,7 +143,7 @@ function NgObibaMicaTemplateUrlFactory() {
         'DataAccessRequestAttachmentDownloadResource': '/ws/data-access-request/:id/attachments/:attachmentId/_download',
         'SchemaFormAttachmentDownloadResource': '/ws/:path/form/attachments/:attachmentName/:attachmentId/_download',
         'DataAccessRequestDownloadPdfResource': '/ws/data-access-request/:id/_pdf',
-        'DataAccessRequestCommentsResource': 'ws/data-access-request/:id/comments',
+        'DataAccessRequestCommentsResource': 'ws/data-access-request/:id/comments?admin=:admin',
         'DataAccessRequestCommentResource': 'ws/data-access-request/:id/comment/:commentId',
         'DataAccessRequestStatusResource': 'ws/data-access-request/:id/_status?to=:status',
         'DataAccessAmendmentStatusResource': 'ws/data-access-request/:parentId/amendment/:id/_status?to=:status',
