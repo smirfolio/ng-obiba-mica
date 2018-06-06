@@ -48,7 +48,7 @@ ngObibaMica.attachment
         files: '=',
         disabled: '=',
         onError:'=',
-        deleteAttachments: '='
+        deleteAttachments: '<'
       },
       templateUrl: 'attachment/attachment-input-template.html',
       controller: 'AttachmentCtrl'
@@ -56,6 +56,9 @@ ngObibaMica.attachment
   }])
   .controller('AttachmentCtrl', ['$scope', '$timeout', '$log', 'Upload', 'TempFileResource', 'ngObibaMicaUrl',
     function ($scope, $timeout, $log, Upload, TempFileResource, ngObibaMicaUrl) {
+    if($scope.deleteAttachments === undefined || $scope.deleteAttachments === null){
+        $scope.deleteAttachments = true;
+      }
       var uploadFile = function (file) {
         $scope.files = $scope.files || [];
 

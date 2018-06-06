@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-06-01
+ * Date: 2018-06-05
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -739,7 +739,7 @@ ngObibaMica.attachment
                 files: '=',
                 disabled: '=',
                 onError: '=',
-                deleteAttachments: '='
+                deleteAttachments: '<'
             },
             templateUrl: 'attachment/attachment-input-template.html',
             controller: 'AttachmentCtrl'
@@ -747,6 +747,9 @@ ngObibaMica.attachment
     }])
     .controller('AttachmentCtrl', ['$scope', '$timeout', '$log', 'Upload', 'TempFileResource', 'ngObibaMicaUrl',
     function ($scope, $timeout, $log, Upload, TempFileResource, ngObibaMicaUrl) {
+        if ($scope.deleteAttachments === undefined || $scope.deleteAttachments === null) {
+            $scope.deleteAttachments = true;
+        }
         var uploadFile = function (file) {
             $scope.files = $scope.files || [];
             var attachment = {
