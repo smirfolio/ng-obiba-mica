@@ -62,6 +62,14 @@
 
       canEditActionLogs: function (request) {
         return canDoAction(request, 'EDIT_ACTION_LOGS');
+      },
+
+      canViewPrivateComments: function (request) {
+        return canDoAction(request, 'VIEW_PRIVATE_COMMENTS');
+      },
+
+      canAddPrivateComments: function (request) {
+        return canDoAction(request, 'ADD_PRIVATE_COMMENTS');
       }
     };
 
