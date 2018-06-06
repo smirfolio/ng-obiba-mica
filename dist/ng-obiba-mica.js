@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-06-05
+ * Date: 2018-06-06
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -1358,6 +1358,12 @@ ngObibaMica.access.service("DataAccessEntityResource", DataAccessEntityResource)
             },
             canEditActionLogs: function (request) {
                 return canDoAction(request, 'EDIT_ACTION_LOGS');
+            },
+            canViewPrivateComments: function (request) {
+                return canDoAction(request, 'VIEW_PRIVATE_COMMENTS');
+            },
+            canAddPrivateComments: function (request) {
+                return canDoAction(request, 'ADD_PRIVATE_COMMENTS');
             }
         };
         var nextStatus = {
@@ -15881,7 +15887,7 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "          <obiba-comment-editor on-submit=\"submitComment\"></obiba-comment-editor>\n" +
     "        </uib-tab>\n" +
     "        <uib-tab index=\"4\"\n" +
-    "                 ng-if=\"config.commentsEnabled\"\n" +
+    "                 ng-if=\"config.commentsEnabled && actions.canViewPrivateComments(dataAccessRequest)\"\n" +
     "                 select=\"selectTab(TAB_NAMES.privateComments)\"\n" +
     "                 heading=\"{{'data-access-request.private-comments' | translate}}\">\n" +
     "          <obiba-comments class=\"voffset2\" comments=\"form.comments\"\n" +

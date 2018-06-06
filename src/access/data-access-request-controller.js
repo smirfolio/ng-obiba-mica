@@ -135,7 +135,6 @@ ngObibaMica.access
         }
 
         function submitComment(comment) {
-          console.log($scope.privateComments);
           DataAccessRequestCommentsResource.save({ id: $routeParams.id, admin: $scope.privateComments === true}, comment.message, retrieveComments, onError);
         }
 
