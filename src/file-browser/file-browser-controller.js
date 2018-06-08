@@ -101,12 +101,13 @@ ngObibaMica.fileBrowser
             $scope.data.breadcrumbs = BrowserBreadcrumbHelper.toArray(path, $scope.data.rootPath);
             $scope.data.isFile = FileBrowserService.isFile(response);
             $scope.data.isRoot = FileBrowserService.isRoot(response);
+            $scope.noDocument = false;
             if(response.type === 'FOLDER' && response.size < 1){
-              $scope.noDocument = 'false';
+              $scope.noDocument = true;
             }
           }
           else{
-            $scope.noDocument = 'false';
+            $scope.noDocument = true;
           }
           },
           onError
