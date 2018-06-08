@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-06-06
+ * Date: 2018-06-08
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -1624,7 +1624,6 @@ ngObibaMica.access
             }
         }
         function submitComment(comment) {
-            console.log($scope.privateComments);
             DataAccessRequestCommentsResource.save({ id: $routeParams.id, admin: $scope.privateComments === true }, comment.message, retrieveComments, onError);
         }
         function updateComment(comment) {
@@ -14732,12 +14731,13 @@ ngObibaMica.fileBrowser
                     $scope.data.breadcrumbs = BrowserBreadcrumbHelper.toArray(path, $scope.data.rootPath);
                     $scope.data.isFile = FileBrowserService.isFile(response);
                     $scope.data.isRoot = FileBrowserService.isRoot(response);
+                    $scope.noDocument = false;
                     if (response.type === 'FOLDER' && response.size < 1) {
-                        $scope.noDocument = 'false';
+                        $scope.noDocument = true;
                     }
                 }
                 else {
-                    $scope.noDocument = 'false';
+                    $scope.noDocument = true;
                 }
             }, onError);
         }
