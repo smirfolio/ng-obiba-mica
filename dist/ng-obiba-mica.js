@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-06-08
+ * Date: 2018-06-11
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -15242,7 +15242,7 @@ angular.module("access/components/entity-list/component.html", []).run(["$templa
     "          <tr>\n" +
     "            <th data-column-name=\"id\">ID</th>\n" +
     "            <th ng-if=\"$ctrl.showApplicant\" data-column-name=\"applicant\">{{\"data-access-request.applicant\" | translate}}</th>\n" +
-    "            <th data-column-name=\"title\">{{\"data-access-request.title\" | translate}}</th>\n" +
+    "            <th data-column-name=\"title\">{{\"title\" | translate}}</th>\n" +
     "            <th data-column-name=\"timestamps.lastUpdate\">{{\"data-access-request.lastUpdate\" | translate}}</th>\n" +
     "            <th data-column-name=\"submissionDate\">{{\"data-access-request.submissionDate\" | translate}}</th>\n" +
     "            <th data-column-name=\"status\">{{\"data-access-request.status\" | translate}}</th>\n" +
