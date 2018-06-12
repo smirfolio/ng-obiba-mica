@@ -18,9 +18,15 @@
 
       <span ng-bind-html="config.newRequestButtonHelpText" ng-if="$ctrl.canAdd"></span>
 
-      <a ng-if="$ctrl.requests.length > 0 && !$ctrl.parentId" target="_self" download class="btn btn-info pull-right" ng-href="{{$ctrl.getCsvExportHref()}}">
-        <i class="fa fa-download"></i> {{'report' | translate}}
-      </a>
+      <span class="pull-right" ng-if="$ctrl.requests.length > 0 && !$ctrl.parentId">
+        <a target="_self" download class="btn btn-info" ng-href="{{$ctrl.getCsvExportHref()}}">
+          <i class="fa fa-download"></i> {{'report' | translate}}
+        </a>
+
+        <a target="_self" download class="btn btn-info" ng-href="{{$ctrl.getHistoryExportHref()}}">
+          <i class="fa fa-download"></i> {{'history' | translate}}
+        </a>
+      </span>
     </div>
   </div>
 
