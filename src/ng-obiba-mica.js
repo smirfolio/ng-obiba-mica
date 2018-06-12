@@ -135,6 +135,7 @@ function NgObibaMicaTemplateUrlFactory() {
         'DataAccessRequestsResource': 'ws/data-access-requests',
         'DataAccessAmendmentsResource': 'ws/data-access-request/:parentId/amendments',
         'DataAccessAmendmentResource': 'ws/data-access-request/:parentId/amendment/:id',
+        'DataAccessRequestsExportHistoryResource': 'ws/data-access-requests/_history?lang=:lang',
         'DataAccessRequestsExportCsvResource': 'ws/data-access-requests/csv?lang=:lang',
         'DataAccessRequestResource': 'ws/data-access-request/:id',
         'DataAccessRequestActionLogsResource': 'ws/data-access-request/:id/_log-actions',

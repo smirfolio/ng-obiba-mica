@@ -108,6 +108,10 @@
       return ngObibaMicaUrl.getUrl ('DataAccessRequestsExportCsvResource').replace (':lang', $translate.use ());
     }
 
+    function getHistoryExportHref() {
+      return ngObibaMicaUrl.getUrl ('DataAccessRequestsExportHistoryResource').replace (':lang', $translate.use ());
+    }
+
     function getDataAccessRequestPageUrl() {
       var DataAccessClientDetailPath = ngObibaMicaUrl.getUrl ('DataAccessClientDetailPath');
       if (DataAccessClientDetailPath) {
@@ -132,6 +136,7 @@
       }
     }
 
+    ctrl.getHistoryExportHref = getHistoryExportHref;
     ctrl.getCsvExportHref = getCsvExportHref;
     ctrl.getDataAccessRequestPageUrl = getDataAccessRequestPageUrl;
     ctrl.deleteRequest = deleteRequest;
