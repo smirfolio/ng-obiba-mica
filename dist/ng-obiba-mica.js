@@ -15260,10 +15260,10 @@ angular.module("access/components/entity-list/component.html", []).run(["$templa
     "                {{request.applicant}}\n" +
     "              </span>\n" +
     "              <span ng-if=\"request.profile.attributes && $ctrl.actions.canViewProfile('mica-user') && !$ctrl.actions.canViewProfile('mica-data-access-officer')\">\n" +
-    "                {{UserProfileService.getFullName(request.profile) || request.applicant}}\n" +
+    "                {{$ctrl.UserProfileService.getFullName(request.profile) || request.applicant}}\n" +
     "              </span>\n" +
     "              <a href ng-click=\"$ctrl.UserProfileModalService.show(request.profile)\" ng-if=\"request.profile.attributes && $ctrl.actions.canViewProfile('mica-data-access-officer')\">\n" +
-    "                {{UserProfileService.getFullName(request.profile) || request.applicant}}\n" +
+    "                {{$ctrl.UserProfileService.getFullName(request.profile) || request.applicant}}\n" +
     "              </a>\n" +
     "            </td>\n" +
     "            <td>\n" +
