@@ -87,10 +87,10 @@
                 {{request.applicant}}
               </span>
               <span ng-if="request.profile.attributes && $ctrl.actions.canViewProfile('mica-user') && !$ctrl.actions.canViewProfile('mica-data-access-officer')">
-                {{UserProfileService.getFullName(request.profile) || request.applicant}}
+                {{$ctrl.UserProfileService.getFullName(request.profile) || request.applicant}}
               </span>
               <a href ng-click="$ctrl.UserProfileModalService.show(request.profile)" ng-if="request.profile.attributes && $ctrl.actions.canViewProfile('mica-data-access-officer')">
-                {{UserProfileService.getFullName(request.profile) || request.applicant}}
+                {{$ctrl.UserProfileService.getFullName(request.profile) || request.applicant}}
               </a>
             </td>
             <td>

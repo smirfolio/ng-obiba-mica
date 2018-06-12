@@ -23,7 +23,7 @@ ngObibaMica.access
   .controller('DataAccessRequestViewController',
     ['$rootScope',
       '$scope',
-      '$route',
+      '$q',
       '$location',
       '$uibModal',
       '$routeParams',
@@ -34,7 +34,6 @@ ngObibaMica.access
       'DataAccessEntityService',
       'DataAccessRequestStatusResource',
       'DataAccessFormConfigResource',
-      'JsonUtils',
       'DataAccessRequestAttachmentsUpdateResource',
       'DataAccessRequestCommentsResource',
       'DataAccessRequestCommentResource',
@@ -44,14 +43,13 @@ ngObibaMica.access
       'ServerErrorUtils',
       'NOTIFICATION_EVENTS',
       'DataAccessRequestConfig',
-      'LocalizedSchemaFormService',
       'SfOptionsService',
       'moment',
       'UserProfileService',
 
       function ($rootScope,
         $scope,
-        $route,
+        $q,
         $location,
         $uibModal,
         $routeParams,
@@ -62,7 +60,6 @@ ngObibaMica.access
         DataAccessEntityService,
         DataAccessRequestStatusResource,
         DataAccessFormConfigResource,
-        JsonUtils,
         DataAccessRequestAttachmentsUpdateResource,
         DataAccessRequestCommentsResource,
         DataAccessRequestCommentResource,
@@ -72,7 +69,6 @@ ngObibaMica.access
         ServerErrorUtils,
         NOTIFICATION_EVENTS,
         DataAccessRequestConfig,
-        LocalizedSchemaFormService,
         SfOptionsService,
         moment,
         UserProfileService) {
@@ -161,32 +157,25 @@ ngObibaMica.access
           $scope.showAttachmentsForm = show;
         }
 
-        function setLogsHistory(request) {
-          DataAccessAmendmentsResource.getLogHistory({ id: request.id }).$promise.then(function (amendmentHistory) {
-            $scope.logsHistory =
+        function getRequest() {
+          $q.all([DataAccessRequestResource.get({ id: $routeParams.id }).$promise, DataAccessAmendmentsResource.getLogHistory({ id: $routeParams.id }).$promise]).then(function (values) {
+            var dataAccessRequest = values[0], amendmentsLogHistory = values[1];
+
+            try {
+              $scope.dataAccessRequest = dataAccessRequest;
+              $scope.form.model = dataAccessRequest.content ? JSON.parse(dataAccessRequest.content) : {};
+              var requestDownloadUrlPdf = ngObibaMicaUrl.getUrl('DataAccessRequestDownloadPdfResource').replace(':id', $scope.dataAccessRequest.id);
+              $scope.requestDownloadUrl = requestDownloadUrlPdf + ((requestDownloadUrlPdf.indexOf('?q=') !== -1) ? '&' : '?') + 'lang=' + $translate.use();
+              $scope.attachments = dataAccessRequest.attachments || [];
+              $scope.lastSubmittedDate = findLastSubmittedDate();
+
+              $scope.logsHistory =
               DataAccessEntityService.processLogsHistory(
-                [].concat((request.statusChangeHistory), (request.actionLogHistory || []), (amendmentHistory || []))
+                [].concat((dataAccessRequest.statusChangeHistory), (dataAccessRequest.actionLogHistory || []), (amendmentsLogHistory || []))
                   .sort(function(a, b) {
                     return a.changedOn.localeCompare(b.changedOn);
                   })
               );
-
-            return $scope.logsHistory;
-          }, function (reason) {
-            console.error('Error getting log history for DAR', $routeParams.id, reason);
-          });
-        }
-
-        function getRequest() {
-          return DataAccessRequestResource.get({ id: $routeParams.id }).$promise.then(function onSuccess(request) {
-            setLogsHistory(request);
-
-            try {
-              $scope.dataAccessRequest = request;
-              $scope.form.model = request.content ? JSON.parse(request.content) : {};
-              var requestDownloadUrlPdf = ngObibaMicaUrl.getUrl('DataAccessRequestDownloadPdfResource').replace(':id', $scope.dataAccessRequest.id);
-              $scope.requestDownloadUrl = requestDownloadUrlPdf + ((requestDownloadUrlPdf.indexOf('?q=') !== -1) ? '&' : '?') + 'lang=' + $translate.use();
-              $scope.attachments = angular.copy(request.attachments) || [];
             } catch (e) {
               $scope.validForm = false;
               $scope.form.model = {};
@@ -197,16 +186,7 @@ ngObibaMica.access
               });
             }
 
-            initializeForm();
-
-            request.attachments = request.attachments || [];
-
-            $scope.lastSubmittedDate = findLastSubmittedDate();
-
-            $scope.dataAccessRequest = request;
-
             $scope.loading = false;
-            return request;
           }, onError);
         }
 
@@ -454,6 +434,7 @@ ngObibaMica.access
         };
 
         if ($routeParams.id) {
+          initializeForm();
           getRequest();
         }
       }])

@@ -1551,7 +1551,7 @@ ngObibaMica.access
 ])
     .controller('DataAccessRequestViewController', ['$rootScope',
     '$scope',
-    '$route',
+    '$q',
     '$location',
     '$uibModal',
     '$routeParams',
@@ -1562,7 +1562,6 @@ ngObibaMica.access
     'DataAccessEntityService',
     'DataAccessRequestStatusResource',
     'DataAccessFormConfigResource',
-    'JsonUtils',
     'DataAccessRequestAttachmentsUpdateResource',
     'DataAccessRequestCommentsResource',
     'DataAccessRequestCommentResource',
@@ -1572,11 +1571,10 @@ ngObibaMica.access
     'ServerErrorUtils',
     'NOTIFICATION_EVENTS',
     'DataAccessRequestConfig',
-    'LocalizedSchemaFormService',
     'SfOptionsService',
     'moment',
     'UserProfileService',
-    function ($rootScope, $scope, $route, $location, $uibModal, $routeParams, $filter, $translate, DataAccessRequestResource, DataAccessAmendmentsResource, DataAccessEntityService, DataAccessRequestStatusResource, DataAccessFormConfigResource, JsonUtils, DataAccessRequestAttachmentsUpdateResource, DataAccessRequestCommentsResource, DataAccessRequestCommentResource, ngObibaMicaUrl, ngObibaMicaAccessTemplateUrl, AlertService, ServerErrorUtils, NOTIFICATION_EVENTS, DataAccessRequestConfig, LocalizedSchemaFormService, SfOptionsService, moment, UserProfileService) {
+    function ($rootScope, $scope, $q, $location, $uibModal, $routeParams, $filter, $translate, DataAccessRequestResource, DataAccessAmendmentsResource, DataAccessEntityService, DataAccessRequestStatusResource, DataAccessFormConfigResource, DataAccessRequestAttachmentsUpdateResource, DataAccessRequestCommentsResource, DataAccessRequestCommentResource, ngObibaMicaUrl, ngObibaMicaAccessTemplateUrl, AlertService, ServerErrorUtils, NOTIFICATION_EVENTS, DataAccessRequestConfig, SfOptionsService, moment, UserProfileService) {
         var TAB_NAMES = Object.freeze({
             form: 0,
             amendments: 1,
@@ -1648,27 +1646,21 @@ ngObibaMica.access
             }
             $scope.showAttachmentsForm = show;
         }
-        function setLogsHistory(request) {
-            DataAccessAmendmentsResource.getLogHistory({ id: request.id }).$promise.then(function (amendmentHistory) {
-                $scope.logsHistory =
-                    DataAccessEntityService.processLogsHistory([].concat((request.statusChangeHistory), (request.actionLogHistory || []), (amendmentHistory || []))
-                        .sort(function (a, b) {
-                        return a.changedOn.localeCompare(b.changedOn);
-                    }));
-                return $scope.logsHistory;
-            }, function (reason) {
-                console.error('Error getting log history for DAR', $routeParams.id, reason);
-            });
-        }
         function getRequest() {
-            return DataAccessRequestResource.get({ id: $routeParams.id }).$promise.then(function onSuccess(request) {
-                setLogsHistory(request);
+            $q.all([DataAccessRequestResource.get({ id: $routeParams.id }).$promise, DataAccessAmendmentsResource.getLogHistory({ id: $routeParams.id }).$promise]).then(function (values) {
+                var dataAccessRequest = values[0], amendmentsLogHistory = values[1];
                 try {
-                    $scope.dataAccessRequest = request;
-                    $scope.form.model = request.content ? JSON.parse(request.content) : {};
+                    $scope.dataAccessRequest = dataAccessRequest;
+                    $scope.form.model = dataAccessRequest.content ? JSON.parse(dataAccessRequest.content) : {};
                     var requestDownloadUrlPdf = ngObibaMicaUrl.getUrl('DataAccessRequestDownloadPdfResource').replace(':id', $scope.dataAccessRequest.id);
                     $scope.requestDownloadUrl = requestDownloadUrlPdf + ((requestDownloadUrlPdf.indexOf('?q=') !== -1) ? '&' : '?') + 'lang=' + $translate.use();
-                    $scope.attachments = angular.copy(request.attachments) || [];
+                    $scope.attachments = dataAccessRequest.attachments || [];
+                    $scope.lastSubmittedDate = findLastSubmittedDate();
+                    $scope.logsHistory =
+                        DataAccessEntityService.processLogsHistory([].concat((dataAccessRequest.statusChangeHistory), (dataAccessRequest.actionLogHistory || []), (amendmentsLogHistory || []))
+                            .sort(function (a, b) {
+                            return a.changedOn.localeCompare(b.changedOn);
+                        }));
                 }
                 catch (e) {
                     $scope.validForm = false;
@@ -1679,12 +1671,7 @@ ngObibaMica.access
                         msgKey: 'data-access-request.parse-error'
                     });
                 }
-                initializeForm();
-                request.attachments = request.attachments || [];
-                $scope.lastSubmittedDate = findLastSubmittedDate();
-                $scope.dataAccessRequest = request;
                 $scope.loading = false;
-                return request;
             }, onError);
         }
         function updateAttachments() {
@@ -1892,6 +1879,7 @@ ngObibaMica.access
             comments: null
         };
         if ($routeParams.id) {
+            initializeForm();
             getRequest();
         }
     }])
@@ -15271,10 +15259,10 @@ angular.module("access/components/entity-list/component.html", []).run(["$templa
     "                {{request.applicant}}\n" +
     "              </span>\n" +
     "              <span ng-if=\"request.profile.attributes && $ctrl.actions.canViewProfile('mica-user') && !$ctrl.actions.canViewProfile('mica-data-access-officer')\">\n" +
-    "                {{UserProfileService.getFullName(request.profile) || request.applicant}}\n" +
+    "                {{$ctrl.UserProfileService.getFullName(request.profile) || request.applicant}}\n" +
     "              </span>\n" +
     "              <a href ng-click=\"$ctrl.UserProfileModalService.show(request.profile)\" ng-if=\"request.profile.attributes && $ctrl.actions.canViewProfile('mica-data-access-officer')\">\n" +
-    "                {{UserProfileService.getFullName(request.profile) || request.applicant}}\n" +
+    "                {{$ctrl.UserProfileService.getFullName(request.profile) || request.applicant}}\n" +
     "              </a>\n" +
     "            </td>\n" +
     "            <td>\n" +
