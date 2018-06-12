@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-06-11
+ * Date: 2018-06-12
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -121,6 +121,7 @@ function NgObibaMicaTemplateUrlFactory() {
             'DataAccessRequestsResource': 'ws/data-access-requests',
             'DataAccessAmendmentsResource': 'ws/data-access-request/:parentId/amendments',
             'DataAccessAmendmentResource': 'ws/data-access-request/:parentId/amendment/:id',
+            'DataAccessRequestsExportHistoryResource': 'ws/data-access-requests/_history?lang=:lang',
             'DataAccessRequestsExportCsvResource': 'ws/data-access-requests/csv?lang=:lang',
             'DataAccessRequestResource': 'ws/data-access-request/:id',
             'DataAccessRequestActionLogsResource': 'ws/data-access-request/:id/_log-actions',
@@ -1076,6 +1077,9 @@ ngObibaMica.access
         function getCsvExportHref() {
             return ngObibaMicaUrl.getUrl('DataAccessRequestsExportCsvResource').replace(':lang', $translate.use());
         }
+        function getHistoryExportHref() {
+            return ngObibaMicaUrl.getUrl('DataAccessRequestsExportHistoryResource').replace(':lang', $translate.use());
+        }
         function getDataAccessRequestPageUrl() {
             var DataAccessClientDetailPath = ngObibaMicaUrl.getUrl('DataAccessClientDetailPath');
             if (DataAccessClientDetailPath) {
@@ -1094,6 +1098,7 @@ ngObibaMica.access
                 delete ctrl.requestToDelete;
             }
         }
+        ctrl.getHistoryExportHref = getHistoryExportHref;
         ctrl.getCsvExportHref = getCsvExportHref;
         ctrl.getDataAccessRequestPageUrl = getDataAccessRequestPageUrl;
         ctrl.deleteRequest = deleteRequest;
@@ -15197,9 +15202,15 @@ angular.module("access/components/entity-list/component.html", []).run(["$templa
     "\n" +
     "      <span ng-bind-html=\"config.newRequestButtonHelpText\" ng-if=\"$ctrl.canAdd\"></span>\n" +
     "\n" +
-    "      <a ng-if=\"$ctrl.requests.length > 0 && !$ctrl.parentId\" target=\"_self\" download class=\"btn btn-info pull-right\" ng-href=\"{{$ctrl.getCsvExportHref()}}\">\n" +
-    "        <i class=\"fa fa-download\"></i> {{'report' | translate}}\n" +
-    "      </a>\n" +
+    "      <span class=\"pull-right\" ng-if=\"$ctrl.requests.length > 0 && !$ctrl.parentId\">\n" +
+    "        <a target=\"_self\" download class=\"btn btn-info\" ng-href=\"{{$ctrl.getCsvExportHref()}}\">\n" +
+    "          <i class=\"fa fa-download\"></i> {{'report' | translate}}\n" +
+    "        </a>\n" +
+    "\n" +
+    "        <a target=\"_self\" download class=\"btn btn-info\" ng-href=\"{{$ctrl.getHistoryExportHref()}}\">\n" +
+    "          <i class=\"fa fa-download\"></i> {{'history' | translate}}\n" +
+    "        </a>\n" +
+    "      </span>\n" +
     "    </div>\n" +
     "  </div>\n" +
     "\n" +
