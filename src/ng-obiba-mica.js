@@ -30,6 +30,7 @@ function NgObibaMicaTemplateUrlFactory() {
     'variableFrequenciesEmpty': 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html',
     'variableStatistics': 'analysis/crosstab/views/crosstab-variable-statistics.html',
     'variableStatisticsEmpty': 'analysis/crosstab/views/crosstab-variable-statistics-empty.html',
+    'searchCellStatValue': 'search/components/result/cell-stat-value/component.html'
   };
   var factory = { registry: null };
 

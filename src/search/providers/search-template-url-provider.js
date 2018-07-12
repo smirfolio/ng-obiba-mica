@@ -29,7 +29,8 @@
           searchInputList: { template: null },
           searchResultCoverage: { template: null },
           searchResultGraphics: { template: null },
-          classifications: { header: null, footer: null }
+          classifications: { header: null, footer: null },
+          searchCellStatValue: { template: null },
         }
       ));
     }]);

@@ -83,38 +83,49 @@
               <span ng-if="!summary.targetNumber.number && !summary.targetNumber.noLimit">-</span>
             </td>
             <td ng-if="optionsCols.showStudiesNetworksColumn">
-              <a href ng-click="updateCriteria(summary.id, 'networks')" ng-if="summary['obiba.mica.CountStatsDto.studyCountStats'].networks">
-                <localized-number value="summary['obiba.mica.CountStatsDto.studyCountStats'].networks"></localized-number>
-              </a>
+              <cell-stat-value ng-if="summary['obiba.mica.CountStatsDto.studyCountStats'].networks"
+                               result-tab-order="resultTabOrder"
+                               destination-tab="network"
+                               entity-count="summary['obiba.mica.CountStatsDto.studyCountStats'].networks"
+                               update-criteria="updateCriteria(summary.id, 'networks')"></cell-stat-value>
               <span ng-if="!summary['obiba.mica.CountStatsDto.studyCountStats'].networks">-</span>
             </td>
             <td ng-if="optionsCols.showStudiesVariablesColumn">
-              <a href ng-click="updateCriteria(summary.id, 'variables')">
-                <localized-number value="summary['obiba.mica.CountStatsDto.studyCountStats'].variables"></localized-number>
-              </a>
+              <cell-stat-value result-tab-order="resultTabOrder"
+                               destination-tab="variable"
+                               entity-count="summary['obiba.mica.CountStatsDto.studyCountStats'].variables"
+                               update-criteria="updateCriteria(summary.id, 'variables')"></cell-stat-value>
             </td>
             <td ng-if="optionsCols.showStudiesStudyDatasetsColumn && choseIndividual">
-              <a href ng-click="updateCriteria(summary.id, 'Study', 'datasets')" ng-if="summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets">
-                <localized-number value="summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets"></localized-number>
-              </a>
+              <cell-stat-value ng-if="summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets"
+                               result-tab-order="resultTabOrder"
+                               destination-tab="dataset"
+                               entity-count="summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets"
+                               update-criteria="updateCriteria(summary.id, 'Study', 'datasets')"></cell-stat-value>
               <span ng-if="!summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets">-</span>
             </td>
             <td ng-if="optionsCols.showStudiesStudyVariablesColumn && choseIndividual">
-              <a href ng-click="updateCriteria(summary.id, 'Study', 'variables')" ng-if="summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets">
-                <localized-number value="summary['obiba.mica.CountStatsDto.studyCountStats'].studyVariables"></localized-number>
-              </a>
+              <cell-stat-value ng-if="summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets"
+                               result-tab-order="resultTabOrder"
+                               destination-tab="variable"
+                               entity-count="summary['obiba.mica.CountStatsDto.studyCountStats'].studyVariables"
+                               update-criteria="updateCriteria(summary.id, 'Study', 'variables')"></cell-stat-value>
               <span ng-if="!summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets">-</span>
             </td>
             <td ng-if="optionsCols.showStudiesHarmonizationDatasetsColumn && choseHarmonization">
-              <a href ng-click="updateCriteria(summary.id, 'HarmonizationStudy', 'datasets')" ng-if="summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets">
-                <localized-number value="summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets"></localized-number>
-              </a>
+              <cell-stat-value ng-if="summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets"
+                               result-tab-order="resultTabOrder"
+                               destination-tab="dataset"
+                               entity-count="summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets"
+                               update-criteria="updateCriteria(summary.id, 'HarmonizationStudy', 'datasets')"></cell-stat-value>
               <span ng-if="!summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets">-</span>
             </td>
             <td ng-if="optionsCols.showStudiesDataschemaVariablesColumn && choseHarmonization">
-              <a href ng-click="updateCriteria(summary.id, 'HarmonizationStudy', 'variables')" ng-if="summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets">
-                <localized-number value="summary['obiba.mica.CountStatsDto.studyCountStats'].dataschemaVariables"></localized-number>
-              </a>
+              <cell-stat-value ng-if="summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets"
+                               result-tab-order="resultTabOrder"
+                               destination-tab="variable"
+                               entity-count="summary['obiba.mica.CountStatsDto.studyCountStats'].dataschemaVariables"
+                               update-criteria="updateCriteria(summary.id, 'HarmonizationStudy', 'variables')"></cell-stat-value>
               <span ng-if="!summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets">-</span>
             </td>
           </tr>

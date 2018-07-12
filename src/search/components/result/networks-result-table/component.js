@@ -40,7 +40,9 @@
           };
         }
 
-        scope.options = ngObibaMicaSearch.getOptions().networks;
+        var options = ngObibaMicaSearch.getOptions();
+        scope.options = options.networks;
+        scope.resultTabOrder = options.resultTabsOrder;
         scope.optionsCols = scope.options.networksColumn;
         scope.PageUrlService = PageUrlService;
 
