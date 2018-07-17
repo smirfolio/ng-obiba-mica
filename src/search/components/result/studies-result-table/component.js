@@ -102,7 +102,9 @@
           return datasources && datasources.indexOf(id) > -1;
         };
 
-        scope.options = ngObibaMicaSearch.getOptions().studies;
+        var options = ngObibaMicaSearch.getOptions();
+        scope.options = options.studies;
+        scope.resultTabOrder = options.resultTabsOrder;
         scope.optionsCols = scope.options.studiesColumn;
         scope.PageUrlService = PageUrlService;
 

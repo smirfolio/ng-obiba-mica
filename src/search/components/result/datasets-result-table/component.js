@@ -54,7 +54,9 @@
           });
         };
 
-        scope.options = ngObibaMicaSearch.getOptions().datasets;
+        var options = ngObibaMicaSearch.getOptions();
+        scope.options = options.datasets;
+        scope.resultTabOrder = options.resultTabsOrder;
         scope.optionsCols = scope.options.datasetsColumn;
         scope.PageUrlService = PageUrlService;
       }

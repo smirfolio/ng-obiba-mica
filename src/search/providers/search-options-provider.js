@@ -244,7 +244,7 @@
      * @returns {*}
      */
     function resolveOptions() {
-
+      var ngClientOptions = optionsWrapper.getOptions();
       if (resolved) {
         // in case the getOptionsAsyn() is already called.
         return $q.when(optionsWrapper.getOptions());
@@ -264,20 +264,21 @@
               showSearchTab: hasMultipleStudies,
               studiesColumn: {
                 showStudiesTypeColumn: micaConfig.isCollectedDatasetEnabled && micaConfig.isHarmonizedDatasetEnabled,
-                showStudiesNetworksColumn: hasMultipleNetworks,
-                showStudiesVariablesColumn: hasMultipleDatasets,
-                showStudiesStudyDatasetsColumn: hasMultipleDatasets && micaConfig.isCollectedDatasetEnabled,
-                showStudiesStudyVariablesColumn: hasMultipleDatasets && micaConfig.isCollectedDatasetEnabled,
-                showStudiesHarmonizationDatasetsColumn: hasMultipleDatasets && micaConfig.isHarmonizedDatasetEnabled,
-                showStudiesDataschemaVariablesColumn: hasMultipleDatasets && micaConfig.isHarmonizedDatasetEnabled
+                showStudiesNetworksColumn: hasMultipleNetworks && ngClientOptions.studies.studiesColumn.showStudiesNetworksColumn,
+                showStudiesVariablesColumn: hasMultipleDatasets && ngClientOptions.studies.studiesColumn.showStudiesVariablesColumn,
+                showStudiesStudyDatasetsColumn: (hasMultipleDatasets && micaConfig.isCollectedDatasetEnabled) === false ? false : ngClientOptions.studies.studiesColumn.showStudiesStudyDatasetsColumn,
+                showStudiesStudyVariablesColumn: (hasMultipleDatasets && micaConfig.isCollectedDatasetEnabled) === false ? false : ngClientOptions.studies.studiesColumn.showStudiesStudyVariablesColumn,
+                showStudiesHarmonizationDatasetsColumn: (hasMultipleDatasets && micaConfig.isHarmonizedDatasetEnabled) === false ? false : ngClientOptions.studies.studiesColumn.showStudiesHarmonizationDatasetsColumn,
+                showStudiesDataschemaVariablesColumn: (hasMultipleDatasets && micaConfig.isHarmonizedDatasetEnabled) === false ? false : ngClientOptions.studies.studiesColumn.showStudiesDataschemaVariablesColumn
               }
             },
             datasets: {
               showSearchTab: hasMultipleDatasets,
               datasetsColumn: {
                 showDatasetsTypeColumn: micaConfig.isCollectedDatasetEnabled && micaConfig.isHarmonizedDatasetEnabled,
-                showDatasetsNetworkColumn: hasMultipleNetworks,
-                showDatasetsStudiesColumn: hasMultipleStudies
+                showDatasetsNetworkColumn: hasMultipleNetworks && ngClientOptions.datasets.datasetsColumn.showDatasetsNetworkColumn,
+                showDatasetsStudiesColumn: hasMultipleStudies && ngClientOptions.datasets.datasetsColumn.showDatasetsStudiesColumn,
+                showDatasetsVariablesColumn: ngClientOptions.datasets.datasetsColumn.showDatasetsVariablesColumn
               }
             },
             variables: {
@@ -288,11 +289,11 @@
               }
             }
           };
+
           optionsWrapper.setOptions(updatedOptions);
           deferred.resolve(optionsWrapper.getOptions());
           resolved = true;
         });
-
         return deferred.promise;
       }
     }
