@@ -11,26 +11,37 @@
 "use strict";
 
 class CellStatValueController implements ng.IComponentController {
-    private static $inject = ["$log"];
+    private static $inject = ["$log", "$location", "$httpParamSerializer"];
     public destinationTab: any;
     public disable: boolean;
     public entityCount: any;
+    public href: string;
     public resultTabOrder: any;
-    public updateCriteria: () => void;
+    public updateCriteria: () => any;
 
-    constructor(private $log: any) {
+    constructor(private $log: any, private $location: any, private $httpParamSerializer: any) {
     }
 
-    public clickCriteria(): void {
-        this.updateCriteria();
+    public urlCriteria() {
+        const that = this;
+        that.href = "";
+        if (typeof that.updateCriteria() !== "undefined") {
+            that.updateCriteria().then((urlHref) => {
+                urlHref.display = "list";
+                that.href = window.location.origin + //
+                    window.location.pathname + //
+                    "/#/search?" + //
+                    that.$httpParamSerializer(urlHref);
+            });
+        }
     }
 
     public $onInit() {
         if (this.resultTabOrder.indexOf(this.destinationTab) < 0) {
             this.disable = true;
         }
+        this.urlCriteria();
     }
-
 }
 
 class CellStatValueComponent implements ng.IComponentOptions {

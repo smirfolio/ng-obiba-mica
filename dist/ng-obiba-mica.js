@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-07-16
+ * Date: 2018-07-23
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -5125,11 +5125,14 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
                     executeSearchQuery();
                 }
             });
-            /**
-             * Updates the URL location triggering a query execution
-             */
-            var refreshQuery = function () {
-                var query = new RqlQuery().serializeArgs($scope.search.rqlQuery.args);
+            var searchQueryBuilder = function (rqlQuery) {
+                var query;
+                if (!rqlQuery) {
+                    query = new RqlQuery().serializeArgs($scope.search.rqlQuery.args);
+                }
+                else {
+                    query = new RqlQuery().serializeArgs(rqlQuery.args);
+                }
                 var search = $location.search();
                 if ('' === query) {
                     delete search.query;
@@ -5137,21 +5140,19 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
                 else {
                     search.query = query;
                 }
-                $location.search(search);
+                return search;
+            };
+            /**
+             * Updates the URL location triggering a query execution
+             */
+            var refreshQuery = function () {
+                $location.search(searchQueryBuilder());
             };
             /**
              * Updates the URL location without triggering a query execution
              */
             var replaceQuery = function () {
-                var query = new RqlQuery().serializeArgs($scope.search.rqlQuery.args);
-                var search = $location.search();
-                if ('' === query) {
-                    delete search.query;
-                }
-                else {
-                    search.query = query;
-                }
-                $location.search(search).replace();
+                $location.search(searchQueryBuilder()).replace();
             };
             /**
              * Removes the item from the criteria tree
@@ -5161,32 +5162,38 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
                 RqlQueryService.removeCriteriaItem(item);
                 refreshQuery();
             };
-            /**
-             * Propagates a Scope change that results in criteria panel update
-             * @param item
-             */
-            var selectCriteria = function (item, logicalOp, replace, showNotification, fullCoverage) {
-                if (angular.isUndefined(showNotification)) {
+            var updateCriteriaRequestHandler = function (item, logicalOp, replace, showNotification, fullCoverage, doRequest) {
+                if (angular.isUndefined(showNotification) && doRequest) {
                     showNotification = true;
+                }
+                var rqlQuery;
+                if (!doRequest) {
+                    rqlQuery = angular.copy($scope.search.rqlQuery);
+                }
+                else {
+                    rqlQuery = $scope.search.rqlQuery;
                 }
                 if (item.id) {
                     var id = CriteriaIdGenerator.generate(item.taxonomy, item.vocabulary);
                     var existingItem = RqlQueryService.findCriteriaItemFromTree(item, $scope.search.criteria);
                     var growlMsgKey;
+                    if (doRequest) {
+                    }
                     if (existingItem && id.indexOf('dceId') !== -1 && fullCoverage) {
                         removeCriteriaItem(existingItem);
-                        growlMsgKey = 'search.criterion.updated';
-                        RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item, logicalOp);
+                        growlMsgKey = doRequest ? 'search.criterion.updated' : null;
+                        RqlQueryService.addCriteriaItem(rqlQuery, item, logicalOp);
                     }
                     else if (existingItem) {
-                        growlMsgKey = 'search.criterion.updated';
+                        growlMsgKey = doRequest ? 'search.criterion.updated' : null;
                         RqlQueryService.updateCriteriaItem(existingItem, item, replace);
                     }
                     else {
-                        growlMsgKey = 'search.criterion.created';
-                        RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item, logicalOp);
+                        growlMsgKey = doRequest ? 'search.criterion.created' : null;
+                        RqlQueryService.addCriteriaItem(rqlQuery, item, logicalOp);
                     }
-                    if (showNotification) {
+                    if (showNotification && doRequest) {
+                        $scope.search.rqlQuery = rqlQuery;
                         AlertService.growl({
                             id: 'SearchControllerGrowl',
                             type: 'info',
@@ -5194,9 +5201,28 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
                             msgArgs: [LocalizedValues.forLocale(item.vocabulary.title, $scope.lang), $filter('translate')('taxonomy.target.' + item.target)],
                             delay: 3000
                         });
+                        refreshQuery();
                     }
-                    refreshQuery();
+                    else {
+                        return searchQueryBuilder(rqlQuery);
+                    }
                 }
+            };
+            /**
+             * Propagates a Scope change that results in criteria panel update
+             * @param item
+             */
+            var urlSelectCriteria = function (item, logicalOp, type) {
+                var urlQuery = updateCriteriaRequestHandler(item, logicalOp);
+                urlQuery.type = type;
+                return urlQuery;
+            };
+            /**
+             * Propagates a Scope change that results in criteria panel update
+             * @param item
+             */
+            var selectCriteria = function (item, logicalOp, replace, showNotification, fullCoverage) {
+                updateCriteriaRequestHandler(item, logicalOp, replace, showNotification, fullCoverage, true);
             };
             var onTypeChanged = function (type) {
                 if (type) {
@@ -5245,18 +5271,24 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
                     $location.search(search);
                 }
             };
-            var onUpdateCriteria = function (item, type, useCurrentDisplay, replaceTarget, showNotification, fullCoverage) {
-                if (type) {
-                    onTypeChanged(type);
-                }
-                if (replaceTarget) {
-                    var criteriaItem = RqlQueryService.findCriteriaItemFromTree(item, $scope.search.criteria);
-                    if (criteriaItem) {
-                        ngObibaMica.search.CriteriaReducer.reduce(criteriaItem.parent, criteriaItem);
+            var onUpdateCriteria = function (item, type, useCurrentDisplay, replaceTarget, showNotification, fullCoverage, isLink) {
+                if (!isLink) {
+                    if (type) {
+                        onTypeChanged(type);
                     }
+                    if (replaceTarget) {
+                        var criteriaItem = RqlQueryService.findCriteriaItemFromTree(item, $scope.search.criteria);
+                        if (criteriaItem) {
+                            ngObibaMica.search.CriteriaReducer.reduce(criteriaItem.parent, criteriaItem);
+                        }
+                    }
+                    onDisplayChanged(useCurrentDisplay && $scope.search.display ? $scope.search.display : DISPLAY_TYPES.LIST);
+                    selectCriteria(item, RQL_NODE.AND, true, showNotification, fullCoverage);
                 }
-                onDisplayChanged(useCurrentDisplay && $scope.search.display ? $scope.search.display : DISPLAY_TYPES.LIST);
-                selectCriteria(item, RQL_NODE.AND, true, showNotification, fullCoverage);
+                else {
+                    var url = urlSelectCriteria(item, RQL_NODE.AND, type);
+                    return url;
+                }
             };
             var onRemoveCriteria = function (item) {
                 var found = RqlQueryService.findCriterion($scope.search.criteria, item.id);
@@ -9626,18 +9658,31 @@ function BaseTaxonomiesController($rootScope, $scope, $translate, $location, Tax
  */
 "use strict";
 var CellStatValueController = /** @class */ (function () {
-    function CellStatValueController($log) {
+    function CellStatValueController($log, $location, $httpParamSerializer) {
         this.$log = $log;
+        this.$location = $location;
+        this.$httpParamSerializer = $httpParamSerializer;
     }
-    CellStatValueController.prototype.clickCriteria = function () {
-        this.updateCriteria();
+    CellStatValueController.prototype.urlCriteria = function () {
+        var that = this;
+        that.href = "";
+        if (typeof that.updateCriteria() !== "undefined") {
+            that.updateCriteria().then(function (urlHref) {
+                urlHref.display = "list";
+                that.href = window.location.origin + //
+                    window.location.pathname + //
+                    "/#/search?" + //
+                    that.$httpParamSerializer(urlHref);
+            });
+        }
     };
     CellStatValueController.prototype.$onInit = function () {
         if (this.resultTabOrder.indexOf(this.destinationTab) < 0) {
             this.disable = true;
         }
+        this.urlCriteria();
     };
-    CellStatValueController.$inject = ["$log"];
+    CellStatValueController.$inject = ["$log", "$location", "$httpParamSerializer"];
     return CellStatValueController;
 }());
 var CellStatValueComponent = /** @class */ (function () {
@@ -10384,8 +10429,9 @@ ngObibaMica.search
         };
         var charOptions = GraphicChartsConfig.getOptions().ChartsOptions;
         $scope.updateCriteria = function (key, vocabulary) {
-            RqlQueryService.createCriteriaItem('study', 'Mica_study', vocabulary, key).then(function (item) {
-                $scope.onUpdateCriteria(item, 'studies');
+            return RqlQueryService.createCriteriaItem('study', 'Mica_study', vocabulary, key).then(function (item) {
+                var updateCriteriaReturn = $scope.onUpdateCriteria(item, 'studies', false, false, false, false, true);
+                return angular.copy(updateCriteriaReturn);
             });
         };
         $scope.$watch('result', function (result) {
@@ -10523,6 +10569,7 @@ ngObibaMica.search
                         angular.extend($scope.chartObjects, chartObject);
                     }
                 });
+                $scope.resultTabOrder = $scope.resultTabsOrder;
             }
         });
     }
@@ -10532,6 +10579,7 @@ ngObibaMica.search
             restrict: 'EA',
             replace: true,
             scope: {
+                resultTabsOrder: '=',
                 result: '=',
                 loading: '=',
                 onUpdateCriteria: '='
@@ -10926,7 +10974,7 @@ ngObibaMica.search
                 scope.resultTabOrder = options.resultTabsOrder;
                 scope.optionsCols = scope.options.studiesColumn;
                 scope.PageUrlService = PageUrlService;
-                scope.updateCriteria = function (id, type, destinationType) {
+                scope.updateCriteria = function (id, type, destinationType, link) {
                     var datasetClassName;
                     if (type === 'HarmonizationDataset' || type === 'StudyDataset') {
                         datasetClassName = type;
@@ -10943,29 +10991,38 @@ ngObibaMica.search
                         type = 'variables';
                     }
                     type = destinationType ? destinationType : type;
-                    RqlQueryService.createCriteriaItem('study', 'Mica_study', 'id', id).then(function (item) {
-                        if (datasetClassName) {
-                            RqlQueryService.createCriteriaItem('dataset', 'Mica_dataset', 'className', datasetClassName).then(function (datasetItem) {
-                                scope.onUpdateCriteria(item, type);
-                                scope.onUpdateCriteria(datasetItem, type);
-                            });
-                        }
-                        else if (stuydClassName) {
-                            RqlQueryService.createCriteriaItem('study', 'Mica_study', 'className', stuydClassName).then(function (studyItem) {
-                                scope.onUpdateCriteria(item, type);
-                                scope.onUpdateCriteria(studyItem, type);
-                            });
-                        }
-                        else if (variableType) {
-                            RqlQueryService.createCriteriaItem('variable', 'Mica_variable', 'variableType', variableType).then(function (variableItem) {
-                                scope.onUpdateCriteria(item, type);
-                                scope.onUpdateCriteria(variableItem, type);
-                            });
-                        }
-                        else {
-                            scope.onUpdateCriteria(item, type);
-                        }
-                    });
+                    console.log(link);
+                    if (link) {
+                        return RqlQueryService.createCriteriaItem('study', 'Mica_study', 'id', id).then(function (item) {
+                            var copyItem = angular.copy(scope.onUpdateCriteria(item, type, false, false, false, false, true));
+                            return copyItem;
+                        });
+                    }
+                    else {
+                        console.log(id);
+                        console.log(type);
+                        console.log(destinationType);
+                        RqlQueryService.createCriteriaItem('study', 'Mica_study', 'id', id).then(function (item) {
+                            if (datasetClassName) {
+                                return RqlQueryService.createCriteriaItem('dataset', 'Mica_dataset', 'className', datasetClassName).then(function (datasetItem) {
+                                    scope.onUpdateCriteria(item, type, false, false, false, false, false);
+                                    scope.onUpdateCriteria(datasetItem, type, false, false, false, false, false);
+                                });
+                            }
+                            else if (stuydClassName) {
+                                RqlQueryService.createCriteriaItem('study', 'Mica_study', 'className', stuydClassName).then(function (studyItem) {
+                                    scope.onUpdateCriteria(item, type, false, false, false, false, false);
+                                    scope.onUpdateCriteria(studyItem, type, false, false, false, false, false);
+                                });
+                            }
+                            else if (variableType) {
+                                RqlQueryService.createCriteriaItem('variable', 'Mica_variable', 'variableType', variableType).then(function (variableItem) {
+                                    scope.onUpdateCriteria(item, type, false, false, false, false, false);
+                                    scope.onUpdateCriteria(variableItem, type, false, false, false, false, false);
+                                });
+                            }
+                        });
+                    }
                 };
             }
         };
@@ -18484,7 +18541,7 @@ angular.module("search/components/result/cell-stat-value/component.html", []).ru
   $templateCache.put("search/components/result/cell-stat-value/component.html",
     "<div>\n" +
     "  <span ng-if=\"$ctrl.disable\"><localized-number value=\"$ctrl.entityCount\"></localized-number></span>\n" +
-    "  <a href ng-click=\"$ctrl.clickCriteria()\" ng-if=\"!$ctrl.disable\">\n" +
+    "  <a ng-href=\"{{$ctrl.href}}\" ng-if=\"!$ctrl.disable && $ctrl.href\">\n" +
     "    <localized-number value=\"$ctrl.entityCount\"></localized-number>\n" +
     "  </a>\n" +
     "</div>");
@@ -18725,7 +18782,6 @@ angular.module("search/components/result/graphics-result/component.html", []).ru
   $templateCache.put("search/components/result/graphics-result/component.html",
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
-    "\n" +
     "  <p class=\"help-block\" ng-if=\"!loading && !noResults && !hasChartObjects()\" translate>search.no-graphic-result</p>\n" +
     "  <p class=\"help-block\" ng-if=\"!loading && noResults\" translate>search.no-results</p>\n" +
     "\n" +
@@ -18757,9 +18813,10 @@ angular.module("search/components/result/graphics-result/component.html", []).ru
     "                <tr ng-repeat=\"row in chart.getTable().entries\">\n" +
     "                  <td>{{row.title}}</td>\n" +
     "                  <td>\n" +
-    "                    <a href ng-click=\"updateCriteria(row.key, chart.getTable().vocabulary)\">\n" +
-    "                      <localized-number value=\"row.value\"></localized-number>\n" +
-    "                    </a>\n" +
+    "                    <cell-stat-value result-tab-order=\"resultTabOrder\"\n" +
+    "                                     destination-tab=\"study\"\n" +
+    "                                     entity-count=\"row.value\"\n" +
+    "                                     update-criteria=\"updateCriteria(row.key, chart.getTable().vocabulary)\"></cell-stat-value>\n" +
     "                  </td>\n" +
     "                  <td ng-if=\"row.participantsNbr\">{{row.participantsNbr}}</td>\n" +
     "                </tr>\n" +
@@ -18947,9 +19004,8 @@ angular.module("search/components/result/search-result/graphics.html", []).run([
     "  ~ You should have received a copy of the GNU General Public License\n" +
     "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
     "  -->\n" +
-    "\n" +
     "<div ng-show=\"display === 'graphics'\">\n" +
-    "  <graphics-result on-update-criteria=\"onUpdateCriteria\" result=\"result.graphics\" loading=\"loading\" class=\"voffset2 graphics-tab\"></graphics-result>\n" +
+    "  <graphics-result result-tabs-order=\"resultTabsOrder\" on-update-criteria=\"onUpdateCriteria\" result=\"result.graphics\" loading=\"loading\" class=\"voffset2 graphics-tab\"></graphics-result>\n" +
     "</div>");
 }]);
 
@@ -19089,21 +19145,21 @@ angular.module("search/components/result/studies-result-table/component.html", [
     "                               result-tab-order=\"resultTabOrder\"\n" +
     "                               destination-tab=\"network\"\n" +
     "                               entity-count=\"summary['obiba.mica.CountStatsDto.studyCountStats'].networks\"\n" +
-    "                               update-criteria=\"updateCriteria(summary.id, 'networks')\"></cell-stat-value>\n" +
+    "                               update-criteria=\"updateCriteria(summary.id, 'networks' , 'networks', true)\"></cell-stat-value>\n" +
     "              <span ng-if=\"!summary['obiba.mica.CountStatsDto.studyCountStats'].networks\">-</span>\n" +
     "            </td>\n" +
     "            <td ng-if=\"optionsCols.showStudiesVariablesColumn\">\n" +
     "              <cell-stat-value result-tab-order=\"resultTabOrder\"\n" +
     "                               destination-tab=\"variable\"\n" +
     "                               entity-count=\"summary['obiba.mica.CountStatsDto.studyCountStats'].variables\"\n" +
-    "                               update-criteria=\"updateCriteria(summary.id, 'variables')\"></cell-stat-value>\n" +
+    "                               update-criteria=\"updateCriteria(summary.id, 'Study', 'variables', true)\"></cell-stat-value>\n" +
     "            </td>\n" +
     "            <td ng-if=\"optionsCols.showStudiesStudyDatasetsColumn && choseIndividual\">\n" +
     "              <cell-stat-value ng-if=\"summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets\"\n" +
     "                               result-tab-order=\"resultTabOrder\"\n" +
     "                               destination-tab=\"dataset\"\n" +
     "                               entity-count=\"summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets\"\n" +
-    "                               update-criteria=\"updateCriteria(summary.id, 'Study', 'datasets')\"></cell-stat-value>\n" +
+    "                               update-criteria=\"updateCriteria(summary.id, 'Study', 'datasets', true)\"></cell-stat-value>\n" +
     "              <span ng-if=\"!summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets\">-</span>\n" +
     "            </td>\n" +
     "            <td ng-if=\"optionsCols.showStudiesStudyVariablesColumn && choseIndividual\">\n" +
@@ -19111,7 +19167,7 @@ angular.module("search/components/result/studies-result-table/component.html", [
     "                               result-tab-order=\"resultTabOrder\"\n" +
     "                               destination-tab=\"variable\"\n" +
     "                               entity-count=\"summary['obiba.mica.CountStatsDto.studyCountStats'].studyVariables\"\n" +
-    "                               update-criteria=\"updateCriteria(summary.id, 'Study', 'variables')\"></cell-stat-value>\n" +
+    "                               update-criteria=\"updateCriteria(summary.id, 'Study', 'variables', true)\"></cell-stat-value>\n" +
     "              <span ng-if=\"!summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets\">-</span>\n" +
     "            </td>\n" +
     "            <td ng-if=\"optionsCols.showStudiesHarmonizationDatasetsColumn && choseHarmonization\">\n" +
@@ -19119,7 +19175,7 @@ angular.module("search/components/result/studies-result-table/component.html", [
     "                               result-tab-order=\"resultTabOrder\"\n" +
     "                               destination-tab=\"dataset\"\n" +
     "                               entity-count=\"summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets\"\n" +
-    "                               update-criteria=\"updateCriteria(summary.id, 'HarmonizationStudy', 'datasets')\"></cell-stat-value>\n" +
+    "                               update-criteria=\"updateCriteria(summary.id, 'HarmonizationStudy', 'datasets', true)\"></cell-stat-value>\n" +
     "              <span ng-if=\"!summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets\">-</span>\n" +
     "            </td>\n" +
     "            <td ng-if=\"optionsCols.showStudiesDataschemaVariablesColumn && choseHarmonization\">\n" +
@@ -19127,7 +19183,7 @@ angular.module("search/components/result/studies-result-table/component.html", [
     "                               result-tab-order=\"resultTabOrder\"\n" +
     "                               destination-tab=\"variable\"\n" +
     "                               entity-count=\"summary['obiba.mica.CountStatsDto.studyCountStats'].dataschemaVariables\"\n" +
-    "                               update-criteria=\"updateCriteria(summary.id, 'HarmonizationStudy', 'variables')\"></cell-stat-value>\n" +
+    "                               update-criteria=\"updateCriteria(summary.id, 'HarmonizationStudy', 'variables', true)\"></cell-stat-value>\n" +
     "              <span ng-if=\"!summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets\">-</span>\n" +
     "            </td>\n" +
     "          </tr>\n" +
@@ -19735,6 +19791,7 @@ angular.module("search/views/search-result-list-study-template.html", []).run(["
     "  ~ You should have received a copy of the GNU General Public License\n" +
     "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
     "  -->\n" +
+    "\n" +
     "<div class=\"tab-pane\" ng-show=\"options.studies.showSearchTab\" ng-class=\"{'active': activeTarget.studies.active}\">\n" +
     "  <studies-result-table lang=\"lang\" loading=\"loading\" on-update-criteria=\"onUpdateCriteria\"\n" +
     "      summaries=\"result.list.studyResultDto['obiba.mica.StudyResultDto.result'].summaries\"></studies-result-table>\n" +

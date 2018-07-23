@@ -516,32 +516,35 @@
         });
 
 
+        var searchQueryBuilder = function(rqlQuery){
+          var query;
+          if(!rqlQuery) {
+            query  = new RqlQuery().serializeArgs($scope.search.rqlQuery.args);
+          }
+          else{
+            query = new RqlQuery().serializeArgs(rqlQuery.args);
+          }
+
+            var search = $location.search();
+            if ('' === query) {
+              delete search.query;
+            } else {
+              search.query = query;
+            }
+            return search;
+        };
         /**
          * Updates the URL location triggering a query execution
          */
         var refreshQuery = function () {
-          var query = new RqlQuery().serializeArgs($scope.search.rqlQuery.args);
-          var search = $location.search();
-          if ('' === query) {
-            delete search.query;
-          } else {
-            search.query = query;
-          }
-          $location.search(search);
+          $location.search(searchQueryBuilder());
         };
 
         /**
          * Updates the URL location without triggering a query execution
          */
         var replaceQuery = function () {
-          var query = new RqlQuery().serializeArgs($scope.search.rqlQuery.args);
-          var search = $location.search();
-          if ('' === query) {
-            delete search.query;
-          } else {
-            search.query = query;
-          }
-          $location.search(search).replace();
+          $location.search(searchQueryBuilder()).replace();
         };
 
         /**
@@ -553,33 +556,37 @@
           refreshQuery();
         };
 
-        /**
-         * Propagates a Scope change that results in criteria panel update
-         * @param item
-         */
-        var selectCriteria = function (item, logicalOp, replace, showNotification, fullCoverage) {
-          if (angular.isUndefined(showNotification)) {
+        var updateCriteriaRequestHandler = function (item, logicalOp, replace, showNotification, fullCoverage, doRequest) {
+          if (angular.isUndefined(showNotification) && doRequest) {
             showNotification = true;
+          }
+          var rqlQuery;
+
+          if(!doRequest){
+            rqlQuery = angular.copy($scope.search.rqlQuery);
+          }
+          else{
+            rqlQuery = $scope.search.rqlQuery;
           }
 
           if (item.id) {
             var id = CriteriaIdGenerator.generate(item.taxonomy, item.vocabulary);
             var existingItem = RqlQueryService.findCriteriaItemFromTree(item, $scope.search.criteria);
             var growlMsgKey;
-
             if (existingItem && id.indexOf('dceId') !== -1 && fullCoverage) {
               removeCriteriaItem(existingItem);
-              growlMsgKey = 'search.criterion.updated';
-              RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item, logicalOp);
+              growlMsgKey = doRequest ? 'search.criterion.updated' : null;
+              RqlQueryService.addCriteriaItem(rqlQuery, item, logicalOp);
             } else if (existingItem) {
-              growlMsgKey = 'search.criterion.updated';
+              growlMsgKey = doRequest ? 'search.criterion.updated' : null;
               RqlQueryService.updateCriteriaItem(existingItem, item, replace);
             } else {
-              growlMsgKey = 'search.criterion.created';
-              RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item, logicalOp);
+              growlMsgKey = doRequest ? 'search.criterion.created' : null;
+              RqlQueryService.addCriteriaItem(rqlQuery, item, logicalOp);
             }
 
-            if (showNotification) {
+            if (showNotification && doRequest) {
+              $scope.search.rqlQuery = rqlQuery;
               AlertService.growl({
                 id: 'SearchControllerGrowl',
                 type: 'info',
@@ -587,10 +594,30 @@
                 msgArgs: [LocalizedValues.forLocale(item.vocabulary.title, $scope.lang), $filter('translate')('taxonomy.target.' + item.target)],
                 delay: 3000
               });
+              refreshQuery();
             }
-
-            refreshQuery();
+            else{
+              return searchQueryBuilder(rqlQuery);
+            }
           }
+        };
+
+        /**
+         * Propagates a Scope change that results in criteria panel update
+         * @param item
+         */
+        var urlSelectCriteria = function (item, logicalOp, type) {
+          var urlQuery = updateCriteriaRequestHandler(item, logicalOp);
+          urlQuery.type = type;
+          return urlQuery;
+        };
+
+        /**
+         * Propagates a Scope change that results in criteria panel update
+         * @param item
+         */
+        var selectCriteria = function (item, logicalOp, replace, showNotification, fullCoverage) {
+          updateCriteriaRequestHandler(item, logicalOp, replace, showNotification, fullCoverage, true);
         };
 
         var onTypeChanged = function (type) {
@@ -644,20 +671,27 @@
           }
         };
 
-        var onUpdateCriteria = function (item, type, useCurrentDisplay, replaceTarget, showNotification, fullCoverage) {
-          if (type) {
-            onTypeChanged(type);
-          }
-
-          if (replaceTarget) {
-            var criteriaItem = RqlQueryService.findCriteriaItemFromTree(item, $scope.search.criteria);
-            if (criteriaItem) {
-              ngObibaMica.search.CriteriaReducer.reduce(criteriaItem.parent, criteriaItem);
+        var onUpdateCriteria = function (item, type, useCurrentDisplay, replaceTarget, showNotification, fullCoverage, isLink) {
+          if(!isLink){
+            if (type) {
+              onTypeChanged(type);
             }
+
+            if (replaceTarget) {
+              var criteriaItem = RqlQueryService.findCriteriaItemFromTree(item, $scope.search.criteria);
+              if (criteriaItem) {
+                ngObibaMica.search.CriteriaReducer.reduce(criteriaItem.parent, criteriaItem);
+              }
+            }
+
+            onDisplayChanged(useCurrentDisplay && $scope.search.display ? $scope.search.display : DISPLAY_TYPES.LIST);
+            selectCriteria(item, RQL_NODE.AND, true, showNotification, fullCoverage);
+          }
+          else{
+            var url = urlSelectCriteria(item, RQL_NODE.AND, type);
+            return url;
           }
 
-          onDisplayChanged(useCurrentDisplay && $scope.search.display ? $scope.search.display : DISPLAY_TYPES.LIST);
-          selectCriteria(item, RQL_NODE.AND, true, showNotification, fullCoverage);
         };
 
         var onRemoveCriteria = function (item) {

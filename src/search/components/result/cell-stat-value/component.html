@@ -1,6 +1,6 @@
 <div>
   <span ng-if="$ctrl.disable"><localized-number value="$ctrl.entityCount"></localized-number></span>
-  <a href ng-click="$ctrl.clickCriteria()" ng-if="!$ctrl.disable">
+  <a ng-href="{{$ctrl.href}}" ng-if="!$ctrl.disable && $ctrl.href">
     <localized-number value="$ctrl.entityCount"></localized-number>
   </a>
 </div>

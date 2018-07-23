@@ -87,21 +87,21 @@
                                result-tab-order="resultTabOrder"
                                destination-tab="network"
                                entity-count="summary['obiba.mica.CountStatsDto.studyCountStats'].networks"
-                               update-criteria="updateCriteria(summary.id, 'networks')"></cell-stat-value>
+                               update-criteria="updateCriteria(summary.id, 'networks' , 'networks', true)"></cell-stat-value>
               <span ng-if="!summary['obiba.mica.CountStatsDto.studyCountStats'].networks">-</span>
             </td>
             <td ng-if="optionsCols.showStudiesVariablesColumn">
               <cell-stat-value result-tab-order="resultTabOrder"
                                destination-tab="variable"
                                entity-count="summary['obiba.mica.CountStatsDto.studyCountStats'].variables"
-                               update-criteria="updateCriteria(summary.id, 'variables')"></cell-stat-value>
+                               update-criteria="updateCriteria(summary.id, 'Study', 'variables', true)"></cell-stat-value>
             </td>
             <td ng-if="optionsCols.showStudiesStudyDatasetsColumn && choseIndividual">
               <cell-stat-value ng-if="summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets"
                                result-tab-order="resultTabOrder"
                                destination-tab="dataset"
                                entity-count="summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets"
-                               update-criteria="updateCriteria(summary.id, 'Study', 'datasets')"></cell-stat-value>
+                               update-criteria="updateCriteria(summary.id, 'Study', 'datasets', true)"></cell-stat-value>
               <span ng-if="!summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets">-</span>
             </td>
             <td ng-if="optionsCols.showStudiesStudyVariablesColumn && choseIndividual">
@@ -109,7 +109,7 @@
                                result-tab-order="resultTabOrder"
                                destination-tab="variable"
                                entity-count="summary['obiba.mica.CountStatsDto.studyCountStats'].studyVariables"
-                               update-criteria="updateCriteria(summary.id, 'Study', 'variables')"></cell-stat-value>
+                               update-criteria="updateCriteria(summary.id, 'Study', 'variables', true)"></cell-stat-value>
               <span ng-if="!summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets">-</span>
             </td>
             <td ng-if="optionsCols.showStudiesHarmonizationDatasetsColumn && choseHarmonization">
@@ -117,7 +117,7 @@
                                result-tab-order="resultTabOrder"
                                destination-tab="dataset"
                                entity-count="summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets"
-                               update-criteria="updateCriteria(summary.id, 'HarmonizationStudy', 'datasets')"></cell-stat-value>
+                               update-criteria="updateCriteria(summary.id, 'HarmonizationStudy', 'datasets', true)"></cell-stat-value>
               <span ng-if="!summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets">-</span>
             </td>
             <td ng-if="optionsCols.showStudiesDataschemaVariablesColumn && choseHarmonization">
@@ -125,7 +125,7 @@
                                result-tab-order="resultTabOrder"
                                destination-tab="variable"
                                entity-count="summary['obiba.mica.CountStatsDto.studyCountStats'].dataschemaVariables"
-                               update-criteria="updateCriteria(summary.id, 'HarmonizationStudy', 'variables')"></cell-stat-value>
+                               update-criteria="updateCriteria(summary.id, 'HarmonizationStudy', 'variables', true)"></cell-stat-value>
               <span ng-if="!summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets">-</span>
             </td>
           </tr>

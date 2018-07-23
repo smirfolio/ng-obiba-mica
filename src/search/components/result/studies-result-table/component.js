@@ -108,7 +108,7 @@
         scope.optionsCols = scope.options.studiesColumn;
         scope.PageUrlService = PageUrlService;
 
-        scope.updateCriteria = function (id, type, destinationType) {
+        scope.updateCriteria = function (id, type, destinationType, link) {
           var datasetClassName;
           if (type === 'HarmonizationDataset' || type === 'StudyDataset') {
             datasetClassName = type;
@@ -128,27 +128,36 @@
           }
 
           type = destinationType ? destinationType : type;
-
-          RqlQueryService.createCriteriaItem('study', 'Mica_study', 'id', id).then(function (item) {
-            if (datasetClassName) {
-              RqlQueryService.createCriteriaItem('dataset', 'Mica_dataset', 'className', datasetClassName).then(function (datasetItem) {
-                scope.onUpdateCriteria(item, type);
-                scope.onUpdateCriteria(datasetItem, type);
-              });
-            } else if (stuydClassName) {
-              RqlQueryService.createCriteriaItem('study', 'Mica_study', 'className', stuydClassName).then(function (studyItem) {
-                scope.onUpdateCriteria(item, type);
-                scope.onUpdateCriteria(studyItem, type);
-              });
-            } else if (variableType) {
-              RqlQueryService.createCriteriaItem('variable', 'Mica_variable', 'variableType', variableType).then(function (variableItem) {
-                scope.onUpdateCriteria(item, type);
-                scope.onUpdateCriteria(variableItem, type);
-              });
-            } else {
-              scope.onUpdateCriteria(item, type);
-            }
-          });
+          console.log(link);
+          if(link){
+            return RqlQueryService.createCriteriaItem('study', 'Mica_study', 'id', id).then(function (item) {
+              var copyItem = angular.copy(scope.onUpdateCriteria(item, type, false, false, false, false, true));
+              return copyItem;
+            });
+          }
+          else{
+            console.log(id);
+            console.log(type);
+            console.log(destinationType);
+            RqlQueryService.createCriteriaItem('study', 'Mica_study', 'id', id).then(function (item) {
+              if (datasetClassName) {
+                return RqlQueryService.createCriteriaItem('dataset', 'Mica_dataset', 'className', datasetClassName).then(function (datasetItem) {
+                  scope.onUpdateCriteria(item, type, false, false, false, false, false);
+                  scope.onUpdateCriteria(datasetItem, type, false, false, false, false, false);
+                });
+              } else if (stuydClassName) {
+                RqlQueryService.createCriteriaItem('study', 'Mica_study', 'className', stuydClassName).then(function (studyItem) {
+                   scope.onUpdateCriteria(item, type, false, false, false, false, false);
+                  scope.onUpdateCriteria(studyItem, type, false, false, false, false, false);
+                });
+              } else if (variableType) {
+                RqlQueryService.createCriteriaItem('variable', 'Mica_variable', 'variableType', variableType).then(function (variableItem) {
+                   scope.onUpdateCriteria(item, type, false, false, false, false, false);
+                  scope.onUpdateCriteria(variableItem, type, false, false, false, false, false);
+                });
+              }
+            });
+          }
         };
       }
     };

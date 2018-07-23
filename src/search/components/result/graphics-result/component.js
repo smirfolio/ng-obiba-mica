@@ -48,10 +48,10 @@ ngObibaMica.search
       };
 
       var charOptions = GraphicChartsConfig.getOptions().ChartsOptions;
-
       $scope.updateCriteria = function (key, vocabulary) {
-        RqlQueryService.createCriteriaItem('study', 'Mica_study', vocabulary, key).then(function (item) {
-          $scope.onUpdateCriteria(item, 'studies');
+      return RqlQueryService.createCriteriaItem('study', 'Mica_study', vocabulary, key).then(function (item) {
+        var updateCriteriaReturn = $scope.onUpdateCriteria(item, 'studies', false, false, false, false, true);
+          return angular.copy(updateCriteriaReturn);
         });
       };
 
@@ -214,6 +214,7 @@ ngObibaMica.search
                 angular.extend($scope.chartObjects, chartObject);
               }
             });
+          $scope.resultTabOrder = $scope.resultTabsOrder;
         }
       });
     }])
@@ -223,6 +224,7 @@ ngObibaMica.search
       restrict: 'EA',
       replace: true,
       scope: {
+        resultTabsOrder: '=',
         result: '=',
         loading: '=',
         onUpdateCriteria: '='
