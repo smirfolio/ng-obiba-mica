@@ -42,7 +42,7 @@
                                result-tab-order="resultTabOrder"
                                destination-tab="study"
                                entity-count="summary['obiba.mica.CountStatsDto.networkCountStats'].studies"
-                               update-criteria="updateCriteria(summary.id, 'studies')"></cell-stat-value>
+                               update-criteria="updateCriteria(summary.id, 'studies', false, true)"></cell-stat-value>
               <span ng-if="!summary['obiba.mica.CountStatsDto.networkCountStats'].studies">-</span>
             </td>
             <td ng-if="optionsCols.showNetworksStudyDatasetColumn && choseIndividual">
@@ -50,7 +50,7 @@
                                result-tab-order="resultTabOrder"
                                destination-tab="dataset"
                                entity-count="summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets"
-                               update-criteria="updateCriteria(summary.id, 'Study', 'datasets')"></cell-stat-value>
+                               update-criteria="updateCriteria(summary.id, 'Study', 'datasets', true)"></cell-stat-value>
               <span ng-if="!summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets">-</span>
             </td>
             <td ng-if="optionsCols.showNetworksHarmonizationDatasetColumn && choseHarmonization">
@@ -58,7 +58,7 @@
                                result-tab-order="resultTabOrder"
                                destination-tab="dataset"
                                entity-count="summary['obiba.mica.CountStatsDto.networkCountStats'].harmonizationDatasets"
-                               update-criteria="updateCriteria(summary.id, 'HarmonizationStudy', 'datasets')"></cell-stat-value>
+                               update-criteria="updateCriteria(summary.id, 'HarmonizationStudy', 'datasets', true)"></cell-stat-value>
               <span ng-if="!summary['obiba.mica.CountStatsDto.networkCountStats'].harmonizationDatasets">-</span>
             </td>
             <td ng-if="optionsCols.showNetworksVariablesColumn">
@@ -66,14 +66,14 @@
                                result-tab-order="resultTabOrder"
                                destination-tab="variable"
                                entity-count="summary['obiba.mica.CountStatsDto.networkCountStats'].variables"
-                               update-criteria="updateCriteria(summary.id, 'variables')"></cell-stat-value>
+                               update-criteria="updateCriteria(summary.id, 'variables', false, true)"></cell-stat-value>
             </td>
             <td ng-if="optionsCols.showNetworksStudyVariablesColumn && choseIndividual">
               <cell-stat-value ng-if="summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets"
                                result-tab-order="resultTabOrder"
                                destination-tab="variable"
                                entity-count="summary['obiba.mica.CountStatsDto.networkCountStats'].studyVariables"
-                               update-criteria="updateCriteria(summary.id, 'Study', 'variables')"></cell-stat-value>
+                               update-criteria="updateCriteria(summary.id, 'Study', 'variables', true)"></cell-stat-value>
               <span ng-if="!summary['obiba.mica.CountStatsDto.networkCountStats'].studyDatasets">-</span>
             </td>
             <td ng-if="optionsCols.showNetworksDataschemaVariablesColumn && choseHarmonization">
@@ -81,7 +81,7 @@
                                result-tab-order="resultTabOrder"
                                destination-tab="variable"
                                entity-count="summary['obiba.mica.CountStatsDto.networkCountStats'].dataschemaVariables"
-                               update-criteria="updateCriteria(summary.id, 'HarmonizationStudy', 'variables')"></cell-stat-value>
+                               update-criteria="updateCriteria(summary.id, 'HarmonizationStudy', 'variables', true)"></cell-stat-value>
               <span ng-if="!summary['obiba.mica.CountStatsDto.networkCountStats'].harmonizationDatasets">-</span>
             </td>
           </tr>

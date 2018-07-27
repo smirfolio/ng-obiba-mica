@@ -50,7 +50,13 @@
           setInitialStudyFilterSelection();
         });
 
-        scope.updateCriteria = function (id, type, destinationType) {
+        scope.updateCriteria = function (id, type, destinationType, tabEvent) {
+          var newTab = null;
+          if(window.event.type === 'click' && window.event.ctrlKey && tabEvent){
+            newTab = {
+              display: 'list'
+            };
+          }
           var datasetClassName;
           if (type === 'HarmonizationDataset' || type === 'StudyDataset') {
             datasetClassName = type;
@@ -70,25 +76,27 @@
           }
 
           type = destinationType ? destinationType : type;
-
+          if(newTab){
+            newTab.type = type;
+          }
           RqlQueryService.createCriteriaItem('network', 'Mica_network', 'id', id).then(function (item) {
             if (datasetClassName) {
               RqlQueryService.createCriteriaItem('dataset', 'Mica_dataset', 'className', datasetClassName).then(function (datasetItem) {
-                scope.onUpdateCriteria(item, type);
-                scope.onUpdateCriteria(datasetItem, type);
+                scope.onUpdateCriteria(item, type, false, false, false, false, newTab);
+                scope.onUpdateCriteria(datasetItem, type, false, false, false, false, newTab, true);
               });
             } else if (stuydClassName) {
               RqlQueryService.createCriteriaItem('study', 'Mica_study', 'className', stuydClassName).then(function (studyItem) {
-                scope.onUpdateCriteria(item, type);
-                scope.onUpdateCriteria(studyItem, type);
+                scope.onUpdateCriteria(item, type, false, false, false, false, newTab);
+                scope.onUpdateCriteria(studyItem, type, false, false, false, false, newTab, true);
               });
             } else if (variableType) {
               RqlQueryService.createCriteriaItem('variable', 'Mica_variable', 'variableType', variableType).then(function (variableItem) {
-                scope.onUpdateCriteria(item, type);
-                scope.onUpdateCriteria(variableItem, type);
+                scope.onUpdateCriteria(item, type, false, false, false, false, newTab);
+                scope.onUpdateCriteria(variableItem, type, false, false, false, false, newTab, true);
               });
             } else {
-              scope.onUpdateCriteria(item, type);
+              scope.onUpdateCriteria(item, type, false, false, false, false, newTab, true);
             }
           });
         };

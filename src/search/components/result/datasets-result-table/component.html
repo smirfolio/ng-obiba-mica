@@ -39,7 +39,7 @@
                                result-tab-order="resultTabOrder"
                                destination-tab="network"
                                entity-count="summary['obiba.mica.CountStatsDto.datasetCountStats'].networks"
-                               update-criteria="updateCriteria(summary.id, 'networks')"></cell-stat-value>
+                               update-criteria="updateCriteria(summary.id, 'networks', true)"></cell-stat-value>
               <span ng-if="!summary['obiba.mica.CountStatsDto.datasetCountStats'].networks">-</span>
             </td>
             <td ng-if="optionsCols.showDatasetsStudiesColumn">
@@ -47,14 +47,14 @@
                                result-tab-order="resultTabOrder"
                                destination-tab="study"
                                entity-count="summary['obiba.mica.CountStatsDto.datasetCountStats'].studies"
-                               update-criteria="updateCriteria(summary.id, 'studies')"></cell-stat-value>
+                               update-criteria="updateCriteria(summary.id, 'studies', true)"></cell-stat-value>
               <span ng-if="!summary['obiba.mica.CountStatsDto.datasetCountStats'].studies">-</span>
             </td>
             <td ng-if="optionsCols.showDatasetsVariablesColumn">
               <cell-stat-value result-tab-order="resultTabOrder"
                                destination-tab="variable"
                                entity-count="summary['obiba.mica.CountStatsDto.datasetCountStats'].variables"
-                               update-criteria="updateCriteria(summary.id, 'variables')"></cell-stat-value>
+                               update-criteria="updateCriteria(summary.id, 'variables', true)"></cell-stat-value>
             </td>
           </tr>
         </tbody>

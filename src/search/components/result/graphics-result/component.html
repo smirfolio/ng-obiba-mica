@@ -32,9 +32,12 @@
                 <tr ng-repeat="row in chart.getTable().entries">
                   <td>{{row.title}}</td>
                   <td>
-                    <a href ng-click="updateCriteria(row.key, chart.getTable().vocabulary)">
-                      <localized-number value="row.value"></localized-number>
-                    </a>
+                    <cell-stat-value ng-if="row.value"
+                                     result-tab-order="resultTabOrder"
+                                     destination-tab="study"
+                                     entity-count="row.value"
+                                     update-criteria="updateCriteria(row.key, chart.getTable().vocabulary, true)"></cell-stat-value>
+                    <span ng-if="!row.value">-</span>
                   </td>
                   <td ng-if="row.participantsNbr">{{row.participantsNbr}}</td>
                 </tr>

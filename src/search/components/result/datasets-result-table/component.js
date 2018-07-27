@@ -48,9 +48,16 @@
           }
         });
 
-        scope.updateCriteria = function (id, type) {
+        scope.updateCriteria = function (id, type, tabEvent) {
+          var newTab = null;
+          if(window.event.type === 'click' && window.event.ctrlKey && tabEvent){
+            newTab = {
+              display: 'list',
+              type: type
+            };
+          }
           RqlQueryService.createCriteriaItem('dataset', 'Mica_dataset', 'id', id).then(function (item) {
-            scope.onUpdateCriteria(item, type);
+            scope.onUpdateCriteria(item, type, false, false, false, false, newTab, true);
           });
         };
 

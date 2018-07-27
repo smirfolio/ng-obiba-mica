@@ -166,7 +166,8 @@ function typeToTarget(type) {
             result.item = child;
             return true;
           }
-
+          console.log('in find node ', root);
+          console.log('in find node ', targetId);
           return self.findItemNodeById(child, targetId, result, strict);
         });
       }

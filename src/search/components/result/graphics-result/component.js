@@ -49,9 +49,16 @@ ngObibaMica.search
 
       var charOptions = GraphicChartsConfig.getOptions().ChartsOptions;
 
-      $scope.updateCriteria = function (key, vocabulary) {
+      $scope.updateCriteria = function (key, vocabulary, tabEvent) {
+        var newTab = {};
+        if(window.event.type === 'click' && window.event.ctrlKey && tabEvent){
+          newTab = {
+            type: 'studies',
+            display: 'list'
+          };
+        }
         RqlQueryService.createCriteriaItem('study', 'Mica_study', vocabulary, key).then(function (item) {
-          $scope.onUpdateCriteria(item, 'studies');
+          $scope.onUpdateCriteria(item, 'studies', false, false, false, false, newTab, true);
         });
       };
 
@@ -214,6 +221,7 @@ ngObibaMica.search
                 angular.extend($scope.chartObjects, chartObject);
               }
             });
+          $scope.resultTabOrder = $scope.resultTabsOrder;
         }
       });
     }])
@@ -223,6 +231,7 @@ ngObibaMica.search
       restrict: 'EA',
       replace: true,
       scope: {
+        resultTabsOrder: '=',
         result: '=',
         loading: '=',
         onUpdateCriteria: '='

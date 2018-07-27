@@ -17,6 +17,7 @@
 /* global DISPLAY_TYPES */
 /* global CriteriaIdGenerator */
 /* global SORT_FIELDS */
+/* global URL */
 
 (function () {
   function manageSearchHelpText($scope, $translate, $cookies) {
@@ -80,6 +81,7 @@
       'SearchControllerFacetHelperService',
       'options',
       'PaginationService',
+      '$httpParamSerializer',
       function ($timeout, $scope,
         $rootScope,
         $location,
@@ -101,7 +103,8 @@
         EntitySuggestionRqlUtilityService,
         SearchControllerFacetHelperService,
         options,
-        PaginationService) {
+        PaginationService,
+        $httpParamSerializer) {
 
         $scope.options = options;
         manageSearchHelpText($scope, $translate, $cookies);
@@ -250,10 +253,24 @@
           return layout ? (['layout1', 'layout2'].indexOf(layout) > -1 ? layout : 'layout2') : 'layout2';
         }
 
+        var runSearchQuery = function (query, newTab){
+          if(newTab && newTab.type && newTab.display){
+            query.display = newTab.display;
+            query.type = newTab.type;
+            var parsedUrl = new URL(window.location.href);
+            parsedUrl.hash = '#/search?' + $httpParamSerializer(query);
+            window.open(parsedUrl.href, '_blank');
+          }
+          else{
+            return $location.search(query);
+          }
+          $scope.urlRqlQuery = null;
+        };
+
         var clearSearchQuery = function () {
           var search = $location.search();
           delete search.query;
-          $location.search(search);
+          runSearchQuery(search);
         };
 
         var toggleSearchQuery = function () {
@@ -519,15 +536,16 @@
         /**
          * Updates the URL location triggering a query execution
          */
-        var refreshQuery = function () {
-          var query = new RqlQuery().serializeArgs($scope.search.rqlQuery.args);
+        var refreshQuery = function (refreshQuery, newTab) {
+          var rqlQueryArgs = refreshQuery?refreshQuery.args:$scope.search.rqlQuery.args;
+          var query = new RqlQuery().serializeArgs(rqlQueryArgs);
           var search = $location.search();
           if ('' === query) {
             delete search.query;
           } else {
             search.query = query;
           }
-          $location.search(search);
+          runSearchQuery(search, newTab);
         };
 
         /**
@@ -541,7 +559,7 @@
           } else {
             search.query = query;
           }
-          $location.search(search).replace();
+          runSearchQuery(search).replace();
         };
 
         /**
@@ -556,12 +574,22 @@
         /**
          * Propagates a Scope change that results in criteria panel update
          * @param item
+         * @param logicalOp
+         * @param replace
+         * @param showNotification
+         * @param fullCoverage
+         * @param newTab
+         * @param lastCriteria
          */
-        var selectCriteria = function (item, logicalOp, replace, showNotification, fullCoverage) {
-          if (angular.isUndefined(showNotification)) {
+        var selectCriteria = function (item, logicalOp, replace, showNotification, fullCoverage, newTab, lastCriteria) {
+          if (angular.isUndefined(showNotification) && !newTab) {
             showNotification = true;
           }
-
+          if (newTab) {
+            if ($scope.urlRqlQuery === null) {
+              $scope.urlRqlQuery = angular.copy($scope.search.rqlQuery);
+            }
+          }
           if (item.id) {
             var id = CriteriaIdGenerator.generate(item.taxonomy, item.vocabulary);
             var existingItem = RqlQueryService.findCriteriaItemFromTree(item, $scope.search.criteria);
@@ -570,15 +598,14 @@
             if (existingItem && id.indexOf('dceId') !== -1 && fullCoverage) {
               removeCriteriaItem(existingItem);
               growlMsgKey = 'search.criterion.updated';
-              RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item, logicalOp);
+              RqlQueryService.addCriteriaItem($scope.urlRqlQuery ? $scope.urlRqlQuery : $scope.search.rqlQuery, item, logicalOp);
             } else if (existingItem) {
               growlMsgKey = 'search.criterion.updated';
               RqlQueryService.updateCriteriaItem(existingItem, item, replace);
             } else {
               growlMsgKey = 'search.criterion.created';
-              RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item, logicalOp);
+              RqlQueryService.addCriteriaItem($scope.urlRqlQuery ? $scope.urlRqlQuery : $scope.search.rqlQuery, item, logicalOp);
             }
-
             if (showNotification) {
               AlertService.growl({
                 id: 'SearchControllerGrowl',
@@ -588,8 +615,16 @@
                 delay: 3000
               });
             }
-
-            refreshQuery();
+            if (!newTab) {
+              refreshQuery();
+            }
+            else {
+              if(lastCriteria){
+                refreshQuery(angular.copy($scope.urlRqlQuery), newTab);
+                $scope.urlRqlQuery = null;
+              }
+            }
+            console.log($scope.urlRqlQuery);
           }
         };
 
@@ -599,7 +634,7 @@
             var search = $location.search();
             search.type = type;
             search.display = DISPLAY_TYPES.LIST;
-            $location.search(search);
+            runSearchQuery(search);
           }
         };
 
@@ -608,7 +643,7 @@
             validateBucket(bucket);
             var search = $location.search();
             search.bucket = bucket;
-            $location.search(search);
+            runSearchQuery(search);
           }
         };
 
@@ -640,12 +675,12 @@
 
             var search = $location.search();
             search.display = display;
-            $location.search(search);
+            runSearchQuery(search);
           }
         };
 
-        var onUpdateCriteria = function (item, type, useCurrentDisplay, replaceTarget, showNotification, fullCoverage) {
-          if (type) {
+        var onUpdateCriteria = function (item, type, useCurrentDisplay, replaceTarget, showNotification, fullCoverage, newTab, lastCriteria) {
+          if (type && (!newTab || (!newTab.type && !newTab.display))) {
             onTypeChanged(type);
           }
 
@@ -655,9 +690,10 @@
               ngObibaMica.search.CriteriaReducer.reduce(criteriaItem.parent, criteriaItem);
             }
           }
-
-          onDisplayChanged(useCurrentDisplay && $scope.search.display ? $scope.search.display : DISPLAY_TYPES.LIST);
-          selectCriteria(item, RQL_NODE.AND, true, showNotification, fullCoverage);
+          if (!newTab || !newTab.type && !newTab.display) {
+            onDisplayChanged(useCurrentDisplay && $scope.search.display ? $scope.search.display : DISPLAY_TYPES.LIST);
+          }
+          selectCriteria(item, RQL_NODE.AND, true, showNotification, fullCoverage, newTab, lastCriteria);
         };
 
         var onRemoveCriteria = function (item) {
