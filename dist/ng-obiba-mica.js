@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-07-26
+ * Date: 2018-09-07
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -688,7 +688,6 @@ ngObibaMica.file
 'use strict';
 ngObibaMica.attachment = angular.module('obiba.mica.attachment', [
     'obiba.mica.file',
-    'ui',
     'ui.bootstrap',
     'ngFileUpload',
     'templates-ngObibaMica'
@@ -11705,8 +11704,7 @@ ngObibaMica.search
         'pascalprecht.translate',
         'angularMoment',
         'ui.bootstrap',
-        'ui.select',
-        'ui'
+        'ui.select'
     ]);
 })();
 //# sourceMappingURL=dataset-variable-crosstab.js.map
