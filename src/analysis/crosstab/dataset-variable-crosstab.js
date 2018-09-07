@@ -21,7 +21,6 @@
     'pascalprecht.translate',
     'angularMoment',
     'ui.bootstrap',
-    'ui.select',
-    'ui'
+    'ui.select'
   ]);
 })();
