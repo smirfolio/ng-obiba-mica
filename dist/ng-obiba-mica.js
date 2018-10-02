@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-09-19
+ * Date: 2018-10-02
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -1647,7 +1647,13 @@ ngObibaMica.access
             $scope.showAttachmentsForm = show;
         }
         function getRequest() {
-            $q.all([DataAccessRequestResource.get({ id: $routeParams.id }).$promise, DataAccessAmendmentsResource.getLogHistory({ id: $routeParams.id }).$promise]).then(function (values) {
+            var resources = [DataAccessRequestResource.get];
+            if ($scope.dataAccessForm.amendmentsEnabled) {
+                resources.push(DataAccessAmendmentsResource.getLogHistory);
+            }
+            $q.all(resources.map(function (resource) {
+                return resource.apply(null, [{ id: $routeParams.id }]).$promise;
+            })).then(function (values) {
                 var dataAccessRequest = values[0], amendmentsLogHistory = values[1];
                 try {
                     $scope.dataAccessRequest = dataAccessRequest;
@@ -1683,14 +1689,14 @@ ngObibaMica.access
             });
         }
         function initializeForm() {
-            SfOptionsService.transform().then(function (options) {
-                $scope.sfOptions = options;
+            var deferred = $q.defer();
+            $q.all([SfOptionsService.transform(), DataAccessFormConfigResource.get().$promise]).then(function (values) {
+                $scope.sfOptions = values[0];
                 $scope.sfOptions.pristine = { errors: true, success: false };
-            });
-            // Retrieve form data
-            DataAccessFormConfigResource.get(function onSuccess(dataAccessForm) {
-                $scope.dataAccessForm = dataAccessForm;
+                $scope.dataAccessForm = values[1];
+                deferred.resolve();
             }, onError);
+            return deferred.promise;
         }
         function findLastSubmittedDate() {
             var history = $scope.dataAccessRequest.logsHistory || [];
@@ -1879,8 +1885,9 @@ ngObibaMica.access
             comments: null
         };
         if ($routeParams.id) {
-            initializeForm();
-            getRequest();
+            initializeForm().then(function () {
+                getRequest();
+            });
         }
     }])
     .controller('DataAccessRequestEditController', ['$rootScope',
@@ -15959,7 +15966,7 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "          </form>\n" +
     "        </uib-tab>\n" +
     "        <!--Amendments-->\n" +
-    "        <uib-tab index=\"1\" select=\"selectTab(TAB_NAMES.amendments)\">\n" +
+    "        <uib-tab ng-if=\"dataAccessForm.amendmentsEnabled\" index=\"1\" select=\"selectTab(TAB_NAMES.amendments)\">\n" +
     "          <uib-tab-heading>\n" +
     "            {{'data-access-amendments' | translate}}\n" +
     "          </uib-tab-heading>\n" +
