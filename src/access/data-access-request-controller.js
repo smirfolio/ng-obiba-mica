@@ -158,7 +158,14 @@ ngObibaMica.access
         }
 
         function getRequest() {
-          $q.all([DataAccessRequestResource.get({ id: $routeParams.id }).$promise, DataAccessAmendmentsResource.getLogHistory({ id: $routeParams.id }).$promise]).then(function (values) {
+          var resources = [DataAccessRequestResource.get];
+          if ($scope.dataAccessForm.amendmentsEnabled) {
+            resources.push(DataAccessAmendmentsResource.getLogHistory);
+          }
+
+          $q.all(resources.map(function(resource) {
+            return resource.apply(null, [{ id: $routeParams.id }]).$promise;
+          })).then(function (values) {
             var dataAccessRequest = values[0], amendmentsLogHistory = values[1];
 
             try {
@@ -200,18 +207,15 @@ ngObibaMica.access
         }
 
         function initializeForm() {
-          SfOptionsService.transform().then(function (options) {
-            $scope.sfOptions = options;
+          var deferred = $q.defer();
+          $q.all([SfOptionsService.transform(), DataAccessFormConfigResource.get().$promise]).then(function (values){
+            $scope.sfOptions = values[0];
             $scope.sfOptions.pristine = { errors: true, success: false };
-          });
+            $scope.dataAccessForm = values[1];
+            deferred.resolve();
+          }, onError);
 
-          // Retrieve form data
-          DataAccessFormConfigResource.get(
-            function onSuccess(dataAccessForm) {
-              $scope.dataAccessForm = dataAccessForm;
-            },
-            onError
-          );
+          return deferred.promise;
         }
 
         function findLastSubmittedDate() {
@@ -434,8 +438,10 @@ ngObibaMica.access
         };
 
         if ($routeParams.id) {
-          initializeForm();
-          getRequest();
+          initializeForm().then(function() {
+            getRequest();
+          });
+
         }
       }])
 

@@ -97,7 +97,7 @@
           </form>
         </uib-tab>
         <!--Amendments-->
-        <uib-tab index="1" select="selectTab(TAB_NAMES.amendments)">
+        <uib-tab ng-if="dataAccessForm.amendmentsEnabled" index="1" select="selectTab(TAB_NAMES.amendments)">
           <uib-tab-heading>
             {{'data-access-amendments' | translate}}
           </uib-tab-heading>
