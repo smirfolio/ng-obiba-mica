@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-10-02
+ * Date: 2018-10-10
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -15340,8 +15340,8 @@ angular.module("access/components/entity-list/component.html", []).run(["$templa
     "            <th data-column-name=\"timestamps.lastUpdate\">{{\"data-access-request.lastUpdate\" | translate}}</th>\n" +
     "            <th data-column-name=\"submissionDate\">{{\"data-access-request.submissionDate\" | translate}}</th>\n" +
     "            <th data-column-name=\"status\">{{\"data-access-request.status\" | translate}}</th>\n" +
-    "            <th ng-if=\"!$ctrl.parentId\">{{\"data-access-request.pending-amendments\" | translate}}</th>\n" +
-    "            <th ng-if=\"!$ctrl.parentId\">{{\"data-access-request.total-amendments\" | translate}}</th>\n" +
+    "            <th data-column-name=\"request.amendmentsSummary.pending\" ng-if=\"!$ctrl.parentId\">{{\"data-access-request.pending-amendments\" | translate}}</th>\n" +
+    "            <th data-column-name=\"request.amendmentsSummary.total\" ng-if=\"!$ctrl.parentId\">{{\"data-access-request.total-amendments\" | translate}}</th>\n" +
     "            <th translate>actions</th>\n" +
     "          </tr>\n" +
     "        </thead>\n" +
