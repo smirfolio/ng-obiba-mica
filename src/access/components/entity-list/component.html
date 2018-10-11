@@ -70,7 +70,7 @@
             <th data-column-name="id">ID</th>
             <th ng-if="$ctrl.showApplicant" data-column-name="applicant">{{"data-access-request.applicant" | translate}}</th>
             <th data-column-name="title">{{"title" | translate}}</th>
-            <th data-column-name="timestamps.lastUpdate">{{"data-access-request.lastUpdate" | translate}}</th>
+            <th data-column-name="lastUpdate">{{"data-access-request.lastUpdate" | translate}}</th>
             <th data-column-name="submissionDate">{{"data-access-request.submissionDate" | translate}}</th>
             <th data-column-name="status">{{"data-access-request.status" | translate}}</th>
             <th data-column-name="request.amendmentsSummary.pending" ng-if="!$ctrl.parentId">{{"data-access-request.pending-amendments" | translate}}</th>
@@ -99,8 +99,8 @@
               {{request.title}}
             </td>
             <td>
-              <span title="{{(request.timestamps.lastUpdate || request.timestamps.created) | amDateFormat: 'lll'}}">
-                {{(request.timestamps.lastUpdate || request.timestamps.created) | amCalendar}}
+              <span title="{{(request.lastUpdate || request.timestamps.created) | amDateFormat: 'lll'}}">
+                {{(request.lastUpdate || request.timestamps.created) | amCalendar}}
               </span>
 
             </td>

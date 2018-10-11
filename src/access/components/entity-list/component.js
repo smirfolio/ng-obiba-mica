@@ -69,6 +69,11 @@
             }
           }
         }
+        req.lastUpdate = req.timestamps.lastUpdate;
+
+        if (req.amendmentsSummary && req.amendmentsSummary.lastModifiedDate && new Date(req.amendmentsSummary.lastModifiedDate) > new Date(req.timestamps.lastUpdate)) {
+          req.lastUpdate = req.amendmentsSummary.lastModifiedDate;
+        }
       }
       ctrl.requests = reqs;
       ctrl.loading = false;
