@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-10-10
+ * Date: 2018-10-11
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -1045,6 +1045,10 @@ ngObibaMica.access
                             req.submissionDate = change.changedOn;
                         }
                     }
+                }
+                req.lastUpdate = req.timestamps.lastUpdate;
+                if (req.amendmentsSummary && req.amendmentsSummary.lastModifiedDate && new Date(req.amendmentsSummary.lastModifiedDate) > new Date(req.timestamps.lastUpdate)) {
+                    req.lastUpdate = req.amendmentsSummary.lastModifiedDate;
                 }
             }
             ctrl.requests = reqs;
@@ -15337,7 +15341,7 @@ angular.module("access/components/entity-list/component.html", []).run(["$templa
     "            <th data-column-name=\"id\">ID</th>\n" +
     "            <th ng-if=\"$ctrl.showApplicant\" data-column-name=\"applicant\">{{\"data-access-request.applicant\" | translate}}</th>\n" +
     "            <th data-column-name=\"title\">{{\"title\" | translate}}</th>\n" +
-    "            <th data-column-name=\"timestamps.lastUpdate\">{{\"data-access-request.lastUpdate\" | translate}}</th>\n" +
+    "            <th data-column-name=\"lastUpdate\">{{\"data-access-request.lastUpdate\" | translate}}</th>\n" +
     "            <th data-column-name=\"submissionDate\">{{\"data-access-request.submissionDate\" | translate}}</th>\n" +
     "            <th data-column-name=\"status\">{{\"data-access-request.status\" | translate}}</th>\n" +
     "            <th data-column-name=\"request.amendmentsSummary.pending\" ng-if=\"!$ctrl.parentId\">{{\"data-access-request.pending-amendments\" | translate}}</th>\n" +
@@ -15366,8 +15370,8 @@ angular.module("access/components/entity-list/component.html", []).run(["$templa
     "              {{request.title}}\n" +
     "            </td>\n" +
     "            <td>\n" +
-    "              <span title=\"{{(request.timestamps.lastUpdate || request.timestamps.created) | amDateFormat: 'lll'}}\">\n" +
-    "                {{(request.timestamps.lastUpdate || request.timestamps.created) | amCalendar}}\n" +
+    "              <span title=\"{{(request.lastUpdate || request.timestamps.created) | amDateFormat: 'lll'}}\">\n" +
+    "                {{(request.lastUpdate || request.timestamps.created) | amCalendar}}\n" +
     "              </span>\n" +
     "\n" +
     "            </td>\n" +
