@@ -26,6 +26,7 @@ ngObibaMica.attachment
         scope.hasAttachments = false;
 
         scope.$watch('files', function(val) {
+          scope.attachments = [];
           if (val) {
             scope.hasAttachments = val.length > 0;
             scope.attachments = val.map(function (a) {
