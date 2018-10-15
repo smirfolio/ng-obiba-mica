@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-10-11
+ * Date: 2018-10-15
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -2885,7 +2885,7 @@ var SetService = /** @class */ (function () {
         });
     };
     SetService.prototype.saveCart = function (documentType, set) {
-        if (set && set.id) { // sanity check
+        if (set && set.id) {
             this.localStorageService.set(this.getCartKey(documentType), set);
             this.notifyCartChanged(documentType);
             return set;
@@ -3377,6 +3377,7 @@ ngObibaMica.search = angular.module('obiba.mica.search', [
             showFacetTermsWithZeroCount: false,
             showSearchBox: true,
             showSearchBrowser: true,
+            showCopyQuery: true,
             showSearchRefreshButton: false,
             variableTaxonomiesOrder: [],
             studyTaxonomiesOrder: [],
@@ -3513,6 +3514,7 @@ ngObibaMica.search = angular.module('obiba.mica.search', [
             options.targetTabsOrder = value.targetTabsOrder || options.targetTabsOrder;
             options.searchTabsOrder = value.searchTabsOrder || options.searchTabsOrder;
             options.resultTabsOrder = value.resultTabsOrder || options.resultTabsOrder;
+            options.showCopyQuery = value.showCopyQuery || options.showCopyQuery;
             options.variableTaxonomiesOrder = value.variableTaxonomiesOrder || options.variableTaxonomiesOrder;
             options.studyTaxonomiesOrder = value.studyTaxonomiesOrder || options.studyTaxonomiesOrder;
             options.datasetTaxonomiesOrder = value.datasetTaxonomiesOrder || options.datasetTaxonomiesOrder;
@@ -8236,9 +8238,6 @@ var CRITERIA_ITEM_EVENT = {
                 templateUrl: TEMPLATE_URL
             };
         }])
-        /**
-         * This directive creates a hierarchical structure matching that of a RqlQuery tree.
-         */
         .directive('criteriaLeaf', ['CriteriaNodeCompileService', function (CriteriaNodeCompileService) {
             return {
                 restrict: 'EA',
@@ -8279,9 +8278,6 @@ ngObibaMica.search
         };
     }
 ])
-    /**
-     * Directive specialized for vocabulary of type String
-     */
     .directive('matchCriterion', [function () {
         return {
             restrict: 'EA',
@@ -8488,9 +8484,6 @@ ngObibaMica.search
         $scope.updateSelection = updateSelection;
     }
 ])
-    /**
-     * Directive specialized for vocabulary of type String
-     */
     .directive('stringCriterionTerms', [function () {
         return {
             restrict: 'EA',
@@ -9274,7 +9267,7 @@ function BaseTaxonomiesController($rootScope, $scope, $translate, $location, Tax
     this.updateStateFromLocation = function () {
         var search = $location.search();
         var taxonomyName = search.taxonomy, vocabularyName = search.vocabulary, taxonomy = null, vocabulary = null;
-        if (!$scope.taxonomies.all) { //page loading
+        if (!$scope.taxonomies.all) {
             return;
         }
         $scope.taxonomies.all.forEach(function (t) {
@@ -14915,7 +14908,7 @@ ngObibaMica.fileBrowser
         };
         var searchKeyUp = function (event) {
             switch (event.keyCode) {
-                case 13: // ENTER
+                case 13:// ENTER
                     if ($scope.data.search.text) {
                         searchDocuments($scope.data.search.text);
                     }
@@ -14923,7 +14916,7 @@ ngObibaMica.fileBrowser
                         clearSearch();
                     }
                     break;
-                case 27: // ESC
+                case 27:// ESC
                     if ($scope.data.search.active) {
                         clearSearch();
                     }
@@ -17781,9 +17774,9 @@ angular.module("search/components/criteria/item-region/region/component.html", [
     "              </a>\n" +
     "            </small>\n" +
     "\n" +
-    "            <div class=\"btn-group voffset1 hoffset2\" uib-dropdown auto-close=\"outsideClick\" is-open=\"status.isopen\">\n" +
+    "            <div ng-show=\"options.showCopyQuery\" class=\"btn-group voffset1 hoffset2\" uib-dropdown auto-close=\"outsideClick\" is-open=\"status.isopen\">\n" +
     "              <button id=\"single-button\" type=\"button\" class=\"btn btn-xs btn-success\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
-    "                Copy query\n" +
+    "                {{'global.copy-query' | translate}}\n" +
     "                <span class=\"caret\"></span>\n" +
     "              </button>\n" +
     "              <ul class=\"dropdown-menu query-dropdown-menu criteria-list-item\" uib-dropdown-menu role=\"menu\" aria-labelledby=\"single-button\">\n" +

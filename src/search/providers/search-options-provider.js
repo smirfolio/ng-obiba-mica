@@ -49,6 +49,7 @@
       showFacetTermsWithZeroCount: false,
       showSearchBox: true,
       showSearchBrowser: true,
+      showCopyQuery: true,
       showSearchRefreshButton: false,
       variableTaxonomiesOrder: [],
       studyTaxonomiesOrder: [],
@@ -193,6 +194,7 @@
       options.targetTabsOrder = value.targetTabsOrder || options.targetTabsOrder;
       options.searchTabsOrder = value.searchTabsOrder || options.searchTabsOrder;
       options.resultTabsOrder = value.resultTabsOrder || options.resultTabsOrder;
+      options.showCopyQuery = value.showCopyQuery || options.showCopyQuery;
       options.variableTaxonomiesOrder = value.variableTaxonomiesOrder || options.variableTaxonomiesOrder;
       options.studyTaxonomiesOrder = value.studyTaxonomiesOrder || options.studyTaxonomiesOrder;
       options.datasetTaxonomiesOrder = value.datasetTaxonomiesOrder || options.datasetTaxonomiesOrder;
