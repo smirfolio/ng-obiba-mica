@@ -18,9 +18,9 @@
               </a>
             </small>
 
-            <div class="btn-group voffset1 hoffset2" uib-dropdown auto-close="outsideClick" is-open="status.isopen">
+            <div ng-show="options.showCopyQuery" class="btn-group voffset1 hoffset2" uib-dropdown auto-close="outsideClick" is-open="status.isopen">
               <button id="single-button" type="button" class="btn btn-xs btn-success" uib-dropdown-toggle ng-disabled="disabled">
-                Copy query
+                {{'global.copy-query' | translate}}
                 <span class="caret"></span>
               </button>
               <ul class="dropdown-menu query-dropdown-menu criteria-list-item" uib-dropdown-menu role="menu" aria-labelledby="single-button">
