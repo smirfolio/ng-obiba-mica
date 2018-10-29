@@ -553,8 +553,8 @@ ngObibaMica.access
 
         DataAccessFormConfigResource.get(
           function onSuccess(dataAccessForm) {
-            $scope.sfForm.definition = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.definition, []));
-            $scope.sfForm.schema = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.schema, {}));
+            $scope.sfForm = dataAccessForm || {};
+
             if ($scope.sfForm.definition.length === 0) {
               $scope.sfForm.definition = [];
               $scope.validForm = false;
@@ -627,11 +627,7 @@ ngObibaMica.access
       $scope.validate = validate;
       $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('form');
       $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('form');
-      $scope.sfForm = {
-        schema: null,
-        definition: null,
-        model: {}
-      };
+      $scope.sfForm = null;
 
       FormDirtyStateObserver.observe($scope);
 
