@@ -2,6 +2,7 @@
 
 (function () {
   function Controller($scope,
+                      $rootScope,
                       $routeParams,
                       $q,
                       $uibModal,
@@ -20,6 +21,12 @@
 
       return result && result.length > 0 ? result[0].value : null;
     }
+
+    $rootScope.$on('$translateChangeSuccess', function () {
+      DataAccessAmendmentFormConfigResource.get().$promise.then(function (value) {
+        $scope.dataAccessForm = value;
+      });
+    });
 
     $scope.userProfile = function (profile) {
       $scope.applicant = profile;
@@ -116,6 +123,7 @@
 
   angular.module('obiba.mica.access').controller('DataAccessAmendmentViewController', [
     '$scope',
+    '$rootScope',
     '$routeParams',
     '$q' ,
     '$uibModal',
