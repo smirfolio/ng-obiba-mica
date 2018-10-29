@@ -34,7 +34,7 @@
 
       <div class="clearfix"></div>
 
-      <div sf-model="sfForm.model" sf-form="sfForm.definition" sf-schema="sfForm.schema" required="true" sf-options="sfOptions"></div>
+      <obiba-schema-form-renderer model="sfForm.model" schema-form="sfForm" read-only="false"></obiba-schema-form-renderer>
 
       <div class="pull-right" ng-if="loaded">
         <a ng-click="cancel()" type="button" class="btn btn-default">
