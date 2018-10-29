@@ -1971,8 +1971,7 @@ ngObibaMica.access
                 $scope.sfOptions.onError = onAttachmentError;
             });
             DataAccessFormConfigResource.get(function onSuccess(dataAccessForm) {
-                $scope.sfForm.definition = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.definition, []));
-                $scope.sfForm.schema = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.schema, {}));
+                $scope.sfForm = dataAccessForm || {};
                 if ($scope.sfForm.definition.length === 0) {
                     $scope.sfForm.definition = [];
                     $scope.validForm = false;
@@ -2037,11 +2036,7 @@ ngObibaMica.access
         $scope.validate = validate;
         $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('form');
         $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('form');
-        $scope.sfForm = {
-            schema: null,
-            definition: null,
-            model: {}
-        };
+        $scope.sfForm = null;
         FormDirtyStateObserver.observe($scope);
         DataAccessRequestDirtyStateService.setForm($scope.form);
         $scope.$on('$destroy', function () {
@@ -15650,7 +15645,7 @@ angular.module("access/views/data-access-request-form.html", []).run(["$template
     "\n" +
     "      <div class=\"clearfix\"></div>\n" +
     "\n" +
-    "      <div sf-model=\"sfForm.model\" sf-form=\"sfForm.definition\" sf-schema=\"sfForm.schema\" required=\"true\" sf-options=\"sfOptions\"></div>\n" +
+    "      <obiba-schema-form-renderer model=\"sfForm.model\" schema-form=\"sfForm\" read-only=\"false\"></obiba-schema-form-renderer>\n" +
     "\n" +
     "      <div class=\"pull-right\" ng-if=\"loaded\">\n" +
     "        <a ng-click=\"cancel()\" type=\"button\" class=\"btn btn-default\">\n" +
