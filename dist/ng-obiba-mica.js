@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-10-15
+ * Date: 2018-10-29
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -2051,7 +2051,7 @@ ngObibaMica.access
 //# sourceMappingURL=data-access-request-controller.js.map
 'use strict';
 (function () {
-    function Controller($scope, $location, $q, $routeParams, $uibModal, DataAccessEntityResource, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, DataAccessEntityService, ServerErrorUtils, AlertService, DataAccessRequestDirtyStateService, FormDirtyStateObserver, SessionProxy, ngObibaMicaAccessTemplateUrl) {
+    function Controller($scope, $rootScope, $location, $q, $routeParams, $uibModal, DataAccessEntityResource, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, DataAccessEntityService, ServerErrorUtils, AlertService, DataAccessRequestDirtyStateService, FormDirtyStateObserver, SessionProxy, ngObibaMicaAccessTemplateUrl) {
         function getDataContent(data) {
             return data.content ? JSON.parse(data.content) : {};
         }
@@ -2074,6 +2074,11 @@ ngObibaMica.access
         $scope.entityUrl = $routeParams.id ? DataAccessEntityUrls.getDataAccessAmendmentUrl($routeParams.parentId, $routeParams.id) : DataAccessEntityUrls.getDataAccessRequestUrl($routeParams.parentId);
         $scope.read = false;
         $scope.formDrawn = false;
+        $rootScope.$on('$translateChangeSuccess', function () {
+            DataAccessAmendmentFormConfigResource.get().$promise.then(function (value) {
+                $scope.dataAccessForm = value;
+            });
+        });
         var amendment = $routeParams.id ?
             DataAccessEntityResource.get($scope.entityUrl, $routeParams.id) :
             {
@@ -2135,6 +2140,7 @@ ngObibaMica.access
     }
     angular.module('obiba.mica.access')
         .controller('DataAccessAmendmentEditController', ['$scope',
+        '$rootScope',
         '$location',
         '$q',
         '$routeParams',
@@ -2155,7 +2161,7 @@ ngObibaMica.access
 //# sourceMappingURL=data-access-amendment-edit-controller.js.map
 'use strict';
 (function () {
-    function Controller($scope, $routeParams, $q, $uibModal, DataAccessEntityResource, DataAccessEntityService, DataAccessEntityFormService, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, AlertService, ngObibaMicaAccessTemplateUrl) {
+    function Controller($scope, $rootScope, $routeParams, $q, $uibModal, DataAccessEntityResource, DataAccessEntityService, DataAccessEntityFormService, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, AlertService, ngObibaMicaAccessTemplateUrl) {
         // Begin profileService
         function getAttributeValue(attributes, key) {
             var result = attributes.filter(function (attribute) {
@@ -2163,6 +2169,11 @@ ngObibaMica.access
             });
             return result && result.length > 0 ? result[0].value : null;
         }
+        $rootScope.$on('$translateChangeSuccess', function () {
+            DataAccessAmendmentFormConfigResource.get().$promise.then(function (value) {
+                $scope.dataAccessForm = value;
+            });
+        });
         $scope.userProfile = function (profile) {
             $scope.applicant = profile;
             $uibModal.open({
@@ -2245,6 +2256,7 @@ ngObibaMica.access
     }
     angular.module('obiba.mica.access').controller('DataAccessAmendmentViewController', [
         '$scope',
+        '$rootScope',
         '$routeParams',
         '$q',
         '$uibModal',

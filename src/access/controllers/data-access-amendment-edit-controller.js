@@ -2,6 +2,7 @@
 
 (function () {
   function Controller($scope,
+                      $rootScope,
                       $location,
                       $q,
                       $routeParams,
@@ -23,7 +24,7 @@
 
     function onSuccess(response, headersFunction) {
       FormDirtyStateObserver.unobserve();
-      var parts = headersFunction().location.split('/');      
+      var parts = headersFunction().location.split('/');
       $location.path($scope.entityUrl + '/amendment/' + parts[parts.length - 1]).replace();
     }
 
@@ -35,21 +36,27 @@
       });
     }
 
-    function destroyFormObserver() {      
+    function destroyFormObserver() {
       FormDirtyStateObserver.unobserve();
-      DataAccessRequestDirtyStateService.setForm(null);   
+      DataAccessRequestDirtyStateService.setForm(null);
     }
 
     $scope.entityUrl = $routeParams.id ? DataAccessEntityUrls.getDataAccessAmendmentUrl($routeParams.parentId, $routeParams.id) : DataAccessEntityUrls.getDataAccessRequestUrl($routeParams.parentId);
     $scope.read = false;
     $scope.formDrawn = false;
 
+    $rootScope.$on('$translateChangeSuccess', function () {
+      DataAccessAmendmentFormConfigResource.get().$promise.then(function (value) {
+        $scope.dataAccessForm = value;
+      });
+    });
+
     var amendment = $routeParams.id ?
       DataAccessEntityResource.get($scope.entityUrl, $routeParams.id) :
       {
         'obiba.mica.DataAccessAmendmentDto.amendment': { parentId: $routeParams.parentId },
         $promise: new Promise(function (resolve) { setTimeout(resolve, 0, {}); }),
-        status: DataAccessEntityService.status.OPENED     
+        status: DataAccessEntityService.status.OPENED
       };
     var model = amendment.$promise.then(getDataContent);
     var dataAccessForm = DataAccessAmendmentFormConfigResource.get();
@@ -117,6 +124,7 @@
 
   angular.module('obiba.mica.access')
     .controller('DataAccessAmendmentEditController', ['$scope',
+      '$rootScope',
       '$location',
       '$q',
       '$routeParams',
