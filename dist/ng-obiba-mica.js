@@ -1896,15 +1896,14 @@ ngObibaMica.access
         }
     }])
     .controller('DataAccessRequestEditController', ['$rootScope',
-    '$log',
     '$scope',
+    '$q',
     '$routeParams',
     '$location',
-    '$uibModal', 'LocalizedSchemaFormService',
+    '$uibModal',
     'DataAccessRequestsResource',
     'DataAccessRequestResource',
     'DataAccessFormConfigResource',
-    'JsonUtils',
     'AlertService',
     'ServerErrorUtils',
     'SessionProxy',
@@ -1914,8 +1913,7 @@ ngObibaMica.access
     'SfOptionsService',
     'FormDirtyStateObserver',
     'DataAccessRequestDirtyStateService',
-    '$timeout',
-    function ($rootScope, $log, $scope, $routeParams, $location, $uibModal, LocalizedSchemaFormService, DataAccessRequestsResource, DataAccessRequestResource, DataAccessFormConfigResource, JsonUtils, AlertService, ServerErrorUtils, SessionProxy, DataAccessEntityService, ngObibaMicaAccessTemplateUrl, DataAccessRequestConfig, SfOptionsService, FormDirtyStateObserver, DataAccessRequestDirtyStateService, $timeout) {
+    function ($rootScope, $scope, $q, $routeParams, $location, $uibModal, DataAccessRequestsResource, DataAccessRequestResource, DataAccessFormConfigResource, AlertService, ServerErrorUtils, SessionProxy, DataAccessEntityService, ngObibaMicaAccessTemplateUrl, DataAccessRequestConfig, SfOptionsService, FormDirtyStateObserver, DataAccessRequestDirtyStateService) {
         var onSuccess = function (response, getResponseHeaders) {
             FormDirtyStateObserver.unobserve();
             var parts = getResponseHeaders().location.split('/');
@@ -1970,56 +1968,26 @@ ngObibaMica.access
                 $scope.sfOptions = options;
                 $scope.sfOptions.onError = onAttachmentError;
             });
-            DataAccessFormConfigResource.get(function onSuccess(dataAccessForm) {
-                $scope.sfForm = dataAccessForm || {};
-                if ($scope.sfForm.definition.length === 0) {
-                    $scope.sfForm.definition = [];
-                    $scope.validForm = false;
-                    AlertService.alert({
-                        id: 'DataAccessRequestEditController',
-                        type: 'danger',
-                        msgKey: 'data-access-config.parse-error.definition'
-                    });
-                }
-                if (Object.getOwnPropertyNames($scope.sfForm.schema).length === 0) {
-                    $scope.sfForm.schema = {};
-                    $scope.validForm = false;
-                    AlertService.alert({
-                        id: 'DataAccessRequestEditController',
-                        type: 'danger',
-                        msgKey: 'data-access-config.parse-error.schema'
-                    });
-                }
-                if ($scope.validForm) {
-                    $scope.dataAccessRequest = $routeParams.id ?
-                        DataAccessRequestResource.get({ id: $routeParams.id }, function onSuccess(request) {
-                            try {
-                                $scope.sfForm.model = request.content ? JSON.parse(request.content) : {};
-                            }
-                            catch (e) {
-                                $scope.sfForm.model = {};
-                                AlertService.alert({
-                                    id: 'DataAccessRequestEditController',
-                                    type: 'danger',
-                                    msgKey: 'data-access-request.parse-error'
-                                });
-                            }
-                            $scope.canEdit = DataAccessEntityService.actions.canEdit(request);
-                            $scope.sfForm.schema.readonly = !$scope.canEdit;
-                            $scope.$broadcast('schemaFormRedraw');
-                            request.attachments = request.attachments || [];
-                            return request;
-                        }) : {
-                        applicant: SessionProxy.login(),
-                        status: DataAccessEntityService.status.OPENED,
-                        attachments: []
-                    };
-                }
-                $timeout(function () {
-                    $scope.sfForm = angular.copy($scope.sfForm);
-                    $scope.loaded = true;
-                }, 250);
-            }, onError);
+            $q.all([
+                $routeParams.id ?
+                    DataAccessRequestResource.get({ id: $routeParams.id }, function onSuccess(request) {
+                        request.attachments = request.attachments || [];
+                        return request;
+                    }) : {
+                    applicant: SessionProxy.login(),
+                    status: DataAccessEntityService.status.OPENED,
+                    attachments: []
+                },
+                DataAccessFormConfigResource.get().$promise
+            ]).then(function (values) {
+                $scope.dataAccessRequest = values[0];
+                $scope.sfForm = values[1] || {};
+                $scope.sfForm.model = $scope.dataAccessRequest.content ? JSON.parse($scope.dataAccessRequest.content) : {};
+                $scope.loaded = true;
+            }, function (response) {
+                $scope.validForm = false;
+                onError(response);
+            });
         }
         $rootScope.$on('$translateChangeSuccess', function () {
             initializeForm();
