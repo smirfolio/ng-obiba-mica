@@ -1,9 +1,9 @@
 /*!
- * ng-obiba-mica - v3.4.0
+ * ng-obiba-mica - v3.4.1
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-10-15
+ * Date: 2018-11-06
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -1896,15 +1896,14 @@ ngObibaMica.access
         }
     }])
     .controller('DataAccessRequestEditController', ['$rootScope',
-    '$log',
     '$scope',
+    '$q',
     '$routeParams',
     '$location',
-    '$uibModal', 'LocalizedSchemaFormService',
+    '$uibModal',
     'DataAccessRequestsResource',
     'DataAccessRequestResource',
     'DataAccessFormConfigResource',
-    'JsonUtils',
     'AlertService',
     'ServerErrorUtils',
     'SessionProxy',
@@ -1914,8 +1913,7 @@ ngObibaMica.access
     'SfOptionsService',
     'FormDirtyStateObserver',
     'DataAccessRequestDirtyStateService',
-    '$timeout',
-    function ($rootScope, $log, $scope, $routeParams, $location, $uibModal, LocalizedSchemaFormService, DataAccessRequestsResource, DataAccessRequestResource, DataAccessFormConfigResource, JsonUtils, AlertService, ServerErrorUtils, SessionProxy, DataAccessEntityService, ngObibaMicaAccessTemplateUrl, DataAccessRequestConfig, SfOptionsService, FormDirtyStateObserver, DataAccessRequestDirtyStateService, $timeout) {
+    function ($rootScope, $scope, $q, $routeParams, $location, $uibModal, DataAccessRequestsResource, DataAccessRequestResource, DataAccessFormConfigResource, AlertService, ServerErrorUtils, SessionProxy, DataAccessEntityService, ngObibaMicaAccessTemplateUrl, DataAccessRequestConfig, SfOptionsService, FormDirtyStateObserver, DataAccessRequestDirtyStateService) {
         var onSuccess = function (response, getResponseHeaders) {
             FormDirtyStateObserver.unobserve();
             var parts = getResponseHeaders().location.split('/');
@@ -1953,7 +1951,7 @@ ngObibaMica.access
             $location.path('/data-access-request' + ($routeParams.id ? '/' + $routeParams.id : 's')).replace();
         };
         var save = function () {
-            $scope.dataAccessRequest.content = angular.toJson($scope.sfForm.model);
+            $scope.dataAccessRequest.content = angular.toJson($scope.sfForm.model || {});
             if ($scope.newRequest) {
                 DataAccessRequestsResource.save($scope.dataAccessRequest, onSuccess, onError);
             }
@@ -1970,57 +1968,26 @@ ngObibaMica.access
                 $scope.sfOptions = options;
                 $scope.sfOptions.onError = onAttachmentError;
             });
-            DataAccessFormConfigResource.get(function onSuccess(dataAccessForm) {
-                $scope.sfForm.definition = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.definition, []));
-                $scope.sfForm.schema = LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(dataAccessForm.schema, {}));
-                if ($scope.sfForm.definition.length === 0) {
-                    $scope.sfForm.definition = [];
-                    $scope.validForm = false;
-                    AlertService.alert({
-                        id: 'DataAccessRequestEditController',
-                        type: 'danger',
-                        msgKey: 'data-access-config.parse-error.definition'
-                    });
-                }
-                if (Object.getOwnPropertyNames($scope.sfForm.schema).length === 0) {
-                    $scope.sfForm.schema = {};
-                    $scope.validForm = false;
-                    AlertService.alert({
-                        id: 'DataAccessRequestEditController',
-                        type: 'danger',
-                        msgKey: 'data-access-config.parse-error.schema'
-                    });
-                }
-                if ($scope.validForm) {
-                    $scope.dataAccessRequest = $routeParams.id ?
-                        DataAccessRequestResource.get({ id: $routeParams.id }, function onSuccess(request) {
-                            try {
-                                $scope.sfForm.model = request.content ? JSON.parse(request.content) : {};
-                            }
-                            catch (e) {
-                                $scope.sfForm.model = {};
-                                AlertService.alert({
-                                    id: 'DataAccessRequestEditController',
-                                    type: 'danger',
-                                    msgKey: 'data-access-request.parse-error'
-                                });
-                            }
-                            $scope.canEdit = DataAccessEntityService.actions.canEdit(request);
-                            $scope.sfForm.schema.readonly = !$scope.canEdit;
-                            $scope.$broadcast('schemaFormRedraw');
-                            request.attachments = request.attachments || [];
-                            return request;
-                        }) : {
-                        applicant: SessionProxy.login(),
-                        status: DataAccessEntityService.status.OPENED,
-                        attachments: []
-                    };
-                }
-                $timeout(function () {
-                    $scope.sfForm = angular.copy($scope.sfForm);
-                    $scope.loaded = true;
-                }, 250);
-            }, onError);
+            $q.all([
+                $routeParams.id ?
+                    DataAccessRequestResource.get({ id: $routeParams.id }, function onSuccess(request) {
+                        request.attachments = request.attachments || [];
+                        return request;
+                    }) : {
+                    applicant: SessionProxy.login(),
+                    status: DataAccessEntityService.status.OPENED,
+                    attachments: []
+                },
+                DataAccessFormConfigResource.get().$promise
+            ]).then(function (values) {
+                $scope.dataAccessRequest = values[0];
+                $scope.sfForm = values[1] || {};
+                $scope.sfForm.model = $scope.dataAccessRequest.content ? JSON.parse($scope.dataAccessRequest.content) : {};
+                $scope.loaded = true;
+            }, function (response) {
+                $scope.validForm = false;
+                onError(response);
+            });
         }
         $rootScope.$on('$translateChangeSuccess', function () {
             initializeForm();
@@ -2037,11 +2004,7 @@ ngObibaMica.access
         $scope.validate = validate;
         $scope.headerTemplateUrl = ngObibaMicaAccessTemplateUrl.getHeaderUrl('form');
         $scope.footerTemplateUrl = ngObibaMicaAccessTemplateUrl.getFooterUrl('form');
-        $scope.sfForm = {
-            schema: null,
-            definition: null,
-            model: {}
-        };
+        $scope.sfForm = null;
         FormDirtyStateObserver.observe($scope);
         DataAccessRequestDirtyStateService.setForm($scope.form);
         $scope.$on('$destroy', function () {
@@ -2051,7 +2014,7 @@ ngObibaMica.access
 //# sourceMappingURL=data-access-request-controller.js.map
 'use strict';
 (function () {
-    function Controller($scope, $location, $q, $routeParams, $uibModal, DataAccessEntityResource, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, DataAccessEntityService, ServerErrorUtils, AlertService, DataAccessRequestDirtyStateService, FormDirtyStateObserver, SessionProxy, ngObibaMicaAccessTemplateUrl) {
+    function Controller($scope, $rootScope, $location, $q, $routeParams, $uibModal, DataAccessEntityResource, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, DataAccessEntityService, ServerErrorUtils, AlertService, DataAccessRequestDirtyStateService, FormDirtyStateObserver, SessionProxy, ngObibaMicaAccessTemplateUrl) {
         function getDataContent(data) {
             return data.content ? JSON.parse(data.content) : {};
         }
@@ -2074,6 +2037,11 @@ ngObibaMica.access
         $scope.entityUrl = $routeParams.id ? DataAccessEntityUrls.getDataAccessAmendmentUrl($routeParams.parentId, $routeParams.id) : DataAccessEntityUrls.getDataAccessRequestUrl($routeParams.parentId);
         $scope.read = false;
         $scope.formDrawn = false;
+        $rootScope.$on('$translateChangeSuccess', function () {
+            DataAccessAmendmentFormConfigResource.get().$promise.then(function (value) {
+                $scope.dataAccessForm = value;
+            });
+        });
         var amendment = $routeParams.id ?
             DataAccessEntityResource.get($scope.entityUrl, $routeParams.id) :
             {
@@ -2101,7 +2069,7 @@ ngObibaMica.access
             $location.path($scope.entityUrl).replace();
         };
         $scope.save = function () {
-            $scope.requestEntity.content = angular.toJson($scope.model);
+            $scope.requestEntity.content = angular.toJson($scope.model || {});
             $scope.requestEntity.parentId = $routeParams.parentId;
             delete $scope.requestEntity.$promise;
             if (!$scope.requestEntity.applicant) {
@@ -2135,6 +2103,7 @@ ngObibaMica.access
     }
     angular.module('obiba.mica.access')
         .controller('DataAccessAmendmentEditController', ['$scope',
+        '$rootScope',
         '$location',
         '$q',
         '$routeParams',
@@ -2155,7 +2124,7 @@ ngObibaMica.access
 //# sourceMappingURL=data-access-amendment-edit-controller.js.map
 'use strict';
 (function () {
-    function Controller($scope, $routeParams, $q, $uibModal, DataAccessEntityResource, DataAccessEntityService, DataAccessEntityFormService, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, AlertService, ngObibaMicaAccessTemplateUrl) {
+    function Controller($scope, $rootScope, $routeParams, $q, $uibModal, DataAccessEntityResource, DataAccessEntityService, DataAccessEntityFormService, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, AlertService, ngObibaMicaAccessTemplateUrl) {
         // Begin profileService
         function getAttributeValue(attributes, key) {
             var result = attributes.filter(function (attribute) {
@@ -2163,6 +2132,11 @@ ngObibaMica.access
             });
             return result && result.length > 0 ? result[0].value : null;
         }
+        $rootScope.$on('$translateChangeSuccess', function () {
+            DataAccessAmendmentFormConfigResource.get().$promise.then(function (value) {
+                $scope.dataAccessForm = value;
+            });
+        });
         $scope.userProfile = function (profile) {
             $scope.applicant = profile;
             $uibModal.open({
@@ -2245,6 +2219,7 @@ ngObibaMica.access
     }
     angular.module('obiba.mica.access').controller('DataAccessAmendmentViewController', [
         '$scope',
+        '$rootScope',
         '$routeParams',
         '$q',
         '$uibModal',
@@ -15638,7 +15613,7 @@ angular.module("access/views/data-access-request-form.html", []).run(["$template
     "\n" +
     "      <div class=\"clearfix\"></div>\n" +
     "\n" +
-    "      <div sf-model=\"sfForm.model\" sf-form=\"sfForm.definition\" sf-schema=\"sfForm.schema\" required=\"true\" sf-options=\"sfOptions\"></div>\n" +
+    "      <obiba-schema-form-renderer model=\"sfForm.model\" schema-form=\"sfForm\" read-only=\"false\"></obiba-schema-form-renderer>\n" +
     "\n" +
     "      <div class=\"pull-right\" ng-if=\"loaded\">\n" +
     "        <a ng-click=\"cancel()\" type=\"button\" class=\"btn btn-default\">\n" +
