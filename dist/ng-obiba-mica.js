@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-11-05
+ * Date: 2018-11-12
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -606,13 +606,13 @@ ngObibaMica.utils.service("CustomWatchDomElementService", [CustomWatchDomElement
                 ctrl.form.schema = validateSchemaParsing(LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(form.schema, {})), getParsingErrorCallback('schema'));
                 ctrl.form.downloadTemplate = form.pdfDownloadType === 'Template';
                 ctrl.form.schema.readonly = ctrl.readOnly;
+                SfOptionsService.transform().then(function (options) {
+                    ctrl.sfOptions = options;
+                    ctrl.sfOptions.pristine = { errors: true, success: false };
+                });
             }
             broadcastSchemaFormRedraw();
         }
-        SfOptionsService.transform().then(function (options) {
-            ctrl.sfOptions = options;
-            ctrl.sfOptions.pristine = { errors: true, success: false };
-        });
         ctrl.$onChanges = onChanges;
     }
     angular.module('obiba.mica.utils').component('obibaSchemaFormRenderer', {
@@ -1926,14 +1926,6 @@ ngObibaMica.access
                 msg: ServerErrorUtils.buildMessage(response)
             });
         };
-        function onAttachmentError(attachment) {
-            AlertService.alert({
-                id: 'DataAccessRequestEditController',
-                type: 'danger',
-                msgKey: 'server.error.file.upload',
-                msgArgs: [attachment.fileName]
-            });
-        }
         $scope.getDataAccessListPageUrl = DataAccessEntityService.getListDataAccessRequestPageUrl();
         var validate = function (form) {
             $scope.$broadcast('schemaFormValidate');
@@ -1964,10 +1956,6 @@ ngObibaMica.access
         };
         function initializeForm() {
             // Retrieve form data
-            SfOptionsService.transform().then(function (options) {
-                $scope.sfOptions = options;
-                $scope.sfOptions.onError = onAttachmentError;
-            });
             $q.all([
                 $routeParams.id ?
                     DataAccessRequestResource.get({ id: $routeParams.id }, function onSuccess(request) {
