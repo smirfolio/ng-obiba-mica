@@ -60,7 +60,7 @@
     function callOnRedraw(value) {
       if (typeof ctrl.onRedraw === 'function') {
         ctrl.onRedraw(value);
-      } 
+      }
     }
 
     function onChanges(changes) {
@@ -76,15 +76,15 @@
 
         ctrl.form.downloadTemplate = form.pdfDownloadType === 'Template';
         ctrl.form.schema.readonly = ctrl.readOnly;
+
+        SfOptionsService.transform().then(function (options) {
+          ctrl.sfOptions = options;
+          ctrl.sfOptions.pristine = { errors: true, success: false };
+        });
       }
 
       broadcastSchemaFormRedraw();
     }
-
-    SfOptionsService.transform().then(function (options) {
-      ctrl.sfOptions = options;
-      ctrl.sfOptions.pristine = { errors: true, success: false };
-    });
 
     ctrl.$onChanges = onChanges;
   }
