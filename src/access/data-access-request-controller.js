@@ -497,15 +497,6 @@ ngObibaMica.access
         });
       };
 
-      function onAttachmentError(attachment) {
-        AlertService.alert({
-          id: 'DataAccessRequestEditController',
-          type: 'danger',
-          msgKey: 'server.error.file.upload',
-          msgArgs: [attachment.fileName]
-        });
-      }
-
       $scope.getDataAccessListPageUrl = DataAccessEntityService.getListDataAccessRequestPageUrl();
 
       var validate = function (form) {
@@ -540,11 +531,6 @@ ngObibaMica.access
 
       function initializeForm() {
         // Retrieve form data
-
-        SfOptionsService.transform().then(function (options) {
-          $scope.sfOptions = options;
-          $scope.sfOptions.onError = onAttachmentError;
-        });
 
         $q.all([
           $routeParams.id ?
