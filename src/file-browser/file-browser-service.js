@@ -30,7 +30,7 @@ ngObibaMica.fileBrowser
     function (ngObibaMicaUrl, ngObibaMicaFileBrowserOptions) {
       this.getUrl = function(path, keyToken) {
         var url = ngObibaMicaUrl.getUrl('FileBrowserDownloadUrl')
-          .replace(/:path/, path)
+          .replace(/:path/, window.encodeURIComponent(path))
           .replace(/:inline/, ngObibaMicaFileBrowserOptions.downloadInline);
         if(keyToken){
           url = url.replace(/:key/, keyToken);
