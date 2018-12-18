@@ -48,7 +48,7 @@
           <input ng-model="$ctrl.searchText" type="text" class="form-control" aria-describedby="data-access-requests-search">
         </span>
       </div>
-      <div class="col-xs-3">
+      <div class="col-xs-2">
         <ui-select id="status-select" theme="bootstrap" ng-model="$ctrl.searchStatus.filter" reset-search-input="true">
           <ui-select-match allow-clear="true" placeholder="{{'data-access-request.status-placeholder' | translate}}">
             <span ng-bind-html="$select.selected.translation"></span>

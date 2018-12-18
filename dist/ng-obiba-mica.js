@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-12-07
+ * Date: 2018-12-18
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -2849,7 +2849,7 @@ var SetService = /** @class */ (function () {
         });
     };
     SetService.prototype.saveCart = function (documentType, set) {
-        if (set && set.id) {
+        if (set && set.id) { // sanity check
             this.localStorageService.set(this.getCartKey(documentType), set);
             this.notifyCartChanged(documentType);
             return set;
@@ -8202,6 +8202,9 @@ var CRITERIA_ITEM_EVENT = {
                 templateUrl: TEMPLATE_URL
             };
         }])
+        /**
+         * This directive creates a hierarchical structure matching that of a RqlQuery tree.
+         */
         .directive('criteriaLeaf', ['CriteriaNodeCompileService', function (CriteriaNodeCompileService) {
             return {
                 restrict: 'EA',
@@ -8242,6 +8245,9 @@ ngObibaMica.search
         };
     }
 ])
+    /**
+     * Directive specialized for vocabulary of type String
+     */
     .directive('matchCriterion', [function () {
         return {
             restrict: 'EA',
@@ -8448,6 +8454,9 @@ ngObibaMica.search
         $scope.updateSelection = updateSelection;
     }
 ])
+    /**
+     * Directive specialized for vocabulary of type String
+     */
     .directive('stringCriterionTerms', [function () {
         return {
             restrict: 'EA',
@@ -9231,7 +9240,7 @@ function BaseTaxonomiesController($rootScope, $scope, $translate, $location, Tax
     this.updateStateFromLocation = function () {
         var search = $location.search();
         var taxonomyName = search.taxonomy, vocabularyName = search.vocabulary, taxonomy = null, vocabulary = null;
-        if (!$scope.taxonomies.all) {
+        if (!$scope.taxonomies.all) { //page loading
             return;
         }
         $scope.taxonomies.all.forEach(function (t) {
@@ -14872,7 +14881,7 @@ ngObibaMica.fileBrowser
         };
         var searchKeyUp = function (event) {
             switch (event.keyCode) {
-                case 13:// ENTER
+                case 13: // ENTER
                     if ($scope.data.search.text) {
                         searchDocuments($scope.data.search.text);
                     }
@@ -14880,7 +14889,7 @@ ngObibaMica.fileBrowser
                         clearSearch();
                     }
                     break;
-                case 27:// ESC
+                case 27: // ESC
                     if ($scope.data.search.active) {
                         clearSearch();
                     }
@@ -15276,7 +15285,7 @@ angular.module("access/components/entity-list/component.html", []).run(["$templa
     "          <input ng-model=\"$ctrl.searchText\" type=\"text\" class=\"form-control\" aria-describedby=\"data-access-requests-search\">\n" +
     "        </span>\n" +
     "      </div>\n" +
-    "      <div class=\"col-xs-3\">\n" +
+    "      <div class=\"col-xs-2\">\n" +
     "        <ui-select id=\"status-select\" theme=\"bootstrap\" ng-model=\"$ctrl.searchStatus.filter\" reset-search-input=\"true\">\n" +
     "          <ui-select-match allow-clear=\"true\" placeholder=\"{{'data-access-request.status-placeholder' | translate}}\">\n" +
     "            <span ng-bind-html=\"$select.selected.translation\"></span>\n" +
