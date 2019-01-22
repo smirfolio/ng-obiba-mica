@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2018-12-20
+ * Date: 2019-01-22
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -1299,7 +1299,7 @@ var DataAccessEntityResource = /** @class */ (function () {
             this.DataAccessRequestStatusResource.update({ id: id, status: status });
     };
     DataAccessEntityResource.prototype.getParentId = function (url) {
-        var parentId = /data-access-request\/(\w+)(?:\/amendment)?/.exec(url);
+        var parentId = /data-access-request\/([a-zA-Z0-9_-]+)(?:\/amendment)?/.exec(url);
         return parentId && parentId.length === 2 ? parentId[parentId.index] : null;
     };
     DataAccessEntityResource.$inject = [
