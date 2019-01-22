@@ -87,7 +87,7 @@ class DataAccessEntityResource implements IDataAccessEntityResourceFactory {
   }
 
   private getParentId(url: string) {
-    const parentId = /data-access-request\/(\w+)(?:\/amendment)?/.exec(url);
+    const parentId = /data-access-request\/([a-zA-Z0-9_-]+)(?:\/amendment)?/.exec(url);
     return parentId && parentId.length === 2 ? parentId[parentId.index] : null;
   }
 }
