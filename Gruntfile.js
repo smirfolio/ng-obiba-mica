@@ -36,6 +36,7 @@ module.exports = function (grunt) {
           rootDir: './src',
           allowJs: true,
           target: 'es5',
+          module: 'umd',
           sourceMap: true,
           removeComments: false,
           verbose: false
@@ -109,7 +110,10 @@ module.exports = function (grunt) {
           'built/file-browser/file-browser.js',
           'built/file-browser/file-browser-directive.js',
           'built/file-browser/file-browser-controller.js',
-          'built/file-browser/file-browser-service.js'
+          'built/file-browser/file-browser-service.js',
+          'built/data-table/data-table.js',
+          'built/data-table/data-table-factories.js',
+          'built/data-table/components/**/*.js'
         ]
       }
     },

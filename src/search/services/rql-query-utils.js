@@ -100,9 +100,9 @@
       return query;
     }
 
-    function fields(fields) {
+    function fields(addFields) {
       var query = new RqlQuery(RQL_NODE.FIELDS);
-      query.args.push(fields);
+      query.args.push(addFields);
       return query;
     }
 

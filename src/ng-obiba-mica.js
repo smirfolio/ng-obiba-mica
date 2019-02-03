@@ -190,6 +190,7 @@ function NgObibaMicaTemplateUrlFactory() {
         'DatasetVariableResource': 'ws/variable/:varId',
         'DatasetVariablesCrosstabResource': 'ws/:dsType/:dsId/variables/cross/:v1/by/:v2',
         'DatasetResource': 'ws/dataset/:dsType/:dsId',
+        'dataTableStudyDatasets': 'ws/data-table-study-datasets/:sId',
       };
 
       function UrlProvider(registry) {

@@ -1,0 +1,16 @@
+<div ng-if="$ctrl.loading" class="loading "></div>
+<span ng-if="!$ctrl.loading" >
+    <h2> {{ 'datasets' | translate}}</h2>
+    <table class="table table-hover table-striped sticky-enabled">
+        <thead>
+        <tr>
+            <th ng-repeat="head in $ctrl.table.header">{{ head }}</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="row in $ctrl.table.rows">
+            <td ng-repeat="cell in row.data" ng-bind-html="cell"></td>
+        </tr>
+        </tbody>
+    </table>
+</span>
