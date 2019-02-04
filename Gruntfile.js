@@ -16,10 +16,10 @@ module.exports = function (grunt) {
 
     tslint: {
       options: {
-        // can be a configuration object or a filepath to tslint.json 
+        // can be a configuration object or a filepath to tslint.json
         configuration: 'tslint.json',
-        // If set to true, tslint errors will be reported, but not fail the task 
-        // If set to false, tslint errors will be reported, and the task will fail 
+        // If set to true, tslint errors will be reported, but not fail the task
+        // If set to false, tslint errors will be reported, and the task will fail
         force: false,
         fix: false
       },
@@ -71,6 +71,7 @@ module.exports = function (grunt) {
           'built/sets/rest/**/*.js',
           'built/sets/services/**/*.js',
           'built/sets/components/**/*.js',
+          'built/sets/directives/**/*.js',
           'built/sets/sets-controller.js',
           'built/sets/sets-router.js',
           'built/search/search.js',
