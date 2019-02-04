@@ -1,0 +1,21 @@
+<div ng-show="$ctrl.pagination.totalHits > 0" class="pull-right">
+    <span
+            uib-pagination
+            total-items="$ctrl.pagination.totalHits"
+            max-size="$ctrl.pagination.maxSize"
+            ng-model="$ctrl.pagination.currentPage"
+            boundary-links="true"
+            force-ellipses="true"
+            items-per-page="$ctrl.pagination.itemsPerPage"
+            previous-text="&lsaquo;"
+            next-text="&rsaquo;"
+            first-text="&laquo;"
+            last-text="&raquo;"
+            template-url="search/views/list/pagination-template.html"
+            ng-change="$ctrl.pageChanged()"></span>
+    <ul class="pagination pagination-sm">
+        <li>
+            <a href class="pagination-total">{{$ctrl.pagination.from}} - {{$ctrl.pagination.to}} {{'of' | translate}} {{$ctrl.pagination.totalHits}}</a>
+        </li>
+    </ul>
+</div>

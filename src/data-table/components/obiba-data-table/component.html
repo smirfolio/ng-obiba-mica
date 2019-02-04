@@ -1,6 +1,6 @@
 <div ng-if="$ctrl.loading" class="loading "></div>
-<span ng-if="!$ctrl.loading" >
-    <h2> {{ 'datasets' | translate}}</h2>
+<div ng-if="!$ctrl.loading" >
+    <obiba-data-table-pagination ng-if="!$ctrl.loading" class="pull-right" documents="$ctrl.dataQuery"></obiba-data-table-pagination>
     <table class="table table-hover table-striped sticky-enabled">
         <thead>
         <tr>
@@ -13,4 +13,4 @@
         </tr>
         </tbody>
     </table>
-</span>
+</div>
