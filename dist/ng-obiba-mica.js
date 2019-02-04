@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-01-22
+ * Date: 2019-02-04
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -2645,22 +2645,43 @@ var SetService = /** @class */ (function () {
         return this.hasHarmonization;
     };
     /**
+     * Get the documents in the set.
+     * Return a promise on the documents.
+     * @param setId the set's identifier
+     * @param documentType the document type
+     * @param fromIdx from position
+     * @param limitIdx maximum number of documents that are fetched
+     */
+    SetService.prototype.getSetDocuments = function (setId, documentType, fromIdx, limitIdx) {
+        return this.SetDocumentsResource.get({
+            from: fromIdx,
+            id: setId,
+            limit: limitIdx,
+            type: documentType,
+        }).$promise;
+    };
+    /**
      * Get the documents in the cart. Create the cart's set if missing.
      * Return a promise on the documents.
      * @param documentType the document type
      * @param fromIdx from position
-     * @param limitIdx maximum number of documents taht are fetched
+     * @param limitIdx maximum number of documents that are fetched
      */
     SetService.prototype.getCartDocuments = function (documentType, fromIdx, limitIdx) {
         var _this = this;
         return this.getOrCreateCart(documentType).then(function (set) {
-            return _this.SetDocumentsResource.get({
-                from: fromIdx,
-                id: set.id,
-                limit: limitIdx,
-                type: documentType,
-            }).$promise;
+            return _this.getSetDocuments(set.id, documentType, fromIdx, limitIdx);
         });
+    };
+    /**
+     * Check if document is in the set.
+     * Return a promise on the response.
+     * @param setId the set's identifier
+     * @param documentType the document type
+     * @param documentId the document ID
+     */
+    SetService.prototype.isDocumentInSet = function (setId, documentType, documentId) {
+        return this.SetExistsResource.get({ type: documentType, id: setId, did: documentId }).$promise;
     };
     /**
      * Check if document is in the cart.
@@ -2671,7 +2692,21 @@ var SetService = /** @class */ (function () {
     SetService.prototype.isDocumentInCart = function (documentType, documentId) {
         var _this = this;
         return this.getOrCreateCart(documentType).then(function (set) {
-            return _this.SetExistsResource.get({ type: documentType, id: set.id, did: documentId }).$promise;
+            return _this.isDocumentInSet(set.id, documentType, documentId);
+        });
+    };
+    /**
+     * Add one or more documents to the set.
+     * Return a promise on the set.
+     * @param setId the set's identifier
+     * @param documentType the document type
+     * @param documentId the docuemtn ID or an array od document IDs
+     */
+    SetService.prototype.addDocumentToSet = function (setId, documentType, documentId) {
+        var _this = this;
+        var did = Array.isArray(documentId) ? documentId.join("\n") : documentId;
+        return this.SetResource.get({ type: documentType, id: setId }).$promise.then(function (set) {
+            return _this.SetImportResource.save({ type: documentType, id: set.id }, did).$promise;
         });
     };
     /**
@@ -2690,6 +2725,17 @@ var SetService = /** @class */ (function () {
         });
     };
     /**
+     * Add documents matching the query to the set.
+     * Return a promise on the set.
+     * @param setId the set's identifier
+     * @param documentType the document type
+     * @param rqlQuery the documents join query
+     */
+    SetService.prototype.addDocumentQueryToSet = function (setId, documentType, rqlQuery) {
+        this.$log.info("query=" + rqlQuery);
+        return this.SetImportQueryResource.save({ type: documentType, id: setId, query: rqlQuery }).$promise;
+    };
+    /**
      * Add documents matching the query to the cart's set.
      * Return a promise on the cart's set.
      * @param documentType the document type
@@ -2703,6 +2749,17 @@ var SetService = /** @class */ (function () {
         }).then(function (set) {
             return _this.saveCart(documentType, set);
         });
+    };
+    /**
+     * Remove one or more documents from the set.
+     * Return a promise on the set.
+     * @param setId the set's identifier
+     * @param documentType the document type
+     * @param documentId the document ID or an array of document IDs
+     */
+    SetService.prototype.removeDocumentFromSet = function (setId, documentType, documentId) {
+        var did = Array.isArray(documentId) ? documentId.join("\n") : documentId;
+        return this.SetRemoveResource.delete({ type: documentType, id: setId }, did).$promise;
     };
     /**
      * Remove one or more documents from the cart's set.
@@ -2720,9 +2777,16 @@ var SetService = /** @class */ (function () {
         });
     };
     /**
+     * Clear the documents list of the set.
+     * @param setId the set's identifier
+     * @param documentType the document type
+     */
+    SetService.prototype.clearSet = function (setId, documentType) {
+        return this.SetClearResource.clear({ type: documentType, id: setId }).$promise;
+    };
+    /**
      * Clear the documents list of the cart.
      * @param documentType the document type
-     * @param documentId one or more documents to be removed from the cart (optional)
      */
     SetService.prototype.clearCart = function (documentType) {
         var _this = this;
@@ -3111,6 +3175,136 @@ var CartDocumentsTableComponent = /** @class */ (function () {
 ngObibaMica.sets
     .component("cartDocumentsTable", new CartDocumentsTableComponent());
 //# sourceMappingURL=component.js.map
+"use strict";
+var AddToSetModalInstanceController = /** @class */ (function () {
+    function AddToSetModalInstanceController($uibModalInstance, $log, sets) {
+        this.$uibModalInstance = $uibModalInstance;
+        this.$log = $log;
+        this.sets = sets;
+        this.choice = {
+            name: undefined,
+            radio: "NEW",
+            selected: undefined,
+        };
+        this.canAccept = false;
+    }
+    AddToSetModalInstanceController.prototype.accept = function () {
+        if (this.choice.radio === "NEW") {
+            this.choice.name = this.choice.name.trim();
+        }
+        this.$uibModalInstance.close(this.choice);
+    };
+    AddToSetModalInstanceController.prototype.cancel = function () { this.$uibModalInstance.dismiss(); };
+    AddToSetModalInstanceController.prototype.onRadioChanged = function () {
+        if (this.choice.radio === "NEW") {
+            this.onNameChanged();
+        }
+        else if (this.choice.radio === "EXISTING") {
+            this.onSelected();
+        }
+    };
+    AddToSetModalInstanceController.prototype.onNameChanged = function () {
+        this.choice.radio = "NEW";
+        this.canAccept = this.choice.name && this.choice.name.trim().length > 0;
+        if (this.choice.selected !== undefined) {
+            this.choice.selected = undefined;
+        }
+    };
+    AddToSetModalInstanceController.prototype.onSelected = function () {
+        this.choice.radio = "EXISTING";
+        this.canAccept = this.choice.selected && this.choice.selected.length > 0;
+        if (this.choice.name !== undefined) {
+            this.choice.name = undefined;
+        }
+    };
+    AddToSetModalInstanceController.$inject = ["$uibModalInstance", "$log", "sets"];
+    return AddToSetModalInstanceController;
+}());
+angular.module("obiba.mica.sets").controller("AddToSetModalInstanceController", AddToSetModalInstanceController);
+//# sourceMappingURL=add-to-set-modal-instance.js.map
+"use strict";
+var AddToSetController = /** @class */ (function () {
+    function AddToSetController($uibModal, $log, RqlQueryService, RqlQueryUtils, SetsResource, SetsImportResource, SetService, AlertService) {
+        this.$uibModal = $uibModal;
+        this.$log = $log;
+        this.RqlQueryService = RqlQueryService;
+        this.RqlQueryUtils = RqlQueryUtils;
+        this.SetsResource = SetsResource;
+        this.SetsImportResource = SetsImportResource;
+        this.SetService = SetService;
+        this.AlertService = AlertService;
+    }
+    AddToSetController.prototype.openPopup = function (type, query, identifiers) {
+        var _this = this;
+        var modalInstance = this.$uibModal.open({
+            controller: "AddToSetModalInstanceController",
+            controllerAs: "$ctrl",
+            keyboard: false,
+            resolve: {
+                sets: function () {
+                    return _this.SetsResource.query({ type: type }).$promise.then(function (allSets) {
+                        return allSets.filter(function (set) { return set.name; });
+                    });
+                },
+            },
+            templateUrl: "sets/directives/add-to-set-modal/add-to-set-modal.html",
+        });
+        modalInstance.result.then(function (choice) {
+            if (choice.radio === "EXISTING" && choice.selected !== undefined) {
+                _this.processDocumentSet(choice.selected, type, query, identifiers);
+            }
+            else {
+                _this.SetsImportResource.save({ type: type, name: choice.name }, "").$promise.then(function (set) {
+                    _this.processDocumentSet(set.id, type, query, identifiers);
+                });
+            }
+        });
+    };
+    AddToSetController.prototype.addQuery = function (setId, type, query) {
+        var parsedQuery = this.RqlQueryService.parseQuery(query);
+        var target = typeToTarget(type);
+        var queryWithLimitAndFields = this.RqlQueryUtils.rewriteQueryWithLimitAndFields(parsedQuery, target, 20000, ["id"]);
+        return this.SetService.addDocumentQueryToSet(setId, type, queryWithLimitAndFields);
+    };
+    AddToSetController.prototype.processDocumentSet = function (setId, type, query, identifiers) {
+        if (identifiers !== undefined && Array.isArray(identifiers)) {
+            return this.SetService.addDocumentToSet(setId, type, identifiers);
+        }
+        else {
+            return this.addQuery(setId, type, query);
+        }
+    };
+    AddToSetController.$inject = [
+        "$uibModal",
+        "$log",
+        "RqlQueryService",
+        "RqlQueryUtils",
+        "SetsResource",
+        "SetsImportResource",
+        "SetService",
+        "AlertService"
+    ];
+    return AddToSetController;
+}());
+var AddToSetDirective = /** @class */ (function () {
+    function AddToSetDirective() {
+        this.restrict = "A";
+        this.controller = AddToSetController;
+        this.scope = {
+            addToSet: "<",
+            query: "<",
+            type: "<",
+        };
+        this.link = function (scope, elem, attributes, ctrl) {
+            elem.on("click", function () {
+                ctrl.openPopup(scope.type, scope.query, scope.addToSet);
+            });
+        };
+    }
+    return AddToSetDirective;
+}());
+angular.module("obiba.mica.sets").directive("addToSet", function () { return new AddToSetDirective(); });
+//# sourceMappingURL=add-to-set.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
@@ -5812,7 +6006,6 @@ ngObibaMica.search.service("CoverageGroupByService", ["ngObibaMicaSearch", Cover
     function FullScreenService($document, $window, $rootScope) {
         // based on: https://github.com/fabiobiondi/angular-fullscreen
         var document = $document[0];
-        var isKeyboardAvailbleOnFullScreen = (typeof $window.Element !== 'undefined' && 'ALLOW_KEYBOARD_INPUT' in $window.Element) && $window.Element.ALLOW_KEYBOARD_INPUT;
         var emitter = $rootScope.$new();
         var serviceInstance = {
             $on: angular.bind(emitter, emitter.$on),
@@ -5824,13 +6017,7 @@ ngObibaMica.search.service("CoverageGroupByService", ["ngObibaMicaSearch", Cover
                     element.mozRequestFullScreen();
                 }
                 else if (element.webkitRequestFullscreen) {
-                    // Safari temporary fix
-                    if (/Version\/[\d]{1,2}(\.[\d]{1,2}){1}(\.(\d){1,2}){0,1} Safari/.test($window.navigator.userAgent)) {
-                        element.webkitRequestFullscreen();
-                    }
-                    else {
-                        element.webkitRequestFullscreen(isKeyboardAvailbleOnFullScreen);
-                    }
+                    element.webkitRequestFullscreen();
                 }
                 else if (element.msRequestFullscreen) {
                     element.msRequestFullscreen();
@@ -7409,6 +7596,16 @@ function typeToTarget(type) {
         function criteriaId(taxonomy, vocabulary) {
             return taxonomy.name + '.' + vocabulary.name;
         }
+        function rewriteQueryWithLimitAndFields(parsedQuery, target, maximumLimit, fieldsArray) {
+            var targetQuery = parsedQuery.args.filter(function (query) {
+                return query.name === target;
+            }).pop();
+            addLimit(targetQuery, limit(0, maximumLimit));
+            if (fieldsArray) {
+                addFields(targetQuery, fields(fieldsArray));
+            }
+            return new RqlQuery().serializeArgs(parsedQuery.args);
+        }
         // exports
         this.vocabularyTermNames = vocabularyTermNames;
         this.hasTargetQuery = hasTargetQuery;
@@ -7438,6 +7635,7 @@ function typeToTarget(type) {
         this.addLimit = addLimit;
         this.addSort = addSort;
         this.criteriaId = criteriaId;
+        this.rewriteQueryWithLimitAndFields = rewriteQueryWithLimitAndFields;
     }
     ngObibaMica.search.service('RqlQueryUtils', ['VocabularyService', RqlQueryUtils]);
 })();
@@ -10725,14 +10923,7 @@ ngObibaMica.search
         function rewriteQueryWithLimitAndFields(limit, fields) {
             var parsedQuery = RqlQueryService.parseQuery($scope.query);
             var target = typeToTarget($scope.type);
-            var targetQuery = parsedQuery.args.filter(function (query) {
-                return query.name === target;
-            }).pop();
-            RqlQueryUtils.addLimit(targetQuery, RqlQueryUtils.limit(0, limit));
-            if (fields) {
-                RqlQueryUtils.addFields(targetQuery, RqlQueryUtils.fields(fields));
-            }
-            return new RqlQuery().serializeArgs(parsedQuery.args);
+            return RqlQueryUtils.rewriteQueryWithLimitAndFields(parsedQuery, target, limit, fields);
         }
         $scope.targetTypeMap = $scope.$parent.taxonomyTypeMap;
         $scope.QUERY_TARGETS = QUERY_TARGETS;
@@ -15113,7 +15304,7 @@ ngObibaMica.fileBrowser
         };
     }]);
 //# sourceMappingURL=file-browser-service.js.map
-angular.module('templates-ngObibaMica', ['access/components/action-log/component.html', 'access/components/action-log/item/component.html', 'access/components/action-log/item/delete-modal.html', 'access/components/action-log/item/edit-modal.html', 'access/components/entity-list/component.html', 'access/components/print-friendly-view/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/cell-stat-value/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/cart-documents-table/component.html', 'sets/views/cart.html', 'utils/components/entity-schema-form/component.html', 'utils/services/user-profile-modal/service.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+angular.module('templates-ngObibaMica', ['access/components/action-log/component.html', 'access/components/action-log/item/component.html', 'access/components/action-log/item/delete-modal.html', 'access/components/action-log/item/edit-modal.html', 'access/components/entity-list/component.html', 'access/components/print-friendly-view/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/cell-stat-value/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/cart-documents-table/component.html', 'sets/directives/add-to-set-modal/add-to-set-modal.html', 'sets/views/cart.html', 'utils/components/entity-schema-form/component.html', 'utils/services/user-profile-modal/service.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/components/action-log/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/components/action-log/component.html",
@@ -18994,11 +19185,18 @@ angular.module("search/components/result/search-result/list.html", []).run(["$te
     "<div ng-show=\"display === 'list'\" class=\"list-table\">\n" +
     "  <result-tabs-order-count options=\"options\" result-tabs-order=\"resultTabsOrder\" active-target=\"activeTarget\" target-type-map=\"targetTypeMap\">\n" +
     "  </result-tabs-order-count>\n" +
-    "  \n" +
+    "\n" +
     "  <div class=\"voffset2\" ng-class=\"{'pull-right': options.studies.showSearchTab, 'pull-left': !options.studies.showSearchTab, 'hoffset2': !options.studies.showSearchTab}\">\n" +
-    "    <a ng-if=\"type=='variables' && options.variables.showCart\" ng-click=\"addToCart()\" class=\"btn btn-success\" href>\n" +
-    "      <i class=\"fa fa-cart-plus\"></i>\n" +
-    "    </a>\n" +
+    "    <div class=\"btn-group\" ng-if=\"type=='variables' && options.variables.showCart\">\n" +
+    "      <button type=\"button\" class=\"btn btn-success dropdown-toggle\" data-toggle=\"dropdown\">\n" +
+    "        <i class=\"fa fa-cart-plus\"></i> <span class=\"caret\"></span>\n" +
+    "      </button>\n" +
+    "      <ul class=\"dropdown-menu\">\n" +
+    "        <li><a ng-click=\"addToCart()\" href translate>sets.add.button.cart-label</a></li>\n" +
+    "        <li><a add-to-set=\"\" query=\"query\" type=\"type\" href>{{'sets.add.button.set-label' | translate}}</a></li>\n" +
+    "      </ul>\n" +
+    "    </div>\n" +
+    "\n" +
     "    <a obiba-file-download url=\"getStudySpecificReportUrl()\" target=\"_self\" ng-if=\"type=='studies'\" download class=\"btn btn-info\"\n" +
     "      href>\n" +
     "      <i class=\"fa fa-download\"></i> {{'report-group.study.button-name' | translate}}\n" +
@@ -20047,6 +20245,48 @@ angular.module("sets/components/cart-documents-table/component.html", []).run(["
     "        </tr>\n" +
     "      </tbody>\n" +
     "    </table>\n" +
+    "  </div>\n" +
+    "</div>");
+}]);
+
+angular.module("sets/directives/add-to-set-modal/add-to-set-modal.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("sets/directives/add-to-set-modal/add-to-set-modal.html",
+    "<div class=\"modal-content\">\n" +
+    "  <div class=\"modal-header\">\n" +
+    "    <button type=\"button\" class=\"close\" aria-hidden=\"true\" ng-click=\"$ctrl.cancel()\">&times;</button>\n" +
+    "    <h4 class=\"modal-title\" translate>sets.add.modal.title</h4>\n" +
+    "  </div>\n" +
+    "\n" +
+    "  <div class=\"modal-body\">\n" +
+    "    <p translate>sets.add.modal.sub-title</p>\n" +
+    "\n" +
+    "    <div>\n" +
+    "        <div class=\"radio\">\n" +
+    "          <label for=\"#new_set_choice\">\n" +
+    "            <input type=\"radio\" ng-model=\"$ctrl.choice.radio\" ng-required=\"!$ctrl.choice.radio\" value=\"NEW\" id=\"new_set_choice\" ng-change=\"$ctrl.onRadioChanged()\">\n" +
+    "            {{'sets.add.modal.create-new' | translate}}\n" +
+    "          </label>\n" +
+    "        </div>\n" +
+    "\n" +
+    "        <input class=\"form-control\" type=\"text\" ng-model=\"$ctrl.choice.name\" ng-keyup=\"$ctrl.onNameChanged()\">\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div ng-if=\"$ctrl.sets.length\">\n" +
+    "        <div class=\"radio\">\n" +
+    "          <label for=\"#existing_set_choice\">\n" +
+    "            <input type=\"radio\" ng-model=\"$ctrl.choice.radio\" ng-required=\"!$ctrl.choice.radio\" value=\"EXISTING\" id=\"existing_set_choice\" ng-change=\"$ctrl.onRadioChanged()\">\n" +
+    "            {{'sets.add.modal.to-existing' | translate}}\n" +
+    "          </label>\n" +
+    "        </div>\n" +
+    "\n" +
+    "        <select class=\"form-control\" ng-options=\"set.id as set.name for set in $ctrl.sets\" ng-model=\"$ctrl.choice.selected\" ng-change=\"$ctrl.onSelected()\"></select>\n" +
+    "    </div>\n" +
+    "\n" +
+    "  </div>\n" +
+    "\n" +
+    "  <div class=\"modal-footer\">\n" +
+    "    <button class=\"btn btn-responsive btn-default\" type=\"button\" ng-click=\"$ctrl.cancel()\" translate>cancel</button>\n" +
+    "    <button class=\"btn btn-responsive btn-primary\" type=\"button\" ng-click=\"$ctrl.accept()\" ng-disabled=\"!$ctrl.canAccept\" translate>save</button>\n" +
     "  </div>\n" +
     "</div>");
 }]);
