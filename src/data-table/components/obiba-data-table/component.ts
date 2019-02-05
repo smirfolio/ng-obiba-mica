@@ -31,7 +31,7 @@ class TableController implements ng.IComponentController {
     }
 
     public $onInit() {
-        this.getTable();
+       // this.getTable();
     }
 
     public $onChanges() {
@@ -40,21 +40,25 @@ class TableController implements ng.IComponentController {
 
     private getTable(): any {
         this.loading = true;
-        const table = this.DataTableResource.get({
-            id: this.datatableconfig.parentEntityId, from: 0, limit: 3, sort: null, order: null,
+        const limitData = 4;
+        this.DataTableResource.get({
+            id: this.datatableconfig.parentEntityId, from: 0, limit: limitData, sort: null, order: null,
+        }).$promise.then((response) => {
+            console.log(response);
+            this.table =  response;
+            if (response.totalHits > limitData) {
+                this.dataQuery = {
+                    from: 0,
+                    limit: limitData,
+                    total: response.totalHits,
+                };
+            }
+            this.loading = false;
+        }, () => {
+            console.log("error");
+            this.loading = false;
         });
-        if (table) {
-            console.log(table);
-            this.table =  table;
-            this.dataQuery = {
-                from: 0,
-                limit: 3,
-                total: 7,
-            };
-            this.loading = false;
-        } else {
-            this.loading = false;
-        }
+
     }
 
 }
@@ -71,6 +75,7 @@ class TableComponent implements ng.IComponentOptions {
         this.transclude = true;
         this.bindings = {
             datatableconfig: "<",
+
         };
         this.controller = TableController;
         this.controllerAs = "$ctrl";

@@ -36,7 +36,6 @@ module.exports = function (grunt) {
           rootDir: './src',
           allowJs: true,
           target: 'es5',
-          module: 'umd',
           sourceMap: true,
           removeComments: false,
           verbose: false

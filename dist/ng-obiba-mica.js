@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-02-03
+ * Date: 2019-02-05
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -2850,7 +2850,7 @@ var SetService = /** @class */ (function () {
         });
     };
     SetService.prototype.saveCart = function (documentType, set) {
-        if (set && set.id) { // sanity check
+        if (set && set.id) {
             this.localStorageService.set(this.getCartKey(documentType), set);
             this.notifyCartChanged(documentType);
             return set;
@@ -8203,9 +8203,6 @@ var CRITERIA_ITEM_EVENT = {
                 templateUrl: TEMPLATE_URL
             };
         }])
-        /**
-         * This directive creates a hierarchical structure matching that of a RqlQuery tree.
-         */
         .directive('criteriaLeaf', ['CriteriaNodeCompileService', function (CriteriaNodeCompileService) {
             return {
                 restrict: 'EA',
@@ -8246,9 +8243,6 @@ ngObibaMica.search
         };
     }
 ])
-    /**
-     * Directive specialized for vocabulary of type String
-     */
     .directive('matchCriterion', [function () {
         return {
             restrict: 'EA',
@@ -8455,9 +8449,6 @@ ngObibaMica.search
         $scope.updateSelection = updateSelection;
     }
 ])
-    /**
-     * Directive specialized for vocabulary of type String
-     */
     .directive('stringCriterionTerms', [function () {
         return {
             restrict: 'EA',
@@ -9241,7 +9232,7 @@ function BaseTaxonomiesController($rootScope, $scope, $translate, $location, Tax
     this.updateStateFromLocation = function () {
         var search = $location.search();
         var taxonomyName = search.taxonomy, vocabularyName = search.vocabulary, taxonomy = null, vocabulary = null;
-        if (!$scope.taxonomies.all) { //page loading
+        if (!$scope.taxonomies.all) {
             return;
         }
         $scope.taxonomies.all.forEach(function (t) {
@@ -14882,7 +14873,7 @@ ngObibaMica.fileBrowser
         };
         var searchKeyUp = function (event) {
             switch (event.keyCode) {
-                case 13: // ENTER
+                case 13:// ENTER
                     if ($scope.data.search.text) {
                         searchDocuments($scope.data.search.text);
                     }
@@ -14890,7 +14881,7 @@ ngObibaMica.fileBrowser
                         clearSearch();
                     }
                     break;
-                case 27: // ESC
+                case 27:// ESC
                     if ($scope.data.search.active) {
                         clearSearch();
                     }
@@ -15157,25 +15148,27 @@ ngObibaMica.dataTable
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+"use strict";
 var PaginationController = /** @class */ (function () {
     function PaginationController() {
-        this.documents = {
-            from: 0,
-            limit: 0,
-            total: 0,
-        };
-        this.pagination = {
-            currentPage: 1,
-            from: 0,
-            itemsPerPage: 2,
-            maxSize: 2,
-            to: 2,
-            totalHits: 0,
-        };
+        this.preventPageChangeEvent = false;
+        console.log(this.documents);
+        this.pagination = {};
     }
+    PaginationController.prototype.onUpdate = function (state, preventPageChangeEvent) {
+        this.preventPageChangeEvent = preventPageChangeEvent;
+        this.pagination = state;
+        this.showPaginationTotal = this.showTotal === true && this.pagination.pageCount > 1;
+    };
     PaginationController.prototype.pageChanged = function () {
-        var from = (this.pagination.currentPage - 1) * this.documents.limit;
-        this.onPageChange(this.type, from);
+        this.onChange({
+            from: (this.pagination.currentPage - 1) * this.pagination.selected.value,
+            replace: true === this.preventPageChangeEvent,
+            size: this.pagination.selected.value,
+        });
+    };
+    PaginationController.prototype.pageSizeChanged = function () {
+        this.pageChanged();
     };
     PaginationController.prototype.$onInit = function () {
         console.log(this.documents);
@@ -15190,6 +15183,7 @@ var PaginationController = /** @class */ (function () {
 }());
 var PaginationComponent = /** @class */ (function () {
     function PaginationComponent() {
+        this.transclude = false;
         this.transclude = true;
         this.bindings = {
             documents: "=",
@@ -15200,7 +15194,7 @@ var PaginationComponent = /** @class */ (function () {
     }
     return PaginationComponent;
 }());
-ngObibaMica.dataTable.component("obibaDataTablePagination", new PaginationComponent());
+ngObibaMica.search.component("obibaDataTablePagination", new PaginationComponent());
 //# sourceMappingURL=component.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -15224,29 +15218,32 @@ var TableController = /** @class */ (function () {
         this.dataQuery = new Array();
     }
     TableController.prototype.$onInit = function () {
-        this.getTable();
+        // this.getTable();
     };
     TableController.prototype.$onChanges = function () {
         this.getTable();
     };
     TableController.prototype.getTable = function () {
+        var _this = this;
         this.loading = true;
-        var table = this.DataTableResource.get({
-            id: this.datatableconfig.parentEntityId, from: 0, limit: 3, sort: null, order: null,
+        var limitData = 4;
+        this.DataTableResource.get({
+            id: this.datatableconfig.parentEntityId, from: 0, limit: limitData, sort: null, order: null,
+        }).$promise.then(function (response) {
+            console.log(response);
+            _this.table = response;
+            if (response.totalHits > limitData) {
+                _this.dataQuery = {
+                    from: 0,
+                    limit: limitData,
+                    total: response.totalHits,
+                };
+            }
+            _this.loading = false;
+        }, function () {
+            console.log("error");
+            _this.loading = false;
         });
-        if (table) {
-            console.log(table);
-            this.table = table;
-            this.dataQuery = {
-                from: 0,
-                limit: 3,
-                total: 7,
-            };
-            this.loading = false;
-        }
-        else {
-            this.loading = false;
-        }
     };
     TableController.$inject = [
         "LocalizedValues",
@@ -16890,25 +16887,33 @@ angular.module("attachment/attachment-list-template.html", []).run(["$templateCa
 angular.module("data-table/components/obiba-data-table-pagination/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("data-table/components/obiba-data-table-pagination/component.html",
     "<div ng-show=\"$ctrl.pagination.totalHits > 0\" class=\"pull-right\">\n" +
-    "    <span\n" +
-    "            uib-pagination\n" +
-    "            total-items=\"$ctrl.pagination.totalHits\"\n" +
-    "            max-size=\"$ctrl.pagination.maxSize\"\n" +
-    "            ng-model=\"$ctrl.pagination.currentPage\"\n" +
-    "            boundary-links=\"true\"\n" +
-    "            force-ellipses=\"true\"\n" +
-    "            items-per-page=\"$ctrl.pagination.itemsPerPage\"\n" +
-    "            previous-text=\"&lsaquo;\"\n" +
-    "            next-text=\"&rsaquo;\"\n" +
-    "            first-text=\"&laquo;\"\n" +
-    "            last-text=\"&raquo;\"\n" +
-    "            template-url=\"search/views/list/pagination-template.html\"\n" +
-    "            ng-change=\"$ctrl.pageChanged()\"></span>\n" +
-    "    <ul class=\"pagination pagination-sm\">\n" +
-    "        <li>\n" +
-    "            <a href class=\"pagination-total\">{{$ctrl.pagination.from}} - {{$ctrl.pagination.to}} {{'of' | translate}} {{$ctrl.pagination.totalHits}}</a>\n" +
-    "        </li>\n" +
+    "  <div class=\"pull-left\">\n" +
+    "    <select class=\"form-control input-sm form-select\"\n" +
+    "            ng-model=\"$ctrl.pagination.selected\"\n" +
+    "            ng-options=\"size.label for size in $ctrl.pagination.pageSizes\"\n" +
+    "            ng-change=\"$ctrl.pageSizeChanged()\"></select>\n" +
+    "  </div>\n" +
+    "  <div class=\"pull-right\" style=\"margin-left: 5px\">\n" +
+    "    <span ng-show=\"$ctrl.pagination.maxSize > 1\"\n" +
+    "          uib-pagination\n" +
+    "          total-items=\"$ctrl.pagination.totalHits\"\n" +
+    "          max-size=\"$ctrl.pagination.maxSize\"\n" +
+    "          ng-model=\"$ctrl.pagination.currentPage\"\n" +
+    "          boundary-links=\"true\"\n" +
+    "          force-ellipses=\"true\"\n" +
+    "          items-per-page=\"$ctrl.pagination.selected.value\"\n" +
+    "          previous-text=\"&lsaquo;\"\n" +
+    "          next-text=\"&rsaquo;\"\n" +
+    "          first-text=\"&laquo;\"\n" +
+    "          last-text=\"&raquo;\"\n" +
+    "          template-url=\"search/views/list/pagination-template.html\"\n" +
+    "          ng-change=\"$ctrl.pageChanged()\"></span>\n" +
+    "    <ul class=\"pagination pagination-sm\" ng-show=\"$ctrl.showPaginationTotal\">\n" +
+    "      <li>\n" +
+    "        <a href class=\"pagination-total\">{{$ctrl.pagination.from}} - {{$ctrl.pagination.to}} {{'of' | translate}} {{$ctrl.pagination.totalHits}}</a>\n" +
+    "      </li>\n" +
     "    </ul>\n" +
+    "  </div>\n" +
     "</div>");
 }]);
 
