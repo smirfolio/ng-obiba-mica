@@ -77,6 +77,25 @@ ngObibaMica.search
         return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(queryWithLimit));
       };
 
+      $scope.onSetUpdate = function (setName, addedCount) {
+        console.log('on update');
+
+        var msgKey = 'sets.set.variables-added';
+        var msgArgs = [setName, addedCount];
+        if (addedCount === 0) {
+          msgKey = 'sets.set.no-variable-added';
+          msgArgs = [setName];
+        }
+
+        AlertService.growl({
+          id: 'SearchControllerGrowl',
+          type: 'info',
+          msgKey: msgKey,
+          msgArgs: msgArgs,
+          delay: 3000
+        });
+      };
+
       $scope.addToCart = function() {
         if ($scope.query === null) {
           return $scope.query;

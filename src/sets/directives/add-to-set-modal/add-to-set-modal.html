@@ -26,7 +26,7 @@
           </label>
         </div>
 
-        <select class="form-control" ng-options="set.id as set.name for set in $ctrl.sets" ng-model="$ctrl.choice.selected" ng-change="$ctrl.onSelected()"></select>
+        <select class="form-control" ng-options="set as set.name for set in $ctrl.sets" ng-model="$ctrl.choice.selected" ng-change="$ctrl.onSelected()"></select>
     </div>
 
   </div>
