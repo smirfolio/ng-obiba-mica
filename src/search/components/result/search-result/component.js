@@ -31,14 +31,8 @@ ngObibaMica.search
       function rewriteQueryWithLimitAndFields(limit, fields) {
         var parsedQuery = RqlQueryService.parseQuery($scope.query);
         var target = typeToTarget($scope.type);
-        var targetQuery = parsedQuery.args.filter(function (query) {
-          return query.name === target;
-        }).pop();
-        RqlQueryUtils.addLimit(targetQuery, RqlQueryUtils.limit(0, limit));
-        if (fields) {
-          RqlQueryUtils.addFields(targetQuery, RqlQueryUtils.fields(fields));
-        }
-        return new RqlQuery().serializeArgs(parsedQuery.args);
+
+        return RqlQueryUtils.rewriteQueryWithLimitAndFields(parsedQuery, target, limit, fields);
       }
 
       $scope.targetTypeMap = $scope.$parent.taxonomyTypeMap;

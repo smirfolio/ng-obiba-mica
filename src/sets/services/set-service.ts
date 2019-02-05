@@ -15,11 +15,17 @@ declare var ngObibaMica: any;
 interface ISetService {
   isSingleStudy(): boolean;
   hasHarmonizedDatasets(): boolean;
+  isDocumentInSet(setId: string, documentType: string, documentId: string): any;
   isDocumentInCart(documentType: string, documentId: string): any;
+  addDocumentToSet(setId: string, documentType: string, documentId: string | string[]): any;
   addDocumentToCart(documentType: string, documentId: string | string[]): any;
+  addDocumentQueryToSet(setId: string, documentType: string, rqlQuery: string): any;
   addDocumentQueryToCart(documentType: string, query: string): any;
+  removeDocumentFromSet(setId: string, documentType: string, documentId: string | string[]): any;
   removeDocumentFromCart(documentType: string, documentId: string | string[]): any;
+  getSetDocuments(setId: string, documentType: string, fromIdx: number, limitIdx: number): any;
   getCartDocuments(documentType: string, fromIdx: number, limitIdx: number): any;
+  clearSet(setId: string, documentType: string): any;
   clearCart(documentType: string): any;
   gotoSetEntitiesCount(setId: string, documentId: string | string[]): void;
   getDownloadUrl(documentType: string, setId: string): string;
@@ -71,21 +77,44 @@ class SetService implements ISetService {
   }
 
   /**
+   * Get the documents in the set.
+   * Return a promise on the documents.
+   * @param setId the set's identifier
+   * @param documentType the document type
+   * @param fromIdx from position
+   * @param limitIdx maximum number of documents that are fetched
+   */
+  public getSetDocuments(setId: string, documentType: string, fromIdx: number, limitIdx: number): any {
+    return this.SetDocumentsResource.get({
+      from: fromIdx,
+      id: setId,
+      limit: limitIdx,
+      type: documentType,
+    }).$promise;
+  }
+
+  /**
    * Get the documents in the cart. Create the cart's set if missing.
    * Return a promise on the documents.
    * @param documentType the document type
    * @param fromIdx from position
-   * @param limitIdx maximum number of documents taht are fetched
+   * @param limitIdx maximum number of documents that are fetched
    */
   public getCartDocuments(documentType: string, fromIdx: number, limitIdx: number): any {
-      return this.getOrCreateCart(documentType).then((set) => {
-        return this.SetDocumentsResource.get({
-          from: fromIdx,
-          id: set.id,
-          limit: limitIdx,
-          type: documentType,
-        }).$promise;
-      });
+    return this.getOrCreateCart(documentType).then((set) => {
+      return this.getSetDocuments(set.id, documentType, fromIdx, limitIdx);
+    });
+  }
+
+  /**
+   * Check if document is in the set.
+   * Return a promise on the response.
+   * @param setId the set's identifier
+   * @param documentType the document type
+   * @param documentId the document ID
+   */
+  public isDocumentInSet(setId: string, documentType: string, documentId: string): any {
+    return this.SetExistsResource.get({type: documentType, id: setId, did: documentId}).$promise;
   }
 
   /**
@@ -96,7 +125,21 @@ class SetService implements ISetService {
    */
   public isDocumentInCart(documentType: string, documentId: string): any {
     return this.getOrCreateCart(documentType).then((set) => {
-      return this.SetExistsResource.get({type: documentType, id: set.id, did: documentId}).$promise;
+      return this.isDocumentInSet(set.id, documentType, documentId);
+    });
+  }
+
+  /**
+   * Add one or more documents to the set.
+   * Return a promise on the set.
+   * @param setId the set's identifier
+   * @param documentType the document type
+   * @param documentId the docuemtn ID or an array od document IDs
+   */
+  public addDocumentToSet(setId: string, documentType: string, documentId: string | string[]): any {
+    const did = Array.isArray(documentId) ? documentId.join("\n") : documentId;
+    return this.SetResource.get({type: documentType, id: setId}).$promise.then((set) => {
+      return this.SetImportResource.save({type: documentType, id: set.id}, did).$promise;
     });
   }
 
@@ -116,6 +159,18 @@ class SetService implements ISetService {
   }
 
   /**
+   * Add documents matching the query to the set.
+   * Return a promise on the set.
+   * @param setId the set's identifier
+   * @param documentType the document type
+   * @param rqlQuery the documents join query
+   */
+  public addDocumentQueryToSet(setId: string, documentType: string, rqlQuery: string): any {
+    this.$log.info("query=" + rqlQuery);
+    return this.SetImportQueryResource.save({type: documentType, id: setId, query: rqlQuery}).$promise;
+  }
+
+  /**
    * Add documents matching the query to the cart's set.
    * Return a promise on the cart's set.
    * @param documentType the document type
@@ -128,6 +183,18 @@ class SetService implements ISetService {
     }).then((set) => {
       return this.saveCart(documentType, set);
     });
+  }
+
+  /**
+   * Remove one or more documents from the set.
+   * Return a promise on the set.
+   * @param setId the set's identifier
+   * @param documentType the document type
+   * @param documentId the document ID or an array of document IDs
+   */
+  public removeDocumentFromSet(setId: string, documentType: string, documentId: string | string[]): any {
+    const did = Array.isArray(documentId) ? documentId.join("\n") : documentId;
+    return this.SetRemoveResource.delete({type: documentType, id: setId}, did).$promise;
   }
 
   /**
@@ -146,9 +213,17 @@ class SetService implements ISetService {
   }
 
   /**
+   * Clear the documents list of the set.
+   * @param setId the set's identifier
+   * @param documentType the document type
+   */
+  public clearSet(setId: string, documentType: string): any {
+    return this.SetClearResource.clear({type: documentType, id: setId}).$promise;
+  }
+
+  /**
    * Clear the documents list of the cart.
    * @param documentType the document type
-   * @param documentId one or more documents to be removed from the cart (optional)
    */
   public clearCart(documentType: string): any {
     return this.getOrCreateCart(documentType).then((set) => {

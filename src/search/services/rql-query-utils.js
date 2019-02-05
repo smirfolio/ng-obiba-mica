@@ -440,6 +440,20 @@
       return taxonomy.name + '.' + vocabulary.name;
     }
 
+    function rewriteQueryWithLimitAndFields(parsedQuery, target, maximumLimit, fieldsArray) {
+      var targetQuery = parsedQuery.args.filter(function (query) {
+        return query.name === target;
+      }).pop();
+
+      addLimit(targetQuery, limit(0, maximumLimit));
+
+      if (fieldsArray) {
+        addFields(targetQuery, fields(fieldsArray));
+      }
+
+      return new RqlQuery().serializeArgs(parsedQuery.args);
+    }
+
     // exports
     this.vocabularyTermNames = vocabularyTermNames;
     this.hasTargetQuery = hasTargetQuery;
@@ -469,6 +483,7 @@
     this.addLimit = addLimit;
     this.addSort = addSort;
     this.criteriaId = criteriaId;
+    this.rewriteQueryWithLimitAndFields = rewriteQueryWithLimitAndFields;
   }
 
   ngObibaMica.search.service('RqlQueryUtils', ['VocabularyService', RqlQueryUtils]);

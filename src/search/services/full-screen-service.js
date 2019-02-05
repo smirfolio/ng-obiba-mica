@@ -15,7 +15,6 @@
   function FullScreenService($document, $window, $rootScope) {
     // based on: https://github.com/fabiobiondi/angular-fullscreen
     var document = $document[0];
-    var isKeyboardAvailbleOnFullScreen = (typeof $window.Element !== 'undefined' && 'ALLOW_KEYBOARD_INPUT' in $window.Element) && $window.Element.ALLOW_KEYBOARD_INPUT;
     var emitter = $rootScope.$new();
 
 
@@ -27,12 +26,7 @@
         } else if (element.mozRequestFullScreen) {
           element.mozRequestFullScreen();
         } else if (element.webkitRequestFullscreen) {
-          // Safari temporary fix
-          if (/Version\/[\d]{1,2}(\.[\d]{1,2}){1}(\.(\d){1,2}){0,1} Safari/.test($window.navigator.userAgent)) {
-            element.webkitRequestFullscreen();
-          } else {
-            element.webkitRequestFullscreen(isKeyboardAvailbleOnFullScreen);
-          }
+          element.webkitRequestFullscreen();
         } else if (element.msRequestFullscreen) {
           element.msRequestFullscreen();
         }
