@@ -14,7 +14,7 @@
 
   function manageCartHelpText($scope, $translate, $cookies) {
     var cookiesCartHelp = 'micaHideCartHelpText';
-    
+
     $translate(['sets.cart.help'])
       .then(function (translation) {
         if (!$scope.options.CartHelpText && !$cookies.get(cookiesCartHelp)) {
@@ -61,7 +61,7 @@
       } else {
         $scope.variables = { total: 0 };
       }
-      
+
       $scope.$on('cart-cleared', function(event, type) {
         $scope.loading = true;
         SetService.getCartDocuments(type, 0, limit).then(onDocuments);
@@ -139,5 +139,82 @@
          });
       };
 
-    }]);
+    }])
+
+  .controller('SetsController', [
+    '$scope',
+    'ObibaSearchOptions',
+    'ngObibaMicaSetsTemplateUrl',
+    'MetaTaxonomyService',
+    'SetsResource',
+    'SetService',
+    function (
+      $scope,
+      ObibaSearchOptions,
+      ngObibaMicaSetsTemplateUrl,
+      MetaTaxonomyService,
+      SetsResource,
+      SetService) {
+
+    var searchTaxonomyDisplay = {
+      variable: ObibaSearchOptions.variables.showSearchTab,
+      dataset: ObibaSearchOptions.datasets.showSearchTab,
+      study: ObibaSearchOptions.studies.showSearchTab,
+      network: ObibaSearchOptions.networks.showSearchTab
+    };
+
+    var limit = 100;
+
+    $scope.setsHeaderTemplateUrl = ngObibaMicaSetsTemplateUrl.getHeaderUrl('sets');
+
+    $scope.tabs = ObibaSearchOptions.targetTabsOrder.filter(function (target) {
+      return searchTaxonomyDisplay[target];
+    });
+
+    $scope.sets = {};
+
+    function initSets() {
+      MetaTaxonomyService.getMetaTaxonomyForTargets(['variable']).then(function (metatTaxonomies) {
+        $scope.useableTabs = metatTaxonomies;
+        metatTaxonomies.forEach(function (meta) {
+          SetsResource.query({type: targetToType(meta.name)}).$promise.then(function(allSets) {
+            return allSets.filter(function (set) { return set.name; });
+          }).then(function (sets) {
+            $scope.sets[meta.name] = sets;
+          });
+        });
+      });
+    }
+
+    function selectSet(target, set) {
+      $scope.loading = true;
+      $scope.selectedType = targetToType(target);
+      $scope.selectedSet = set;
+
+      var promisedDocs = SetService.getSetDocuments($scope.selectedSet.id, $scope.selectedType, 0, limit);
+      if (promisedDocs) {
+        promisedDocs.then(onDocuments);
+      } else {
+        $scope.documents = { total: 0 };
+      }
+    }
+
+    function onDocuments(documents) {
+      $scope.loading = false;
+      $scope.documents = documents;
+
+      $scope.selectedSet.count = documents.total;
+    }
+
+    function onPaginate(type, from) {
+      if ($scope.selectedSet) {
+        SetService.getSetDocuments($scope.selectedSet.id, type, from, limit).then(onDocuments);
+      }
+    }
+
+    initSets();
+
+    $scope.onPaginate = onPaginate;
+    $scope.selectSet = selectSet;
+  }]);
 })();

@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-02-04
+ * Date: 2019-02-06
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -2462,7 +2462,8 @@ ngObibaMica.sets = angular.module('obiba.mica.sets', [
     ngObibaMica.sets
         .config(['$provide', function ($provide) {
             $provide.provider('ngObibaMicaSetsTemplateUrl', new NgObibaMicaTemplateUrlFactory().create({
-                cart: { header: null, footer: null }
+                cart: { header: null, footer: null },
+                sets: { header: null, footer: null }
             }));
         }]);
 })();
@@ -2700,13 +2701,16 @@ var SetService = /** @class */ (function () {
      * Return a promise on the set.
      * @param setId the set's identifier
      * @param documentType the document type
-     * @param documentId the docuemtn ID or an array od document IDs
+     * @param documentId the document ID or an array od document IDs
      */
     SetService.prototype.addDocumentToSet = function (setId, documentType, documentId) {
         var _this = this;
         var did = Array.isArray(documentId) ? documentId.join("\n") : documentId;
         return this.SetResource.get({ type: documentType, id: setId }).$promise.then(function (set) {
             return _this.SetImportResource.save({ type: documentType, id: set.id }, did).$promise;
+        }).then(function (set) {
+            _this.notifySetChanged(set);
+            return set;
         });
     };
     /**
@@ -2732,8 +2736,13 @@ var SetService = /** @class */ (function () {
      * @param rqlQuery the documents join query
      */
     SetService.prototype.addDocumentQueryToSet = function (setId, documentType, rqlQuery) {
+        var _this = this;
         this.$log.info("query=" + rqlQuery);
-        return this.SetImportQueryResource.save({ type: documentType, id: setId, query: rqlQuery }).$promise;
+        return this.SetImportQueryResource.save({ type: documentType, id: setId, query: rqlQuery }).$promise
+            .then(function (set) {
+            _this.notifySetChanged(set);
+            return set;
+        });
     };
     /**
      * Add documents matching the query to the cart's set.
@@ -2758,8 +2767,12 @@ var SetService = /** @class */ (function () {
      * @param documentId the document ID or an array of document IDs
      */
     SetService.prototype.removeDocumentFromSet = function (setId, documentType, documentId) {
+        var _this = this;
         var did = Array.isArray(documentId) ? documentId.join("\n") : documentId;
-        return this.SetRemoveResource.delete({ type: documentType, id: setId }, did).$promise;
+        return this.SetRemoveResource.delete({ type: documentType, id: setId }, did).$promise.then(function (set) {
+            _this.notifySetChanged(set);
+            return set;
+        });
     };
     /**
      * Remove one or more documents from the cart's set.
@@ -2782,7 +2795,13 @@ var SetService = /** @class */ (function () {
      * @param documentType the document type
      */
     SetService.prototype.clearSet = function (setId, documentType) {
-        return this.SetClearResource.clear({ type: documentType, id: setId }).$promise;
+        var _this = this;
+        return this.SetClearResource.clear({ type: documentType, id: setId }).$promise.then(function () {
+            return _this.SetResource.get({ id: setId, type: documentType }).$promise;
+        }).then(function (set) {
+            _this.notifySetChanged(set);
+            return set;
+        });
     };
     /**
      * Clear the documents list of the cart.
@@ -2928,25 +2947,40 @@ var SetService = /** @class */ (function () {
         return "cart." + documentType;
     };
     /**
-     * Notify at document level that the cart set was updated.
+     * Notify at document level.
+     * @param eventType the type of the event
      * @param documentType the document type
      */
-    SetService.prototype.notifyCartChanged = function (documentType) {
+    SetService.prototype.notify = function (eventType, detail) {
         var event;
         try {
             // For modern browsers except IE:
-            event = new CustomEvent("cart-updated", { detail: documentType });
+            event = new CustomEvent(eventType, { detail: detail });
         }
         catch (err) {
             // If IE 11 (or 10 or 9...?) do it this way:
             // Create the event.
             event = document.createEvent("Event");
             // Define that the event name is 'build'.
-            event.initEvent("cart-updated", true, true);
-            event.detail = documentType;
+            event.initEvent(eventType, true, true);
+            event.detail = detail;
         }
         // Dispatch/Trigger/Fire the event
         document.dispatchEvent(event);
+    };
+    /**
+     * Notify at document level that the set was updated.
+     * @param documentType the document type
+     */
+    SetService.prototype.notifySetChanged = function (documentType) {
+        this.notify("set-updated", documentType);
+    };
+    /**
+     * Notify at document level that the cart set was updated.
+     * @param documentType the document type
+     */
+    SetService.prototype.notifyCartChanged = function (documentType) {
+        this.notify("cart-updated", documentType);
     };
     SetService.$inject = ["$location", "$window", "$log", "$translate",
         "localStorageService", "PageUrlService", "AlertService",
@@ -3176,6 +3210,203 @@ ngObibaMica.sets
     .component("cartDocumentsTable", new CartDocumentsTableComponent());
 //# sourceMappingURL=component.js.map
 "use strict";
+var DocumentSetTableComponentController = /** @class */ (function () {
+    function DocumentSetTableComponentController(PageUrlService, LocalizedValues, SetService, $translate, $log) {
+        this.PageUrlService = PageUrlService;
+        this.LocalizedValues = LocalizedValues;
+        this.SetService = SetService;
+        this.$translate = $translate;
+        this.$log = $log;
+        this.showStudies = true;
+        this.showVariableType = true;
+        this.allSelected = false;
+        this.allPageSelected = {};
+        this.selections = {};
+        this.documents = {
+            from: 0,
+            limit: 0,
+            total: 0,
+        };
+        this.pagination = {
+            currentPage: 1,
+            from: 0,
+            itemsPerPage: 10,
+            maxSize: 10,
+            to: 0,
+            totalHits: 0,
+        };
+        this.showStudies = !this.SetService.isSingleStudy();
+        this.showVariableType = this.SetService.hasHarmonizedDatasets();
+    }
+    DocumentSetTableComponentController.prototype.hasSelections = function () {
+        return this.allSelected || this.getSelectedDocumentIds().length > 0;
+    };
+    DocumentSetTableComponentController.prototype.updateAllSelected = function () {
+        this.$log.info("ALL=" + this.allSelected);
+        this.allSelected = !this.allSelected;
+        if (this.allSelected) {
+            this.allPageSelected[this.pagination.currentPage] = true;
+            this.updateAllCurrentPageSelected();
+        }
+        else {
+            this.allPageSelected = {};
+            this.selections = {};
+        }
+    };
+    DocumentSetTableComponentController.prototype.updateAllCurrentPageSelected = function () {
+        var _this = this;
+        this.$log.info("ALLPAGE=" + JSON.stringify(this.allPageSelected));
+        if (this.allSelected && !this.allPageSelected[this.pagination.currentPage]) {
+            this.allSelected = false;
+            this.allPageSelected = {};
+            this.selections = {};
+        }
+        else if (this.documents && this.documents[this.type]) {
+            this.documents[this.type].forEach(function (doc) {
+                _this.selections[doc.id] = _this.allPageSelected[_this.pagination.currentPage];
+            });
+        }
+    };
+    DocumentSetTableComponentController.prototype.updateSelection = function (documentId) {
+        if (!this.selections[documentId]) {
+            this.allPageSelected[this.pagination.currentPage] = false;
+            this.allSelected = false;
+        }
+    };
+    DocumentSetTableComponentController.prototype.entitiesCount = function () {
+        if (this.pagination.totalHits) {
+            var sels = this.getSelectedDocumentIds();
+            this.SetService.gotoSetEntitiesCount(this.setId, (sels && sels.length > 0 ? sels : undefined));
+        }
+    };
+    DocumentSetTableComponentController.prototype.download = function () {
+        return this.SetService.getDownloadUrl(this.type, this.setId);
+    };
+    DocumentSetTableComponentController.prototype.search = function () {
+        this.SetService.gotoSearch(this.type, this.setId);
+    };
+    DocumentSetTableComponentController.prototype.clearSet = function () {
+        var _this = this;
+        if (!this.hasSelections()) {
+            return;
+        }
+        var sels = this.getSelectedDocumentIds();
+        if (sels && sels.length > 0) {
+            this.SetService.removeDocumentFromSet(this.setId, this.type, sels)
+                .then(function () {
+                _this.allSelected = false;
+                _this.allPageSelected = {};
+                _this.selections = {};
+                _this.onPageChange(_this.type, 0);
+            });
+        }
+        else {
+            this.SetService.clearSet(this.setId, this.type)
+                .then(function () {
+                _this.allSelected = false;
+                _this.allPageSelected = {};
+                _this.selections = {};
+                _this.onPageChange(_this.type, 0);
+            });
+        }
+    };
+    DocumentSetTableComponentController.prototype.pageChanged = function () {
+        var from = (this.pagination.currentPage - 1) * this.documents.limit;
+        this.onPageChange(this.type, from);
+    };
+    DocumentSetTableComponentController.prototype.$onInit = function () {
+        this.table = {
+            rows: new Array(),
+        };
+    };
+    DocumentSetTableComponentController.prototype.$onChanges = function () {
+        this.table = this.asTable();
+        this.localizedTotal = this.LocalizedValues
+            .formatNumber((this.documents && this.documents.total) ? this.documents.total : 0);
+    };
+    DocumentSetTableComponentController.prototype.getSelectedDocumentIds = function () {
+        var _this = this;
+        if (this.allSelected) {
+            return [];
+        }
+        return Object.keys(this.selections).filter(function (id) { return _this.selections[id]; });
+    };
+    DocumentSetTableComponentController.prototype.localize = function (values) {
+        return this.LocalizedValues.forLang(values, this.$translate.use());
+    };
+    DocumentSetTableComponentController.prototype.asTable = function () {
+        var _this = this;
+        var table = {
+            rows: new Array(),
+        };
+        this.pagination.totalHits = this.documents ? this.documents.total : 0;
+        this.pagination.currentPage = this.documents ? this.documents.from / this.documents.limit + 1 : 0;
+        this.pagination.itemsPerPage = this.documents ? this.documents.limit : 0;
+        this.pagination.from = this.documents ? this.documents.from + 1 : 0;
+        var documentCounts = this.documents && this.documents[this.type] ? this.documents[this.type].length : 0;
+        this.pagination.to = this.documents ? this.documents.from + documentCounts : 0;
+        if (documentCounts) {
+            if (this.allSelected) {
+                this.allPageSelected[this.pagination.currentPage] = true;
+            }
+            this.documents[this.type].forEach(function (doc) {
+                if (_this.allSelected) {
+                    _this.selections[doc.id] = true;
+                }
+                var studyAcronym = _this.localize(doc.studySummary.acronym);
+                var studyName = _this.localize(doc.studySummary.name);
+                var studyType = doc.variableType === "Dataschema" ? "harmonization" : "individual";
+                var studyLink = _this.PageUrlService.studyPage(doc.studyId, studyType);
+                var datasetName = _this.localize(doc.datasetName);
+                var datasetLink = _this.PageUrlService.datasetPage(doc.datasetId, doc.variableType);
+                var variableLink = _this.PageUrlService.variablePage(doc.id);
+                var attrLabel = doc.attributes.filter(function (attr) { return attr.name === "label"; });
+                var variableLabel = attrLabel && attrLabel.length > 0 ? _this.localize(attrLabel[0].values) : "";
+                var row = new Array({
+                    link: undefined,
+                    value: doc.id,
+                }, {
+                    link: variableLink ? variableLink : datasetLink,
+                    value: doc.name,
+                }, {
+                    link: undefined,
+                    value: variableLabel,
+                }, {
+                    link: undefined,
+                    value: doc.variableType,
+                }, {
+                    link: studyLink,
+                    value: studyAcronym,
+                }, {
+                    link: datasetLink,
+                    value: datasetName,
+                });
+                table.rows.push(row);
+            });
+        }
+        return table;
+    };
+    DocumentSetTableComponentController.$inject = ["PageUrlService", "LocalizedValues", "SetService", "$translate", "$log"];
+    return DocumentSetTableComponentController;
+}());
+var DocumentSetTableComponent = /** @class */ (function () {
+    function DocumentSetTableComponent() {
+        this.transclude = true;
+        this.bindings = {
+            documents: "<",
+            onPageChange: "<",
+            setId: "<",
+            type: "<",
+        };
+        this.controller = DocumentSetTableComponentController;
+        this.controllerAs = "$ctrl";
+        this.templateUrl = "sets/components/set-documents-table/component.html";
+    }
+    return DocumentSetTableComponent;
+}());
+angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSetTableComponent());
+//# sourceMappingURL=component.js.map
+"use strict";
 var AddToSetModalInstanceController = /** @class */ (function () {
     function AddToSetModalInstanceController($uibModalInstance, $log, sets) {
         this.$uibModalInstance = $uibModalInstance;
@@ -3212,7 +3443,7 @@ var AddToSetModalInstanceController = /** @class */ (function () {
     };
     AddToSetModalInstanceController.prototype.onSelected = function () {
         this.choice.radio = "EXISTING";
-        this.canAccept = this.choice.selected && this.choice.selected.length > 0;
+        this.canAccept = this.choice.selected !== undefined;
         if (this.choice.name !== undefined) {
             this.choice.name = undefined;
         }
@@ -3234,7 +3465,7 @@ var AddToSetController = /** @class */ (function () {
         this.SetService = SetService;
         this.AlertService = AlertService;
     }
-    AddToSetController.prototype.openPopup = function (type, query, identifiers) {
+    AddToSetController.prototype.openPopup = function (type, query, identifiers, onUpdateCallback) {
         var _this = this;
         var modalInstance = this.$uibModal.open({
             controller: "AddToSetModalInstanceController",
@@ -3251,11 +3482,21 @@ var AddToSetController = /** @class */ (function () {
         });
         modalInstance.result.then(function (choice) {
             if (choice.radio === "EXISTING" && choice.selected !== undefined) {
-                _this.processDocumentSet(choice.selected, type, query, identifiers);
+                _this.processDocumentSet(choice.selected.id, type, query, identifiers).then(function (updatedSet) {
+                    if (onUpdateCallback !== undefined) {
+                        onUpdateCallback({ setName: updatedSet.name, addedCount: updatedSet.count - choice.selected.count });
+                    }
+                    return updatedSet;
+                });
             }
             else {
                 _this.SetsImportResource.save({ type: type, name: choice.name }, "").$promise.then(function (set) {
-                    _this.processDocumentSet(set.id, type, query, identifiers);
+                    _this.processDocumentSet(set.id, type, query, identifiers).then(function (updatedSet) {
+                        if (onUpdateCallback !== undefined) {
+                            onUpdateCallback({ setName: updatedSet.name, addedCount: updatedSet.count });
+                        }
+                        return updatedSet;
+                    });
                 });
             }
         });
@@ -3294,10 +3535,11 @@ var AddToSetDirective = /** @class */ (function () {
             addToSet: "<",
             query: "<",
             type: "<",
+            update: "&",
         };
         this.link = function (scope, elem, attributes, ctrl) {
             elem.on("click", function () {
-                ctrl.openPopup(scope.type, scope.query, scope.addToSet);
+                ctrl.openPopup(scope.type, scope.query, scope.addToSet, scope.update);
             });
         };
     }
@@ -3432,6 +3674,65 @@ angular.module("obiba.mica.sets").directive("addToSet", function () { return new
                 });
             };
         }
+    ])
+        .controller('SetsController', [
+        '$scope',
+        'ObibaSearchOptions',
+        'ngObibaMicaSetsTemplateUrl',
+        'MetaTaxonomyService',
+        'SetsResource',
+        'SetService',
+        function ($scope, ObibaSearchOptions, ngObibaMicaSetsTemplateUrl, MetaTaxonomyService, SetsResource, SetService) {
+            var searchTaxonomyDisplay = {
+                variable: ObibaSearchOptions.variables.showSearchTab,
+                dataset: ObibaSearchOptions.datasets.showSearchTab,
+                study: ObibaSearchOptions.studies.showSearchTab,
+                network: ObibaSearchOptions.networks.showSearchTab
+            };
+            var limit = 100;
+            $scope.setsHeaderTemplateUrl = ngObibaMicaSetsTemplateUrl.getHeaderUrl('sets');
+            $scope.tabs = ObibaSearchOptions.targetTabsOrder.filter(function (target) {
+                return searchTaxonomyDisplay[target];
+            });
+            $scope.sets = {};
+            function initSets() {
+                MetaTaxonomyService.getMetaTaxonomyForTargets(['variable']).then(function (metatTaxonomies) {
+                    $scope.useableTabs = metatTaxonomies;
+                    metatTaxonomies.forEach(function (meta) {
+                        SetsResource.query({ type: targetToType(meta.name) }).$promise.then(function (allSets) {
+                            return allSets.filter(function (set) { return set.name; });
+                        }).then(function (sets) {
+                            $scope.sets[meta.name] = sets;
+                        });
+                    });
+                });
+            }
+            function selectSet(target, set) {
+                $scope.loading = true;
+                $scope.selectedType = targetToType(target);
+                $scope.selectedSet = set;
+                var promisedDocs = SetService.getSetDocuments($scope.selectedSet.id, $scope.selectedType, 0, limit);
+                if (promisedDocs) {
+                    promisedDocs.then(onDocuments);
+                }
+                else {
+                    $scope.documents = { total: 0 };
+                }
+            }
+            function onDocuments(documents) {
+                $scope.loading = false;
+                $scope.documents = documents;
+                $scope.selectedSet.count = documents.total;
+            }
+            function onPaginate(type, from) {
+                if ($scope.selectedSet) {
+                    SetService.getSetDocuments($scope.selectedSet.id, type, from, limit).then(onDocuments);
+                }
+            }
+            initSets();
+            $scope.onPaginate = onPaginate;
+            $scope.selectSet = selectSet;
+        }
     ]);
 })();
 //# sourceMappingURL=sets-controller.js.map
@@ -3448,11 +3749,22 @@ angular.module("obiba.mica.sets").directive("addToSet", function () { return new
 ngObibaMica.sets
     .config(['$routeProvider',
     function ($routeProvider) {
+        var optionsResolve = ['ngObibaMicaSearch', function (ngObibaMicaSearch) {
+                return ngObibaMicaSearch.getOptionsAsyn();
+            }];
         $routeProvider
             .when('/cart', {
             templateUrl: 'sets/views/cart.html',
             controller: 'CartController',
             reloadOnSearch: false
+        })
+            .when('/sets', {
+            templateUrl: 'sets/views/sets.html',
+            controller: 'SetsController',
+            reloadOnSearch: false,
+            resolve: {
+                ObibaSearchOptions: optionsResolve
+            }
         });
     }]);
 //# sourceMappingURL=sets-router.js.map
@@ -10962,6 +11274,22 @@ ngObibaMica.search
             var queryWithLimit = rewriteQueryWithLimitAndFields(100000);
             return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(queryWithLimit));
         };
+        $scope.onSetUpdate = function (setName, addedCount) {
+            console.log('on update');
+            var msgKey = 'sets.set.variables-added';
+            var msgArgs = [setName, addedCount];
+            if (addedCount === 0) {
+                msgKey = 'sets.set.no-variable-added';
+                msgArgs = [setName];
+            }
+            AlertService.growl({
+                id: 'SearchControllerGrowl',
+                type: 'info',
+                msgKey: msgKey,
+                msgArgs: msgArgs,
+                delay: 3000
+            });
+        };
         $scope.addToCart = function () {
             if ($scope.query === null) {
                 return $scope.query;
@@ -15304,7 +15632,7 @@ ngObibaMica.fileBrowser
         };
     }]);
 //# sourceMappingURL=file-browser-service.js.map
-angular.module('templates-ngObibaMica', ['access/components/action-log/component.html', 'access/components/action-log/item/component.html', 'access/components/action-log/item/delete-modal.html', 'access/components/action-log/item/edit-modal.html', 'access/components/entity-list/component.html', 'access/components/print-friendly-view/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/cell-stat-value/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/cart-documents-table/component.html', 'sets/directives/add-to-set-modal/add-to-set-modal.html', 'sets/views/cart.html', 'utils/components/entity-schema-form/component.html', 'utils/services/user-profile-modal/service.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+angular.module('templates-ngObibaMica', ['access/components/action-log/component.html', 'access/components/action-log/item/component.html', 'access/components/action-log/item/delete-modal.html', 'access/components/action-log/item/edit-modal.html', 'access/components/entity-list/component.html', 'access/components/print-friendly-view/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/cell-stat-value/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/cart-documents-table/component.html', 'sets/components/set-documents-table/component.html', 'sets/directives/add-to-set-modal/add-to-set-modal.html', 'sets/views/cart.html', 'sets/views/sets.html', 'utils/components/entity-schema-form/component.html', 'utils/services/user-profile-modal/service.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/components/action-log/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/components/action-log/component.html",
@@ -18285,7 +18613,7 @@ angular.module("search/components/input-search-filter/component.html", []).run([
 angular.module("search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html",
     "<div uib-accordion-group class=\"panel-default\" is-open=\"$ctrl.status.isFirstOpen\">\n" +
-    "  <div uib-accordion-heading >\n" +
+    "  <div uib-accordion-heading>\n" +
     "    <span>\n" +
     "      <i class=\"fa\" ng-class=\"{'fa-caret-down': $ctrl.status.isFirstOpen, 'fa-caret-right':!$ctrl.status.isFirstOpen}\"></i>\n" +
     "    </span>\n" +
@@ -19193,7 +19521,7 @@ angular.module("search/components/result/search-result/list.html", []).run(["$te
     "      </button>\n" +
     "      <ul class=\"dropdown-menu\">\n" +
     "        <li><a ng-click=\"addToCart()\" href translate>sets.add.button.cart-label</a></li>\n" +
-    "        <li><a add-to-set=\"\" query=\"query\" type=\"type\" href>{{'sets.add.button.set-label' | translate}}</a></li>\n" +
+    "        <li><a add-to-set=\"\" query=\"query\" type=\"type\" update=\"onSetUpdate(setName, addedCount)\" href>{{'sets.add.button.set-label' | translate}}</a></li>\n" +
     "      </ul>\n" +
     "    </div>\n" +
     "\n" +
@@ -20249,6 +20577,95 @@ angular.module("sets/components/cart-documents-table/component.html", []).run(["
     "</div>");
 }]);
 
+angular.module("sets/components/set-documents-table/component.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("sets/components/set-documents-table/component.html",
+    "<div>\n" +
+    "  <div class=\"pull-left\" ng-show=\"$ctrl.documents.total>0\">\n" +
+    "    <a obiba-file-download url=\"$ctrl.download()\" target=\"_self\" download class=\"action btn btn-info btn-responsive\">\n" +
+    "      <i class=\"fa fa-download\"></i>\n" +
+    "    </a>\n" +
+    "\n" +
+    "    <a href=\"\" ng-click=\"$ctrl.search()\" class=\"action btn btn-info btn-responsive\">\n" +
+    "      <i class=\"fa fa-search\"></i>\n" +
+    "    </a>\n" +
+    "\n" +
+    "    <a href=\"\" ng-click=\"$ctrl.clearSet()\" ng-disabled=\"!$ctrl.hasSelections()\" class=\"action btn btn-danger btn-responsive\">\n" +
+    "      <i class=\"fa fa-trash-o\"></i>\n" +
+    "    </a>\n" +
+    "  </div>\n" +
+    "\n" +
+    "  <div ng-show=\"$ctrl.pagination.totalHits > 0\" class=\"pull-right\">\n" +
+    "    <span\n" +
+    "      uib-pagination\n" +
+    "      total-items=\"$ctrl.pagination.totalHits\"\n" +
+    "      max-size=\"$ctrl.pagination.maxSize\"\n" +
+    "      ng-model=\"$ctrl.pagination.currentPage\"\n" +
+    "      boundary-links=\"true\"\n" +
+    "      force-ellipses=\"true\"\n" +
+    "      items-per-page=\"$ctrl.pagination.itemsPerPage\"\n" +
+    "      previous-text=\"&lsaquo;\"\n" +
+    "      next-text=\"&rsaquo;\"\n" +
+    "      first-text=\"&laquo;\"\n" +
+    "      last-text=\"&raquo;\"\n" +
+    "      template-url=\"search/views/list/pagination-template.html\"\n" +
+    "      ng-change=\"$ctrl.pageChanged()\"></span>\n" +
+    "\n" +
+    "    <ul class=\"pagination pagination-sm\">\n" +
+    "      <li>\n" +
+    "        <a href class=\"pagination-total\">{{$ctrl.pagination.from}} - {{$ctrl.pagination.to}} {{'of' | translate}}\n" +
+    "          {{$ctrl.pagination.totalHits}}</a>\n" +
+    "      </li>\n" +
+    "    </ul>\n" +
+    "  </div>\n" +
+    "  <div class=\"clearfix\"></div>\n" +
+    "\n" +
+    "  <div class=\"table-responsive\">\n" +
+    "    <div class=\"alert alert-warning actions-select\" ng-show=\"$ctrl.allPageSelected[$ctrl.pagination.currentPage]\">\n" +
+    "      <span ng-hide=\"$ctrl.allSelected\">\n" +
+    "        <span translate>sets.cart.all-cart-page-selected</span>\n" +
+    "        <a href ng-click=\"$ctrl.updateAllSelected()\" class=\"hoffset2\">\n" +
+    "          <i class=\"fa fa-square-o\"></i>\n" +
+    "          <b><span translate>sets.cart.select-all-cart</span></b>\n" +
+    "        </a>\n" +
+    "      </span>\n" +
+    "\n" +
+    "      <span ng-show=\"$ctrl.allSelected\">\n" +
+    "        <span translate>sets.cart.all-cart-selected</span>\n" +
+    "        <a href ng-click=\"$ctrl.updateAllSelected()\" class=\"hoffset2\">\n" +
+    "          <i class=\"fa fa-check-square-o\"></i>\n" +
+    "          <b><span translate>sets.cart.unselect-all-cart</span></b>\n" +
+    "        </a>\n" +
+    "      </span>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <table class=\"table table-bordered table-striped\" ng-if=\"$ctrl.documents.total>0\">\n" +
+    "      <thead>\n" +
+    "        <th style=\"width: 50px\">\n" +
+    "          <input ng-model=\"$ctrl.allPageSelected[$ctrl.pagination.currentPage]\" type=\"checkbox\" ng-click=\"$ctrl.updateAllCurrentPageSelected()\" />\n" +
+    "        </th>\n" +
+    "        <th translate>taxonomy.target.variable</th>\n" +
+    "        <th translate>search.variable.label</th>\n" +
+    "        <th ng-if=\"$ctrl.showVariableType\" translate>type</th>\n" +
+    "        <th ng-if=\"$ctrl.showStudies\" translate>taxonomy.target.study</th>\n" +
+    "        <th translate>taxonomy.target.dataset</th>\n" +
+    "      </thead>\n" +
+    "      <tbody>\n" +
+    "        <tr ng-repeat=\"row in $ctrl.table.rows\">\n" +
+    "          <td>\n" +
+    "            <input ng-model=\"$ctrl.selections[row[0].value]\" type=\"checkbox\" ng-click=\"$ctrl.updateSelection(row[0].value)\" />\n" +
+    "          </td>\n" +
+    "          <td><a href=\"{{row[1].link}}\">{{row[1].value}}</a></td>\n" +
+    "          <td>{{row[2].value}}</td>\n" +
+    "          <td ng-if=\"$ctrl.showVariableType\">{{'search.variable.' + row[3].value.toLowerCase() | translate}}</td>\n" +
+    "          <td ng-if=\"$ctrl.showStudies\"><a href=\"{{row[3].link}}\">{{row[4].value}}</a></td>\n" +
+    "          <td><a href=\"{{row[5].link}}\">{{row[5].value}}</a></td>\n" +
+    "        </tr>\n" +
+    "      </tbody>\n" +
+    "    </table>\n" +
+    "  </div>\n" +
+    "</div>");
+}]);
+
 angular.module("sets/directives/add-to-set-modal/add-to-set-modal.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("sets/directives/add-to-set-modal/add-to-set-modal.html",
     "<div class=\"modal-content\">\n" +
@@ -20279,7 +20696,7 @@ angular.module("sets/directives/add-to-set-modal/add-to-set-modal.html", []).run
     "          </label>\n" +
     "        </div>\n" +
     "\n" +
-    "        <select class=\"form-control\" ng-options=\"set.id as set.name for set in $ctrl.sets\" ng-model=\"$ctrl.choice.selected\" ng-change=\"$ctrl.onSelected()\"></select>\n" +
+    "        <select class=\"form-control\" ng-options=\"set as set.name for set in $ctrl.sets\" ng-model=\"$ctrl.choice.selected\" ng-change=\"$ctrl.onSelected()\"></select>\n" +
     "    </div>\n" +
     "\n" +
     "  </div>\n" +
@@ -20304,6 +20721,42 @@ angular.module("sets/views/cart.html", []).run(["$templateCache", function($temp
     "    documents=\"variables\"\n" +
     "    on-page-change=\"onPaginate\"></cart-documents-table>\n" +
     "  <p ng-hide=\"loading || variables && variables.total>0\" translate>sets.cart.no-variables</p>\n" +
+    "</div>");
+}]);
+
+angular.module("sets/views/sets.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("sets/views/sets.html",
+    "<div>\n" +
+    "  <div ng-if=\"setsHeaderTemplateUrl\" ng-include=\"setsHeaderTemplateUrl\"></div>\n" +
+    "\n" +
+    "  <div class=\"row\">\n" +
+    "    <div class=\"col-md-3\">\n" +
+    "      <uib-accordion close-others=\"false\">\n" +
+    "        <div uib-accordion-group class=\"panel-default\" ng-repeat=\"tab in useableTabs\" is-open=\"true\">\n" +
+    "\n" +
+    "          <div uib-accordion-heading>\n" +
+    "            <span>\n" +
+    "              {{tab.title | localizedString}}\n" +
+    "            </span>\n" +
+    "          </div>\n" +
+    "\n" +
+    "          <ul class=\"nav nav-pills nav-stacked\">\n" +
+    "            <li role=\"presentation\" ng-repeat=\"set in sets[tab.name]\">\n" +
+    "              <a href ng-click=\"selectSet(tab.name, set)\">\n" +
+    "                {{set.name}}\n" +
+    "                <span class=\"badge pull-right\">{{set.count}}</span>\n" +
+    "              </a>\n" +
+    "            </li>\n" +
+    "          </ul>\n" +
+    "        </div>\n" +
+    "      </uib-accordion>\n" +
+    "    </div>\n" +
+    "\n" +
+    "    <div class=\"col-md-9\">\n" +
+    "      <span ng-if=\"loading\" class=\"voffset2 loading\"></span>\n" +
+    "      <set-documents-table set-id=\"selectedSet.id\" type=\"'variables'\" documents=\"documents\" on-page-change=\"onPaginate\"></set-documents-table>\n" +
+    "    </div>\n" +
+    "  </div>\n" +
     "</div>");
 }]);
 

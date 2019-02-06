@@ -19,7 +19,7 @@
       </button>
       <ul class="dropdown-menu">
         <li><a ng-click="addToCart()" href translate>sets.add.button.cart-label</a></li>
-        <li><a add-to-set="" query="query" type="type" href>{{'sets.add.button.set-label' | translate}}</a></li>
+        <li><a add-to-set="" query="query" type="type" update="onSetUpdate(setName, addedCount)" href>{{'sets.add.button.set-label' | translate}}</a></li>
       </ul>
     </div>
 

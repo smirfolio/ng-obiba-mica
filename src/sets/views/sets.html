@@ -1,0 +1,32 @@
+<div>
+  <div ng-if="setsHeaderTemplateUrl" ng-include="setsHeaderTemplateUrl"></div>
+
+  <div class="row">
+    <div class="col-md-3">
+      <uib-accordion close-others="false">
+        <div uib-accordion-group class="panel-default" ng-repeat="tab in useableTabs" is-open="true">
+
+          <div uib-accordion-heading>
+            <span>
+              {{tab.title | localizedString}}
+            </span>
+          </div>
+
+          <ul class="nav nav-pills nav-stacked">
+            <li role="presentation" ng-repeat="set in sets[tab.name]">
+              <a href ng-click="selectSet(tab.name, set)">
+                {{set.name}}
+                <span class="badge pull-right">{{set.count}}</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </uib-accordion>
+    </div>
+
+    <div class="col-md-9">
+      <span ng-if="loading" class="voffset2 loading"></span>
+      <set-documents-table set-id="selectedSet.id" type="'variables'" documents="documents" on-page-change="onPaginate"></set-documents-table>
+    </div>
+  </div>
+</div>

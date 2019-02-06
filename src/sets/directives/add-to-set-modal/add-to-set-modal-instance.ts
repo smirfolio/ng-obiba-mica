@@ -51,7 +51,7 @@ class AddToSetModalInstanceController implements IAddToSetModalInstanceControlle
 
   public onSelected(): void {
     this.choice.radio = "EXISTING";
-    this.canAccept = this.choice.selected && this.choice.selected.length > 0;
+    this.canAccept = this.choice.selected !== undefined;
     if (this.choice.name !== undefined) {
       this.choice.name = undefined;
     }

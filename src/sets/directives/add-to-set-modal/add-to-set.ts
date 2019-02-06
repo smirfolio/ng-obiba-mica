@@ -2,7 +2,7 @@
 
 interface IAddToSetController extends ng.IController {
 
-  openPopup(type: string, query?: string, identifiers?: [string]): void;
+  openPopup(type: string, query?: string, identifiers?: [string], onUpdateCallback?: any): void;
 }
 
 interface IAddToSetDirectiveScope extends ng.IScope {
@@ -10,6 +10,7 @@ interface IAddToSetDirectiveScope extends ng.IScope {
   addToSet: [string];
   query: string;
   type: string;
+  update: any;
 }
 
 class AddToSetController implements IAddToSetController {
@@ -34,7 +35,7 @@ class AddToSetController implements IAddToSetController {
     private SetService: ISetService,
     private AlertService: any) {}
 
-  public openPopup(type: string, query?: string, identifiers?: [string]) {
+  public openPopup(type: string, query?: string, identifiers?: [string], onUpdateCallback?: any) {
     const modalInstance = this.$uibModal.open({
       controller: "AddToSetModalInstanceController",
       controllerAs: "$ctrl",
@@ -49,12 +50,24 @@ class AddToSetController implements IAddToSetController {
       templateUrl: "sets/directives/add-to-set-modal/add-to-set-modal.html",
     });
 
-    modalInstance.result.then((choice: { radio: string, selected?: string, name?: string }) => {
+    modalInstance.result.then((choice: { radio: string, selected?: any, name?: string }) => {
       if (choice.radio === "EXISTING" && choice.selected !== undefined) {
-        this.processDocumentSet(choice.selected, type, query, identifiers);
+        this.processDocumentSet(choice.selected.id, type, query, identifiers).then((updatedSet) => {
+          if (onUpdateCallback !== undefined) {
+            onUpdateCallback({setName: updatedSet.name, addedCount: updatedSet.count - choice.selected.count});
+          }
+
+          return updatedSet;
+        });
       } else {
         this.SetsImportResource.save({type, name: choice.name}, "").$promise.then((set) => {
-          this.processDocumentSet(set.id, type, query, identifiers);
+          this.processDocumentSet(set.id, type, query, identifiers).then((updatedSet) => {
+            if (onUpdateCallback !== undefined) {
+              onUpdateCallback({setName: updatedSet.name, addedCount: updatedSet.count});
+            }
+
+            return updatedSet;
+          });
         });
       }
     });
@@ -97,6 +110,7 @@ class AddToSetDirective implements ng.IDirective {
       addToSet: "<",
       query: "<",
       type: "<",
+      update: "&",
     };
 
     this.link = (
@@ -106,7 +120,7 @@ class AddToSetDirective implements ng.IDirective {
       ctrl: IAddToSetController): void => {
 
       elem.on("click", () => {
-        ctrl.openPopup(scope.type, scope.query, scope.addToSet);
+        ctrl.openPopup(scope.type, scope.query, scope.addToSet, scope.update);
       });
     };
   }

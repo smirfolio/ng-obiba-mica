@@ -61,11 +61,11 @@ class SetService implements ISetService {
     private SetImportQueryResource: any,
     private SetRemoveResource: any,
     private ObibaServerConfigResource: any) {
-      const that = this;
-      ObibaServerConfigResource.get((micaConfig) => {
-        that.hasMultipleStudies = !micaConfig.isSingleStudyEnabled || micaConfig.isHarmonizedDatasetEnabled;
-        that.hasHarmonization = micaConfig.isHarmonizedDatasetEnabled;
-      });
+    const that = this;
+    ObibaServerConfigResource.get((micaConfig) => {
+      that.hasMultipleStudies = !micaConfig.isSingleStudyEnabled || micaConfig.isHarmonizedDatasetEnabled;
+      that.hasHarmonization = micaConfig.isHarmonizedDatasetEnabled;
+    });
   }
 
   public isSingleStudy(): boolean {
@@ -114,7 +114,7 @@ class SetService implements ISetService {
    * @param documentId the document ID
    */
   public isDocumentInSet(setId: string, documentType: string, documentId: string): any {
-    return this.SetExistsResource.get({type: documentType, id: setId, did: documentId}).$promise;
+    return this.SetExistsResource.get({ type: documentType, id: setId, did: documentId }).$promise;
   }
 
   /**
@@ -134,12 +134,15 @@ class SetService implements ISetService {
    * Return a promise on the set.
    * @param setId the set's identifier
    * @param documentType the document type
-   * @param documentId the docuemtn ID or an array od document IDs
+   * @param documentId the document ID or an array od document IDs
    */
   public addDocumentToSet(setId: string, documentType: string, documentId: string | string[]): any {
     const did = Array.isArray(documentId) ? documentId.join("\n") : documentId;
-    return this.SetResource.get({type: documentType, id: setId}).$promise.then((set) => {
-      return this.SetImportResource.save({type: documentType, id: set.id}, did).$promise;
+    return this.SetResource.get({ type: documentType, id: setId }).$promise.then((set) => {
+      return this.SetImportResource.save({ type: documentType, id: set.id }, did).$promise;
+    }).then((set) => {
+      this.notifySetChanged(set);
+      return set;
     });
   }
 
@@ -152,7 +155,7 @@ class SetService implements ISetService {
   public addDocumentToCart(documentType: string, documentId: string | string[]): any {
     const did = Array.isArray(documentId) ? documentId.join("\n") : documentId;
     return this.getOrCreateCart(documentType).then((set) => {
-      return this.SetImportResource.save({type: documentType, id: set.id}, did).$promise;
+      return this.SetImportResource.save({ type: documentType, id: set.id }, did).$promise;
     }).then((set) => {
       return this.saveCart(documentType, set);
     });
@@ -167,7 +170,11 @@ class SetService implements ISetService {
    */
   public addDocumentQueryToSet(setId: string, documentType: string, rqlQuery: string): any {
     this.$log.info("query=" + rqlQuery);
-    return this.SetImportQueryResource.save({type: documentType, id: setId, query: rqlQuery}).$promise;
+    return this.SetImportQueryResource.save({ type: documentType, id: setId, query: rqlQuery }).$promise
+      .then((set) => {
+        this.notifySetChanged(set);
+        return set;
+      });
   }
 
   /**
@@ -179,7 +186,7 @@ class SetService implements ISetService {
   public addDocumentQueryToCart(documentType: string, rqlQuery: string): any {
     this.$log.info("query=" + rqlQuery);
     return this.getOrCreateCart(documentType).then((set) => {
-      return this.SetImportQueryResource.save({type: documentType, id: set.id, query: rqlQuery}).$promise;
+      return this.SetImportQueryResource.save({ type: documentType, id: set.id, query: rqlQuery }).$promise;
     }).then((set) => {
       return this.saveCart(documentType, set);
     });
@@ -194,7 +201,10 @@ class SetService implements ISetService {
    */
   public removeDocumentFromSet(setId: string, documentType: string, documentId: string | string[]): any {
     const did = Array.isArray(documentId) ? documentId.join("\n") : documentId;
-    return this.SetRemoveResource.delete({type: documentType, id: setId}, did).$promise;
+    return this.SetRemoveResource.delete({ type: documentType, id: setId }, did).$promise.then((set) => {
+      this.notifySetChanged(set);
+      return set;
+    });
   }
 
   /**
@@ -206,7 +216,7 @@ class SetService implements ISetService {
   public removeDocumentFromCart(documentType: string, documentId: string | string[]): any {
     const did = Array.isArray(documentId) ? documentId.join("\n") : documentId;
     return this.getOrCreateCart(documentType).then((set) => {
-      return this.SetRemoveResource.delete({type: documentType, id: set.id}, did).$promise;
+      return this.SetRemoveResource.delete({ type: documentType, id: set.id }, did).$promise;
     }).then((set) => {
       return this.saveCart(documentType, set);
     });
@@ -218,7 +228,12 @@ class SetService implements ISetService {
    * @param documentType the document type
    */
   public clearSet(setId: string, documentType: string): any {
-    return this.SetClearResource.clear({type: documentType, id: setId}).$promise;
+    return this.SetClearResource.clear({ type: documentType, id: setId }).$promise.then(() => {
+      return this.SetResource.get({ id: setId, type: documentType }).$promise;
+    }).then((set) => {
+      this.notifySetChanged(set);
+      return set;
+    });
   }
 
   /**
@@ -227,7 +242,7 @@ class SetService implements ISetService {
    */
   public clearCart(documentType: string): any {
     return this.getOrCreateCart(documentType).then((set) => {
-      return this.SetClearResource.clear({type: documentType, id: set.id}).$promise;
+      return this.SetClearResource.clear({ type: documentType, id: set.id }).$promise;
     }).then(() => {
       this.notifyCartChanged(documentType);
       return this.getOrCreateCart(documentType);
@@ -251,10 +266,10 @@ class SetService implements ISetService {
     }
     // TODO make a search query instead to force variable type to Collected
     if (!documentId) {
-    this.SetDocumentsResource.get({type: "variables", id: sid, from: 0, limit: max}).$promise
-      .then((documents) => {
-        this.gotoEntitiesCount(documents.variables.map((doc) => doc.id));
-      });
+      this.SetDocumentsResource.get({ type: "variables", id: sid, from: 0, limit: max }).$promise
+        .then((documents) => {
+          this.gotoEntitiesCount(documents.variables.map((doc) => doc.id));
+        });
     } else {
       const ids = Array.isArray(documentId) ? documentId : [documentId];
       this.gotoEntitiesCount(ids.slice(0, max));
@@ -327,7 +342,7 @@ class SetService implements ISetService {
   private getOrCreateCart(documentType: string): any {
     const cartSet = this.localStorageService.get(this.getCartKey(documentType));
     if (cartSet) {
-      return this.SetResource.get({type: documentType, id: cartSet.id}).$promise
+      return this.SetResource.get({ type: documentType, id: cartSet.id }).$promise
         .then((set) => {
           return this.saveCart(documentType, set);
         })
@@ -345,10 +360,10 @@ class SetService implements ISetService {
    * @param documentId the document ID to be added to the cart (can be empty)
    */
   private createCart(documentType: string, documentId: string): any {
-    return this.SetsImportResource.save({type: documentType}, documentId).$promise
-    .then((set) => {
-      return this.saveCart(documentType, set);
-    });
+    return this.SetsImportResource.save({ type: documentType }, documentId).$promise
+      .then((set) => {
+        return this.saveCart(documentType, set);
+      });
   }
 
   private saveCart(documentType: string, set: any) {
@@ -369,24 +384,41 @@ class SetService implements ISetService {
   }
 
   /**
-   * Notify at document level that the cart set was updated.
+   * Notify at document level.
+   * @param eventType the type of the event
    * @param documentType the document type
    */
-  private notifyCartChanged(documentType: string): void {
+  private notify(eventType: string, detail: string): void {
     let event;
     try {
       // For modern browsers except IE:
-      event = new CustomEvent("cart-updated", {detail: documentType});
+      event = new CustomEvent(eventType, { detail });
     } catch (err) {
       // If IE 11 (or 10 or 9...?) do it this way:
       // Create the event.
       event = document.createEvent("Event");
       // Define that the event name is 'build'.
-      event.initEvent("cart-updated", true, true);
-      event.detail = documentType;
+      event.initEvent(eventType, true, true);
+      event.detail = detail;
     }
     // Dispatch/Trigger/Fire the event
     document.dispatchEvent(event);
+  }
+
+  /**
+   * Notify at document level that the set was updated.
+   * @param documentType the document type
+   */
+  private notifySetChanged(documentType: string): void {
+    this.notify("set-updated", documentType);
+  }
+
+  /**
+   * Notify at document level that the cart set was updated.
+   * @param documentType the document type
+   */
+  private notifyCartChanged(documentType: string): void {
+    this.notify("cart-updated", documentType);
   }
 }
 
