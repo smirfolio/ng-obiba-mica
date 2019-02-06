@@ -13,11 +13,23 @@
 ngObibaMica.sets
   .config(['$routeProvider',
     function ($routeProvider) {
-      
+
+      var optionsResolve = ['ngObibaMicaSearch', function (ngObibaMicaSearch) {
+        return ngObibaMicaSearch.getOptionsAsyn();
+      }];
+
       $routeProvider
         .when('/cart', {
           templateUrl: 'sets/views/cart.html',
           controller: 'CartController',
           reloadOnSearch: false
+        })
+        .when('/sets', {
+          templateUrl: 'sets/views/sets.html',
+          controller: 'SetsController',
+          reloadOnSearch: false,
+          resolve: {
+            ObibaSearchOptions: optionsResolve
+          }
         });
     }]);

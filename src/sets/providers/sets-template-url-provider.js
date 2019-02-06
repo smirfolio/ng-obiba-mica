@@ -17,7 +17,8 @@
     .config(['$provide', function ($provide) {
       $provide.provider('ngObibaMicaSetsTemplateUrl', new NgObibaMicaTemplateUrlFactory().create(
         {
-          cart: { header: null, footer: null }
+          cart: { header: null, footer: null },
+          sets: { header: null, footer: null }
         }
       ));
     }]);
