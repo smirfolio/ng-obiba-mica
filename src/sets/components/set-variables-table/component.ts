@@ -14,7 +14,13 @@ class VariablesSetTableComponentController extends DocumentsSetTableComponentCon
     super(SetService, $log);
   }
 
-  public $onChanges() {
+  public $onChanges(changes: any) {
+    if (changes.setId !== undefined) {
+      this.allSelected = false;
+      this.allPageSelected = {};
+      this.selections = {};
+    }
+
     this.table = this.asTable();
     this.localizedTotal = this.LocalizedValues
       .formatNumber((this.documents && this.documents.total) ? this.documents.total : 0);

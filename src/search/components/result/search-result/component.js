@@ -100,8 +100,6 @@ ngObibaMica.search
       }
 
       $scope.onSetUpdate = function (setName, addedCount) {
-        console.log('on update');
-
         var msgKey = 'sets.set.variables-added';
         var msgArgs = [setName, addedCount];
         if (addedCount === 0) {
