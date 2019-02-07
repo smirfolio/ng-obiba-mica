@@ -2,12 +2,12 @@
 
 interface IAddToSetController extends ng.IController {
 
-  openPopup(type: string, query?: string, identifiers?: [string], onUpdateCallback?: any): void;
+  openPopup(type: string, query?: string, identifiers?: string[], onUpdateCallback?: any): void;
 }
 
 interface IAddToSetDirectiveScope extends ng.IScope {
 
-  addToSet: [string];
+  addToSet: string[];
   query: string;
   type: string;
   update: any;
@@ -17,32 +17,28 @@ class AddToSetController implements IAddToSetController {
 
   private static $inject = [
     "$uibModal",
-    "$log",
     "RqlQueryService",
     "RqlQueryUtils",
     "SetsResource",
     "SetsImportResource",
-    "SetService",
-    "AlertService"];
+    "SetService"];
 
   constructor(
     private $uibModal: any,
-    private $log: any,
     private RqlQueryService: any,
     private RqlQueryUtils: any,
     private SetsResource: any,
     private SetsImportResource: any,
-    private SetService: ISetService,
-    private AlertService: any) {}
+    private SetService: ISetService) {}
 
-  public openPopup(type: string, query?: string, identifiers?: [string], onUpdateCallback?: any) {
+  public openPopup(type: string, query?: string, identifiers?: string[], onUpdateCallback?: any) {
     const modalInstance = this.$uibModal.open({
       controller: "AddToSetModalInstanceController",
       controllerAs: "$ctrl",
       keyboard: false,
       resolve: {
         sets: () => {
-          return this.SetsResource.query({type}).$promise.then((allSets: [any]) => {
+          return this.SetsResource.query({type}).$promise.then((allSets: any[]) => {
             return allSets.filter((set: any) =>  set.name);
           });
         },
@@ -86,7 +82,7 @@ class AddToSetController implements IAddToSetController {
     setId: string,
     type: string,
     query?: string,
-    identifiers?: [string]): any {
+    identifiers?: string[]): any {
       const selections: string[] = Object.keys(identifiers);
       if (identifiers !== undefined && selections.length > 0) {
         return this.SetService.addDocumentToSet(setId, type, selections);

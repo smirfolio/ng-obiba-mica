@@ -32,8 +32,8 @@ class DocumentSetTableComponentController implements IDocumentSetTableComponentC
   public type: string;
   public table: any;
   public localizedTotal: string;
-  public showStudies: boolean = true;
-  public showVariableType: boolean = true;
+  public showStudies: boolean;
+  public showVariableType: boolean;
 
   private allSelected: boolean;
   private allPageSelected: any;

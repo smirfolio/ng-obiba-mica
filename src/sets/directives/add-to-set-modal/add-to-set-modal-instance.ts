@@ -13,7 +13,7 @@ class AddToSetModalInstanceController implements IAddToSetModalInstanceControlle
   public choice: { radio: string, selected?: string, name?: string };
   public canAccept: boolean;
 
-  constructor(private $uibModalInstance: any, private $log: any, private sets: [any]) {
+  constructor(private $uibModalInstance: any, private $log: any, private sets: any[]) {
     this.choice = {
       name: undefined,
       radio: "NEW",
