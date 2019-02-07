@@ -12,102 +12,24 @@
 
 declare var ngObibaMica: any;
 
-class CartDocumentsTableController implements ng.IComponentController {
+class CartDocumentsTableController extends DocumentsSetTableComponentController {
 
   private static $inject = ["PageUrlService", "LocalizedValues", "SetService", "AnalysisConfigService",
-    "$translate", "$log", "$scope", "$location", "$window"];
-
-  public documents: any;
-  public pagination: any;
-  public onPageChange: (type: string, from: number) => void;
-  public type: string;
-  public table: any;
-  public localizedTotal: string;
-  private allSelected: boolean;
-  private allPageSelected: any;
-  private selections: any;
+    "$translate", "$log", "$scope"];
 
   constructor(
     private PageUrlService: any,
     private LocalizedValues: any,
-    private SetService: any,
+    protected SetService: any,
     private AnalysisConfigService: any,
     private $translate: any,
-    private $log: any,
-    private $scope: any,
-    private $location: any,
-    private $window: any) {
-      this.allSelected = false;
-      this.allPageSelected = {};
-      this.selections = {};
-      this.documents = {
-        from: 0,
-        limit: 0,
-        total: 0,
-      };
-      this.pagination = {
-        currentPage: 1,
-        from: 0,
-        itemsPerPage: 10,
-        maxSize: 10,
-        to: 0,
-        totalHits: 0,
-      };
-  }
-
-  public hasSelections() {
-    return this.allSelected || this.getSelectedDocumentIds().length > 0;
-  }
-
-  public updateAllSelected() {
-    this.$log.info("ALL=" + this.allSelected);
-    this.allSelected = !this.allSelected;
-    if (this.allSelected) {
-      this.allPageSelected[this.pagination.currentPage] = true;
-      this.updateAllCurrentPageSelected();
-    } else {
-      this.allPageSelected = {};
-      this.selections = {};
-    }
-  }
-
-  public updateAllCurrentPageSelected() {
-    this.$log.info("ALLPAGE=" + JSON.stringify(this.allPageSelected));
-    if (this.allSelected && !this.allPageSelected[this.pagination.currentPage]) {
-      this.allSelected = false;
-      this.allPageSelected = {};
-      this.selections = {};
-    } else if (this.documents && this.documents[this.type]) {
-      this.documents[this.type].forEach((doc) => {
-        this.selections[doc.id] = this.allPageSelected[this.pagination.currentPage];
-      });
-    }
-  }
-
-  public updateSelection(documentId: any): void {
-    if (!this.selections[documentId]) {
-      this.allPageSelected[this.pagination.currentPage] = false;
-      this.allSelected = false;
-    }
+    protected $log: any,
+    private $scope: any) {
+      super(SetService, $log);
   }
 
   public showAnalysis(): boolean {
     return this.AnalysisConfigService.showAnalysis();
-  }
-
-  public showStudies(): boolean {
-    return !this.SetService.isSingleStudy();
-  }
-
-  public showVariableType(): boolean {
-    return this.SetService.hasHarmonizedDatasets();
-  }
-
-  public entitiesCount(): void {
-    if (this.pagination.totalHits) {
-      const sels = this.getSelectedDocumentIds();
-      this.SetService.gotoSetEntitiesCount(undefined, (sels && sels.length > 0 ? sels : undefined));
-    }
   }
 
   public download(): string {
@@ -142,28 +64,10 @@ class CartDocumentsTableController implements ng.IComponentController {
     }
   }
 
-  public pageChanged(): void {
-    const from = (this.pagination.currentPage - 1) * this.documents.limit;
-    this.onPageChange(this.type, from);
-  }
-
-  public $onInit() {
-    this.table = {
-      rows: new Array(),
-    };
-  }
-
   public $onChanges() {
     this.table = this.asTable();
     this.localizedTotal = this.LocalizedValues
       .formatNumber((this.documents && this.documents.total) ? this.documents.total : 0);
-  }
-
-  private getSelectedDocumentIds(): string[] {
-    if (this.allSelected) {
-      return [];
-    }
-    return Object.keys(this.selections).filter((id) => this.selections[id]);
   }
 
   private localize(values): string {
