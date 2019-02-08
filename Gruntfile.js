@@ -72,7 +72,6 @@ module.exports = function (grunt) {
           'built/sets/services/**/*.js',
           'built/sets/commons/**/*.js',
           'built/sets/components/**/*.js',
-          'built/sets/directives/**/*.js',
           'built/sets/sets-controller.js',
           'built/sets/sets-router.js',
           'built/search/search.js',
