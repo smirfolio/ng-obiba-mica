@@ -1,12 +1,33 @@
 <div>
   <div ng-if="loading" class="loading"></div>
   <div ng-show="!loading">
-
     <p class="help-block" ng-if="!summaries || !summaries.length" translate>search.variable.noResults</p>
     <div class="table-responsive" ng-if="summaries && summaries.length">
+      <div class="alert alert-warning actions-select" ng-show="pageSelections[pagination.currentPage]">
+      <span ng-hide="allSelected">
+        <span translate>sets.cart.all-cart-page-selected</span>
+        <a href ng-click="selectAll()" class="hoffset2">
+          <i class="fa fa-square-o"></i>
+          <b><span translate>sets.cart.select-all-cart</span></b>
+        </a>
+      </span>
+        <span ng-show="allSelected">
+        <span translate>sets.cart.all-cart-selected</span>
+        <a href ng-click="selectAll()" class="hoffset2">
+          <i class="fa fa-check-square-o"></i>
+          <b><span translate>sets.cart.unselect-all-cart</span></b>
+        </a>
+      </span>
+      </div>
       <table class="table table-bordered table-striped" ng-init="lang = $parent.$parent.lang">
         <thead>
           <tr>
+            <th style="width: 50px">
+              <input
+                      ng-model="pageSelections[pagination.currentPage]"
+                      type="checkbox"
+                      ng-click="selectPage()"/>
+            </th>
             <th translate>name</th>
             <th translate>search.variable.label</th>
             <th translate ng-if="optionsCols.showVariablesTypeColumn">type</th>
@@ -16,6 +37,9 @@
         </thead>
         <tbody test-ref="search-results">
           <tr ng-repeat="summary in summaries">
+            <td>
+              <input ng-model="selections[summary.id]" type="checkbox" ng-click="select(summary.id)"/>
+            </td>
             <td>
               <a test-ref="name" href="{{PageUrlService.variablePage(summary.id) ? PageUrlService.variablePage(summary.id) : PageUrlService.datasetPage(summary.datasetId, summary.variableType)}}">
                 {{summary.name}}

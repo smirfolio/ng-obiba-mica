@@ -1,7 +1,6 @@
 'use strict';
 
 /* global DISPLAY_TYPES */
-/* global QUERY_TYPES */
 
 ngObibaMica.search
   .controller('SearchResultController', [
@@ -13,14 +12,16 @@ ngObibaMica.search
     'ngObibaMicaSearchTemplateUrl',
     'AlertService',
     'SetService',
+    'SearchResultSelectionsService',
     function ($scope,
-      ngObibaMicaSearch,
-      ngObibaMicaUrl,
-      RqlQueryService,
-      RqlQueryUtils,
-      ngObibaMicaSearchTemplateUrl,
-      AlertService,
-      SetService) {
+              ngObibaMicaSearch,
+              ngObibaMicaUrl,
+              RqlQueryService,
+              RqlQueryUtils,
+              ngObibaMicaSearchTemplateUrl,
+              AlertService,
+              SetService,
+              SearchResultSelectionsService) {
 
       function updateType(type) {
         Object.keys($scope.activeTarget).forEach(function (key) {
@@ -35,15 +36,19 @@ ngObibaMica.search
         return RqlQueryUtils.rewriteQueryWithLimitAndFields(parsedQuery, target, limit, fields);
       }
 
+
       $scope.targetTypeMap = $scope.$parent.taxonomyTypeMap;
       $scope.QUERY_TARGETS = QUERY_TARGETS;
       $scope.QUERY_TYPES = QUERY_TYPES;
       $scope.options = ngObibaMicaSearch.getOptions();
       $scope.activeTarget = {};
-      $scope.activeTarget[QUERY_TYPES.VARIABLES] = { active: false, name: QUERY_TARGETS.VARIABLE };
-      $scope.activeTarget[QUERY_TYPES.DATASETS] = { active: false, name: QUERY_TARGETS.DATASET };
-      $scope.activeTarget[QUERY_TYPES.STUDIES] = { active: false, name: QUERY_TARGETS.STUDY };
-      $scope.activeTarget[QUERY_TYPES.NETWORKS] = { active: false, name: QUERY_TARGETS.NETWORK };
+      $scope.activeTarget[QUERY_TYPES.VARIABLES] = {active: false, name: QUERY_TARGETS.VARIABLE};
+      $scope.activeTarget[QUERY_TYPES.DATASETS] = {active: false, name: QUERY_TARGETS.DATASET};
+      $scope.activeTarget[QUERY_TYPES.STUDIES] = {active: false, name: QUERY_TARGETS.STUDY};
+      $scope.activeTarget[QUERY_TYPES.NETWORKS] = {active: false, name: QUERY_TARGETS.NETWORK};
+      $scope.selections = {};
+      $scope.selections[QUERY_TYPES.VARIABLES] = SearchResultSelectionsService.getSelections(QUERY_TYPES.VARIABLES);
+
 
       $scope.getUrlTemplate = function (tab) {
         switch (tab) {
@@ -77,6 +82,23 @@ ngObibaMica.search
         return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(queryWithLimit));
       };
 
+      function showAlert(set, beforeCart) {
+        var addedCount = set.count - (beforeCart ? beforeCart.count : 0);
+        var msgKey = 'sets.cart.variables-added';
+        var msgArgs = [addedCount];
+        if (addedCount === 0) {
+          msgKey = 'sets.cart.no-variable-added';
+          msgArgs = [];
+        }
+        AlertService.growl({
+          id: 'SearchControllerGrowl',
+          type: 'info',
+          msgKey: msgKey,
+          msgArgs: msgArgs,
+          delay: 3000
+        });
+      }
+
       $scope.onSetUpdate = function (setName, addedCount) {
         console.log('on update');
 
@@ -94,30 +116,31 @@ ngObibaMica.search
           msgArgs: msgArgs,
           delay: 3000
         });
+
+        SearchResultSelectionsService.clearSelections($scope.type);
       };
 
-      $scope.addToCart = function() {
+      $scope.addToCart = function (type, ids) {
+        var keys = ids ? Object.keys(ids) : null;
         if ($scope.query === null) {
           return $scope.query;
         }
-        var beforeCart = SetService.getCartSet('variables');
-        var queryWithLimit = rewriteQueryWithLimitAndFields(20000, ['id']);
-        SetService.addDocumentQueryToCart('variables', queryWithLimit).then(function(set) {
-          var addedCount = set.count - (beforeCart ? beforeCart.count : 0);
-          var msgKey = 'sets.cart.variables-added';
-          var msgArgs = [addedCount];
-          if (addedCount === 0) {
-            msgKey = 'sets.cart.no-variable-added';
-            msgArgs = [];
-          }
-          AlertService.growl({
-            id: 'SearchControllerGrowl',
-            type: 'info',
-            msgKey: msgKey,
-            msgArgs: msgArgs,
-            delay: 3000
+        var beforeCart = SetService.getCartSet(type);
+        if (keys) {
+          SetService.addDocumentToCart(type, keys).then(function (set) {
+            showAlert(set, beforeCart);
+            SearchResultSelectionsService.clearSelections(type);
           });
-        });
+        } else {
+          var queryWithLimit = rewriteQueryWithLimitAndFields(20000, ['id']);
+          SetService.addDocumentQueryToCart('variables', queryWithLimit).then(function (set) {
+            showAlert(set, beforeCart);
+          });
+        }
+      };
+
+      $scope.getSelections = function (type) {
+        return SearchResultSelectionsService.getSelectionIds(type);
       };
 
       $scope.getStudySpecificReportUrl = function () {

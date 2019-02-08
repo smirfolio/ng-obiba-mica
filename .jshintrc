@@ -45,7 +45,8 @@
     "RQL_NODE": true,
     "targetToType": true,
     "typeToTarget": true,
-    "QUERY_TARGETS": true
+    "QUERY_TARGETS": true,
+    "QUERY_TYPES": true
   }
 
 }

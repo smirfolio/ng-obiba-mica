@@ -11,15 +11,14 @@
 <div ng-show="display === 'list'" class="list-table">
   <result-tabs-order-count options="options" result-tabs-order="resultTabsOrder" active-target="activeTarget" target-type-map="targetTypeMap">
   </result-tabs-order-count>
-
   <div class="voffset2" ng-class="{'pull-right': options.studies.showSearchTab, 'pull-left': !options.studies.showSearchTab, 'hoffset2': !options.studies.showSearchTab}">
     <div class="btn-group" ng-if="type=='variables' && options.variables.showCart">
       <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
         <i class="fa fa-cart-plus"></i> <span class="caret"></span>
       </button>
       <ul class="dropdown-menu">
-        <li><a ng-click="addToCart()" href translate>sets.add.button.cart-label</a></li>
-        <li><a add-to-set="" query="query" type="type" update="onSetUpdate(setName, addedCount)" href>{{'sets.add.button.set-label' | translate}}</a></li>
+        <li><a ng-click="addToCart(type, selections[type])" href translate>sets.add.button.cart-label</a></li>
+        <li><a add-to-set="selections[type]" query="query" type="type" update="onSetUpdate(setName, addedCount)" href>{{'sets.add.button.set-label' | translate}}</a></li>
       </ul>
     </div>
 

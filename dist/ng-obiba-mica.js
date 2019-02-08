@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-02-06
+ * Date: 2019-02-08
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -3508,8 +3508,9 @@ var AddToSetController = /** @class */ (function () {
         return this.SetService.addDocumentQueryToSet(setId, type, queryWithLimitAndFields);
     };
     AddToSetController.prototype.processDocumentSet = function (setId, type, query, identifiers) {
-        if (identifiers !== undefined && Array.isArray(identifiers)) {
-            return this.SetService.addDocumentToSet(setId, type, identifiers);
+        var selections = Object.keys(identifiers);
+        if (identifiers !== undefined && selections.length > 0) {
+            return this.SetService.addDocumentToSet(setId, type, selections);
         }
         else {
             return this.addQuery(setId, type, query);
@@ -4790,6 +4791,41 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
     ngObibaMica.search.service('SearchControllerFacetHelperService', ['MetaTaxonomyService', 'ngObibaMicaSearch', SearchControllerFacetHelperService]);
 })();
 //# sourceMappingURL=search-controller-facet-helper-service.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+"use strict";
+var AbstractSelectionsDecorator = /** @class */ (function () {
+    function AbstractSelectionsDecorator(documentType) {
+        this.selections = {};
+        this.documentType = documentType;
+    }
+    AbstractSelectionsDecorator.prototype.getSelections = function () {
+        return this.selections;
+    };
+    AbstractSelectionsDecorator.prototype.clearSelections = function () {
+        var _this = this;
+        Object.keys(this.selections).forEach(function (key) { return delete _this.selections[key]; });
+    };
+    return AbstractSelectionsDecorator;
+}());
+//# sourceMappingURL=abstract-selections-decroator.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+//# sourceMappingURL=selections.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
@@ -6563,8 +6599,8 @@ ngObibaMica.search.service("CoverageGroupByService", ["ngObibaMicaSearch", Cover
                 state.update(targetPagination, hits);
             }
             for (target in states) {
-                if (listeners[target]) {
-                    listeners[target].onUpdate(states[target].data(), preventPaginationEvent);
+                if (listeners[target] && Array.isArray(listeners[target])) {
+                    listeners[target].forEach(function (listener) { return listener.onUpdate(states[target].data(), preventPaginationEvent); });
                 }
             }
         }
@@ -6573,7 +6609,7 @@ ngObibaMica.search.service("CoverageGroupByService", ["ngObibaMicaSearch", Cover
                 if (!listener.onUpdate) {
                     throw new Error('PaginationService::registerListener() - listener must implement onUpdate()');
                 }
-                listeners[target] = listener;
+                listeners[target] = [].concat(listeners[target] || [], listener);
             }
         }
         this.registerListener = registerListener;
@@ -7975,6 +8011,29 @@ function typeToTarget(type) {
     ngObibaMica.search.service('SearchContext', SearchContext);
 })();
 //# sourceMappingURL=search-context.js.map
+var SearchResultSelectionsService = /** @class */ (function () {
+    function SearchResultSelectionsService(PaginationService, $log) {
+        this.PaginationService = PaginationService;
+        this.$log = $log;
+        this.$log.info("SearchResultSelectionsService");
+        this.decorators = {};
+        this.decorators[QUERY_TYPES.VARIABLES] =
+            new SearchResultSelectionsDecorator(QUERY_TARGETS.VARIABLE, this.PaginationService);
+    }
+    SearchResultSelectionsService.prototype.decorateSearchResult = function (type, searchResult) {
+        this.decorators[type].decorate(searchResult);
+    };
+    SearchResultSelectionsService.prototype.getSelections = function (type) {
+        return this.decorators[type] ? this.decorators[type].getSelections() : {};
+    };
+    SearchResultSelectionsService.prototype.clearSelections = function (type) {
+        return this.decorators[type] ? this.decorators[type].clearSelections() : {};
+    };
+    SearchResultSelectionsService.$inject = ["PaginationService", "$log"];
+    return SearchResultSelectionsService;
+}());
+ngObibaMica.search.service("SearchResultSelectionsService", SearchResultSelectionsService);
+//# sourceMappingURL=search-result-selections-service.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
@@ -11215,7 +11274,6 @@ ngObibaMica.search.component("searchResultPagination", new SearchResultPaginatio
 //# sourceMappingURL=components.js.map
 'use strict';
 /* global DISPLAY_TYPES */
-/* global QUERY_TYPES */
 ngObibaMica.search
     .controller('SearchResultController', [
     '$scope',
@@ -11226,7 +11284,8 @@ ngObibaMica.search
     'ngObibaMicaSearchTemplateUrl',
     'AlertService',
     'SetService',
-    function ($scope, ngObibaMicaSearch, ngObibaMicaUrl, RqlQueryService, RqlQueryUtils, ngObibaMicaSearchTemplateUrl, AlertService, SetService) {
+    'SearchResultSelectionsService',
+    function ($scope, ngObibaMicaSearch, ngObibaMicaUrl, RqlQueryService, RqlQueryUtils, ngObibaMicaSearchTemplateUrl, AlertService, SetService, SearchResultSelectionsService) {
         function updateType(type) {
             Object.keys($scope.activeTarget).forEach(function (key) {
                 $scope.activeTarget[key].active = type === key;
@@ -11246,6 +11305,8 @@ ngObibaMica.search
         $scope.activeTarget[QUERY_TYPES.DATASETS] = { active: false, name: QUERY_TARGETS.DATASET };
         $scope.activeTarget[QUERY_TYPES.STUDIES] = { active: false, name: QUERY_TARGETS.STUDY };
         $scope.activeTarget[QUERY_TYPES.NETWORKS] = { active: false, name: QUERY_TARGETS.NETWORK };
+        $scope.selections = {};
+        $scope.selections[QUERY_TYPES.VARIABLES] = SearchResultSelectionsService.getSelections(QUERY_TYPES.VARIABLES);
         $scope.getUrlTemplate = function (tab) {
             switch (tab) {
                 case 'list':
@@ -11274,6 +11335,22 @@ ngObibaMica.search
             var queryWithLimit = rewriteQueryWithLimitAndFields(100000);
             return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(queryWithLimit));
         };
+        function showAlert(set, beforeCart) {
+            var addedCount = set.count - (beforeCart ? beforeCart.count : 0);
+            var msgKey = 'sets.cart.variables-added';
+            var msgArgs = [addedCount];
+            if (addedCount === 0) {
+                msgKey = 'sets.cart.no-variable-added';
+                msgArgs = [];
+            }
+            AlertService.growl({
+                id: 'SearchControllerGrowl',
+                type: 'info',
+                msgKey: msgKey,
+                msgArgs: msgArgs,
+                delay: 3000
+            });
+        }
         $scope.onSetUpdate = function (setName, addedCount) {
             console.log('on update');
             var msgKey = 'sets.set.variables-added';
@@ -11289,29 +11366,29 @@ ngObibaMica.search
                 msgArgs: msgArgs,
                 delay: 3000
             });
+            SearchResultSelectionsService.clearSelections($scope.type);
         };
-        $scope.addToCart = function () {
+        $scope.addToCart = function (type, ids) {
+            var keys = ids ? Object.keys(ids) : null;
             if ($scope.query === null) {
                 return $scope.query;
             }
-            var beforeCart = SetService.getCartSet('variables');
-            var queryWithLimit = rewriteQueryWithLimitAndFields(20000, ['id']);
-            SetService.addDocumentQueryToCart('variables', queryWithLimit).then(function (set) {
-                var addedCount = set.count - (beforeCart ? beforeCart.count : 0);
-                var msgKey = 'sets.cart.variables-added';
-                var msgArgs = [addedCount];
-                if (addedCount === 0) {
-                    msgKey = 'sets.cart.no-variable-added';
-                    msgArgs = [];
-                }
-                AlertService.growl({
-                    id: 'SearchControllerGrowl',
-                    type: 'info',
-                    msgKey: msgKey,
-                    msgArgs: msgArgs,
-                    delay: 3000
+            var beforeCart = SetService.getCartSet(type);
+            if (keys) {
+                SetService.addDocumentToCart(type, keys).then(function (set) {
+                    showAlert(set, beforeCart);
+                    SearchResultSelectionsService.clearSelections(type);
                 });
-            });
+            }
+            else {
+                var queryWithLimit = rewriteQueryWithLimitAndFields(20000, ['id']);
+                SetService.addDocumentQueryToCart('variables', queryWithLimit).then(function (set) {
+                    showAlert(set, beforeCart);
+                });
+            }
+        };
+        $scope.getSelections = function (type) {
+            return SearchResultSelectionsService.getSelectionIds(type);
         };
         $scope.getStudySpecificReportUrl = function () {
             if ($scope.query === null) {
@@ -11367,6 +11444,113 @@ ngObibaMica.search
         };
     }]);
 //# sourceMappingURL=component.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
+    __extends(SearchResultSelectionsDecorator, _super);
+    function SearchResultSelectionsDecorator(documentType, PaginationService) {
+        var _this = _super.call(this, documentType) || this;
+        _this.PaginationService = PaginationService;
+        _this.PaginationService.registerListener(_this.documentType, _this);
+        return _this;
+    }
+    SearchResultSelectionsDecorator.prototype.decorate = function (searchResult) {
+        this.searchResult = searchResult;
+        this.searchResult.selections = this.selections; // temporary until AddToSet selections can be passed to AddRoS
+        this.searchResult.allSelected = false;
+        this.searchResult.pageSelections = {};
+        this.searchResult.select = this.select.bind(this);
+        this.searchResult.selectPage = this.selectPage.bind(this);
+        this.searchResult.selectAll = this.selectAll.bind(this);
+    };
+    SearchResultSelectionsDecorator.prototype.clearSelections = function () {
+        _super.prototype.clearSelections.call(this);
+        this.searchResult.pageSelections = {};
+    };
+    SearchResultSelectionsDecorator.prototype.update = function () {
+        var _this = this;
+        if (this.selections) {
+            Object.keys(this.selections)
+                .forEach(function (id) { return _this.selections[id]
+                ? _this.selections[id] = true
+                : delete _this.selections[id]; });
+        }
+    };
+    SearchResultSelectionsDecorator.prototype.selectPage = function () {
+        this.selectPageInternal(this.searchResult.pageSelections[this.searchResult.pagination.currentPage]);
+    };
+    SearchResultSelectionsDecorator.prototype.onUpdate = function (state) {
+        var currentPagination = this.searchResult.pagination;
+        this.searchResult.pagination = state;
+        if (currentPagination) {
+            if (currentPagination.pageCount !== state.pageCount) {
+                // page size has changed, reset selections
+                this.clearSelections();
+            }
+            else if (currentPagination.currentPage !== state.currentPage) {
+                this.selectPageInternal(this.searchResult.allSelected);
+            }
+        }
+    };
+    SearchResultSelectionsDecorator.prototype.select = function (id) {
+        var _this = this;
+        var selected = this.selections[id];
+        var currentPageSelected = this.searchResult.pageSelections[this.searchResult.pagination.currentPage];
+        if (selected) {
+            var pageSelected = this.searchResult.summaries
+                .reduce(function (acc, val) { return acc && _this.selections[val.id]; }, true);
+            if (pageSelected) {
+                this.searchResult.pageSelections[this.searchResult.pagination.currentPage] = true;
+            }
+        }
+        else {
+            delete this.selections[id];
+            if (currentPageSelected) {
+                delete this.searchResult.pageSelections[this.searchResult.pagination.currentPage];
+            }
+        }
+    };
+    SearchResultSelectionsDecorator.prototype.selectAll = function () {
+        this.searchResult.allSelected = !this.searchResult.allSelected;
+        if (this.searchResult.allSelected) {
+            this.selectPageInternal(this.searchResult.allSelected);
+        }
+        else {
+            this.clearSelections();
+        }
+    };
+    SearchResultSelectionsDecorator.prototype.selectPageInternal = function (checked) {
+        var _this = this;
+        if (checked) {
+            this.searchResult.pageSelections[this.searchResult.pagination.currentPage] = checked;
+        }
+        else {
+            delete this.searchResult.pageSelections[this.searchResult.pagination.currentPage];
+        }
+        this.searchResult.summaries.forEach(function (summary) { return checked
+            ? _this.selections[summary.id] = checked
+            : delete _this.selections[summary.id]; });
+    };
+    return SearchResultSelectionsDecorator;
+}(AbstractSelectionsDecorator));
+//# sourceMappingURL=search-result-selections-decorator.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
@@ -11550,7 +11734,7 @@ ngObibaMica.search
  */
 'use strict';
 (function () {
-    function VariablesResultTable(PageUrlService, ngObibaMicaSearch) {
+    function VariablesResultTable(PageUrlService, ngObibaMicaSearch, SearchResultSelectionsService) {
         return {
             restrict: 'EA',
             replace: true,
@@ -11561,13 +11745,15 @@ ngObibaMica.search
             },
             templateUrl: 'search/components/result/variables-result-table/component.html',
             link: function (scope) {
+                console.log(SearchResultSelectionsService);
                 scope.options = ngObibaMicaSearch.getOptions().variables;
                 scope.optionsCols = scope.options.variablesColumn;
                 scope.PageUrlService = PageUrlService;
+                SearchResultSelectionsService.decorateSearchResult(QUERY_TYPES.VARIABLES, scope);
             }
         };
     }
-    ngObibaMica.search.directive('variablesResultTable', ['PageUrlService', 'ngObibaMicaSearch', VariablesResultTable]);
+    ngObibaMica.search.directive('variablesResultTable', ['PageUrlService', 'ngObibaMicaSearch', 'SearchResultSelectionsService', VariablesResultTable]);
 })();
 //# sourceMappingURL=component.js.map
 /*
@@ -19513,15 +19699,14 @@ angular.module("search/components/result/search-result/list.html", []).run(["$te
     "<div ng-show=\"display === 'list'\" class=\"list-table\">\n" +
     "  <result-tabs-order-count options=\"options\" result-tabs-order=\"resultTabsOrder\" active-target=\"activeTarget\" target-type-map=\"targetTypeMap\">\n" +
     "  </result-tabs-order-count>\n" +
-    "\n" +
     "  <div class=\"voffset2\" ng-class=\"{'pull-right': options.studies.showSearchTab, 'pull-left': !options.studies.showSearchTab, 'hoffset2': !options.studies.showSearchTab}\">\n" +
     "    <div class=\"btn-group\" ng-if=\"type=='variables' && options.variables.showCart\">\n" +
     "      <button type=\"button\" class=\"btn btn-success dropdown-toggle\" data-toggle=\"dropdown\">\n" +
     "        <i class=\"fa fa-cart-plus\"></i> <span class=\"caret\"></span>\n" +
     "      </button>\n" +
     "      <ul class=\"dropdown-menu\">\n" +
-    "        <li><a ng-click=\"addToCart()\" href translate>sets.add.button.cart-label</a></li>\n" +
-    "        <li><a add-to-set=\"\" query=\"query\" type=\"type\" update=\"onSetUpdate(setName, addedCount)\" href>{{'sets.add.button.set-label' | translate}}</a></li>\n" +
+    "        <li><a ng-click=\"addToCart(type, selections[type])\" href translate>sets.add.button.cart-label</a></li>\n" +
+    "        <li><a add-to-set=\"selections[type]\" query=\"query\" type=\"type\" update=\"onSetUpdate(setName, addedCount)\" href>{{'sets.add.button.set-label' | translate}}</a></li>\n" +
     "      </ul>\n" +
     "    </div>\n" +
     "\n" +
@@ -19718,12 +19903,33 @@ angular.module("search/components/result/variables-result-table/component.html",
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "  <div ng-show=\"!loading\">\n" +
-    "\n" +
     "    <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.variable.noResults</p>\n" +
     "    <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
+    "      <div class=\"alert alert-warning actions-select\" ng-show=\"pageSelections[pagination.currentPage]\">\n" +
+    "      <span ng-hide=\"allSelected\">\n" +
+    "        <span translate>sets.cart.all-cart-page-selected</span>\n" +
+    "        <a href ng-click=\"selectAll()\" class=\"hoffset2\">\n" +
+    "          <i class=\"fa fa-square-o\"></i>\n" +
+    "          <b><span translate>sets.cart.select-all-cart</span></b>\n" +
+    "        </a>\n" +
+    "      </span>\n" +
+    "        <span ng-show=\"allSelected\">\n" +
+    "        <span translate>sets.cart.all-cart-selected</span>\n" +
+    "        <a href ng-click=\"selectAll()\" class=\"hoffset2\">\n" +
+    "          <i class=\"fa fa-check-square-o\"></i>\n" +
+    "          <b><span translate>sets.cart.unselect-all-cart</span></b>\n" +
+    "        </a>\n" +
+    "      </span>\n" +
+    "      </div>\n" +
     "      <table class=\"table table-bordered table-striped\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "        <thead>\n" +
     "          <tr>\n" +
+    "            <th style=\"width: 50px\">\n" +
+    "              <input\n" +
+    "                      ng-model=\"pageSelections[pagination.currentPage]\"\n" +
+    "                      type=\"checkbox\"\n" +
+    "                      ng-click=\"selectPage()\"/>\n" +
+    "            </th>\n" +
     "            <th translate>name</th>\n" +
     "            <th translate>search.variable.label</th>\n" +
     "            <th translate ng-if=\"optionsCols.showVariablesTypeColumn\">type</th>\n" +
@@ -19733,6 +19939,9 @@ angular.module("search/components/result/variables-result-table/component.html",
     "        </thead>\n" +
     "        <tbody test-ref=\"search-results\">\n" +
     "          <tr ng-repeat=\"summary in summaries\">\n" +
+    "            <td>\n" +
+    "              <input ng-model=\"selections[summary.id]\" type=\"checkbox\" ng-click=\"select(summary.id)\"/>\n" +
+    "            </td>\n" +
     "            <td>\n" +
     "              <a test-ref=\"name\" href=\"{{PageUrlService.variablePage(summary.id) ? PageUrlService.variablePage(summary.id) : PageUrlService.datasetPage(summary.datasetId, summary.variableType)}}\">\n" +
     "                {{summary.name}}\n" +
