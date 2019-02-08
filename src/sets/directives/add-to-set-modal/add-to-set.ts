@@ -87,8 +87,9 @@ class AddToSetController implements IAddToSetController {
     type: string,
     query?: string,
     identifiers?: [string]): any {
-      if (identifiers !== undefined && Array.isArray(identifiers)) {
-        return this.SetService.addDocumentToSet(setId, type, identifiers);
+      const selections: string[] = Object.keys(identifiers);
+      if (identifiers !== undefined && selections.length > 0) {
+        return this.SetService.addDocumentToSet(setId, type, selections);
       } else {
         return this.addQuery(setId, type, query);
       }

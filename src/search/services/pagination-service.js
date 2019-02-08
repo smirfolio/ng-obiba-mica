@@ -37,8 +37,8 @@
       }
 
       for (target in states) {
-        if (listeners[target]) {
-          listeners[target].onUpdate(states[target].data(), preventPaginationEvent);
+        if (listeners[target] && Array.isArray(listeners[target])) {
+          listeners[target].forEach((listener) => listener.onUpdate(states[target].data(), preventPaginationEvent));
         }
       }
     }
@@ -49,7 +49,7 @@
          throw new Error('PaginationService::registerListener() - listener must implement onUpdate()');
        }
 
-       listeners[target] = listener;
+       listeners[target] = [].concat(listeners[target] || [], listener);
       }
     }
 

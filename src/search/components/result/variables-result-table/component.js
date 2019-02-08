@@ -11,8 +11,7 @@
 'use strict';
 
 (function () {
-
-  function VariablesResultTable(PageUrlService, ngObibaMicaSearch) {
+  function VariablesResultTable(PageUrlService, ngObibaMicaSearch, SearchResultSelectionsService) {
     return {
       restrict: 'EA',
       replace: true,
@@ -23,12 +22,16 @@
       },
       templateUrl: 'search/components/result/variables-result-table/component.html',
       link: function (scope) {
+        console.log(SearchResultSelectionsService);
         scope.options = ngObibaMicaSearch.getOptions().variables;
         scope.optionsCols = scope.options.variablesColumn;
         scope.PageUrlService = PageUrlService;
+
+        SearchResultSelectionsService.decorateSearchResult(QUERY_TYPES.VARIABLES, scope);
       }
     };
   }
 
-  ngObibaMica.search.directive('variablesResultTable', ['PageUrlService', 'ngObibaMicaSearch', VariablesResultTable]);
+  ngObibaMica.search.directive('variablesResultTable',
+    ['PageUrlService', 'ngObibaMicaSearch', 'SearchResultSelectionsService', VariablesResultTable]);
 })();
