@@ -17,6 +17,9 @@ class CartDocumentsTableController extends DocumentsSetTableComponentController 
   private static $inject = ["PageUrlService", "LocalizedValues", "SetService", "AnalysisConfigService",
     "$translate", "$log", "$scope"];
 
+  public showStudies: boolean;
+  public showVariableType: boolean;
+
   constructor(
     private PageUrlService: any,
     private LocalizedValues: any,
@@ -25,7 +28,10 @@ class CartDocumentsTableController extends DocumentsSetTableComponentController 
     private $translate: any,
     protected $log: any,
     private $scope: any) {
-      super(SetService, $log);
+    super(SetService, $log);
+
+    this.showStudies = !this.SetService.isSingleStudy();
+    this.showVariableType = this.SetService.hasHarmonizedDatasets();
   }
 
   public showAnalysis(): boolean {

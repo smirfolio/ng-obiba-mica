@@ -7,8 +7,6 @@ interface IDocumentsSetTableComponentController extends ng.IComponentController 
   table: any;
   type: string;
   localizedTotal: string;
-  showStudies: boolean;
-  showVariableType: boolean;
   clearSet(): void;
   download(): void;
   hasSelections(): boolean;
@@ -21,7 +19,7 @@ interface IDocumentsSetTableComponentController extends ng.IComponentController 
   updateSelection(documentId: any): void;
 }
 
-class DocumentsSetTableComponentController implements IDocumentsSetTableComponentController {
+abstract class DocumentsSetTableComponentController implements IDocumentsSetTableComponentController {
 
   public onPageChange: (type: string, from: number) => void;
   public documents: any;
@@ -30,8 +28,6 @@ class DocumentsSetTableComponentController implements IDocumentsSetTableComponen
   public type: string;
   public table: any;
   public localizedTotal: string;
-  public showStudies: boolean;
-  public showVariableType: boolean;
 
   protected allSelected: boolean;
   protected allPageSelected: any;
@@ -57,9 +53,6 @@ class DocumentsSetTableComponentController implements IDocumentsSetTableComponen
       to: 0,
       totalHits: 0,
     };
-
-    this.showStudies = !this.SetService.isSingleStudy();
-    this.showVariableType = this.SetService.hasHarmonizedDatasets();
   }
 
   public hasSelections(): boolean {

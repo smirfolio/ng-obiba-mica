@@ -4,14 +4,19 @@ class VariablesSetTableComponentController extends DocumentsSetTableComponentCon
 
   private static $inject = ["SetService", "$log", "$translate", "PageUrlService", "LocalizedValues"];
 
+  public showStudies: boolean;
+  public showVariableType: boolean;
+
   constructor(
     protected SetService: ISetService,
     protected $log: any,
     private $translate: any,
     private PageUrlService: any,
-    private LocalizedValues: any,
-  ) {
+    private LocalizedValues: any) {
     super(SetService, $log);
+
+    this.showStudies = !this.SetService.isSingleStudy();
+    this.showVariableType = this.SetService.hasHarmonizedDatasets();
   }
 
   public $onChanges(changes: any) {
