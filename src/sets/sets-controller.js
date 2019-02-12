@@ -147,6 +147,7 @@
     'ngObibaMicaSetsTemplateUrl',
     'MetaTaxonomyService',
     'SetsResource',
+    'SetResource',
     'SetService',
     function (
       $scope,
@@ -154,6 +155,7 @@
       ngObibaMicaSetsTemplateUrl,
       MetaTaxonomyService,
       SetsResource,
+      SetResource,
       SetService) {
 
     var searchTaxonomyDisplay = {
@@ -172,6 +174,8 @@
     });
 
     $scope.sets = {};
+    $scope.checked = {};
+    $scope.canDelete = {};
 
     function initSets() {
       MetaTaxonomyService.getMetaTaxonomyForTargets(['variable']).then(function (metatTaxonomies) {
@@ -212,8 +216,43 @@
       }
     }
 
-    initSets();
+    function getCheckedIds(tabName) {
+      return Object.keys($scope.checked[tabName]).filter((item) => $scope.checked[tabName][item]);
+    }
 
+    function canDeleteChecked(tabName) {
+      return $scope.checked[tabName] && getCheckedIds(tabName).length > 0;
+    }
+
+    function deleteChecked(tabName) {
+      getCheckedIds(tabName).reduce((acc, id) => {
+        if (acc === undefined || acc === null) {
+          return SetResource.delete({id: id, type: targetToType(tabName)}).$promise;
+        }
+
+        return acc.then(() => {
+          return SetResource.delete({id: id, type: targetToType(tabName)}).$promise;
+        });
+      }, null).then(() => {
+        initCheckBoxes(tabName);
+        initSets();
+      });
+    }
+
+    function check(tabName) {
+      $scope.canDelete[tabName] = canDeleteChecked(tabName);
+    }
+
+    function initCheckBoxes(tabName) {
+      $scope.checked[tabName] = {};
+      $scope.documents = { total: 0 };
+      check(tabName);
+    }
+
+    initSets();
+    $scope.check = check;
+    $scope.deleteChecked = deleteChecked;
+    $scope.canDeleteChecked = canDeleteChecked;
     $scope.onPaginate = onPaginate;
     $scope.selectSet = selectSet;
   }]);
