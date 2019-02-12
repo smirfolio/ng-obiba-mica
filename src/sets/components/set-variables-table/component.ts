@@ -1,76 +1,31 @@
-/*
- * Copyright (c) 2018 OBiBa. All rights reserved.
- *
- * This program and the accompanying materials
- * are made available under the terms of the GNU Public License v3.0.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 "use strict";
 
-declare var ngObibaMica: any;
+class VariablesSetTableComponentController extends DocumentsSetTableComponentController {
 
-class CartDocumentsTableController extends DocumentsSetTableComponentController {
-
-  private static $inject = ["PageUrlService", "LocalizedValues", "SetService", "AnalysisConfigService",
-    "$translate", "$log", "$scope"];
+  private static $inject = ["SetService", "$log", "$translate", "PageUrlService", "LocalizedValues"];
 
   public showStudies: boolean;
   public showVariableType: boolean;
 
   constructor(
-    private PageUrlService: any,
-    private LocalizedValues: any,
-    protected SetService: any,
-    private AnalysisConfigService: any,
-    private $translate: any,
+    protected SetService: ISetService,
     protected $log: any,
-    private $scope: any) {
+    private $translate: any,
+    private PageUrlService: any,
+    private LocalizedValues: any) {
     super(SetService, $log);
 
     this.showStudies = !this.SetService.isSingleStudy();
     this.showVariableType = this.SetService.hasHarmonizedDatasets();
   }
 
-  public showAnalysis(): boolean {
-    return this.AnalysisConfigService.showAnalysis();
-  }
-
-  public download(): string {
-    return this.SetService.getDownloadUrl(this.type);
-  }
-
-  public search(): void {
-    this.SetService.gotoSearch(this.type);
-  }
-
-  public clearSet(): void {
-    if (!this.hasSelections()) {
-      return;
+  public $onChanges(changes: any) {
+    if (changes.setId !== undefined) {
+      this.allSelected = false;
+      this.allPageSelected = {};
+      this.selections = {};
     }
-    const sels = this.getSelectedDocumentIds();
-    if (sels && sels.length > 0) {
-      this.SetService.removeDocumentFromCart(this.type, sels)
-        .then(() => {
-          this.allSelected = false;
-          this.allPageSelected = {};
-          this.selections = {};
-          this.$scope.$emit("cart-cleared", this.type);
-        });
-    } else {
-      this.SetService.clearCart(this.type)
-        .then(() => {
-          this.allSelected = false;
-          this.allPageSelected = {};
-          this.selections = {};
-          this.$scope.$emit("cart-cleared", this.type);
-        });
-    }
-  }
 
-  public $onChanges() {
     this.table = this.asTable();
     this.localizedTotal = this.LocalizedValues
       .formatNumber((this.documents && this.documents.total) ? this.documents.total : 0);
@@ -140,8 +95,7 @@ class CartDocumentsTableController extends DocumentsSetTableComponentController 
   }
 }
 
-class CartDocumentsTableComponent implements ng.IComponentOptions {
-
+class DocumentSetTableComponent implements ng.IComponentOptions {
   public controller: ng.Injectable<ng.IControllerConstructor>;
   public controllerAs: string;
   public templateUrl: string;
@@ -153,13 +107,13 @@ class CartDocumentsTableComponent implements ng.IComponentOptions {
     this.bindings = {
       documents: "<",
       onPageChange: "<",
+      setId: "<",
       type: "<",
     };
-    this.controller = CartDocumentsTableController;
+    this.controller = VariablesSetTableComponentController;
     this.controllerAs = "$ctrl";
-    this.templateUrl = "sets/components/cart-documents-table/component.html";
+    this.templateUrl = "sets/components/set-variables-table/component.html";
   }
 }
 
-ngObibaMica.sets
-  .component("cartDocumentsTable", new CartDocumentsTableComponent());
+angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSetTableComponent());

@@ -13,6 +13,7 @@ ngObibaMica.search
     'AlertService',
     'SetService',
     'SearchResultSelectionsService',
+    '$uibModal',
     function ($scope,
               ngObibaMicaSearch,
               ngObibaMicaUrl,
@@ -21,7 +22,8 @@ ngObibaMica.search
               ngObibaMicaSearchTemplateUrl,
               AlertService,
               SetService,
-              SearchResultSelectionsService) {
+              SearchResultSelectionsService,
+              $uibModal) {
 
       function updateType(type) {
         Object.keys($scope.activeTarget).forEach(function (key) {
@@ -100,8 +102,6 @@ ngObibaMica.search
       }
 
       $scope.onSetUpdate = function (setName, addedCount) {
-        console.log('on update');
-
         var msgKey = 'sets.set.variables-added';
         var msgArgs = [setName, addedCount];
         if (addedCount === 0) {
@@ -137,6 +137,18 @@ ngObibaMica.search
             showAlert(set, beforeCart);
           });
         }
+      };
+
+      $scope.addToSet = function(type, query, sels) {
+        $uibModal.open({
+          keyboard: false,
+          component: 'addToSetModal',
+          resolve: {
+            query: function() { return query; }, type: function() { return type; }, ids: function() { return sels; }
+          }
+        }).result.then(function(result) {
+          $scope.onSetUpdate(result.name, result.newCount);
+        });
       };
 
       $scope.getSelections = function (type) {

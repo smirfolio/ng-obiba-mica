@@ -12,6 +12,8 @@
             </span>
           </div>
 
+          <span ng-if="!sets[tab.name].length" translate>sets.empty</span>
+
           <ul class="nav nav-pills nav-stacked">
             <li role="presentation" ng-repeat="set in sets[tab.name]">
               <a href ng-click="selectSet(tab.name, set)">

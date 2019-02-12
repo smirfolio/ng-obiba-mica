@@ -43,7 +43,7 @@
   <div class="table-responsive">
     <div class="alert alert-warning actions-select" ng-show="$ctrl.allPageSelected[$ctrl.pagination.currentPage]">
       <span ng-hide="$ctrl.allSelected">
-        <span translate>sets.cart.all-cart-page-selected</span> 
+        <span translate>sets.cart.all-cart-page-selected</span>
         <a href ng-click="$ctrl.updateAllSelected()" class="hoffset2">
           <i class="fa fa-square-o"></i>
           <b><span translate>sets.cart.select-all-cart</span></b>
@@ -60,29 +60,29 @@
     <table class="table table-bordered table-striped" ng-if="$ctrl.documents.total>0">
       <thead>
         <th style="width: 50px">
-            <input 
+            <input
             ng-model="$ctrl.allPageSelected[$ctrl.pagination.currentPage]"
             type="checkbox"
             ng-click="$ctrl.updateAllCurrentPageSelected()"/>
         </th>
         <th translate>taxonomy.target.variable</th>
         <th translate>search.variable.label</th>
-        <th ng-if="$ctrl.showVariableType()" translate>type</th>
-        <th ng-if="$ctrl.showStudies()" translate>taxonomy.target.study</th>
+        <th ng-if="$ctrl.showVariableType" translate>type</th>
+        <th ng-if="$ctrl.showStudies" translate>taxonomy.target.study</th>
         <th translate>taxonomy.target.dataset</th>
       </thead>
       <tbody>
         <tr ng-repeat="row in $ctrl.table.rows">
           <td>
-              <input 
+              <input
               ng-model="$ctrl.selections[row[0].value]"
               type="checkbox"
               ng-click="$ctrl.updateSelection(row[0].value)"/>
           </td>
           <td><a href="{{row[1].link}}">{{row[1].value}}</a></td>
           <td>{{row[2].value}}</td>
-          <td ng-if="$ctrl.showVariableType()">{{'search.variable.' + row[3].value.toLowerCase() | translate}}</td>
-          <td ng-if="$ctrl.showStudies()"><a href="{{row[3].link}}">{{row[4].value}}</a></td>
+          <td ng-if="$ctrl.showVariableType">{{'search.variable.' + row[3].value.toLowerCase() | translate}}</td>
+          <td ng-if="$ctrl.showStudies"><a href="{{row[3].link}}">{{row[4].value}}</a></td>
           <td><a href="{{row[5].link}}">{{row[5].value}}</a></td>
         </tr>
       </tbody>
