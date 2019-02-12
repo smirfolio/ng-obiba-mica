@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-02-08
+ * Date: 2019-02-12
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -3601,8 +3601,9 @@ angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSet
         'ngObibaMicaSetsTemplateUrl',
         'MetaTaxonomyService',
         'SetsResource',
+        'SetResource',
         'SetService',
-        function ($scope, ObibaSearchOptions, ngObibaMicaSetsTemplateUrl, MetaTaxonomyService, SetsResource, SetService) {
+        function ($scope, ObibaSearchOptions, ngObibaMicaSetsTemplateUrl, MetaTaxonomyService, SetsResource, SetResource, SetService) {
             var searchTaxonomyDisplay = {
                 variable: ObibaSearchOptions.variables.showSearchTab,
                 dataset: ObibaSearchOptions.datasets.showSearchTab,
@@ -3615,6 +3616,8 @@ angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSet
                 return searchTaxonomyDisplay[target];
             });
             $scope.sets = {};
+            $scope.checked = {};
+            $scope.canDelete = {};
             function initSets() {
                 MetaTaxonomyService.getMetaTaxonomyForTargets(['variable']).then(function (metatTaxonomies) {
                     $scope.useableTabs = metatTaxonomies;
@@ -3649,7 +3652,37 @@ angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSet
                     SetService.getSetDocuments($scope.selectedSet.id, type, from, limit).then(onDocuments);
                 }
             }
+            function getCheckedIds(tabName) {
+                return Object.keys($scope.checked[tabName]).filter(function (item) { return $scope.checked[tabName][item]; });
+            }
+            function canDeleteChecked(tabName) {
+                return $scope.checked[tabName] && getCheckedIds(tabName).length > 0;
+            }
+            function deleteChecked(tabName) {
+                getCheckedIds(tabName).reduce(function (acc, id) {
+                    if (acc === undefined || acc === null) {
+                        return SetResource.delete({ id: id, type: targetToType(tabName) }).$promise;
+                    }
+                    return acc.then(function () {
+                        return SetResource.delete({ id: id, type: targetToType(tabName) }).$promise;
+                    });
+                }, null).then(function () {
+                    initCheckBoxes(tabName);
+                    initSets();
+                });
+            }
+            function check(tabName) {
+                $scope.canDelete[tabName] = canDeleteChecked(tabName);
+            }
+            function initCheckBoxes(tabName) {
+                $scope.checked[tabName] = {};
+                $scope.documents = { total: 0 };
+                check(tabName);
+            }
             initSets();
+            $scope.check = check;
+            $scope.deleteChecked = deleteChecked;
+            $scope.canDeleteChecked = canDeleteChecked;
             $scope.onPaginate = onPaginate;
             $scope.selectSet = selectSet;
         }
@@ -20877,16 +20910,21 @@ angular.module("sets/views/sets.html", []).run(["$templateCache", function($temp
     "            <span>\n" +
     "              {{tab.title | localizedString}}\n" +
     "            </span>\n" +
+    "\n" +
+    "            <a ng-if=\"canDelete[tab.name]\" class=\"pull-right\" href ng-click=\"$event.stopPropagation(); deleteChecked(tab.name)\">\n" +
+    "              <i class=\"fa fa-trash-o\"></i>\n" +
+    "            </a>\n" +
     "          </div>\n" +
     "\n" +
     "          <span ng-if=\"!sets[tab.name].length\" translate>sets.empty</span>\n" +
     "\n" +
     "          <ul class=\"nav nav-pills nav-stacked\">\n" +
     "            <li role=\"presentation\" ng-repeat=\"set in sets[tab.name]\">\n" +
-    "              <a href ng-click=\"selectSet(tab.name, set)\">\n" +
-    "                {{set.name}}\n" +
-    "                <span class=\"badge pull-right\">{{set.count}}</span>\n" +
-    "              </a>\n" +
+    "              <input type=\"checkbox\" ng-model=\"checked[tab.name][set.id]\" ng-click=\"check(tab.name)\">\n" +
+    "              <span href ng-click=\"selectSet(tab.name, set)\">\n" +
+    "                <a href>{{set.name}}</a>\n" +
+    "                <span class=\"pull-right text-muted\">{{set.count}}</strong>\n" +
+    "              </span>\n" +
     "            </li>\n" +
     "          </ul>\n" +
     "        </div>\n" +
