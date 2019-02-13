@@ -9,7 +9,6 @@
  */
 
 class SearchResultSelectionsDecorator extends AbstractSelectionsDecorator {
-  private searchResult: any;
   private PaginationService: any;
 
   constructor(documentType: string, PaginationService: any) {
@@ -18,88 +17,99 @@ class SearchResultSelectionsDecorator extends AbstractSelectionsDecorator {
     this.PaginationService.registerListener(this.documentType, this);
   }
 
-  public decorate(searchResult: any): void {
-    this.searchResult = searchResult;
-    this.searchResult.selections = this.selections; // temporary until AddToSet selections can be passed to AddRoS
-    this.searchResult.allSelected = false;
-    this.searchResult.pageSelections = {};
-    this.searchResult.select = this.select.bind(this);
-    this.searchResult.selectPage = this.selectPage.bind(this);
-    this.searchResult.selectAll = this.selectAll.bind(this);
+  public decorate(component: any): void {
+    super.decorate(component);
+    this.component.select = this.select.bind(this);
+    this.component.selectPage = this.selectPage.bind(this);
+    this.component.selectAll = this.selectAll.bind(this);
   }
 
-  public clearSelections() {
-    super.clearSelections();
-    this.searchResult.pageSelections = {};
+  public getSelections() {
+    return this.component.page.all ? [] : super.getSelections();
   }
 
   public update() {
-    if (this.selections) {
-      Object.keys(this.selections)
-        .forEach((id) => this.selections[id]
-          ? this.selections[id] = true
-          : delete this.selections[id]);
+    if (this.component.selections) {
+      Object.keys(this.component.selections)
+        .forEach((id) => this.component.selections[id]
+          ? this.component.selections[id] = true
+          : delete this.component.selections[id]);
     }
   }
 
   public selectPage(): void {
-    this.selectPageInternal(this.searchResult.pageSelections[this.searchResult.pagination.currentPage]);
+    this.selectPageInternal(this.component.page.selections[this.component.pagination.currentPage]);
+  }
+
+  public select(id: string): void {
+    const selected = this.component.selections[id];
+    const currentPageSelected = this.component.page.selections[this.component.pagination.currentPage];
+
+    if (selected) {
+      const pageSelected = this.component.summaries
+        .reduce((acc, val) => acc && this.component.selections[val.id], true);
+
+      if (pageSelected) {
+        this.component.page.selections[this.component.pagination.currentPage] = true;
+      }
+    } else {
+
+      if (currentPageSelected) {
+
+        if (this.component.page.all) {
+          // remove all selections
+          this.component.page.all = false;
+          this.clearSelections();
+        }
+
+        // due to clearing selections above, reselect the page that was already selected
+        this.selectPageInternal(currentPageSelected);
+
+        delete this.component.page.selections[this.component.pagination.currentPage];
+      }
+
+      delete this.component.selections[id];
+    }
+  }
+
+  public selectAll(): void {
+    this.component.page.all = !this.component.page.all;
+
+    if (this.component.page.all) {
+      this.selectPageInternal(this.component.page.all);
+    } else {
+      this.clearSelections();
+    }
   }
 
   public onUpdate(state: any) {
-    const currentPagination = this.searchResult.pagination;
-    this.searchResult.pagination = state;
+    const currentPagination = this.component.pagination;
+    this.component.pagination = state;
 
     if (currentPagination) {
       if (currentPagination.pageCount !== state.pageCount) {
         // page size has changed, reset selections
         this.clearSelections();
       } else if (currentPagination.currentPage !== state.currentPage) {
-        this.selectPageInternal(this.searchResult.allSelected);
+        if (this.component.page.all) {
+          this.selectPageInternal(this.component.page.all);
+        } else {
+          this.selectPage();
+        }
       }
     }
 
-  }
-
-  public select(id: string): void {
-    const selected = this.selections[id];
-    const currentPageSelected = this.searchResult.pageSelections[this.searchResult.pagination.currentPage];
-
-    if (selected) {
-      const pageSelected = this.searchResult.summaries
-        .reduce((acc, val) => acc && this.selections[val.id], true);
-
-      if (pageSelected) {
-        this.searchResult.pageSelections[this.searchResult.pagination.currentPage] = true;
-      }
-    } else {
-      delete this.selections[id];
-
-      if (currentPageSelected) {
-        delete this.searchResult.pageSelections[this.searchResult.pagination.currentPage];
-      }
-    }
-  }
-
-  public selectAll(): void {
-    this.searchResult.allSelected = !this.searchResult.allSelected;
-
-    if (this.searchResult.allSelected) {
-      this.selectPageInternal(this.searchResult.allSelected);
-    } else {
-      this.clearSelections();
-    }
   }
 
   private selectPageInternal(checked: boolean) {
     if (checked) {
-      this.searchResult.pageSelections[this.searchResult.pagination.currentPage] = checked;
+      this.component.page.selections[this.component.pagination.currentPage] = checked;
     } else {
-      delete this.searchResult.pageSelections[this.searchResult.pagination.currentPage];
+      delete this.component.page.selections[this.component.pagination.currentPage];
     }
 
-    this.searchResult.summaries.forEach((summary) => checked
-      ? this.selections[summary.id] = checked
-      : delete this.selections[summary.id]);
+    this.component.summaries.forEach((summary) => checked
+      ? this.component.selections[summary.id] = checked
+      : delete this.component.selections[summary.id]);
   }
 }
