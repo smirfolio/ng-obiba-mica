@@ -4788,15 +4788,19 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
 "use strict";
 var AbstractSelectionsDecorator = /** @class */ (function () {
     function AbstractSelectionsDecorator(documentType) {
-        this.selections = {};
         this.documentType = documentType;
     }
     AbstractSelectionsDecorator.prototype.getSelections = function () {
-        return this.selections;
+        return this.component.selections;
     };
     AbstractSelectionsDecorator.prototype.clearSelections = function () {
-        var _this = this;
-        Object.keys(this.selections).forEach(function (key) { return delete _this.selections[key]; });
+        this.component.selections = {};
+        this.component.page = { selections: {}, all: false };
+    };
+    AbstractSelectionsDecorator.prototype.decorate = function (component) {
+        this.component = component;
+        this.component.selections = {};
+        this.component.page = { selections: {}, all: false };
     };
     return AbstractSelectionsDecorator;
 }());
@@ -11291,8 +11295,6 @@ ngObibaMica.search
         $scope.activeTarget[QUERY_TYPES.DATASETS] = { active: false, name: QUERY_TARGETS.DATASET };
         $scope.activeTarget[QUERY_TYPES.STUDIES] = { active: false, name: QUERY_TARGETS.STUDY };
         $scope.activeTarget[QUERY_TYPES.NETWORKS] = { active: false, name: QUERY_TARGETS.NETWORK };
-        $scope.selections = {};
-        $scope.selections[QUERY_TYPES.VARIABLES] = SearchResultSelectionsService.getSelections(QUERY_TYPES.VARIABLES);
         $scope.getUrlTemplate = function (tab) {
             switch (tab) {
                 case 'list':
@@ -11321,12 +11323,11 @@ ngObibaMica.search
             var queryWithLimit = rewriteQueryWithLimitAndFields(100000);
             return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(queryWithLimit));
         };
-        function showAlert(set, beforeCart) {
-            var addedCount = set.count - (beforeCart ? beforeCart.count : 0);
-            var msgKey = 'sets.cart.variables-added';
-            var msgArgs = [addedCount];
+        function showAlert(setName, addedCount, addedMsgKey, noCountMsgKey) {
+            var msgKey = addedMsgKey;
+            var msgArgs = setName ? [setName].concat(addedCount) : [addedCount];
             if (addedCount === 0) {
-                msgKey = 'sets.cart.no-variable-added';
+                msgKey = noCountMsgKey;
                 msgArgs = [];
             }
             AlertService.growl({
@@ -11337,54 +11338,48 @@ ngObibaMica.search
                 delay: 3000
             });
         }
-        $scope.onSetUpdate = function (setName, addedCount) {
-            var msgKey = 'sets.set.variables-added';
-            var msgArgs = [setName, addedCount];
-            if (addedCount === 0) {
-                msgKey = 'sets.set.no-variable-added';
-                msgArgs = [setName];
-            }
-            AlertService.growl({
-                id: 'SearchControllerGrowl',
-                type: 'info',
-                msgKey: msgKey,
-                msgArgs: msgArgs,
-                delay: 3000
-            });
+        $scope.onCartUpdate = function (beforeCount, set) {
+            var addedCount = set.count - (beforeCount ? beforeCount.count : 0);
+            showAlert(null, addedCount, 'sets.cart.variables-added', 'sets.cart.no-variable-added');
             SearchResultSelectionsService.clearSelections($scope.type);
         };
-        $scope.addToCart = function (type, ids) {
+        $scope.onSetUpdate = function (setName, addedCount) {
+            showAlert(setName, addedCount, 'sets.set.variables-added', 'sets.set.no-variable-added');
+            SearchResultSelectionsService.clearSelections($scope.type);
+        };
+        $scope.addToCart = function (type) {
+            var ids = SearchResultSelectionsService.getSelections($scope.type);
             var keys = ids ? Object.keys(ids) : null;
             if ($scope.query === null) {
                 return $scope.query;
             }
             var beforeCart = SetService.getCartSet(type);
-            if (keys) {
-                SetService.addDocumentToCart(type, keys).then(function (set) {
-                    showAlert(set, beforeCart);
-                    SearchResultSelectionsService.clearSelections(type);
-                });
+            if (keys && keys.length > 0) {
+                SetService.addDocumentToCart(type, keys).then(function (set) { $scope.onCartUpdate(beforeCart, set); });
             }
             else {
                 var queryWithLimit = rewriteQueryWithLimitAndFields(20000, ['id']);
                 SetService.addDocumentQueryToCart('variables', queryWithLimit).then(function (set) {
-                    showAlert(set, beforeCart);
+                    $scope.onCartUpdate(beforeCart, set);
                 });
             }
         };
-        $scope.addToSet = function (type, query, sels) {
+        $scope.addToSet = function (type) {
+            var sels = SearchResultSelectionsService.getSelections($scope.type);
             $uibModal.open({
                 keyboard: false,
                 component: 'addToSetModal',
                 resolve: {
-                    query: function () { return query; }, type: function () { return type; }, ids: function () { return sels; }
+                    query: function () { return $scope.query; }, type: function () { return type; }, ids: function () { return sels; }
                 }
             }).result.then(function (result) {
                 $scope.onSetUpdate(result.name, result.newCount);
             });
         };
-        $scope.getSelections = function (type) {
-            return SearchResultSelectionsService.getSelectionIds(type);
+        $scope.getSelections = function () {
+            var ids = SearchResultSelectionsService.getSelections($scope.type);
+            return ids ? Object.keys(ids) : null;
+            // return SearchResultSelectionsService.getSelectionIds(type);
         };
         $scope.getStudySpecificReportUrl = function () {
             if ($scope.query === null) {
@@ -11467,82 +11462,90 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
         _this.PaginationService.registerListener(_this.documentType, _this);
         return _this;
     }
-    SearchResultSelectionsDecorator.prototype.decorate = function (searchResult) {
-        this.searchResult = searchResult;
-        this.searchResult.selections = this.selections; // temporary until AddToSet selections can be passed to AddRoS
-        this.searchResult.allSelected = false;
-        this.searchResult.pageSelections = {};
-        this.searchResult.select = this.select.bind(this);
-        this.searchResult.selectPage = this.selectPage.bind(this);
-        this.searchResult.selectAll = this.selectAll.bind(this);
+    SearchResultSelectionsDecorator.prototype.decorate = function (component) {
+        _super.prototype.decorate.call(this, component);
+        this.component.select = this.select.bind(this);
+        this.component.selectPage = this.selectPage.bind(this);
+        this.component.selectAll = this.selectAll.bind(this);
     };
-    SearchResultSelectionsDecorator.prototype.clearSelections = function () {
-        _super.prototype.clearSelections.call(this);
-        this.searchResult.pageSelections = {};
+    SearchResultSelectionsDecorator.prototype.getSelections = function () {
+        return this.component.page.all ? [] : _super.prototype.getSelections.call(this);
     };
     SearchResultSelectionsDecorator.prototype.update = function () {
         var _this = this;
-        if (this.selections) {
-            Object.keys(this.selections)
-                .forEach(function (id) { return _this.selections[id]
-                ? _this.selections[id] = true
-                : delete _this.selections[id]; });
+        if (this.component.selections) {
+            Object.keys(this.component.selections)
+                .forEach(function (id) { return _this.component.selections[id]
+                ? _this.component.selections[id] = true
+                : delete _this.component.selections[id]; });
         }
     };
     SearchResultSelectionsDecorator.prototype.selectPage = function () {
-        this.selectPageInternal(this.searchResult.pageSelections[this.searchResult.pagination.currentPage]);
+        this.selectPageInternal(this.component.page.selections[this.component.pagination.currentPage]);
+    };
+    SearchResultSelectionsDecorator.prototype.select = function (id) {
+        var _this = this;
+        var selected = this.component.selections[id];
+        var currentPageSelected = this.component.page.selections[this.component.pagination.currentPage];
+        if (selected) {
+            var pageSelected = this.component.summaries
+                .reduce(function (acc, val) { return acc && _this.component.selections[val.id]; }, true);
+            if (pageSelected) {
+                this.component.page.selections[this.component.pagination.currentPage] = true;
+            }
+        }
+        else {
+            if (currentPageSelected) {
+                if (this.component.page.all) {
+                    // remove all selections
+                    this.component.page.all = false;
+                    this.clearSelections();
+                }
+                // due to clearing selections above, reselect the page that was already selected
+                this.selectPageInternal(currentPageSelected);
+                delete this.component.page.selections[this.component.pagination.currentPage];
+            }
+            delete this.component.selections[id];
+        }
+    };
+    SearchResultSelectionsDecorator.prototype.selectAll = function () {
+        this.component.page.all = !this.component.page.all;
+        if (this.component.page.all) {
+            this.selectPageInternal(this.component.page.all);
+        }
+        else {
+            this.clearSelections();
+        }
     };
     SearchResultSelectionsDecorator.prototype.onUpdate = function (state) {
-        var currentPagination = this.searchResult.pagination;
-        this.searchResult.pagination = state;
+        var currentPagination = this.component.pagination;
+        this.component.pagination = state;
         if (currentPagination) {
             if (currentPagination.pageCount !== state.pageCount) {
                 // page size has changed, reset selections
                 this.clearSelections();
             }
             else if (currentPagination.currentPage !== state.currentPage) {
-                this.selectPageInternal(this.searchResult.allSelected);
+                if (this.component.page.all) {
+                    this.selectPageInternal(this.component.page.all);
+                }
+                else {
+                    this.selectPage();
+                }
             }
-        }
-    };
-    SearchResultSelectionsDecorator.prototype.select = function (id) {
-        var _this = this;
-        var selected = this.selections[id];
-        var currentPageSelected = this.searchResult.pageSelections[this.searchResult.pagination.currentPage];
-        if (selected) {
-            var pageSelected = this.searchResult.summaries
-                .reduce(function (acc, val) { return acc && _this.selections[val.id]; }, true);
-            if (pageSelected) {
-                this.searchResult.pageSelections[this.searchResult.pagination.currentPage] = true;
-            }
-        }
-        else {
-            delete this.selections[id];
-            if (currentPageSelected) {
-                delete this.searchResult.pageSelections[this.searchResult.pagination.currentPage];
-            }
-        }
-    };
-    SearchResultSelectionsDecorator.prototype.selectAll = function () {
-        this.searchResult.allSelected = !this.searchResult.allSelected;
-        if (this.searchResult.allSelected) {
-            this.selectPageInternal(this.searchResult.allSelected);
-        }
-        else {
-            this.clearSelections();
         }
     };
     SearchResultSelectionsDecorator.prototype.selectPageInternal = function (checked) {
         var _this = this;
         if (checked) {
-            this.searchResult.pageSelections[this.searchResult.pagination.currentPage] = checked;
+            this.component.page.selections[this.component.pagination.currentPage] = checked;
         }
         else {
-            delete this.searchResult.pageSelections[this.searchResult.pagination.currentPage];
+            delete this.component.page.selections[this.component.pagination.currentPage];
         }
-        this.searchResult.summaries.forEach(function (summary) { return checked
-            ? _this.selections[summary.id] = checked
-            : delete _this.selections[summary.id]; });
+        this.component.summaries.forEach(function (summary) { return checked
+            ? _this.component.selections[summary.id] = checked
+            : delete _this.component.selections[summary.id]; });
     };
     return SearchResultSelectionsDecorator;
 }(AbstractSelectionsDecorator));
@@ -19701,8 +19704,8 @@ angular.module("search/components/result/search-result/list.html", []).run(["$te
     "        <i class=\"fa fa-cart-plus\"></i> <span class=\"caret\"></span>\n" +
     "      </button>\n" +
     "      <ul class=\"dropdown-menu\">\n" +
-    "        <li><a ng-click=\"addToCart(type, selections[type])\" href translate>sets.add.button.cart-label</a></li>\n" +
-    "        <li><a ng-click=\"addToSet(type, query, selections[type])\" href>{{'sets.add.button.set-label' | translate}}</a></li>\n" +
+    "        <li><a ng-click=\"addToCart(type)\" href translate>sets.add.button.cart-label</a></li>\n" +
+    "        <li><a ng-click=\"addToSet(type)\" href>{{'sets.add.button.set-label' | translate}}</a></li>\n" +
     "      </ul>\n" +
     "    </div>\n" +
     "\n" +
@@ -19901,15 +19904,15 @@ angular.module("search/components/result/variables-result-table/component.html",
     "  <div ng-show=\"!loading\">\n" +
     "    <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.variable.noResults</p>\n" +
     "    <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
-    "      <div class=\"alert alert-warning actions-select\" ng-show=\"pageSelections[pagination.currentPage]\">\n" +
-    "      <span ng-hide=\"allSelected\">\n" +
+    "      <div class=\"alert alert-warning actions-select\" ng-show=\"page.selections[pagination.currentPage]\">\n" +
+    "      <span ng-hide=\"page.all\">\n" +
     "        <span translate>sets.cart.all-cart-page-selected</span>\n" +
     "        <a href ng-click=\"selectAll()\" class=\"hoffset2\">\n" +
     "          <i class=\"fa fa-square-o\"></i>\n" +
     "          <b><span translate>sets.cart.select-all-cart</span></b>\n" +
     "        </a>\n" +
     "      </span>\n" +
-    "        <span ng-show=\"allSelected\">\n" +
+    "        <span ng-show=\"page.all\">\n" +
     "        <span translate>sets.cart.all-cart-selected</span>\n" +
     "        <a href ng-click=\"selectAll()\" class=\"hoffset2\">\n" +
     "          <i class=\"fa fa-check-square-o\"></i>\n" +
@@ -19922,7 +19925,7 @@ angular.module("search/components/result/variables-result-table/component.html",
     "          <tr>\n" +
     "            <th style=\"width: 50px\">\n" +
     "              <input\n" +
-    "                      ng-model=\"pageSelections[pagination.currentPage]\"\n" +
+    "                      ng-model=\"page.selections[pagination.currentPage]\"\n" +
     "                      type=\"checkbox\"\n" +
     "                      ng-click=\"selectPage()\"/>\n" +
     "            </th>\n" +

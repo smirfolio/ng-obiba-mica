@@ -48,8 +48,6 @@ ngObibaMica.search
       $scope.activeTarget[QUERY_TYPES.DATASETS] = {active: false, name: QUERY_TARGETS.DATASET};
       $scope.activeTarget[QUERY_TYPES.STUDIES] = {active: false, name: QUERY_TARGETS.STUDY};
       $scope.activeTarget[QUERY_TYPES.NETWORKS] = {active: false, name: QUERY_TARGETS.NETWORK};
-      $scope.selections = {};
-      $scope.selections[QUERY_TYPES.VARIABLES] = SearchResultSelectionsService.getSelections(QUERY_TYPES.VARIABLES);
 
 
       $scope.getUrlTemplate = function (tab) {
@@ -84,12 +82,12 @@ ngObibaMica.search
         return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(queryWithLimit));
       };
 
-      function showAlert(set, beforeCart) {
-        var addedCount = set.count - (beforeCart ? beforeCart.count : 0);
-        var msgKey = 'sets.cart.variables-added';
-        var msgArgs = [addedCount];
+      function showAlert(setName, addedCount, addedMsgKey, noCountMsgKey) {
+        let msgKey = addedMsgKey;
+        let msgArgs = setName ? [setName].concat(addedCount) : [addedCount];
+
         if (addedCount === 0) {
-          msgKey = 'sets.cart.no-variable-added';
+          msgKey = noCountMsgKey;
           msgArgs = [];
         }
         AlertService.growl({
@@ -101,58 +99,63 @@ ngObibaMica.search
         });
       }
 
-      $scope.onSetUpdate = function (setName, addedCount) {
-        var msgKey = 'sets.set.variables-added';
-        var msgArgs = [setName, addedCount];
-        if (addedCount === 0) {
-          msgKey = 'sets.set.no-variable-added';
-          msgArgs = [setName];
-        }
-
-        AlertService.growl({
-          id: 'SearchControllerGrowl',
-          type: 'info',
-          msgKey: msgKey,
-          msgArgs: msgArgs,
-          delay: 3000
-        });
-
+      $scope.onCartUpdate = function(beforeCount, set) {
+        var addedCount = set.count - (beforeCount ? beforeCount.count : 0);
+        showAlert(
+          null,
+          addedCount,
+          'sets.cart.variables-added',
+          'sets.cart.no-variable-added'
+        );
         SearchResultSelectionsService.clearSelections($scope.type);
       };
 
-      $scope.addToCart = function (type, ids) {
-        var keys = ids ? Object.keys(ids) : null;
+      $scope.onSetUpdate = function (setName, addedCount) {
+        showAlert(
+          setName,
+          addedCount,
+          'sets.set.variables-added',
+          'sets.set.no-variable-added'
+        );
+        SearchResultSelectionsService.clearSelections($scope.type);
+      };
+
+      $scope.addToCart = function (type) {
+        const ids = SearchResultSelectionsService.getSelections($scope.type);
+        const keys = ids ? Object.keys(ids) : null;
         if ($scope.query === null) {
           return $scope.query;
         }
-        var beforeCart = SetService.getCartSet(type);
-        if (keys) {
-          SetService.addDocumentToCart(type, keys).then(function (set) {
-            showAlert(set, beforeCart);
-            SearchResultSelectionsService.clearSelections(type);
-          });
+
+        const beforeCart = SetService.getCartSet(type);
+
+        if (keys && keys.length > 0) {
+          SetService.addDocumentToCart(type, keys).then(function(set) {$scope.onCartUpdate(beforeCart, set);});
         } else {
-          var queryWithLimit = rewriteQueryWithLimitAndFields(20000, ['id']);
-          SetService.addDocumentQueryToCart('variables', queryWithLimit).then(function (set) {
-            showAlert(set, beforeCart);
+          const queryWithLimit = rewriteQueryWithLimitAndFields(20000, ['id']);
+          SetService.addDocumentQueryToCart('variables', queryWithLimit).then(function(set) {
+            $scope.onCartUpdate(beforeCart, set);
           });
         }
       };
 
-      $scope.addToSet = function(type, query, sels) {
+      $scope.addToSet = function(type) {
+        var sels = SearchResultSelectionsService.getSelections($scope.type);
         $uibModal.open({
           keyboard: false,
           component: 'addToSetModal',
           resolve: {
-            query: function() { return query; }, type: function() { return type; }, ids: function() { return sels; }
+            query: function() { return $scope.query; }, type: function() { return type; }, ids: function() { return sels; }
           }
         }).result.then(function(result) {
           $scope.onSetUpdate(result.name, result.newCount);
         });
       };
 
-      $scope.getSelections = function (type) {
-        return SearchResultSelectionsService.getSelectionIds(type);
+      $scope.getSelections = function () {
+        const ids = SearchResultSelectionsService.getSelections($scope.type);
+        return ids ? Object.keys(ids) : null;
+        // return SearchResultSelectionsService.getSelectionIds(type);
       };
 
       $scope.getStudySpecificReportUrl = function () {

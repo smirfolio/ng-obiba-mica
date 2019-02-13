@@ -15,20 +15,20 @@ declare var QUERY_TYPES: any;
 
 abstract class AbstractSelectionsDecorator implements ISelections {
 
-  protected selections: any;
+  protected component: any;
   protected documentType: string;
 
   constructor(documentType: string) {
-    this.selections = {};
     this.documentType = documentType;
   }
 
   public getSelections(): any {
-    return this.selections;
+    return this.component.selections;
   }
 
   public clearSelections() {
-    Object.keys(this.selections).forEach((key) => delete this.selections[key]);
+    this.component.selections = {};
+    this.component.page = {selections: {}, all: false};
   }
 
   public abstract select(id: string);
@@ -37,5 +37,10 @@ abstract class AbstractSelectionsDecorator implements ISelections {
 
   public abstract selectAll();
 
-  public abstract decorate(client: any);
+  public decorate(component: any): void {
+    this.component = component;
+    this.component.selections = {};
+    this.component.page = {selections: {}, all: false};
+
+  }
 }
