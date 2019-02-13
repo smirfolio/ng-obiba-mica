@@ -10,16 +10,21 @@
             <span>
               {{tab.title | localizedString}}
             </span>
+
+            <a ng-if="canDelete[tab.name]" class="pull-right" href ng-click="$event.stopPropagation(); deleteChecked(tab.name)">
+              <i class="fa fa-trash-o"></i>
+            </a>
           </div>
 
           <span ng-if="!sets[tab.name].length" translate>sets.empty</span>
 
           <ul class="nav nav-pills nav-stacked">
             <li role="presentation" ng-repeat="set in sets[tab.name]">
-              <a href ng-click="selectSet(tab.name, set)">
-                {{set.name}}
-                <span class="badge pull-right">{{set.count}}</span>
-              </a>
+              <input type="checkbox" ng-model="checked[tab.name][set.id]" ng-click="check(tab.name)">
+              <span href ng-click="selectSet(tab.name, set)">
+                <a href>{{set.name}}</a>
+                <span class="pull-right text-muted">{{set.count}}</strong>
+              </span>
             </li>
           </ul>
         </div>
