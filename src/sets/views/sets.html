@@ -21,8 +21,8 @@
           <ul class="nav nav-pills nav-stacked">
             <li role="presentation" ng-repeat="set in sets[tab.name]">
               <input type="checkbox" ng-model="checked[tab.name][set.id]" ng-click="check(tab.name)">
-              <span href ng-click="selectSet(tab.name, set)">
-                <a href>{{set.name}}</a>
+              <span ng-click="selectSet(tab.name, set)">
+                <a href ng-class="{'label label-success': selectedSet.id === set.id}">{{set.name}}</a>
                 <span class="pull-right text-muted">{{set.count}}</strong>
               </span>
             </li>

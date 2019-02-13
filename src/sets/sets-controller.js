@@ -143,6 +143,8 @@
 
   .controller('SetsController', [
     '$scope',
+    '$route',
+    '$location',
     'ObibaSearchOptions',
     'ngObibaMicaSetsTemplateUrl',
     'MetaTaxonomyService',
@@ -151,6 +153,8 @@
     'SetService',
     function (
       $scope,
+      $route,
+      $location,
       ObibaSearchOptions,
       ngObibaMicaSetsTemplateUrl,
       MetaTaxonomyService,
@@ -166,9 +170,11 @@
     };
 
     var limit = 100;
+    var registeredlocationChangeEvent;
 
     $scope.setsHeaderTemplateUrl = ngObibaMicaSetsTemplateUrl.getHeaderUrl('sets');
 
+    // use in `initSets` function instead of hard-coded ['variable'] when resources are available
     $scope.tabs = ObibaSearchOptions.targetTabsOrder.filter(function (target) {
       return searchTaxonomyDisplay[target];
     });
@@ -185,15 +191,47 @@
             return allSets.filter(function (set) { return set.name; });
           }).then(function (sets) {
             $scope.sets[meta.name] = sets;
+            selectSetId($route.current.params.id);
           });
         });
       });
+    }
+
+    function setLocationChange() {
+      if (registeredlocationChangeEvent) {
+        unsetLocationChange();
+      }
+      registeredlocationChangeEvent = $scope.$on('$locationChangeSuccess', () => selectSetId($route.current.params.id));
+    }
+
+    function unsetLocationChange() {
+      if (registeredlocationChangeEvent) {
+        registeredlocationChangeEvent();
+        registeredlocationChangeEvent = undefined;
+      }
+    }
+
+    function selectSetId(setId) {
+      if (setId) {
+        var foundSet = Object.keys($scope.sets).reduce((acc, key) => acc.concat($scope.sets[key]), []).find((set) => set.id === setId);
+        if (foundSet) {
+          selectSet(foundSet.type.toLowerCase(), foundSet);
+        } else {
+          unsetLocationChange();
+          $location.search('id', $scope.selectedSet.id);
+          setLocationChange();
+        }
+      }
     }
 
     function selectSet(target, set) {
       $scope.loading = true;
       $scope.selectedType = targetToType(target);
       $scope.selectedSet = set;
+
+      unsetLocationChange();
+      $location.search('id', set.id);
+      setLocationChange();
 
       var promisedDocs = SetService.getSetDocuments($scope.selectedSet.id, $scope.selectedType, 0, limit);
       if (promisedDocs) {
