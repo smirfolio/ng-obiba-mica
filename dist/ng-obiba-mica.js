@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-02-12
+ * Date: 2019-02-13
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -3597,13 +3597,15 @@ angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSet
     ])
         .controller('SetsController', [
         '$scope',
+        '$route',
+        '$location',
         'ObibaSearchOptions',
         'ngObibaMicaSetsTemplateUrl',
         'MetaTaxonomyService',
         'SetsResource',
         'SetResource',
         'SetService',
-        function ($scope, ObibaSearchOptions, ngObibaMicaSetsTemplateUrl, MetaTaxonomyService, SetsResource, SetResource, SetService) {
+        function ($scope, $route, $location, ObibaSearchOptions, ngObibaMicaSetsTemplateUrl, MetaTaxonomyService, SetsResource, SetResource, SetService) {
             var searchTaxonomyDisplay = {
                 variable: ObibaSearchOptions.variables.showSearchTab,
                 dataset: ObibaSearchOptions.datasets.showSearchTab,
@@ -3611,7 +3613,9 @@ angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSet
                 network: ObibaSearchOptions.networks.showSearchTab
             };
             var limit = 100;
+            var registeredlocationChangeEvent;
             $scope.setsHeaderTemplateUrl = ngObibaMicaSetsTemplateUrl.getHeaderUrl('sets');
+            // use in `initSets` function instead of hard-coded ['variable'] when resources are available
             $scope.tabs = ObibaSearchOptions.targetTabsOrder.filter(function (target) {
                 return searchTaxonomyDisplay[target];
             });
@@ -3626,14 +3630,43 @@ angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSet
                             return allSets.filter(function (set) { return set.name; });
                         }).then(function (sets) {
                             $scope.sets[meta.name] = sets;
+                            selectSetId($route.current.params.id);
                         });
                     });
                 });
+            }
+            function setLocationChange() {
+                if (registeredlocationChangeEvent) {
+                    unsetLocationChange();
+                }
+                registeredlocationChangeEvent = $scope.$on('$locationChangeSuccess', function () { return selectSetId($route.current.params.id); });
+            }
+            function unsetLocationChange() {
+                if (registeredlocationChangeEvent) {
+                    registeredlocationChangeEvent();
+                    registeredlocationChangeEvent = undefined;
+                }
+            }
+            function selectSetId(setId) {
+                if (setId) {
+                    var foundSet = Object.keys($scope.sets).reduce(function (acc, key) { return acc.concat($scope.sets[key]); }, []).find(function (set) { return set.id === setId; });
+                    if (foundSet) {
+                        selectSet(foundSet.type.toLowerCase(), foundSet);
+                    }
+                    else {
+                        unsetLocationChange();
+                        $location.search('id', $scope.selectedSet.id);
+                        setLocationChange();
+                    }
+                }
             }
             function selectSet(target, set) {
                 $scope.loading = true;
                 $scope.selectedType = targetToType(target);
                 $scope.selectedSet = set;
+                unsetLocationChange();
+                $location.search('id', set.id);
+                setLocationChange();
                 var promisedDocs = SetService.getSetDocuments($scope.selectedSet.id, $scope.selectedType, 0, limit);
                 if (promisedDocs) {
                     promisedDocs.then(onDocuments);
@@ -20921,8 +20954,8 @@ angular.module("sets/views/sets.html", []).run(["$templateCache", function($temp
     "          <ul class=\"nav nav-pills nav-stacked\">\n" +
     "            <li role=\"presentation\" ng-repeat=\"set in sets[tab.name]\">\n" +
     "              <input type=\"checkbox\" ng-model=\"checked[tab.name][set.id]\" ng-click=\"check(tab.name)\">\n" +
-    "              <span href ng-click=\"selectSet(tab.name, set)\">\n" +
-    "                <a href>{{set.name}}</a>\n" +
+    "              <span ng-click=\"selectSet(tab.name, set)\">\n" +
+    "                <a href ng-class=\"{'label label-success': selectedSet.id === set.id}\">{{set.name}}</a>\n" +
     "                <span class=\"pull-right text-muted\">{{set.count}}</strong>\n" +
     "              </span>\n" +
     "            </li>\n" +
