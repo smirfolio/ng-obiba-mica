@@ -28,6 +28,10 @@ class SearchResultSelectionsDecorator extends AbstractSelectionsDecorator {
     return this.component.page.all ? [] : super.getSelections();
   }
 
+  public getSelectionIds() {
+    return this.component.page.all ? [] : super.getSelectionIds();
+  }
+
   public update() {
     if (this.component.selections) {
       Object.keys(this.component.selections)

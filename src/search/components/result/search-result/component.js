@@ -14,6 +14,7 @@ ngObibaMica.search
     'SetService',
     'SearchResultSelectionsService',
     '$uibModal',
+    '$timeout',
     function ($scope,
               ngObibaMicaSearch,
               ngObibaMicaUrl,
@@ -23,7 +24,8 @@ ngObibaMica.search
               AlertService,
               SetService,
               SearchResultSelectionsService,
-              $uibModal) {
+              $uibModal,
+              $timeout) {
 
       function updateType(type) {
         Object.keys($scope.activeTarget).forEach(function (key) {
@@ -72,6 +74,22 @@ ngObibaMica.search
           return '...';
         }
         return $scope.result.list[type + 'ResultDto'].totalHits;
+      };
+
+      $scope.getSelectionsReportUrl = function () {
+        const rql = RqlQueryUtils.createSelectionsQuery(
+          RqlQueryService.parseQuery($scope.query),
+          typeToTarget($scope.type),
+          100000,
+          null,
+          SearchResultSelectionsService.getSelectionIds($scope.type)
+        );
+
+        // Using timeout due to digest cycle glitch, this way the selections are cleared.
+        $timeout(function () {SearchResultSelectionsService.clearSelections($scope.type);});
+
+        return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(rql));
+
       };
 
       $scope.getReportUrl = function () {
