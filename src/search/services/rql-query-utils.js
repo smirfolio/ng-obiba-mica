@@ -454,6 +454,34 @@
       return new RqlQuery().serializeArgs(parsedQuery.args);
     }
 
+    function createSelectionsQuery(parsedQuery, target, maximumLimit, fieldsArray, selections) {
+      var currentTargetQuery = parsedQuery.args.filter(function (query) {
+        return query.name === target;
+      }).pop();
+
+      addLimit(currentTargetQuery, limit(0, maximumLimit));
+
+      if (fieldsArray) {
+        addFields(currentTargetQuery, fields(fieldsArray));
+      }
+
+      var ids = selections.slice(0, maximumLimit);
+      var rootQuery = new RqlQuery(RQL_NODE.AND);
+      var targetQuery = new RqlQuery(target);
+      targetQuery.args.push(inQuery('id', ids));
+
+      // steal required properties from current target query
+      currentTargetQuery.args.forEach(function (arg) {
+        if (['fields', 'limit', 'sort'].indexOf(arg.name) > -1) {
+          targetQuery.args.push(arg);
+        }
+      });
+
+      rootQuery.args.push(targetQuery);
+
+      return rootQuery;
+    }
+
     // exports
     this.vocabularyTermNames = vocabularyTermNames;
     this.hasTargetQuery = hasTargetQuery;
@@ -484,6 +512,7 @@
     this.addSort = addSort;
     this.criteriaId = criteriaId;
     this.rewriteQueryWithLimitAndFields = rewriteQueryWithLimitAndFields;
+    this.createSelectionsQuery = createSelectionsQuery;
   }
 
   ngObibaMica.search.service('RqlQueryUtils', ['VocabularyService', RqlQueryUtils]);

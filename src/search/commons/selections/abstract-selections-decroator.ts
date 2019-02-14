@@ -26,6 +26,10 @@ abstract class AbstractSelectionsDecorator implements ISelections {
     return this.component.selections;
   }
 
+  public getSelectionIds(): any {
+    return this.component.selections ? Object.keys(this.component.selections) : [];
+  }
+
   public clearSelections() {
     this.component.selections = {};
     this.component.page = {selections: {}, all: false};

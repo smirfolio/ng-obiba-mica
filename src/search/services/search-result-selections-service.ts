@@ -18,6 +18,10 @@ class SearchResultSelectionsService {
     return this.decorators[type] ? this.decorators[type].getSelections() : {};
   }
 
+  public getSelectionIds(type: string): any {
+    return this.decorators[type] ? this.decorators[type].getSelectionIds() : {};
+  }
+
   public clearSelections(type: string): any {
     return this.decorators[type] ? this.decorators[type].clearSelections() : {};
   }
