@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-01-22
+ * Date: 2019-02-14
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -5269,7 +5269,7 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
             var onSelectTerm = function (target, taxonomy, vocabulary, args) {
                 args = args || {};
                 if (args.text) {
-                    args.text = args.text.replace(/[^a-zA-Z0-9" _-]/g, '');
+                    args.text = args.text.replace(/[^a-zA-Z0-9*" _-]/g, '');
                 }
                 if (angular.isString(args)) {
                     args = { term: args };
@@ -5812,7 +5812,6 @@ ngObibaMica.search.service("CoverageGroupByService", ["ngObibaMicaSearch", Cover
     function FullScreenService($document, $window, $rootScope) {
         // based on: https://github.com/fabiobiondi/angular-fullscreen
         var document = $document[0];
-        var isKeyboardAvailbleOnFullScreen = (typeof $window.Element !== 'undefined' && 'ALLOW_KEYBOARD_INPUT' in $window.Element) && $window.Element.ALLOW_KEYBOARD_INPUT;
         var emitter = $rootScope.$new();
         var serviceInstance = {
             $on: angular.bind(emitter, emitter.$on),
@@ -5824,13 +5823,7 @@ ngObibaMica.search.service("CoverageGroupByService", ["ngObibaMicaSearch", Cover
                     element.mozRequestFullScreen();
                 }
                 else if (element.webkitRequestFullscreen) {
-                    // Safari temporary fix
-                    if (/Version\/[\d]{1,2}(\.[\d]{1,2}){1}(\.(\d){1,2}){0,1} Safari/.test($window.navigator.userAgent)) {
-                        element.webkitRequestFullscreen();
-                    }
-                    else {
-                        element.webkitRequestFullscreen(isKeyboardAvailbleOnFullScreen);
-                    }
+                    element.webkitRequestFullscreen();
                 }
                 else if (element.msRequestFullscreen) {
                     element.msRequestFullscreen();
