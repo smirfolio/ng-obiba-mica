@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-02-13
+ * Date: 2019-02-14
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -4793,6 +4793,9 @@ var AbstractSelectionsDecorator = /** @class */ (function () {
     AbstractSelectionsDecorator.prototype.getSelections = function () {
         return this.component.selections;
     };
+    AbstractSelectionsDecorator.prototype.getSelectionIds = function () {
+        return this.component.selections ? Object.keys(this.component.selections) : [];
+    };
     AbstractSelectionsDecorator.prototype.clearSelections = function () {
         this.component.selections = {};
         this.component.page = { selections: {}, all: false };
@@ -7943,6 +7946,27 @@ function typeToTarget(type) {
             }
             return new RqlQuery().serializeArgs(parsedQuery.args);
         }
+        function createSelectionsQuery(parsedQuery, target, maximumLimit, fieldsArray, selections) {
+            var currentTargetQuery = parsedQuery.args.filter(function (query) {
+                return query.name === target;
+            }).pop();
+            addLimit(currentTargetQuery, limit(0, maximumLimit));
+            if (fieldsArray) {
+                addFields(currentTargetQuery, fields(fieldsArray));
+            }
+            var ids = selections.slice(0, maximumLimit);
+            var rootQuery = new RqlQuery(RQL_NODE.AND);
+            var targetQuery = new RqlQuery(target);
+            targetQuery.args.push(inQuery('id', ids));
+            // steal required properties from current target query
+            currentTargetQuery.args.forEach(function (arg) {
+                if (['fields', 'limit', 'sort'].indexOf(arg.name) > -1) {
+                    targetQuery.args.push(arg);
+                }
+            });
+            rootQuery.args.push(targetQuery);
+            return rootQuery;
+        }
         // exports
         this.vocabularyTermNames = vocabularyTermNames;
         this.hasTargetQuery = hasTargetQuery;
@@ -7973,6 +7997,7 @@ function typeToTarget(type) {
         this.addSort = addSort;
         this.criteriaId = criteriaId;
         this.rewriteQueryWithLimitAndFields = rewriteQueryWithLimitAndFields;
+        this.createSelectionsQuery = createSelectionsQuery;
     }
     ngObibaMica.search.service('RqlQueryUtils', ['VocabularyService', RqlQueryUtils]);
 })();
@@ -8014,6 +8039,9 @@ var SearchResultSelectionsService = /** @class */ (function () {
     };
     SearchResultSelectionsService.prototype.getSelections = function (type) {
         return this.decorators[type] ? this.decorators[type].getSelections() : {};
+    };
+    SearchResultSelectionsService.prototype.getSelectionIds = function (type) {
+        return this.decorators[type] ? this.decorators[type].getSelectionIds() : {};
     };
     SearchResultSelectionsService.prototype.clearSelections = function (type) {
         return this.decorators[type] ? this.decorators[type].clearSelections() : {};
@@ -11275,7 +11303,8 @@ ngObibaMica.search
     'SetService',
     'SearchResultSelectionsService',
     '$uibModal',
-    function ($scope, ngObibaMicaSearch, ngObibaMicaUrl, RqlQueryService, RqlQueryUtils, ngObibaMicaSearchTemplateUrl, AlertService, SetService, SearchResultSelectionsService, $uibModal) {
+    '$timeout',
+    function ($scope, ngObibaMicaSearch, ngObibaMicaUrl, RqlQueryService, RqlQueryUtils, ngObibaMicaSearchTemplateUrl, AlertService, SetService, SearchResultSelectionsService, $uibModal, $timeout) {
         function updateType(type) {
             Object.keys($scope.activeTarget).forEach(function (key) {
                 $scope.activeTarget[key].active = type === key;
@@ -11315,6 +11344,12 @@ ngObibaMica.search
                 return '...';
             }
             return $scope.result.list[type + 'ResultDto'].totalHits;
+        };
+        $scope.getSelectionsReportUrl = function () {
+            var rql = RqlQueryUtils.createSelectionsQuery(RqlQueryService.parseQuery($scope.query), typeToTarget($scope.type), 100000, null, SearchResultSelectionsService.getSelectionIds($scope.type));
+            // Using timeout due to digest cycle glitch, this way the selections are cleared.
+            $timeout(function () { SearchResultSelectionsService.clearSelections($scope.type); });
+            return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(rql));
         };
         $scope.getReportUrl = function () {
             if ($scope.query === null) {
@@ -11470,6 +11505,9 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
     };
     SearchResultSelectionsDecorator.prototype.getSelections = function () {
         return this.component.page.all ? [] : _super.prototype.getSelections.call(this);
+    };
+    SearchResultSelectionsDecorator.prototype.getSelectionIds = function () {
+        return this.component.page.all ? [] : _super.prototype.getSelectionIds.call(this);
     };
     SearchResultSelectionsDecorator.prototype.update = function () {
         var _this = this;
@@ -19713,7 +19751,7 @@ angular.module("search/components/result/search-result/list.html", []).run(["$te
     "      href>\n" +
     "      <i class=\"fa fa-download\"></i> {{'report-group.study.button-name' | translate}}\n" +
     "    </a>\n" +
-    "    <a obiba-file-download url=\"getReportUrl()\" target=\"_self\" download class=\"btn btn-info\" href>\n" +
+    "    <a obiba-file-download get-url=\"getSelectionsReportUrl()\" target=\"_self\" download class=\"btn btn-info\" href>\n" +
     "      <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
     "    </a>\n" +
     "  </div>\n" +
@@ -19970,7 +20008,8 @@ angular.module("search/components/result/variables-result-table/component.html",
     "      </table>\n" +
     "    </div>\n" +
     "  </div>\n" +
-    "</div>");
+    "</div>\n" +
+    "");
 }]);
 
 angular.module("search/components/search-box-region/component.html", []).run(["$templateCache", function($templateCache) {
