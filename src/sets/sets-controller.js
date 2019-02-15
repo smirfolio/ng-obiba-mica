@@ -186,6 +186,7 @@
     $scope.sets = {};
     $scope.checked = {};
     $scope.canDelete = {};
+    $scope.selectedSet = {};
 
     function initSets() {
       MetaTaxonomyService.getMetaTaxonomyForTargets(['variable']).then(function (metaTaxonomies) {
@@ -196,7 +197,7 @@
           }).then(function (sets) {
             $scope.sets[meta.name] = sets;
 
-            if ($scope.selectedSet.id) {
+            if (!$scope.selectedSet.id) {
               let setToSelect = null;
               if ($route.current.params.id) {
                 setToSelect = $route.current.params.id;
