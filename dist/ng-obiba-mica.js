@@ -3632,7 +3632,16 @@ angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSet
                             return allSets.filter(function (set) { return set.name; });
                         }).then(function (sets) {
                             $scope.sets[meta.name] = sets;
-                            selectSetId($route.current.params.id);
+                            if ($scope.selectedSet.id) {
+                                var setToSelect = null;
+                                if ($route.current.params.id) {
+                                    setToSelect = $route.current.params.id;
+                                }
+                                else if (sets.length > 0) {
+                                    setToSelect = sets[0].id;
+                                }
+                                selectSetId(setToSelect);
+                            }
                         });
                     });
                 });
@@ -20755,7 +20764,7 @@ angular.module("sets/components/add-to-set-modal/component.html", []).run(["$tem
     "\n" +
     "    <div>\n" +
     "        <div class=\"radio\">\n" +
-    "          <label for=\"#new_set_choice\">\n" +
+    "          <label for=\"new_set_choice\">\n" +
     "            <input type=\"radio\" ng-model=\"$ctrl.choice.radio\" ng-required=\"!$ctrl.choice.radio\" value=\"NEW\" id=\"new_set_choice\" ng-change=\"$ctrl.onRadioChanged()\">\n" +
     "            {{'sets.add.modal.create-new' | translate}}\n" +
     "          </label>\n" +
@@ -20766,7 +20775,7 @@ angular.module("sets/components/add-to-set-modal/component.html", []).run(["$tem
     "\n" +
     "    <div ng-if=\"$ctrl.sets.length\">\n" +
     "        <div class=\"radio\">\n" +
-    "          <label for=\"#existing_set_choice\">\n" +
+    "          <label for=\"existing_set_choice\">\n" +
     "            <input type=\"radio\" ng-model=\"$ctrl.choice.radio\" ng-required=\"!$ctrl.choice.radio\" value=\"EXISTING\" id=\"existing_set_choice\" ng-change=\"$ctrl.onRadioChanged()\">\n" +
     "            {{'sets.add.modal.to-existing' | translate}}\n" +
     "          </label>\n" +
