@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-02-14
+ * Date: 2019-02-15
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -604,7 +604,6 @@ ngObibaMica.utils.service("CustomWatchDomElementService", [CustomWatchDomElement
                 var form = changes.schemaForm.currentValue;
                 ctrl.form.definition = validateDefinitionParsing(LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(form.definition, [])), getParsingErrorCallback('definition'));
                 ctrl.form.schema = validateSchemaParsing(LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(form.schema, {})), getParsingErrorCallback('schema'));
-                ctrl.form.downloadTemplate = form.pdfDownloadType === 'Template';
                 ctrl.form.schema.readonly = ctrl.readOnly;
                 SfOptionsService.transform().then(function (options) {
                     ctrl.sfOptions = options;
@@ -1699,6 +1698,7 @@ ngObibaMica.access
                 $scope.sfOptions = values[0];
                 $scope.sfOptions.pristine = { errors: true, success: false };
                 $scope.dataAccessForm = values[1];
+                $scope.dataAccessForm.downloadTemplate = $scope.dataAccessForm.pdfDownloadType === 'Template';
                 deferred.resolve();
             }, onError);
             return deferred.promise;
@@ -15898,11 +15898,11 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "          class=\"btn btn-primary\" title=\"{{'edit' | translate}}\">\n" +
     "          <i class=\"fa fa-pencil-square-o\"></i>\n" +
     "        </a>\n" +
-    "        <a ng-if=\"form.downloadTemplate === false\" ng-click=\"printForm()\"\n" +
+    "        <a ng-if=\"dataAccessForm.downloadTemplate === false\" ng-click=\"printForm()\"\n" +
     "           class=\"btn btn-default\" title=\"{{'global.print' | translate}}\">\n" +
     "          <i class=\"fa fa-print\"></i> <span translate>global.print</span>\n" +
     "        </a>\n" +
-    "        <a ng-if=\"form.downloadTemplate === true\" target=\"_self\" href=\"{{requestDownloadUrl}}\" class=\"btn btn-default\">\n" +
+    "        <a ng-if=\"dataAccessForm.downloadTemplate === true\" target=\"_self\" href=\"{{requestDownloadUrl}}\" class=\"btn btn-default\">\n" +
     "          <i class=\"fa fa-download\"></i> <span>{{config.downloadButtonCaption || 'download' | translate}}</span>\n" +
     "        </a>\n" +
     "        <a ng-click=\"delete()\"\n" +
