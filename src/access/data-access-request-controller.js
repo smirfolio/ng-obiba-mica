@@ -212,6 +212,9 @@ ngObibaMica.access
             $scope.sfOptions = values[0];
             $scope.sfOptions.pristine = { errors: true, success: false };
             $scope.dataAccessForm = values[1];
+
+            $scope.dataAccessForm.downloadTemplate = $scope.dataAccessForm.pdfDownloadType === 'Template';
+
             deferred.resolve();
           }, onError);
 
