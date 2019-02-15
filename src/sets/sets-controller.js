@@ -195,7 +195,16 @@
             return allSets.filter(function (set) { return set.name; });
           }).then(function (sets) {
             $scope.sets[meta.name] = sets;
-            selectSetId($route.current.params.id);
+
+            if ($scope.selectedSet.id) {
+              let setToSelect = null;
+              if ($route.current.params.id) {
+                setToSelect = $route.current.params.id;
+              } else if (sets.length > 0) {
+                setToSelect = sets[0].id;
+              }
+              selectSetId(setToSelect);
+            }
           });
         });
       });
