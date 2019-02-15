@@ -142,6 +142,7 @@
     }])
 
   .controller('SetsController', [
+    '$rootScope',
     '$scope',
     '$route',
     '$location',
@@ -151,7 +152,9 @@
     'SetsResource',
     'SetResource',
     'SetService',
+    'NOTIFICATION_EVENTS',
     function (
+      $rootScope,
       $scope,
       $route,
       $location,
@@ -160,7 +163,8 @@
       MetaTaxonomyService,
       SetsResource,
       SetResource,
-      SetService) {
+      SetService,
+      NOTIFICATION_EVENTS) {
 
     var searchTaxonomyDisplay = {
       variable: ObibaSearchOptions.variables.showSearchTab,
@@ -184,9 +188,9 @@
     $scope.canDelete = {};
 
     function initSets() {
-      MetaTaxonomyService.getMetaTaxonomyForTargets(['variable']).then(function (metatTaxonomies) {
-        $scope.useableTabs = metatTaxonomies;
-        metatTaxonomies.forEach(function (meta) {
+      MetaTaxonomyService.getMetaTaxonomyForTargets(['variable']).then(function (metaTaxonomies) {
+        $scope.useableTabs = metaTaxonomies;
+        metaTaxonomies.forEach(function (meta) {
           SetsResource.query({type: targetToType(meta.name)}).$promise.then(function(allSets) {
             return allSets.filter(function (set) { return set.name; });
           }).then(function (sets) {
@@ -218,8 +222,13 @@
           selectSet(foundSet.type.toLowerCase(), foundSet);
         } else {
           unsetLocationChange();
-          $location.search('id', $scope.selectedSet.id);
           setLocationChange();
+
+          if ($scope.selectedSet.id === setId) {
+            $scope.selectedSet = {};
+          }
+
+          $location.search('id', $scope.selectedSet.id);
         }
       }
     }
@@ -262,7 +271,7 @@
       return $scope.checked[tabName] && getCheckedIds(tabName).length > 0;
     }
 
-    function deleteChecked(tabName) {
+    function onDeleteConfirm(event, tabName) {
       getCheckedIds(tabName).reduce((acc, id) => {
         if (acc === undefined || acc === null) {
           return SetResource.delete({id: id, type: targetToType(tabName)}).$promise;
@@ -275,6 +284,19 @@
         initCheckBoxes(tabName);
         initSets();
       });
+
+      $scope.onDeleteConfirmed();
+    }
+
+    function deleteChecked(tabName) {
+      $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog,
+        {
+          titleKey: 'sets.delete-dialog.title',
+          messageKey: 'sets.delete-dialog.message'
+        }, tabName
+      );
+
+      $scope.onDeleteConfirmed = $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onDeleteConfirm);
     }
 
     function check(tabName) {
