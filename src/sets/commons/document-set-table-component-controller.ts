@@ -99,7 +99,9 @@ abstract class DocumentsSetTableComponentController implements IDocumentsSetTabl
   }
 
   public download(): string {
-    return this.SetService.getDownloadUrl(this.type, this.setId);
+    return this.hasSelections()
+      ? this.SetService.getDownloadUrlForIds(this.type, this.setId, this.getSelectedDocumentIds())
+      : this.SetService.getDownloadUrl(this.type, this.setId);
   }
 
   public search(): void {

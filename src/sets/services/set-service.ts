@@ -29,6 +29,7 @@ interface ISetService {
   clearCart(documentType: string): any;
   gotoSetEntitiesCount(setId: string, documentId: string | string[]): void;
   getDownloadUrl(documentType: string, setId: string): string;
+  getDownloadUrlForIds(documentType: string, setId: string, ids: string[]): string;
   gotoEntitiesCount(ids: string[]): void;
   gotoSearch(documentType: string, setId: string): void;
   getCartSet(documentType: string): any;
@@ -305,6 +306,18 @@ class SetService implements ISetService {
       return this.PageUrlService.downloadList(documentType, queryStr);
     }
     return null;
+  }
+
+  public getDownloadUrlForIds(documentType: string, setId: string, ids: string[]): string {
+    if (!ids || ids.length < 1) {
+      return this.getDownloadUrl(documentType, setId);
+    }
+
+    const queryStr = "variable(in(id,(" + ids.join(",") + ")),limit(0,20000)"
+      + ",fields((attributes.label.*,variableType,datasetId,datasetAcronym))"
+      + ",sort(variableType,containerId,populationWeight,dataCollectionEventWeight,datasetId,index,name))"
+      + ",locale(" + this.$translate.use() + ")";
+    return this.PageUrlService.downloadList(documentType, queryStr);
   }
 
   /**

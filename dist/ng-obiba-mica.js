@@ -2873,6 +2873,16 @@ var SetService = /** @class */ (function () {
         }
         return null;
     };
+    SetService.prototype.getDownloadUrlForIds = function (documentType, setId, ids) {
+        if (!ids || ids.length < 1) {
+            return this.getDownloadUrl(documentType, setId);
+        }
+        var queryStr = "variable(in(id,(" + ids.join(",") + ")),limit(0,20000)"
+            + ",fields((attributes.label.*,variableType,datasetId,datasetAcronym))"
+            + ",sort(variableType,containerId,populationWeight,dataCollectionEventWeight,datasetId,index,name))"
+            + ",locale(" + this.$translate.use() + ")";
+        return this.PageUrlService.downloadList(documentType, queryStr);
+    };
     /**
      * Go to search page with documents filtered by the set they belong to.
      * @param documentType the document type
@@ -3057,7 +3067,9 @@ var DocumentsSetTableComponentController = /** @class */ (function () {
         }
     };
     DocumentsSetTableComponentController.prototype.download = function () {
-        return this.SetService.getDownloadUrl(this.type, this.setId);
+        return this.hasSelections()
+            ? this.SetService.getDownloadUrlForIds(this.type, this.setId, this.getSelectedDocumentIds())
+            : this.SetService.getDownloadUrl(this.type, this.setId);
     };
     DocumentsSetTableComponentController.prototype.search = function () {
         this.SetService.gotoSearch(this.type, this.setId);
@@ -20893,7 +20905,7 @@ angular.module("sets/components/set-variables-table/component.html", []).run(["$
   $templateCache.put("sets/components/set-variables-table/component.html",
     "<div>\n" +
     "  <div class=\"pull-left\" ng-show=\"$ctrl.documents.total>0\">\n" +
-    "    <a obiba-file-download url=\"$ctrl.download()\" target=\"_self\" download class=\"action btn btn-info btn-responsive\">\n" +
+    "    <a obiba-file-download get-url=\"$ctrl.download()\" target=\"_self\" download class=\"action btn btn-info btn-responsive\">\n" +
     "      <i class=\"fa fa-download\"></i>\n" +
     "    </a>\n" +
     "\n" +
