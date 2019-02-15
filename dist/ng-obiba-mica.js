@@ -3624,6 +3624,7 @@ angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSet
             $scope.sets = {};
             $scope.checked = {};
             $scope.canDelete = {};
+            $scope.selectedSet = {};
             function initSets() {
                 MetaTaxonomyService.getMetaTaxonomyForTargets(['variable']).then(function (metaTaxonomies) {
                     $scope.useableTabs = metaTaxonomies;
@@ -3632,7 +3633,7 @@ angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSet
                             return allSets.filter(function (set) { return set.name; });
                         }).then(function (sets) {
                             $scope.sets[meta.name] = sets;
-                            if ($scope.selectedSet.id) {
+                            if (!$scope.selectedSet.id) {
                                 var setToSelect = null;
                                 if ($route.current.params.id) {
                                     setToSelect = $route.current.params.id;
