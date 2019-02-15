@@ -74,7 +74,6 @@
         ctrl.form.schema = validateSchemaParsing(
           LocalizedSchemaFormService.translate(JsonUtils.parseJsonSafely(form.schema, {})), getParsingErrorCallback('schema'));
 
-        ctrl.form.downloadTemplate = form.pdfDownloadType === 'Template';
         ctrl.form.schema.readonly = ctrl.readOnly;
 
         SfOptionsService.transform().then(function (options) {
