@@ -3596,6 +3596,7 @@ angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSet
         }
     ])
         .controller('SetsController', [
+        '$rootScope',
         '$scope',
         '$route',
         '$location',
@@ -3605,7 +3606,8 @@ angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSet
         'SetsResource',
         'SetResource',
         'SetService',
-        function ($scope, $route, $location, ObibaSearchOptions, ngObibaMicaSetsTemplateUrl, MetaTaxonomyService, SetsResource, SetResource, SetService) {
+        'NOTIFICATION_EVENTS',
+        function ($rootScope, $scope, $route, $location, ObibaSearchOptions, ngObibaMicaSetsTemplateUrl, MetaTaxonomyService, SetsResource, SetResource, SetService, NOTIFICATION_EVENTS) {
             var searchTaxonomyDisplay = {
                 variable: ObibaSearchOptions.variables.showSearchTab,
                 dataset: ObibaSearchOptions.datasets.showSearchTab,
@@ -3623,9 +3625,9 @@ angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSet
             $scope.checked = {};
             $scope.canDelete = {};
             function initSets() {
-                MetaTaxonomyService.getMetaTaxonomyForTargets(['variable']).then(function (metatTaxonomies) {
-                    $scope.useableTabs = metatTaxonomies;
-                    metatTaxonomies.forEach(function (meta) {
+                MetaTaxonomyService.getMetaTaxonomyForTargets(['variable']).then(function (metaTaxonomies) {
+                    $scope.useableTabs = metaTaxonomies;
+                    metaTaxonomies.forEach(function (meta) {
                         SetsResource.query({ type: targetToType(meta.name) }).$promise.then(function (allSets) {
                             return allSets.filter(function (set) { return set.name; });
                         }).then(function (sets) {
@@ -3655,8 +3657,11 @@ angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSet
                     }
                     else {
                         unsetLocationChange();
-                        $location.search('id', $scope.selectedSet.id);
                         setLocationChange();
+                        if ($scope.selectedSet.id === setId) {
+                            $scope.selectedSet = {};
+                        }
+                        $location.search('id', $scope.selectedSet.id);
                     }
                 }
             }
@@ -3691,7 +3696,7 @@ angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSet
             function canDeleteChecked(tabName) {
                 return $scope.checked[tabName] && getCheckedIds(tabName).length > 0;
             }
-            function deleteChecked(tabName) {
+            function onDeleteConfirm(event, tabName) {
                 getCheckedIds(tabName).reduce(function (acc, id) {
                     if (acc === undefined || acc === null) {
                         return SetResource.delete({ id: id, type: targetToType(tabName) }).$promise;
@@ -3703,6 +3708,14 @@ angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSet
                     initCheckBoxes(tabName);
                     initSets();
                 });
+                $scope.onDeleteConfirmed();
+            }
+            function deleteChecked(tabName) {
+                $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
+                    titleKey: 'sets.delete-dialog.title',
+                    messageKey: 'sets.delete-dialog.message'
+                }, tabName);
+                $scope.onDeleteConfirmed = $scope.$on(NOTIFICATION_EVENTS.confirmDialogAccepted, onDeleteConfirm);
             }
             function check(tabName) {
                 $scope.canDelete[tabName] = canDeleteChecked(tabName);
@@ -20994,12 +21007,15 @@ angular.module("sets/views/sets.html", []).run(["$templateCache", function($temp
     "          <span ng-if=\"!sets[tab.name].length\" translate>sets.empty</span>\n" +
     "\n" +
     "          <ul class=\"nav nav-pills nav-stacked\">\n" +
-    "            <li role=\"presentation\" ng-repeat=\"set in sets[tab.name]\">\n" +
-    "              <input type=\"checkbox\" ng-model=\"checked[tab.name][set.id]\" ng-click=\"check(tab.name)\">\n" +
-    "              <span ng-click=\"selectSet(tab.name, set)\">\n" +
-    "                <a href ng-class=\"{'label label-success': selectedSet.id === set.id}\">{{set.name}}</a>\n" +
-    "                <span class=\"pull-right text-muted\">{{set.count}}</strong>\n" +
+    "            <li role=\"presentation\" ng-repeat=\"set in sets[tab.name]\" ng-class=\"{'active': selectedSet.id === set.id}\">\n" +
+    "\n" +
+    "              <span class=\"checkbox no-margin-top no-margin-bottom\" >\n" +
+    "                <input class=\"margin-top-10 margin-left--5\" type=\"checkbox\" ng-model=\"checked[tab.name][set.id]\" ng-click=\"$event.stopPropagation(); check(tab.name);\">\n" +
     "              </span>\n" +
+    "              <a class=\"flex margin-left-10\" href ng-click=\"$event.stopPropagation(); selectSet(tab.name, set);\">\n" +
+    "                <span class=\"flex-item3\">{{set.name}}</span>\n" +
+    "                <span class=\"flex-item1 text-right text-muted\">{{set.count}}</span>\n" +
+    "              </a>\n" +
     "            </li>\n" +
     "          </ul>\n" +
     "        </div>\n" +
