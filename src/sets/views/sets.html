@@ -19,12 +19,15 @@
           <span ng-if="!sets[tab.name].length" translate>sets.empty</span>
 
           <ul class="nav nav-pills nav-stacked">
-            <li role="presentation" ng-repeat="set in sets[tab.name]">
-              <input type="checkbox" ng-model="checked[tab.name][set.id]" ng-click="check(tab.name)">
-              <span ng-click="selectSet(tab.name, set)">
-                <a href ng-class="{'label label-success': selectedSet.id === set.id}">{{set.name}}</a>
-                <span class="pull-right text-muted">{{set.count}}</strong>
+            <li role="presentation" ng-repeat="set in sets[tab.name]" ng-class="{'active': selectedSet.id === set.id}">
+
+              <span class="checkbox no-margin-top no-margin-bottom" >
+                <input class="margin-top-10 margin-left--5" type="checkbox" ng-model="checked[tab.name][set.id]" ng-click="$event.stopPropagation(); check(tab.name);">
               </span>
+              <a class="flex margin-left-10" href ng-click="$event.stopPropagation(); selectSet(tab.name, set);">
+                <span class="flex-item3">{{set.name}}</span>
+                <span class="flex-item1 text-right text-muted">{{set.count}}</span>
+              </a>
             </li>
           </ul>
         </div>
