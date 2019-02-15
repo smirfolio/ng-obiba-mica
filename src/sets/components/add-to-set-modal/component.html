@@ -9,7 +9,7 @@
 
     <div>
         <div class="radio">
-          <label for="#new_set_choice">
+          <label for="new_set_choice">
             <input type="radio" ng-model="$ctrl.choice.radio" ng-required="!$ctrl.choice.radio" value="NEW" id="new_set_choice" ng-change="$ctrl.onRadioChanged()">
             {{'sets.add.modal.create-new' | translate}}
           </label>
@@ -20,7 +20,7 @@
 
     <div ng-if="$ctrl.sets.length">
         <div class="radio">
-          <label for="#existing_set_choice">
+          <label for="existing_set_choice">
             <input type="radio" ng-model="$ctrl.choice.radio" ng-required="!$ctrl.choice.radio" value="EXISTING" id="existing_set_choice" ng-change="$ctrl.onRadioChanged()">
             {{'sets.add.modal.to-existing' | translate}}
           </label>
