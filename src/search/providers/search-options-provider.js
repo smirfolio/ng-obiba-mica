@@ -286,8 +286,9 @@
             variables: {
               showSearchTab: hasMultipleDatasets,
               variablesColumn: {
-                showVariablesTypeColumn: micaConfig.isCollectedDatasetEnabled && micaConfig.isHarmonizedDatasetEnabled,
-                showVariablesStudiesColumn: hasMultipleStudies
+                showVariablesTypeColumn: (micaConfig.isCollectedDatasetEnabled && micaConfig.isHarmonizedDatasetEnabled) === false ? false : ngClientOptions.variables.variablesColumn.showVariablesTypeColumn,
+                showVariablesStudiesColumn: hasMultipleStudies && ngClientOptions.variables.variablesColumn.showVariablesStudiesColumn,
+                showVariablesDatasetsColumn: (micaConfig.isCollectedDatasetEnabled || micaConfig.isHarmonizedDatasetEnabled) === false ? false : ngClientOptions.variables.variablesColumn.showVariablesDatasetsColumn
               }
             }
           };
