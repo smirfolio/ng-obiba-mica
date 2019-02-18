@@ -131,8 +131,7 @@
           prev[$scope.taxonomyTypeMap[k]] = k;
           return prev;
         }, {});
-
-        $scope.targets = [];
+        
         $scope.lang = $translate.use();
 
         function initSearchTabs() {
@@ -230,7 +229,7 @@
             $scope.search.display = display;
             $scope.search.query = query;
             $scope.search.rqlQuery = RqlQueryService.parseQuery(query);
-            
+
             $scope.search.layout = setLayout(search.layout ? search.layout : resolveLayout($scope.options));
 
             return true;
@@ -892,7 +891,7 @@
           searchSuggestion(target, suggestion, withSpecificFields);
         });
 
-        function init() {          
+        function init() {
           $scope.taxonomyNav = [];
           $scope.lang = $translate.use();
           SearchContext.setLocale($scope.lang);
