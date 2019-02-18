@@ -17,7 +17,7 @@
           {{getFullName(requestEntity.profile) || requestEntity.applicant}}</a>,
       </span>
       <span title="{{requestEntity.timestamps.created | amDateFormat: 'lll'}}">{{requestEntity.timestamps.created | amCalendar}}</span>
-      <span class="label label-success">{{requestEntity.status | translate}}</span>
+      <status-progressbar status="requestEntity.status" config="dataAccessForm"></status-progressbar>
     </p>
 
     <div class="pull-right" ng-if="read && formDrawn">

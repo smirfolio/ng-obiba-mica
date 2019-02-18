@@ -1,0 +1,8 @@
+<div class="progress obiba-status-progress">
+    <div class="progress-bar obiba-status-progress-bar"
+         ng-class="{'progress-bar-default': $ctrl.percent < 1, 'progress-bar-success': $ctrl.percent > 0}"
+         role="progressbar"
+         ng-style="{'width': $ctrl.percent + '%'}">
+        <span>{{$ctrl.status | translate}}</span>
+    </div>
+</div>

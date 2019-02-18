@@ -1167,6 +1167,65 @@ var PrintFriendlyComponent = /** @class */ (function () {
 }());
 ngObibaMica.access.component("printFriendlyView", new PrintFriendlyComponent());
 //# sourceMappingURL=component.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+"use strict";
+var StatusProgressBarController = /** @class */ (function () {
+    function StatusProgressBarController($log) {
+        this.$log = $log;
+        this.percent = 0;
+    }
+    StatusProgressBarController.prototype.$onChanges = function (changes) {
+        if (this.status && this.config) {
+            if (!this.states) {
+                this.initializeStates();
+            }
+            this.updateStatus();
+        }
+    };
+    StatusProgressBarController.prototype.initializeStates = function () {
+        var i = 0;
+        this.states = {};
+        this.states.OPENED = i++;
+        this.states.SUBMITTED = i++;
+        if (true === this.config.withReview) {
+            this.states.REVIEWED = i++;
+        }
+        if (true === this.config.withConditionalApproval) {
+            this.states.REVIEWED = i++;
+        }
+        this.states.APPROVED = this.states.REJECTED = i;
+        this.step = 100 / i;
+    };
+    StatusProgressBarController.prototype.updateStatus = function () {
+        this.percent = this.states[this.status] * this.step;
+    };
+    StatusProgressBarController.$inject = ["$log"];
+    return StatusProgressBarController;
+}());
+var StatusProgressBarComponent = /** @class */ (function () {
+    function StatusProgressBarComponent() {
+        this.templateUrl = "access/components/status-progressbar/component.html";
+        this.transclude = false;
+        this.transclude = true;
+        this.bindings = {
+            config: "<",
+            status: "<",
+        };
+        this.controller = StatusProgressBarController;
+        this.controllerAs = "$ctrl";
+    }
+    return StatusProgressBarComponent;
+}());
+ngObibaMica.access.component("statusProgressbar", new StatusProgressBarComponent());
+//# sourceMappingURL=component.js.map
 'use strict';
 (function () {
     function Service($rootScope, $filter, $location, DataAccessEntityUrls, DataAccessEntityResource, DataAccessEntityService, NOTIFICATION_EVENTS) {
@@ -15890,7 +15949,7 @@ ngObibaMica.fileBrowser
         };
     }]);
 //# sourceMappingURL=file-browser-service.js.map
-angular.module('templates-ngObibaMica', ['access/components/action-log/component.html', 'access/components/action-log/item/component.html', 'access/components/action-log/item/delete-modal.html', 'access/components/action-log/item/edit-modal.html', 'access/components/entity-list/component.html', 'access/components/print-friendly-view/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/cell-stat-value/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/add-to-set-modal/component.html', 'sets/components/cart-documents-table/component.html', 'sets/components/set-variables-table/component.html', 'sets/views/cart.html', 'sets/views/sets.html', 'utils/components/entity-schema-form/component.html', 'utils/services/user-profile-modal/service.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+angular.module('templates-ngObibaMica', ['access/components/action-log/component.html', 'access/components/action-log/item/component.html', 'access/components/action-log/item/delete-modal.html', 'access/components/action-log/item/edit-modal.html', 'access/components/entity-list/component.html', 'access/components/print-friendly-view/component.html', 'access/components/status-progressbar/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/cell-stat-value/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/add-to-set-modal/component.html', 'sets/components/cart-documents-table/component.html', 'sets/components/set-variables-table/component.html', 'sets/views/cart.html', 'sets/views/sets.html', 'utils/components/entity-schema-form/component.html', 'utils/services/user-profile-modal/service.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/components/action-log/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/components/action-log/component.html",
@@ -16195,6 +16254,18 @@ angular.module("access/components/print-friendly-view/component.html", []).run([
     "");
 }]);
 
+angular.module("access/components/status-progressbar/component.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("access/components/status-progressbar/component.html",
+    "<div class=\"progress obiba-status-progress\">\n" +
+    "    <div class=\"progress-bar obiba-status-progress-bar\"\n" +
+    "         ng-class=\"{'progress-bar-default': $ctrl.percent < 1, 'progress-bar-success': $ctrl.percent > 0}\"\n" +
+    "         role=\"progressbar\"\n" +
+    "         ng-style=\"{'width': $ctrl.percent + '%'}\">\n" +
+    "        <span>{{$ctrl.status | translate}}</span>\n" +
+    "    </div>\n" +
+    "</div>");
+}]);
+
 angular.module("access/views/data-access-amendment-view.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/views/data-access-amendment-view.html",
     "<div>\n" +
@@ -16216,7 +16287,7 @@ angular.module("access/views/data-access-amendment-view.html", []).run(["$templa
     "          {{getFullName(requestEntity.profile) || requestEntity.applicant}}</a>,\n" +
     "      </span>\n" +
     "      <span title=\"{{requestEntity.timestamps.created | amDateFormat: 'lll'}}\">{{requestEntity.timestamps.created | amCalendar}}</span>\n" +
-    "      <span class=\"label label-success\">{{requestEntity.status | translate}}</span>\n" +
+    "      <status-progressbar status=\"requestEntity.status\" config=\"dataAccessForm\"></status-progressbar>\n" +
     "    </p>\n" +
     "\n" +
     "    <div class=\"pull-right\" ng-if=\"read && formDrawn\">\n" +
@@ -16650,7 +16721,8 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "            {{getFullName(dataAccessRequest.profile) || dataAccessRequest.applicant}}</a>,\n" +
     "        </span>\n" +
     "        <span title=\"{{dataAccessRequest.timestamps.created | amDateFormat: 'lll'}}\">{{dataAccessRequest.timestamps.created | amCalendar}}</span>\n" +
-    "        <span class=\"label label-success\">{{dataAccessRequest.status | translate}}</span></p>\n" +
+    "        <status-progressbar status=\"dataAccessRequest.status\" config=\"dataAccessForm\"></status-progressbar>\n" +
+    "      </p>\n" +
     "\n" +
     "      <div class=\"pull-right\">\n" +
     "        <a ng-click=\"submit()\"\n" +
