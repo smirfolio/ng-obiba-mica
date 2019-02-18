@@ -4811,7 +4811,6 @@ RepeatableCriteriaItem.prototype.getTarget = function () {
                 prev[$scope.taxonomyTypeMap[k]] = k;
                 return prev;
             }, {});
-            $scope.targets = [];
             $scope.lang = $translate.use();
             function initSearchTabs() {
                 function getTabsOrderParam(arg) {
@@ -19805,10 +19804,10 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "                               lang=\"lang\"></taxonomies-facets-panel>\n" +
     "    </div>\n" +
     "    <div class=\"{{hasFacetedTaxonomies ? 'col-md-9' : 'col-md-12'}}\">\n" +
-    "      <search-box-region \n" +
-    "        targets=\"targets\"\n" +
-    "        options=\"options\" \n" +
-    "        alert-id=\"'SearchController'\" \n" +
+    "      <search-box-region\n" +
+    "        targets=\"targetTabsOrder\"\n" +
+    "        options=\"options\"\n" +
+    "        alert-id=\"'SearchController'\"\n" +
     "        lang=\"lang\"\n" +
     "        taxonomy-nav=\"taxonomyNav\"\n" +
     "        on-select-criteria=\"selectCriteria(item)\"\n" +
