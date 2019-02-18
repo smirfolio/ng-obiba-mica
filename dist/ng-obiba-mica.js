@@ -1199,7 +1199,7 @@ var StatusProgressBarController = /** @class */ (function () {
             this.states.REVIEWED = i++;
         }
         if (true === this.config.withConditionalApproval) {
-            this.states.REVIEWED = i++;
+            this.states.CONDITIONALLY_APPROVED = i++;
         }
         this.states.APPROVED = this.states.REJECTED = i;
         this.step = 100 / i;
