@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-02-17
+ * Date: 2019-02-18
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -2849,7 +2849,7 @@ var SetService = /** @class */ (function () {
         });
     };
     SetService.prototype.saveCart = function (documentType, set) {
-        if (set && set.id) { // sanity check
+        if (set && set.id) {
             this.localStorageService.set(this.getCartKey(documentType), set);
             this.notifyCartChanged(documentType);
             return set;
@@ -7096,9 +7096,9 @@ function typeToTarget(type) {
             });
             return query;
         }
-        function fields(fields) {
+        function fields(fieldsQuery) {
             var query = new RqlQuery(RQL_NODE.FIELDS);
-            query.args.push(fields);
+            query.args.push(fieldsQuery);
             return query;
         }
         function limit(from, size) {
@@ -8196,9 +8196,6 @@ var CRITERIA_ITEM_EVENT = {
                 templateUrl: TEMPLATE_URL
             };
         }])
-        /**
-         * This directive creates a hierarchical structure matching that of a RqlQuery tree.
-         */
         .directive('criteriaLeaf', ['CriteriaNodeCompileService', function (CriteriaNodeCompileService) {
             return {
                 restrict: 'EA',
@@ -8239,9 +8236,6 @@ ngObibaMica.search
         };
     }
 ])
-    /**
-     * Directive specialized for vocabulary of type String
-     */
     .directive('matchCriterion', [function () {
         return {
             restrict: 'EA',
@@ -8448,9 +8442,6 @@ ngObibaMica.search
         $scope.updateSelection = updateSelection;
     }
 ])
-    /**
-     * Directive specialized for vocabulary of type String
-     */
     .directive('stringCriterionTerms', [function () {
         return {
             restrict: 'EA',
@@ -9234,7 +9225,7 @@ function BaseTaxonomiesController($rootScope, $scope, $translate, $location, Tax
     this.updateStateFromLocation = function () {
         var search = $location.search();
         var taxonomyName = search.taxonomy, vocabularyName = search.vocabulary, taxonomy = null, vocabulary = null;
-        if (!$scope.taxonomies.all) { //page loading
+        if (!$scope.taxonomies.all) {
             return;
         }
         $scope.taxonomies.all.forEach(function (t) {
@@ -14875,7 +14866,7 @@ ngObibaMica.fileBrowser
         };
         var searchKeyUp = function (event) {
             switch (event.keyCode) {
-                case 13: // ENTER
+                case 13:// ENTER
                     if ($scope.data.search.text) {
                         searchDocuments($scope.data.search.text);
                     }
@@ -14883,7 +14874,7 @@ ngObibaMica.fileBrowser
                         clearSearch();
                     }
                     break;
-                case 27: // ESC
+                case 27:// ESC
                     if ($scope.data.search.active) {
                         clearSearch();
                     }
