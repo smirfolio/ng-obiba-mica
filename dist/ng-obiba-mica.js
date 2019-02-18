@@ -2942,7 +2942,7 @@ var SetService = /** @class */ (function () {
         });
     };
     SetService.prototype.saveCart = function (documentType, set) {
-        if (set && set.id) {
+        if (set && set.id) { // sanity check
             this.localStorageService.set(this.getCartKey(documentType), set);
             this.notifyCartChanged(documentType);
             return set;
@@ -5380,7 +5380,6 @@ var AbstractSelectionsDecorator = /** @class */ (function () {
                 prev[$scope.taxonomyTypeMap[k]] = k;
                 return prev;
             }, {});
-            $scope.targets = [];
             $scope.lang = $translate.use();
             function initSearchTabs() {
                 function getTabsOrderParam(arg) {
@@ -8824,6 +8823,9 @@ var CRITERIA_ITEM_EVENT = {
                 templateUrl: TEMPLATE_URL
             };
         }])
+        /**
+         * This directive creates a hierarchical structure matching that of a RqlQuery tree.
+         */
         .directive('criteriaLeaf', ['CriteriaNodeCompileService', function (CriteriaNodeCompileService) {
             return {
                 restrict: 'EA',
@@ -8864,6 +8866,9 @@ ngObibaMica.search
         };
     }
 ])
+    /**
+     * Directive specialized for vocabulary of type String
+     */
     .directive('matchCriterion', [function () {
         return {
             restrict: 'EA',
@@ -9070,6 +9075,9 @@ ngObibaMica.search
         $scope.updateSelection = updateSelection;
     }
 ])
+    /**
+     * Directive specialized for vocabulary of type String
+     */
     .directive('stringCriterionTerms', [function () {
         return {
             restrict: 'EA',
@@ -9853,7 +9861,7 @@ function BaseTaxonomiesController($rootScope, $scope, $translate, $location, Tax
     this.updateStateFromLocation = function () {
         var search = $location.search();
         var taxonomyName = search.taxonomy, vocabularyName = search.vocabulary, taxonomy = null, vocabulary = null;
-        if (!$scope.taxonomies.all) {
+        if (!$scope.taxonomies.all) { //page loading
             return;
         }
         $scope.taxonomies.all.forEach(function (t) {
@@ -15650,7 +15658,7 @@ ngObibaMica.fileBrowser
         };
         var searchKeyUp = function (event) {
             switch (event.keyCode) {
-                case 13:// ENTER
+                case 13: // ENTER
                     if ($scope.data.search.text) {
                         searchDocuments($scope.data.search.text);
                     }
@@ -15658,7 +15666,7 @@ ngObibaMica.fileBrowser
                         clearSearch();
                     }
                     break;
-                case 27:// ESC
+                case 27: // ESC
                     if ($scope.data.search.active) {
                         clearSearch();
                     }
@@ -20611,10 +20619,10 @@ angular.module("search/views/search.html", []).run(["$templateCache", function($
     "                               lang=\"lang\"></taxonomies-facets-panel>\n" +
     "    </div>\n" +
     "    <div class=\"{{hasFacetedTaxonomies ? 'col-md-9' : 'col-md-12'}}\">\n" +
-    "      <search-box-region \n" +
-    "        targets=\"targets\"\n" +
-    "        options=\"options\" \n" +
-    "        alert-id=\"'SearchController'\" \n" +
+    "      <search-box-region\n" +
+    "        targets=\"targetTabsOrder\"\n" +
+    "        options=\"options\"\n" +
+    "        alert-id=\"'SearchController'\"\n" +
     "        lang=\"lang\"\n" +
     "        taxonomy-nav=\"taxonomyNav\"\n" +
     "        on-select-criteria=\"selectCriteria(item)\"\n" +
