@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-02-15
+ * Date: 2019-02-17
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -3545,7 +3545,7 @@ ngObibaMica.search = angular.module('obiba.mica.search', [
                         studies: {
                             showSearchTab: hasMultipleStudies,
                             studiesColumn: {
-                                showStudiesTypeColumn: micaConfig.isCollectedDatasetEnabled && micaConfig.isHarmonizedDatasetEnabled,
+                                showStudiesTypeColumn: (micaConfig.isCollectedDatasetEnabled && micaConfig.isHarmonizedDatasetEnabled) === false ? false : ngClientOptions.studies.studiesColumn.showStudiesTypeColumn,
                                 showStudiesNetworksColumn: hasMultipleNetworks && ngClientOptions.studies.studiesColumn.showStudiesNetworksColumn,
                                 showStudiesVariablesColumn: hasMultipleDatasets && ngClientOptions.studies.studiesColumn.showStudiesVariablesColumn,
                                 showStudiesStudyDatasetsColumn: (hasMultipleDatasets && micaConfig.isCollectedDatasetEnabled) === false ? false : ngClientOptions.studies.studiesColumn.showStudiesStudyDatasetsColumn,
