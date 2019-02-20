@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-02-18
+ * Date: 2019-02-20
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -2675,14 +2675,13 @@ ngObibaMica.sets = angular.module('obiba.mica.sets', [
  */
 "use strict";
 var SetService = /** @class */ (function () {
-    function SetService($location, $window, $log, $translate, localStorageService, PageUrlService, AlertService, SetsImportResource, SetResource, SetDocumentsResource, SetClearResource, SetExistsResource, SetImportResource, SetImportQueryResource, SetRemoveResource, ObibaServerConfigResource) {
-        this.$location = $location;
+    function SetService($window, $log, $translate, localStorageService, PageUrlService, SetsImportResource, SetResource, SetDocumentsResource, SetClearResource, SetExistsResource, SetImportResource, SetImportQueryResource, SetRemoveResource, ObibaServerConfigResource) {
+        var _this = this;
         this.$window = $window;
         this.$log = $log;
         this.$translate = $translate;
         this.localStorageService = localStorageService;
         this.PageUrlService = PageUrlService;
-        this.AlertService = AlertService;
         this.SetsImportResource = SetsImportResource;
         this.SetResource = SetResource;
         this.SetDocumentsResource = SetDocumentsResource;
@@ -2692,10 +2691,12 @@ var SetService = /** @class */ (function () {
         this.SetImportQueryResource = SetImportQueryResource;
         this.SetRemoveResource = SetRemoveResource;
         this.ObibaServerConfigResource = ObibaServerConfigResource;
-        var that = this;
-        ObibaServerConfigResource.get(function (micaConfig) {
-            that.hasMultipleStudies = !micaConfig.isSingleStudyEnabled || micaConfig.isHarmonizedDatasetEnabled;
-            that.hasHarmonization = micaConfig.isHarmonizedDatasetEnabled;
+        this.serverConfigPromise = ObibaServerConfigResource.get(function (micaConfig) {
+            _this.hasMultipleStudies = !micaConfig.isSingleStudyEnabled || micaConfig.isHarmonizedDatasetEnabled;
+            _this.hasHarmonization = micaConfig.isHarmonizedDatasetEnabled;
+            _this.maxNumberOfSets = micaConfig.maxNumberOfSets;
+            _this.maxItemsPerSets = micaConfig.maxItemsPerSet;
+            return micaConfig;
         });
     }
     SetService.prototype.isSingleStudy = function () {
@@ -2703,6 +2704,12 @@ var SetService = /** @class */ (function () {
     };
     SetService.prototype.hasHarmonizedDatasets = function () {
         return this.hasHarmonization;
+    };
+    SetService.prototype.getMaxItemsPerSets = function () {
+        return this.maxItemsPerSets;
+    };
+    SetService.prototype.getMaxNumberOfSets = function () {
+        return this.maxNumberOfSets;
     };
     /**
      * Get the documents in the set.
@@ -2924,7 +2931,7 @@ var SetService = /** @class */ (function () {
             }
         }
         if (id) {
-            var queryStr = "variable(in(Mica_variable.sets," + id + "),limit(0,20000)"
+            var queryStr = "variable(in(Mica_variable.sets," + id + "),limit(0," + this.maxItemsPerSets + ")"
                 + ",fields((attributes.label.*,variableType,datasetId,datasetAcronym))"
                 + ",sort(variableType,containerId,populationWeight,dataCollectionEventWeight,datasetId,index,name))"
                 + ",locale(" + this.$translate.use() + ")";
@@ -2936,7 +2943,7 @@ var SetService = /** @class */ (function () {
         if (!ids || ids.length < 1) {
             return this.getDownloadUrl(documentType, setId);
         }
-        var queryStr = "variable(in(id,(" + ids.join(",") + ")),limit(0,20000)"
+        var queryStr = "variable(in(id,(" + ids.join(",") + ")),limit(0," + this.maxItemsPerSets + ")"
             + ",fields((attributes.label.*,variableType,datasetId,datasetAcronym))"
             + ",sort(variableType,containerId,populationWeight,dataCollectionEventWeight,datasetId,index,name))"
             + ",locale(" + this.$translate.use() + ")";
@@ -3051,16 +3058,25 @@ var SetService = /** @class */ (function () {
     SetService.prototype.notifyCartChanged = function (documentType) {
         this.notify("cart-updated", documentType);
     };
-    SetService.$inject = ["$location", "$window", "$log", "$translate",
-        "localStorageService", "PageUrlService", "AlertService",
-        "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetExistsResource",
-        "SetImportResource", "SetImportQueryResource", "SetRemoveResource", "ObibaServerConfigResource"];
+    SetService.$inject = [
+        "$window",
+        "$log",
+        "$translate",
+        "localStorageService",
+        "PageUrlService",
+        "SetsImportResource",
+        "SetResource",
+        "SetDocumentsResource",
+        "SetClearResource",
+        "SetExistsResource",
+        "SetImportResource",
+        "SetImportQueryResource",
+        "SetRemoveResource",
+        "ObibaServerConfigResource"
+    ];
     return SetService;
 }());
-ngObibaMica.sets.service("SetService", ["$location", "$window", "$log", "$translate", "localStorageService",
-    "PageUrlService", "AlertService",
-    "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetExistsResource",
-    "SetImportResource", "SetImportQueryResource", "SetRemoveResource", "ObibaServerConfigResource", SetService]);
+ngObibaMica.sets.service("SetService", SetService);
 //# sourceMappingURL=set-service.js.map
 "use strict";
 var DocumentsSetTableComponentController = /** @class */ (function () {
@@ -3234,12 +3250,14 @@ var AddToSetComponentModalController = /** @class */ (function () {
         var _this = this;
         this.SetsResource.query({ type: this.resolve.type }).$promise.then(function (allSets) {
             _this.sets = allSets.filter(function (set) { return set.name; });
+            _this.canAddMoreSets = _this.sets.length <= _this.SetService.getMaxNumberOfSets();
         });
     };
     AddToSetComponentModalController.prototype.addQuery = function (setId, type, query) {
         var parsedQuery = this.RqlQueryService.parseQuery(query);
         var target = typeToTarget(type);
-        var queryWithLimitAndFields = this.RqlQueryUtils.rewriteQueryWithLimitAndFields(parsedQuery, target, 20000, ["id"]);
+        var queryWithLimitAndFields = this.RqlQueryUtils
+            .rewriteQueryWithLimitAndFields(parsedQuery, target, this.SetService.getMaxItemsPerSets(), ["id"]);
         return this.SetService.addDocumentQueryToSet(setId, type, queryWithLimitAndFields);
     };
     AddToSetComponentModalController.prototype.processDocumentSet = function (setId, type, query, identifiers) {
@@ -3258,8 +3276,7 @@ var AddToSetComponentModalController = /** @class */ (function () {
         "RqlQueryUtils",
         "SetsResource",
         "SetsImportResource",
-        "SetService",
-        "$log"
+        "SetService"
     ];
     return AddToSetComponentModalController;
 }());
@@ -8123,7 +8140,6 @@ var SearchResultSelectionsService = /** @class */ (function () {
     function SearchResultSelectionsService(PaginationService, $log) {
         this.PaginationService = PaginationService;
         this.$log = $log;
-        this.$log.info("SearchResultSelectionsService");
         this.decorators = {};
         this.decorators[QUERY_TYPES.VARIABLES] =
             new SearchResultSelectionsDecorator(QUERY_TARGETS.VARIABLE, this.PaginationService);
@@ -11487,7 +11503,7 @@ ngObibaMica.search
                 SetService.addDocumentToCart(type, keys).then(function (set) { $scope.onCartUpdate(beforeCart, set); });
             }
             else {
-                var queryWithLimit = rewriteQueryWithLimitAndFields(20000, ['id']);
+                var queryWithLimit = rewriteQueryWithLimitAndFields(SetService.getMaxItemsPerSets(), ['id']);
                 SetService.addDocumentQueryToCart('variables', queryWithLimit).then(function (set) {
                     $scope.onCartUpdate(beforeCart, set);
                 });
@@ -11508,7 +11524,6 @@ ngObibaMica.search
         $scope.getSelections = function () {
             var ids = SearchResultSelectionsService.getSelections($scope.type);
             return ids ? Object.keys(ids) : null;
-            // return SearchResultSelectionsService.getSelectionIds(type);
         };
         $scope.getStudySpecificReportUrl = function () {
             if ($scope.query === null) {
@@ -11535,6 +11550,12 @@ ngObibaMica.search
             updateType(type);
         });
         $scope.DISPLAY_TYPES = DISPLAY_TYPES;
+        if (SetService.serverConfigPromise) {
+            SetService.serverConfigPromise.then(function (config) {
+                $scope.userCanCreateCart = config.currentUserCanCreateCart;
+                $scope.userCanCreateSets = config.currentUserCanCreateSets;
+            });
+        }
     }
 ])
     .directive('resultPanel', [function () {
@@ -11876,7 +11897,6 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
             },
             templateUrl: 'search/components/result/variables-result-table/component.html',
             link: function (scope) {
-                console.log(SearchResultSelectionsService);
                 scope.options = ngObibaMicaSearch.getOptions().variables;
                 scope.optionsCols = scope.options.variablesColumn;
                 scope.PageUrlService = PageUrlService;
@@ -19844,13 +19864,13 @@ angular.module("search/components/result/search-result/list.html", []).run(["$te
     "  <result-tabs-order-count options=\"options\" result-tabs-order=\"resultTabsOrder\" active-target=\"activeTarget\" target-type-map=\"targetTypeMap\">\n" +
     "  </result-tabs-order-count>\n" +
     "  <div class=\"voffset2\" ng-class=\"{'pull-right': options.studies.showSearchTab, 'pull-left': !options.studies.showSearchTab, 'hoffset2': !options.studies.showSearchTab}\">\n" +
-    "    <div class=\"btn-group\" ng-if=\"type=='variables' && options.variables.showCart\">\n" +
+    "    <div class=\"btn-group\" ng-if=\"type=='variables' && options.variables.showCart && (userCanCreateCart || userCanCreateSets)\">\n" +
     "      <button type=\"button\" class=\"btn btn-success dropdown-toggle\" data-toggle=\"dropdown\">\n" +
     "        <i class=\"fa fa-cart-plus\"></i> <span class=\"caret\"></span>\n" +
     "      </button>\n" +
     "      <ul class=\"dropdown-menu\">\n" +
-    "        <li><a ng-click=\"addToCart(type)\" href translate>sets.add.button.cart-label</a></li>\n" +
-    "        <li><a ng-click=\"addToSet(type)\" href>{{'sets.add.button.set-label' | translate}}</a></li>\n" +
+    "        <li><a ng-if=\"userCanCreateCart\" ng-click=\"addToCart(type)\" href translate>sets.add.button.cart-label</a></li>\n" +
+    "        <li><a ng-if=\"userCanCreateSets\" ng-click=\"addToSet(type)\" href>{{'sets.add.button.set-label' | translate}}</a></li>\n" +
     "      </ul>\n" +
     "    </div>\n" +
     "\n" +
@@ -19873,7 +19893,7 @@ angular.module("search/components/result/search-result/list.html", []).run(["$te
     "            target=\"activeTarget[targetTypeMap[res]].name\"\n" +
     "            on-change=\"onPaginate(target, from, size, replace)\"></search-result-pagination>\n" +
     "    </div>\n" +
-    "    <div class=\"clearfix\" />\n" +
+    "    <div class=\"clearfix\"></div>\n" +
     "    <ng-include include-replace ng-repeat=\"res in resultTabsOrder\" src=\"'search/views/search-result-list-' + res + '-template.html'\"></ng-include>\n" +
     "  </div>\n" +
     "</div>");
@@ -20847,7 +20867,7 @@ angular.module("sets/components/add-to-set-modal/component.html", []).run(["$tem
     "  <div class=\"modal-body\">\n" +
     "    <p translate>sets.add.modal.sub-title</p>\n" +
     "\n" +
-    "    <div>\n" +
+    "    <div ng-if=\"$ctrl.canAddMoreSets\">\n" +
     "        <div class=\"radio\">\n" +
     "          <label for=\"new_set_choice\">\n" +
     "            <input type=\"radio\" ng-model=\"$ctrl.choice.radio\" ng-required=\"!$ctrl.choice.radio\" value=\"NEW\" id=\"new_set_choice\" ng-change=\"$ctrl.onRadioChanged()\">\n" +
