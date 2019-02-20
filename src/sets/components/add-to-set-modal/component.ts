@@ -17,13 +17,13 @@ class AddToSetComponentModalController implements IAddToSetModalComponentControl
     "RqlQueryUtils",
     "SetsResource",
     "SetsImportResource",
-    "SetService",
-    "$log"];
+    "SetService"];
 
   public resolve: { query: string, type: string, ids?: any };
   public choice: { radio: string, selected?: any, name?: string };
   public canAccept: boolean;
   public sets: any[];
+  public canAddMoreSets: boolean;
 
   public close: (result?: any) => void;
   public dismiss: (reason?: any) => void;
@@ -93,6 +93,7 @@ class AddToSetComponentModalController implements IAddToSetModalComponentControl
   public $onInit() {
     this.SetsResource.query({ type: this.resolve.type }).$promise.then((allSets: any[]) => {
       this.sets = allSets.filter((set: any) => set.name);
+      this.canAddMoreSets = this.sets.length <= this.SetService.getMaxNumberOfSets();
     });
   }
 
@@ -101,7 +102,8 @@ class AddToSetComponentModalController implements IAddToSetModalComponentControl
     const target = typeToTarget(type);
 
     const queryWithLimitAndFields =
-      this.RqlQueryUtils.rewriteQueryWithLimitAndFields(parsedQuery, target, 20000, ["id"]);
+      this.RqlQueryUtils
+      .rewriteQueryWithLimitAndFields(parsedQuery, target, this.SetService.getMaxItemsPerSets(), ["id"]);
     return this.SetService.addDocumentQueryToSet(setId, type, queryWithLimitAndFields);
   }
 

@@ -22,7 +22,6 @@
       },
       templateUrl: 'search/components/result/variables-result-table/component.html',
       link: function (scope) {
-        console.log(SearchResultSelectionsService);
         scope.options = ngObibaMicaSearch.getOptions().variables;
         scope.optionsCols = scope.options.variablesColumn;
         scope.PageUrlService = PageUrlService;
