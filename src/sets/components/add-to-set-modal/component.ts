@@ -93,7 +93,7 @@ class AddToSetComponentModalController implements IAddToSetModalComponentControl
   public $onInit() {
     this.SetsResource.query({ type: this.resolve.type }).$promise.then((allSets: any[]) => {
       this.sets = allSets.filter((set: any) => set.name);
-      this.canAddMoreSets = this.sets.length <= this.SetService.getMaxNumberOfSets();
+      this.canAddMoreSets = this.sets.length < this.SetService.getMaxNumberOfSets();
     });
   }
 

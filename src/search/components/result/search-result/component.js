@@ -207,8 +207,13 @@ ngObibaMica.search
 
       $scope.DISPLAY_TYPES = DISPLAY_TYPES;
 
-      if (SetService.serverConfigPromise) {
+      if (SetService.serverConfigPromise && {}.toString.call(SetService.serverConfigPromise.then) === '[object Function]') {
         SetService.serverConfigPromise.then(function (config) {
+          $scope.userCanCreateCart = config.currentUserCanCreateCart;
+          $scope.userCanCreateSets = config.currentUserCanCreateSets;
+        });
+      } else if (SetService.serverConfigPromise && SetService.serverConfigPromise.$promise && {}.toString.call(SetService.serverConfigPromise.$promise.then) === '[object Function]') {
+        SetService.serverConfigPromise.$promise.then(function (config) {
           $scope.userCanCreateCart = config.currentUserCanCreateCart;
           $scope.userCanCreateSets = config.currentUserCanCreateSets;
         });
