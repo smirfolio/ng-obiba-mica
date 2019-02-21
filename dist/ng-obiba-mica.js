@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-02-20
+ * Date: 2019-02-21
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -3250,7 +3250,7 @@ var AddToSetComponentModalController = /** @class */ (function () {
         var _this = this;
         this.SetsResource.query({ type: this.resolve.type }).$promise.then(function (allSets) {
             _this.sets = allSets.filter(function (set) { return set.name; });
-            _this.canAddMoreSets = _this.sets.length <= _this.SetService.getMaxNumberOfSets();
+            _this.canAddMoreSets = _this.sets.length < _this.SetService.getMaxNumberOfSets();
         });
     };
     AddToSetComponentModalController.prototype.addQuery = function (setId, type, query) {
@@ -11550,8 +11550,14 @@ ngObibaMica.search
             updateType(type);
         });
         $scope.DISPLAY_TYPES = DISPLAY_TYPES;
-        if (SetService.serverConfigPromise) {
+        if (SetService.serverConfigPromise && {}.toString.call(SetService.serverConfigPromise.then) === '[object Function]') {
             SetService.serverConfigPromise.then(function (config) {
+                $scope.userCanCreateCart = config.currentUserCanCreateCart;
+                $scope.userCanCreateSets = config.currentUserCanCreateSets;
+            });
+        }
+        else if (SetService.serverConfigPromise && SetService.serverConfigPromise.$promise && {}.toString.call(SetService.serverConfigPromise.$promise.then) === '[object Function]') {
+            SetService.serverConfigPromise.$promise.then(function (config) {
                 $scope.userCanCreateCart = config.currentUserCanCreateCart;
                 $scope.userCanCreateSets = config.currentUserCanCreateSets;
             });
