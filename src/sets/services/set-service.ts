@@ -13,8 +13,13 @@
 declare var ngObibaMica: any;
 
 interface ISetService {
+  serverConfigPromise: any;
+
   isSingleStudy(): boolean;
   hasHarmonizedDatasets(): boolean;
+  getMaxItemsPerSets(): number;
+  getMaxNumberOfSets(): number;
+
   isDocumentInSet(setId: string, documentType: string, documentId: string): any;
   isDocumentInCart(documentType: string, documentId: string): any;
   addDocumentToSet(setId: string, documentType: string, documentId: string | string[]): any;
@@ -37,22 +42,36 @@ interface ISetService {
 
 class SetService implements ISetService {
 
-  private static $inject = ["$location", "$window", "$log", "$translate",
-    "localStorageService", "PageUrlService", "AlertService",
-    "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetExistsResource",
-    "SetImportResource", "SetImportQueryResource", "SetRemoveResource", "ObibaServerConfigResource"];
+  private static $inject = [
+    "$window",
+    "$log",
+    "$translate",
+    "localStorageService",
+    "PageUrlService",
+    "SetsImportResource",
+    "SetResource",
+    "SetDocumentsResource",
+    "SetClearResource",
+    "SetExistsResource",
+    "SetImportResource",
+    "SetImportQueryResource",
+    "SetRemoveResource",
+    "ObibaServerConfigResource"];
+
+  public serverConfigPromise: any;
 
   private hasMultipleStudies: boolean;
   private hasHarmonization: boolean;
 
+  private maxNumberOfSets: number;
+  private maxItemsPerSets: number;
+
   constructor(
-    private $location: any,
     private $window: any,
     private $log: any,
     private $translate: any,
     private localStorageService: any,
     private PageUrlService: any,
-    private AlertService: any,
     private SetsImportResource: any,
     private SetResource: any,
     private SetDocumentsResource: any,
@@ -62,10 +81,14 @@ class SetService implements ISetService {
     private SetImportQueryResource: any,
     private SetRemoveResource: any,
     private ObibaServerConfigResource: any) {
-    const that = this;
-    ObibaServerConfigResource.get((micaConfig) => {
-      that.hasMultipleStudies = !micaConfig.isSingleStudyEnabled || micaConfig.isHarmonizedDatasetEnabled;
-      that.hasHarmonization = micaConfig.isHarmonizedDatasetEnabled;
+    this.serverConfigPromise = ObibaServerConfigResource.get((micaConfig) => {
+      this.hasMultipleStudies = !micaConfig.isSingleStudyEnabled || micaConfig.isHarmonizedDatasetEnabled;
+      this.hasHarmonization = micaConfig.isHarmonizedDatasetEnabled;
+
+      this.maxNumberOfSets = micaConfig.maxNumberOfSets;
+      this.maxItemsPerSets = micaConfig.maxItemsPerSet;
+
+      return micaConfig;
     });
   }
 
@@ -75,6 +98,14 @@ class SetService implements ISetService {
 
   public hasHarmonizedDatasets(): boolean {
     return this.hasHarmonization;
+  }
+
+  public getMaxItemsPerSets(): number {
+    return this.maxItemsPerSets;
+  }
+
+  public getMaxNumberOfSets(): number {
+    return this.maxNumberOfSets;
   }
 
   /**
@@ -299,7 +330,7 @@ class SetService implements ISetService {
       }
     }
     if (id) {
-      const queryStr = "variable(in(Mica_variable.sets," + id + "),limit(0,20000)"
+      const queryStr = "variable(in(Mica_variable.sets," + id + "),limit(0," + this.maxItemsPerSets + ")"
         + ",fields((attributes.label.*,variableType,datasetId,datasetAcronym))"
         + ",sort(variableType,containerId,populationWeight,dataCollectionEventWeight,datasetId,index,name))"
         + ",locale(" + this.$translate.use() + ")";
@@ -313,7 +344,7 @@ class SetService implements ISetService {
       return this.getDownloadUrl(documentType, setId);
     }
 
-    const queryStr = "variable(in(id,(" + ids.join(",") + ")),limit(0,20000)"
+    const queryStr = "variable(in(id,(" + ids.join(",") + ")),limit(0," + this.maxItemsPerSets + ")"
       + ",fields((attributes.label.*,variableType,datasetId,datasetAcronym))"
       + ",sort(variableType,containerId,populationWeight,dataCollectionEventWeight,datasetId,index,name))"
       + ",locale(" + this.$translate.use() + ")";
@@ -435,7 +466,4 @@ class SetService implements ISetService {
   }
 }
 
-ngObibaMica.sets.service("SetService", ["$location", "$window", "$log", "$translate", "localStorageService",
-  "PageUrlService", "AlertService",
-  "SetsImportResource", "SetResource", "SetDocumentsResource", "SetClearResource", "SetExistsResource",
-  "SetImportResource", "SetImportQueryResource", "SetRemoveResource", "ObibaServerConfigResource", SetService]);
+ngObibaMica.sets.service("SetService", SetService);

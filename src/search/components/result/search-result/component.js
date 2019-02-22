@@ -150,7 +150,7 @@ ngObibaMica.search
         if (keys && keys.length > 0) {
           SetService.addDocumentToCart(type, keys).then(function(set) {$scope.onCartUpdate(beforeCart, set);});
         } else {
-          const queryWithLimit = rewriteQueryWithLimitAndFields(20000, ['id']);
+          const queryWithLimit = rewriteQueryWithLimitAndFields(SetService.getMaxItemsPerSets(), ['id']);
           SetService.addDocumentQueryToCart('variables', queryWithLimit).then(function(set) {
             $scope.onCartUpdate(beforeCart, set);
           });
@@ -173,7 +173,6 @@ ngObibaMica.search
       $scope.getSelections = function () {
         const ids = SearchResultSelectionsService.getSelections($scope.type);
         return ids ? Object.keys(ids) : null;
-        // return SearchResultSelectionsService.getSelectionIds(type);
       };
 
       $scope.getStudySpecificReportUrl = function () {
@@ -202,12 +201,23 @@ ngObibaMica.search
         }
       });
 
-
       $scope.$watch('type', function (type) {
         updateType(type);
       });
 
       $scope.DISPLAY_TYPES = DISPLAY_TYPES;
+
+      if (SetService.serverConfigPromise && {}.toString.call(SetService.serverConfigPromise.then) === '[object Function]') {
+        SetService.serverConfigPromise.then(function (config) {
+          $scope.userCanCreateCart = config.currentUserCanCreateCart;
+          $scope.userCanCreateSets = config.currentUserCanCreateSets;
+        });
+      } else if (SetService.serverConfigPromise && SetService.serverConfigPromise.$promise && {}.toString.call(SetService.serverConfigPromise.$promise.then) === '[object Function]') {
+        SetService.serverConfigPromise.$promise.then(function (config) {
+          $scope.userCanCreateCart = config.currentUserCanCreateCart;
+          $scope.userCanCreateSets = config.currentUserCanCreateSets;
+        });
+      }
     }])
 
   .directive('resultPanel', [function () {

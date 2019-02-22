@@ -4,7 +4,6 @@ class SearchResultSelectionsService {
   private decorators: any;
 
   constructor(private PaginationService: any, private $log: any) {
-    this.$log.info("SearchResultSelectionsService");
     this.decorators = {};
     this.decorators[QUERY_TYPES.VARIABLES] =
       new SearchResultSelectionsDecorator(QUERY_TARGETS.VARIABLE, this.PaginationService);
