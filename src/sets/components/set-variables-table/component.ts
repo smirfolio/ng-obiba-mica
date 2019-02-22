@@ -1,8 +1,10 @@
 "use strict";
 
+declare var QUERY_TYPES: any;
+
 class VariablesSetTableComponentController extends DocumentsSetTableComponentController {
 
-  private static $inject = ["SetService", "$log", "$translate", "PageUrlService", "LocalizedValues"];
+  private static $inject = ["SetService", "$log", "$translate", "PageUrlService", "LocalizedValues", "$uibModal"];
 
   public showStudies: boolean;
   public showVariableType: boolean;
@@ -12,11 +14,13 @@ class VariablesSetTableComponentController extends DocumentsSetTableComponentCon
     protected $log: any,
     private $translate: any,
     private PageUrlService: any,
-    private LocalizedValues: any) {
-    super(SetService, $log);
-
-    this.showStudies = !this.SetService.isSingleStudy();
-    this.showVariableType = this.SetService.hasHarmonizedDatasets();
+    private LocalizedValues: any,
+    protected $uibModal: any) {
+    super(SetService, $log, $uibModal);
+    SetService.serverConfig().then((config) => {
+      this.showStudies = !this.SetService.isSingleStudy();
+      this.showVariableType = this.SetService.hasHarmonizedDatasets();
+    });
   }
 
   public $onChanges(changes: any) {
@@ -107,6 +111,7 @@ class DocumentSetTableComponent implements ng.IComponentOptions {
     this.bindings = {
       documents: "<",
       onPageChange: "<",
+      onUpdate: "<",
       setId: "<",
       type: "<",
     };
@@ -116,4 +121,4 @@ class DocumentSetTableComponent implements ng.IComponentOptions {
   }
 }
 
-angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSetTableComponent());
+angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSetTableComponent());

@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-02-21
+ * Date: 2019-02-22
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -2699,6 +2699,9 @@ var SetService = /** @class */ (function () {
             return micaConfig;
         });
     }
+    SetService.prototype.serverConfig = function () {
+        return this.serverConfigPromise.$promise || this.serverConfigPromise;
+    };
     SetService.prototype.isSingleStudy = function () {
         return !this.hasMultipleStudies;
     };
@@ -2949,6 +2952,10 @@ var SetService = /** @class */ (function () {
             + ",locale(" + this.$translate.use() + ")";
         return this.PageUrlService.downloadList(documentType, queryStr);
     };
+    SetService.prototype.getSearchQuery = function (documentType, setId) {
+        var target = typeToTarget(documentType);
+        return setId ? target + "(in(Mica_" + target + ".sets," + setId + "))" : null;
+    };
     /**
      * Go to search page with documents filtered by the set they belong to.
      * @param documentType the document type
@@ -2963,7 +2970,7 @@ var SetService = /** @class */ (function () {
             }
         }
         if (id) {
-            var queryStr = "variable(in(Mica_variable.sets," + id + "))";
+            var queryStr = this.getSearchQuery(documentType, id);
             this.$window.location.href = this.PageUrlService.searchPage(queryStr);
         }
     };
@@ -3080,9 +3087,10 @@ ngObibaMica.sets.service("SetService", SetService);
 //# sourceMappingURL=set-service.js.map
 "use strict";
 var DocumentsSetTableComponentController = /** @class */ (function () {
-    function DocumentsSetTableComponentController(SetService, $log) {
+    function DocumentsSetTableComponentController(SetService, $log, $uibModal) {
         this.SetService = SetService;
         this.$log = $log;
+        this.$uibModal = $uibModal;
         this.allSelected = false;
         this.allPageSelected = {};
         this.selections = {};
@@ -3167,9 +3175,7 @@ var DocumentsSetTableComponentController = /** @class */ (function () {
         else {
             this.SetService.clearSet(this.setId, this.type)
                 .then(function () {
-                _this.allSelected = false;
-                _this.allPageSelected = {};
-                _this.selections = {};
+                _this.clearSelections();
                 _this.onPageChange(_this.type, 0);
             });
         }
@@ -3177,6 +3183,21 @@ var DocumentsSetTableComponentController = /** @class */ (function () {
     DocumentsSetTableComponentController.prototype.pageChanged = function () {
         var from = (this.pagination.currentPage - 1) * this.documents.limit;
         this.onPageChange(this.type, from);
+    };
+    DocumentsSetTableComponentController.prototype.addToSet = function () {
+        var _this = this;
+        this.$uibModal.open({
+            component: "addToSetModal",
+            keyboard: false,
+            resolve: {
+                ids: function () { return _this.allSelected ? {} : _this.selections; },
+                query: function () { return _this.SetService.getSearchQuery(_this.type, _this.setId); },
+                type: function () { return _this.type; },
+            },
+        }).result.then(function () {
+            _this.clearSelections();
+            _this.onUpdate();
+        });
     };
     DocumentsSetTableComponentController.prototype.$onInit = function () {
         this.table = {
@@ -3189,6 +3210,11 @@ var DocumentsSetTableComponentController = /** @class */ (function () {
             return [];
         }
         return Object.keys(this.selections).filter(function (id) { return _this.selections[id]; });
+    };
+    DocumentsSetTableComponentController.prototype.clearSelections = function () {
+        this.allSelected = false;
+        this.allPageSelected = {};
+        this.selections = {};
     };
     return DocumentsSetTableComponentController;
 }());
@@ -3319,7 +3345,7 @@ var __extends = (this && this.__extends) || (function () {
 var CartDocumentsTableController = /** @class */ (function (_super) {
     __extends(CartDocumentsTableController, _super);
     function CartDocumentsTableController(PageUrlService, LocalizedValues, SetService, AnalysisConfigService, $translate, $log, $scope) {
-        var _this = _super.call(this, SetService, $log) || this;
+        var _this = _super.call(this, SetService, $log, null) || this;
         _this.PageUrlService = PageUrlService;
         _this.LocalizedValues = LocalizedValues;
         _this.SetService = SetService;
@@ -3333,9 +3359,6 @@ var CartDocumentsTableController = /** @class */ (function (_super) {
     }
     CartDocumentsTableController.prototype.showAnalysis = function () {
         return this.AnalysisConfigService.showAnalysis();
-    };
-    CartDocumentsTableController.prototype.download = function () {
-        return this.SetService.getDownloadUrl(this.type);
     };
     CartDocumentsTableController.prototype.search = function () {
         this.SetService.gotoSearch(this.type);
@@ -3459,15 +3482,18 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var VariablesSetTableComponentController = /** @class */ (function (_super) {
     __extends(VariablesSetTableComponentController, _super);
-    function VariablesSetTableComponentController(SetService, $log, $translate, PageUrlService, LocalizedValues) {
-        var _this = _super.call(this, SetService, $log) || this;
+    function VariablesSetTableComponentController(SetService, $log, $translate, PageUrlService, LocalizedValues, $uibModal) {
+        var _this = _super.call(this, SetService, $log, $uibModal) || this;
         _this.SetService = SetService;
         _this.$log = $log;
         _this.$translate = $translate;
         _this.PageUrlService = PageUrlService;
         _this.LocalizedValues = LocalizedValues;
-        _this.showStudies = !_this.SetService.isSingleStudy();
-        _this.showVariableType = _this.SetService.hasHarmonizedDatasets();
+        _this.$uibModal = $uibModal;
+        SetService.serverConfig().then(function (config) {
+            _this.showStudies = !_this.SetService.isSingleStudy();
+            _this.showVariableType = _this.SetService.hasHarmonizedDatasets();
+        });
         return _this;
     }
     VariablesSetTableComponentController.prototype.$onChanges = function (changes) {
@@ -3535,7 +3561,7 @@ var VariablesSetTableComponentController = /** @class */ (function (_super) {
         }
         return table;
     };
-    VariablesSetTableComponentController.$inject = ["SetService", "$log", "$translate", "PageUrlService", "LocalizedValues"];
+    VariablesSetTableComponentController.$inject = ["SetService", "$log", "$translate", "PageUrlService", "LocalizedValues", "$uibModal"];
     return VariablesSetTableComponentController;
 }(DocumentsSetTableComponentController));
 var DocumentSetTableComponent = /** @class */ (function () {
@@ -3544,6 +3570,7 @@ var DocumentSetTableComponent = /** @class */ (function () {
         this.bindings = {
             documents: "<",
             onPageChange: "<",
+            onUpdate: "<",
             setId: "<",
             type: "<",
         };
@@ -3553,7 +3580,7 @@ var DocumentSetTableComponent = /** @class */ (function () {
     }
     return DocumentSetTableComponent;
 }());
-angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSetTableComponent());
+angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSetTableComponent());
 //# sourceMappingURL=component.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -3783,6 +3810,9 @@ angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSet
                 $scope.documents = documents;
                 $scope.selectedSet.count = documents.total;
             }
+            function onUpdate() {
+                initSets();
+            }
             function onPaginate(type, from) {
                 if ($scope.selectedSet) {
                     SetService.getSetDocuments($scope.selectedSet.id, type, from, limit).then(onDocuments);
@@ -3827,6 +3857,7 @@ angular.module("obiba.mica.sets").component("setDocumentsTable", new DocumentSet
             $scope.check = check;
             $scope.deleteChecked = deleteChecked;
             $scope.canDeleteChecked = canDeleteChecked;
+            $scope.onUpdate = onUpdate;
             $scope.onPaginate = onPaginate;
             $scope.selectSet = selectSet;
         }
@@ -8141,10 +8172,12 @@ var SearchResultSelectionsService = /** @class */ (function () {
         this.PaginationService = PaginationService;
         this.$log = $log;
         this.decorators = {};
-        this.decorators[QUERY_TYPES.VARIABLES] =
-            new SearchResultSelectionsDecorator(QUERY_TARGETS.VARIABLE, this.PaginationService);
     }
     SearchResultSelectionsService.prototype.decorateSearchResult = function (type, searchResult) {
+        if (!this.decorators[type]) {
+            this.decorators[type] =
+                new SearchResultSelectionsDecorator(QUERY_TARGETS.VARIABLE, this.PaginationService);
+        }
         this.decorators[type].decorate(searchResult);
     };
     SearchResultSelectionsService.prototype.getSelections = function (type) {
@@ -11550,18 +11583,10 @@ ngObibaMica.search
             updateType(type);
         });
         $scope.DISPLAY_TYPES = DISPLAY_TYPES;
-        if (SetService.serverConfigPromise && {}.toString.call(SetService.serverConfigPromise.then) === '[object Function]') {
-            SetService.serverConfigPromise.then(function (config) {
-                $scope.userCanCreateCart = config.currentUserCanCreateCart;
-                $scope.userCanCreateSets = config.currentUserCanCreateSets;
-            });
-        }
-        else if (SetService.serverConfigPromise && SetService.serverConfigPromise.$promise && {}.toString.call(SetService.serverConfigPromise.$promise.then) === '[object Function]') {
-            SetService.serverConfigPromise.$promise.then(function (config) {
-                $scope.userCanCreateCart = config.currentUserCanCreateCart;
-                $scope.userCanCreateSets = config.currentUserCanCreateSets;
-            });
-        }
+        SetService.serverConfig().then(function (config) {
+            $scope.userCanCreateCart = config.currentUserCanCreateCart;
+            $scope.userCanCreateSets = config.currentUserCanCreateSets;
+        });
     }
 ])
     .directive('resultPanel', [function () {
@@ -11658,7 +11683,6 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
                 if (this.component.page.all) {
                     // remove all selections
                     this.component.page.all = false;
-                    this.clearSelections();
                 }
                 // due to clearing selections above, reselect the page that was already selected
                 this.selectPageInternal(currentPageSelected);
@@ -20091,7 +20115,7 @@ angular.module("search/components/result/variables-result-table/component.html",
     "        </a>\n" +
     "      </span>\n" +
     "      </div>\n" +
-    "      <table class=\"table table-bordered table-striped\" ng-init=\"lang = $parent.$parent.lang\">\n" +
+    "      <table class=\"table table-bordered table-striped table-layout-fixed\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "        <thead>\n" +
     "          <tr>\n" +
     "            <th style=\"width: 50px\">\n" +
@@ -20100,8 +20124,8 @@ angular.module("search/components/result/variables-result-table/component.html",
     "                      type=\"checkbox\"\n" +
     "                      ng-click=\"selectPage()\"/>\n" +
     "            </th>\n" +
-    "            <th translate>name</th>\n" +
-    "            <th translate>search.variable.label</th>\n" +
+    "            <th style=\"width: 30%\" translate>name</th>\n" +
+    "            <th style=\"width: 30%\" translate>search.variable.label</th>\n" +
     "            <th translate ng-if=\"optionsCols.showVariablesTypeColumn\">type</th>\n" +
     "            <th translate ng-if=\"optionsCols.showVariablesStudiesColumn\">search.study.label</th>\n" +
     "            <th translate ng-if=\"optionsCols.showVariablesDatasetsColumn\">search.dataset.label</th>\n" +
@@ -20919,8 +20943,8 @@ angular.module("sets/components/cart-documents-table/component.html", []).run(["
     "        </li>\n" +
     "      </ul>\n" +
     "    </div>\n" +
-    "    <a obiba-file-download url=\"$ctrl.download()\" target=\"_self\" download class=\"action btn btn-info btn-responsive\">\n" +
-    "      <i class=\"fa fa-download\"></i></a>\n" +
+    "    <a obiba-file-download get-url=\"$ctrl.download()\" target=\"_self\" download class=\"action btn btn-info btn-responsive\">\n" +
+    "      <i class=\"fa fa-download\"></i> {{'download' | translate}}</a>\n" +
     "    <a href=\"\" ng-click=\"$ctrl.search()\" class=\"action btn btn-info btn-responsive\">\n" +
     "      <i class=\"fa fa-search\"></i></a>\n" +
     "    <a href=\"\" ng-click=\"$ctrl.clearSet()\" ng-disabled=\"!$ctrl.hasSelections()\" class=\"action btn btn-danger btn-responsive\">\n" +
@@ -20965,7 +20989,7 @@ angular.module("sets/components/cart-documents-table/component.html", []).run(["
     "        </a>\n" +
     "      </span>\n" +
     "    </div>\n" +
-    "    <table class=\"table table-bordered table-striped\" ng-if=\"$ctrl.documents.total>0\">\n" +
+    "    <table class=\"table table-bordered table-striped table-layout-fixed\" ng-if=\"$ctrl.documents.total>0\">\n" +
     "      <thead>\n" +
     "        <th style=\"width: 50px\">\n" +
     "            <input\n" +
@@ -20973,8 +20997,8 @@ angular.module("sets/components/cart-documents-table/component.html", []).run(["
     "            type=\"checkbox\"\n" +
     "            ng-click=\"$ctrl.updateAllCurrentPageSelected()\"/>\n" +
     "        </th>\n" +
-    "        <th translate>taxonomy.target.variable</th>\n" +
-    "        <th translate>search.variable.label</th>\n" +
+    "        <th style=\"width: 30%\" translate>taxonomy.target.variable</th>\n" +
+    "        <th style=\"width: 30%\" translate>search.variable.label</th>\n" +
     "        <th ng-if=\"$ctrl.showVariableType\" translate>type</th>\n" +
     "        <th ng-if=\"$ctrl.showStudies\" translate>taxonomy.target.study</th>\n" +
     "        <th translate>taxonomy.target.dataset</th>\n" +
@@ -21003,8 +21027,12 @@ angular.module("sets/components/set-variables-table/component.html", []).run(["$
   $templateCache.put("sets/components/set-variables-table/component.html",
     "<div>\n" +
     "  <div class=\"pull-left\" ng-show=\"$ctrl.documents.total>0\">\n" +
+    "    <a href=\"\" ng-click=\"$ctrl.addToSet(type)\" class=\"action btn btn-info btn-responsive\">\n" +
+    "      <i class=\"fa fa-plus\"></i> {{'sets.add.button.set-label' | translate}}\n" +
+    "    </a>\n" +
+    "\n" +
     "    <a obiba-file-download get-url=\"$ctrl.download()\" target=\"_self\" download class=\"action btn btn-info btn-responsive\">\n" +
-    "      <i class=\"fa fa-download\"></i>\n" +
+    "      <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
     "    </a>\n" +
     "\n" +
     "    <a href=\"\" ng-click=\"$ctrl.search()\" class=\"action btn btn-info btn-responsive\">\n" +
@@ -21060,13 +21088,13 @@ angular.module("sets/components/set-variables-table/component.html", []).run(["$
     "      </span>\n" +
     "    </div>\n" +
     "\n" +
-    "    <table class=\"table table-bordered table-striped\" ng-if=\"$ctrl.documents.total>0\">\n" +
+    "    <table class=\"table table-bordered table-striped table-layout-fixed\" ng-if=\"$ctrl.documents.total>0\">\n" +
     "      <thead>\n" +
     "        <th style=\"width: 50px\">\n" +
     "          <input ng-model=\"$ctrl.allPageSelected[$ctrl.pagination.currentPage]\" type=\"checkbox\" ng-click=\"$ctrl.updateAllCurrentPageSelected()\" />\n" +
     "        </th>\n" +
-    "        <th translate>taxonomy.target.variable</th>\n" +
-    "        <th translate>search.variable.label</th>\n" +
+    "        <th style=\"width: 30%\" translate>taxonomy.target.variable</th>\n" +
+    "        <th style=\"width: 30%\" translate>search.variable.label</th>\n" +
     "        <th ng-if=\"$ctrl.showVariableType\" translate>type</th>\n" +
     "        <th ng-if=\"$ctrl.showStudies\" translate>taxonomy.target.study</th>\n" +
     "        <th translate>taxonomy.target.dataset</th>\n" +
@@ -21144,7 +21172,7 @@ angular.module("sets/views/sets.html", []).run(["$templateCache", function($temp
     "\n" +
     "    <div class=\"col-md-9\">\n" +
     "      <span ng-if=\"loading\" class=\"voffset2 loading\"></span>\n" +
-    "      <set-documents-table set-id=\"selectedSet.id\" type=\"'variables'\" documents=\"documents\" on-page-change=\"onPaginate\"></set-documents-table>\n" +
+    "      <set-variables-table set-id=\"selectedSet.id\" type=\"'variables'\" documents=\"documents\" on-update=\"onUpdate\" on-page-change=\"onPaginate\"></set-variables-table>\n" +
     "    </div>\n" +
     "  </div>\n" +
     "</div>");

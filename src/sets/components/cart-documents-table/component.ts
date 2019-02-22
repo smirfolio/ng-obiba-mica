@@ -28,7 +28,7 @@ class CartDocumentsTableController extends DocumentsSetTableComponentController 
     private $translate: any,
     protected $log: any,
     private $scope: any) {
-    super(SetService, $log);
+    super(SetService, $log, null);
 
     this.showStudies = !this.SetService.isSingleStudy();
     this.showVariableType = this.SetService.hasHarmonizedDatasets();
@@ -36,10 +36,6 @@ class CartDocumentsTableController extends DocumentsSetTableComponentController 
 
   public showAnalysis(): boolean {
     return this.AnalysisConfigService.showAnalysis();
-  }
-
-  public download(): string {
-    return this.SetService.getDownloadUrl(this.type);
   }
 
   public search(): void {

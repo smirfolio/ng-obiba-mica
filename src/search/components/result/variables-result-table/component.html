@@ -19,7 +19,7 @@
         </a>
       </span>
       </div>
-      <table class="table table-bordered table-striped" ng-init="lang = $parent.$parent.lang">
+      <table class="table table-bordered table-striped table-layout-fixed" ng-init="lang = $parent.$parent.lang">
         <thead>
           <tr>
             <th style="width: 50px">
@@ -28,8 +28,8 @@
                       type="checkbox"
                       ng-click="selectPage()"/>
             </th>
-            <th translate>name</th>
-            <th translate>search.variable.label</th>
+            <th style="width: 30%" translate>name</th>
+            <th style="width: 30%" translate>search.variable.label</th>
             <th translate ng-if="optionsCols.showVariablesTypeColumn">type</th>
             <th translate ng-if="optionsCols.showVariablesStudiesColumn">search.study.label</th>
             <th translate ng-if="optionsCols.showVariablesDatasetsColumn">search.dataset.label</th>
