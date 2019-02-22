@@ -55,44 +55,37 @@
                         </blockquote-small>
                         <div class="sm-top-margin">
                             {{counts=summary['obiba.mica.CountStatsDto.studyCountStats'];""}}
-                            <a ng-if="counts.networks && options.obibaListOptions.showNetworkBadge!==false"
-                               href="{{'networks' | doSearchQuery:'network(in(Mica_network.studyIds,' + summary.id +  '))' }}"
-                               class="btn btn-default btn-xxs"
-                               test-ref="networkCount">
-                                <localized-number
-                                        value="counts.networks"></localized-number>
-                                {{counts.networks>1?"networks":"network.label"
-                                | translate}}
-                            </a>
+                            <badge-count ng-if="counts"
+                                    entity-count="counts.networks"
+                                    entity-type="'networks'"
+                                    label-badge="counts>1?'networks':'network.label'"
+                                    badge-options="options.obibaListOptions.showNetworkBadge"
+                                    query="'network(in(Mica_network.studyIds,' + summary.id +  '))'">
+                            </badge-count>
+
                             {{datasetsCount=counts.studyDatasets +
                             counts.harmonizationDatasets;""}}
-                            <a ng-if="datasetsCount && options.obibaListOptions.showDatasetBadge!==false"
-                               href="{{'datasets' | doSearchQuery:'study(in(Mica_study.id,' + summary.id + '))'}}"
-                               class="btn btn-default btn-xxs"
-                               test-ref="datasetCount">
-                                <localized-number
-                                        value="datasetsCount"></localized-number>
-                                {{datasetsCount>1?"datasets":"dataset.details"
-                                | translate}}
-                            </a>
-                            <a ng-if="counts.studyVariables && options.obibaListOptions.showVariableBadge!==false"
-                               href="{{'variables' | doSearchQuery:'study(in(Mica_study.id,' + summary.id + ')),variable(in(Mica_variable.variableType,Collected))'}}"
-                               class="btn btn-default btn-xxs"
-                               test-ref="studyVariableCount">
-                                <localized-number
-                                        value="counts.studyVariables"></localized-number>
-                                {{counts.studyVariables>1?"client.label.study-variables":"client.label.study-variable"
-                                | translate}}
-                            </a>
-                            <a ng-if="counts.dataschemaVariables && options.obibaListOptions.showVariableBadge!==false"
-                               href="{{'variables' | doSearchQuery:'study(in(Mica_study.id,' + summary.id + ')),variable(in(Mica_variable.variableType,Dataschema))'}}"
-                               class="btn btn-default btn-xxs"
-                               test-ref="dataSchemaVariableCount">
-                                <localized-number
-                                        value="counts.dataschemaVariables"></localized-number>
-                                {{counts.dataschemaVariables>1?"client.label.dataschema-variables":"client.label.dataschema-variable"
-                                | translate}}
-                            </a>
+                            <badge-count ng-if="datasetsCount"
+                                    entity-count="datasetsCount"
+                                    entity-type="'datasets'"
+                                    label-badge="datasetsCount>1?'datasets':'dataset.details'"
+                                    badge-options="options.obibaListOptions.showDatasetBadge"
+                                    query="'study(in(Mica_study.id,' + summary.id + '))'">
+                            </badge-count>
+                            <badge-count ng-if="counts.studyVariables"
+                                         entity-count="counts.studyVariables"
+                                         entity-type="'variables'"
+                                         label-badge="counts.studyVariables>1?'client.label.study-variables':'client.label.study-variable'"
+                                         badge-options="options.obibaListOptions.showVariableBadge"
+                                         query="'study(in(Mica_study.id,' + summary.id + ')),variable(in(Mica_variable.variableType,Collected))'">
+                            </badge-count>
+                            <badge-count ng-if="counts.dataschemaVariables"
+                                         entity-count="counts.dataschemaVariables"
+                                         entity-type="'variables'"
+                                         label-badge="counts.studyVariables>1?'client.label.dataschema-variables':'client.label.dataschema-variable'"
+                                         badge-options="options.obibaListOptions.showVariableBadge"
+                                         query="'study(in(Mica_study.id,' + summary.id + ')),variable(in(Mica_variable.variableType,Dataschema))'">
+                            </badge-count>
                         </div>
                     </div>
                 </div>
