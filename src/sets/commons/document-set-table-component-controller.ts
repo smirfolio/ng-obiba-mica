@@ -28,6 +28,7 @@ abstract class DocumentsSetTableComponentController implements IDocumentsSetTabl
   public type: string;
   public table: any;
   public localizedTotal: string;
+  public onUpdate: () => void;
 
   protected allSelected: boolean;
   protected allPageSelected: any;
@@ -36,6 +37,7 @@ abstract class DocumentsSetTableComponentController implements IDocumentsSetTabl
   constructor(
     protected SetService: ISetService,
     protected $log: any,
+    protected $uibModal: any,
   ) {
     this.allSelected = false;
     this.allPageSelected = {};
@@ -126,10 +128,7 @@ abstract class DocumentsSetTableComponentController implements IDocumentsSetTabl
     } else {
       this.SetService.clearSet(this.setId, this.type)
         .then(() => {
-          this.allSelected = false;
-          this.allPageSelected = {};
-          this.selections = {};
-
+          this.clearSelections();
           this.onPageChange(this.type, 0);
         });
     }
@@ -138,6 +137,21 @@ abstract class DocumentsSetTableComponentController implements IDocumentsSetTabl
   public pageChanged(): void {
     const from = (this.pagination.currentPage - 1) * this.documents.limit;
     this.onPageChange(this.type, from);
+  }
+
+  public addToSet(): void {
+    this.$uibModal.open({
+      component: "addToSetModal",
+      keyboard: false,
+      resolve: {
+        ids: () => this.allSelected ? {} : this.selections,
+        query: () => this.SetService.getSearchQuery(this.type, this.setId),
+        type: () => this.type,
+      },
+    }).result.then(() => {
+      this.clearSelections();
+      this.onUpdate();
+    });
   }
 
   public $onInit(): void {
@@ -151,5 +165,11 @@ abstract class DocumentsSetTableComponentController implements IDocumentsSetTabl
       return [];
     }
     return Object.keys(this.selections).filter((id) => this.selections[id]);
+  }
+
+  protected clearSelections(): void {
+    this.allSelected = false;
+    this.allPageSelected = {};
+    this.selections = {};
   }
 }

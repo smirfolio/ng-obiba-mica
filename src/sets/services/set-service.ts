@@ -15,6 +15,7 @@ declare var ngObibaMica: any;
 interface ISetService {
   serverConfigPromise: any;
 
+  serverConfig(): any;
   isSingleStudy(): boolean;
   hasHarmonizedDatasets(): boolean;
   getMaxItemsPerSets(): number;
@@ -36,6 +37,7 @@ interface ISetService {
   getDownloadUrl(documentType: string, setId: string): string;
   getDownloadUrlForIds(documentType: string, setId: string, ids: string[]): string;
   gotoEntitiesCount(ids: string[]): void;
+  getSearchQuery(documentType: string, setId: string): string;
   gotoSearch(documentType: string, setId: string): void;
   getCartSet(documentType: string): any;
 }
@@ -90,6 +92,10 @@ class SetService implements ISetService {
 
       return micaConfig;
     });
+  }
+
+  public serverConfig(): any {
+    return this.serverConfigPromise.$promise || this.serverConfigPromise;
   }
 
   public isSingleStudy(): boolean {
@@ -351,6 +357,11 @@ class SetService implements ISetService {
     return this.PageUrlService.downloadList(documentType, queryStr);
   }
 
+  public getSearchQuery(documentType: string, setId: string): string {
+    const target = typeToTarget(documentType);
+    return  setId ? target + "(in(Mica_" + target + ".sets," + setId + "))" : null;
+  }
+
   /**
    * Go to search page with documents filtered by the set they belong to.
    * @param documentType the document type
@@ -365,7 +376,7 @@ class SetService implements ISetService {
       }
     }
     if (id) {
-      const queryStr = "variable(in(Mica_variable.sets," + id + "))";
+      const queryStr = this.getSearchQuery(documentType, id);
       this.$window.location.href = this.PageUrlService.searchPage(queryStr);
     }
   }

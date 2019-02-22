@@ -267,6 +267,10 @@
       $scope.selectedSet.count = documents.total;
     }
 
+    function onUpdate() {
+      initSets();
+    }
+
     function onPaginate(type, from) {
       if ($scope.selectedSet) {
         SetService.getSetDocuments($scope.selectedSet.id, type, from, limit).then(onDocuments);
@@ -323,6 +327,7 @@
     $scope.check = check;
     $scope.deleteChecked = deleteChecked;
     $scope.canDeleteChecked = canDeleteChecked;
+    $scope.onUpdate = onUpdate;
     $scope.onPaginate = onPaginate;
     $scope.selectSet = selectSet;
   }]);

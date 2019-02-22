@@ -5,11 +5,14 @@ class SearchResultSelectionsService {
 
   constructor(private PaginationService: any, private $log: any) {
     this.decorators = {};
-    this.decorators[QUERY_TYPES.VARIABLES] =
-      new SearchResultSelectionsDecorator(QUERY_TARGETS.VARIABLE, this.PaginationService);
   }
 
   public decorateSearchResult(type: string, searchResult: any): void {
+    if (!this.decorators[type]) {
+      this.decorators[type] =
+        new SearchResultSelectionsDecorator(QUERY_TARGETS.VARIABLE, this.PaginationService);
+    }
+
     this.decorators[type].decorate(searchResult);
   }
 

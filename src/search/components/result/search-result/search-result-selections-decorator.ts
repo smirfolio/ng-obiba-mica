@@ -63,7 +63,6 @@ class SearchResultSelectionsDecorator extends AbstractSelectionsDecorator {
         if (this.component.page.all) {
           // remove all selections
           this.component.page.all = false;
-          this.clearSelections();
         }
 
         // due to clearing selections above, reselect the page that was already selected
