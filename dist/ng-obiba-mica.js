@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-02-22
+ * Date: 2019-02-24
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -626,6 +626,45 @@ ngObibaMica.utils.service("CustomWatchDomElementService", [CustomWatchDomElement
         controller: ['$rootScope', '$timeout', 'LocalizedSchemaFormService', 'SfOptionsService', 'JsonUtils', Controller]
     });
 })();
+//# sourceMappingURL=component.js.map
+/*
+ * Copyright (c) 2019 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+"use strict";
+var TableAlarmHeaderController = /** @class */ (function () {
+    function TableAlarmHeaderController($log) {
+        this.$log = $log;
+    }
+    TableAlarmHeaderController.prototype.selectAll = function () {
+        this.onSelectAll({});
+    };
+    TableAlarmHeaderController.prototype.$onChanges = function (changes) {
+        this.$log.info(">>>> ", changes);
+    };
+    TableAlarmHeaderController.$inject = ["$log"];
+    return TableAlarmHeaderController;
+}());
+var TableAlarmHeaderComponent = /** @class */ (function () {
+    function TableAlarmHeaderComponent() {
+        this.templateUrl = "utils/components/table-alert-header/component.html";
+        this.transclude = false;
+        this.transclude = true;
+        this.bindings = {
+            allSelected: "<",
+            onSelectAll: "&",
+        };
+        this.controller = TableAlarmHeaderController;
+        this.controllerAs = "$ctrl";
+    }
+    return TableAlarmHeaderComponent;
+}());
+ngObibaMica.utils.component("tableAlertHeader", new TableAlarmHeaderComponent());
 //# sourceMappingURL=component.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -3740,6 +3779,11 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
             $scope.checked = {};
             $scope.canDelete = {};
             $scope.selectedSet = {};
+            function findSetById(sets, id) {
+                return (sets || []).filter(function (set) {
+                    return set.id === id;
+                }).pop();
+            }
             function initSets() {
                 MetaTaxonomyService.getMetaTaxonomyForTargets(['variable']).then(function (metaTaxonomies) {
                     $scope.useableTabs = metaTaxonomies;
@@ -3748,13 +3792,26 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
                             return allSets.filter(function (set) { return set.name; });
                         }).then(function (sets) {
                             $scope.sets[meta.name] = sets;
-                            if (!$scope.selectedSet.id) {
+                            var selectedSetId = $scope.selectedSet.id;
+                            var selectedInSet = findSetById(sets, selectedSetId); // ensure selected is not deleted
+                            if (selectedInSet) {
+                                selectSetId(selectedInSet.id);
+                            }
+                            else if (!selectedInSet) {
+                                // ensure route ID exists and hasn't been deleted
+                                var routeId = $route.current.params.id && $route.current.params.id !== selectedSetId ? $route.current.params.id : null;
                                 var setToSelect = null;
-                                if ($route.current.params.id) {
+                                if (routeId) {
                                     setToSelect = $route.current.params.id;
                                 }
                                 else if (sets.length > 0) {
                                     setToSelect = sets[0].id;
+                                }
+                                else {
+                                    $scope.selectedSet = {};
+                                    unsetLocationChange();
+                                    $location.search('id', null);
+                                    setLocationChange();
                                 }
                                 selectSetId(setToSelect);
                             }
@@ -15999,7 +16056,7 @@ ngObibaMica.fileBrowser
         };
     }]);
 //# sourceMappingURL=file-browser-service.js.map
-angular.module('templates-ngObibaMica', ['access/components/action-log/component.html', 'access/components/action-log/item/component.html', 'access/components/action-log/item/delete-modal.html', 'access/components/action-log/item/edit-modal.html', 'access/components/entity-list/component.html', 'access/components/print-friendly-view/component.html', 'access/components/status-progressbar/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/cell-stat-value/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/add-to-set-modal/component.html', 'sets/components/cart-documents-table/component.html', 'sets/components/set-variables-table/component.html', 'sets/views/cart.html', 'sets/views/sets.html', 'utils/components/entity-schema-form/component.html', 'utils/services/user-profile-modal/service.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+angular.module('templates-ngObibaMica', ['access/components/action-log/component.html', 'access/components/action-log/item/component.html', 'access/components/action-log/item/delete-modal.html', 'access/components/action-log/item/edit-modal.html', 'access/components/entity-list/component.html', 'access/components/print-friendly-view/component.html', 'access/components/status-progressbar/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/cell-stat-value/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/add-to-set-modal/component.html', 'sets/components/cart-documents-table/component.html', 'sets/components/set-variables-table/component.html', 'sets/views/cart.html', 'sets/views/sets.html', 'utils/components/entity-schema-form/component.html', 'utils/components/table-alert-header/component.html', 'utils/services/user-profile-modal/service.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/components/action-log/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/components/action-log/component.html",
@@ -20099,26 +20156,11 @@ angular.module("search/components/result/variables-result-table/component.html",
     "  <div ng-show=\"!loading\">\n" +
     "    <p class=\"help-block\" ng-if=\"!summaries || !summaries.length\" translate>search.variable.noResults</p>\n" +
     "    <div class=\"table-responsive\" ng-if=\"summaries && summaries.length\">\n" +
-    "      <div class=\"alert alert-warning actions-select\" ng-show=\"page.selections[pagination.currentPage]\">\n" +
-    "      <span ng-hide=\"page.all\">\n" +
-    "        <span translate>sets.cart.all-cart-page-selected</span>\n" +
-    "        <a href ng-click=\"selectAll()\" class=\"hoffset2\">\n" +
-    "          <i class=\"fa fa-square-o\"></i>\n" +
-    "          <b><span translate>sets.cart.select-all-cart</span></b>\n" +
-    "        </a>\n" +
-    "      </span>\n" +
-    "        <span ng-show=\"page.all\">\n" +
-    "        <span translate>sets.cart.all-cart-selected</span>\n" +
-    "        <a href ng-click=\"selectAll()\" class=\"hoffset2\">\n" +
-    "          <i class=\"fa fa-check-square-o\"></i>\n" +
-    "          <b><span translate>sets.cart.unselect-all-cart</span></b>\n" +
-    "        </a>\n" +
-    "      </span>\n" +
-    "      </div>\n" +
+    "      <table-alert-header all-selected=\"page.all\" on-select-all=\"selectAll()\" ng-show=\"page.selections[pagination.currentPage]\"></table-alert-header>\n" +
     "      <table class=\"table table-bordered table-striped table-layout-fixed\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "        <thead>\n" +
     "          <tr>\n" +
-    "            <th style=\"width: 50px\">\n" +
+    "            <th style=\"width: 3%\">\n" +
     "              <input\n" +
     "                      ng-model=\"page.selections[pagination.currentPage]\"\n" +
     "                      type=\"checkbox\"\n" +
@@ -20973,25 +21015,14 @@ angular.module("sets/components/cart-documents-table/component.html", []).run(["
     "  </div>\n" +
     "  <div class=\"clearfix\"></div>\n" +
     "  <div class=\"table-responsive\">\n" +
-    "    <div class=\"alert alert-warning actions-select\" ng-show=\"$ctrl.allPageSelected[$ctrl.pagination.currentPage]\">\n" +
-    "      <span ng-hide=\"$ctrl.allSelected\">\n" +
-    "        <span translate>sets.cart.all-cart-page-selected</span>\n" +
-    "        <a href ng-click=\"$ctrl.updateAllSelected()\" class=\"hoffset2\">\n" +
-    "          <i class=\"fa fa-square-o\"></i>\n" +
-    "          <b><span translate>sets.cart.select-all-cart</span></b>\n" +
-    "        </a>\n" +
-    "      </span>\n" +
-    "      <span ng-show=\"$ctrl.allSelected\">\n" +
-    "        <span translate>sets.cart.all-cart-selected</span>\n" +
-    "        <a href ng-click=\"$ctrl.updateAllSelected()\" class=\"hoffset2\">\n" +
-    "          <i class=\"fa fa-check-square-o\"></i>\n" +
-    "          <b><span translate>sets.cart.unselect-all-cart</span></b>\n" +
-    "        </a>\n" +
-    "      </span>\n" +
-    "    </div>\n" +
+    "    <table-alert-header\n" +
+    "      all-selected=\"$ctrl.allSelected\"\n" +
+    "      on-select-all=\"$ctrl.updateAllSelected()\"\n" +
+    "      ng-show=\"$ctrl.allPageSelected[$ctrl.pagination.currentPage]\">\n" +
+    "    </table-alert-header>\n" +
     "    <table class=\"table table-bordered table-striped table-layout-fixed\" ng-if=\"$ctrl.documents.total>0\">\n" +
     "      <thead>\n" +
-    "        <th style=\"width: 50px\">\n" +
+    "        <th style=\"width: 3%\">\n" +
     "            <input\n" +
     "            ng-model=\"$ctrl.allPageSelected[$ctrl.pagination.currentPage]\"\n" +
     "            type=\"checkbox\"\n" +
@@ -21070,27 +21101,14 @@ angular.module("sets/components/set-variables-table/component.html", []).run(["$
     "  <div class=\"clearfix\"></div>\n" +
     "\n" +
     "  <div class=\"table-responsive\">\n" +
-    "    <div class=\"alert alert-warning actions-select\" ng-show=\"$ctrl.allPageSelected[$ctrl.pagination.currentPage]\">\n" +
-    "      <span ng-hide=\"$ctrl.allSelected\">\n" +
-    "        <span translate>sets.cart.all-cart-page-selected</span>\n" +
-    "        <a href ng-click=\"$ctrl.updateAllSelected()\" class=\"hoffset2\">\n" +
-    "          <i class=\"fa fa-square-o\"></i>\n" +
-    "          <b><span translate>sets.cart.select-all-cart</span></b>\n" +
-    "        </a>\n" +
-    "      </span>\n" +
-    "\n" +
-    "      <span ng-show=\"$ctrl.allSelected\">\n" +
-    "        <span translate>sets.cart.all-cart-selected</span>\n" +
-    "        <a href ng-click=\"$ctrl.updateAllSelected()\" class=\"hoffset2\">\n" +
-    "          <i class=\"fa fa-check-square-o\"></i>\n" +
-    "          <b><span translate>sets.cart.unselect-all-cart</span></b>\n" +
-    "        </a>\n" +
-    "      </span>\n" +
-    "    </div>\n" +
-    "\n" +
+    "    <table-alert-header\n" +
+    "      all-selected=\"$ctrl.allSelected\"\n" +
+    "      on-select-all=\"$ctrl.updateAllSelected()\"\n" +
+    "      ng-show=\"$ctrl.allPageSelected[$ctrl.pagination.currentPage]\">\n" +
+    "    </table-alert-header>\n" +
     "    <table class=\"table table-bordered table-striped table-layout-fixed\" ng-if=\"$ctrl.documents.total>0\">\n" +
     "      <thead>\n" +
-    "        <th style=\"width: 50px\">\n" +
+    "        <th style=\"width: 3%\">\n" +
     "          <input ng-model=\"$ctrl.allPageSelected[$ctrl.pagination.currentPage]\" type=\"checkbox\" ng-click=\"$ctrl.updateAllCurrentPageSelected()\" />\n" +
     "        </th>\n" +
     "        <th style=\"width: 30%\" translate>taxonomy.target.variable</th>\n" +
@@ -21181,6 +21199,27 @@ angular.module("sets/views/sets.html", []).run(["$templateCache", function($temp
 angular.module("utils/components/entity-schema-form/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("utils/components/entity-schema-form/component.html",
     "<div sf-model=\"$ctrl.model\" sf-form=\"$ctrl.form.definition\" sf-schema=\"$ctrl.form.schema\" sf-options=\"$ctrl.sfOptions\"></div>");
+}]);
+
+angular.module("utils/components/table-alert-header/component.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("utils/components/table-alert-header/component.html",
+    "<div class=\"alert alert-warning actions-select\">\n" +
+    "  <span ng-hide=\"$ctrl.allSelected\">\n" +
+    "    <a href ng-click=\"$ctrl.selectAll()\" class=\"hoffset\">\n" +
+    "      <i class=\"fa fa-square-o\"></i>\n" +
+    "      <strong><span translate>table-selections.select-all</span></strong>\n" +
+    "    </a>\n" +
+    "    <strong><span class=\"pull-right\" translate>table-selections.all-page-selected</span></strong>\n" +
+    "  </span>\n" +
+    "  <span ng-show=\"$ctrl.allSelected\">\n" +
+    "    <a href ng-click=\"$ctrl.selectAll()\" class=\"hoffset\">\n" +
+    "      <i class=\"fa fa-check-square-o\"></i>\n" +
+    "      <b><span translate>table-selections.unselect-all</span></b>\n" +
+    "    </a>\n" +
+    "  <strong><span class=\"pull-right\" translate>table-selections.all-selected</span></strong>\n" +
+    "  </span>\n" +
+    "</div>\n" +
+    "");
 }]);
 
 angular.module("utils/services/user-profile-modal/service.html", []).run(["$templateCache", function($templateCache) {
