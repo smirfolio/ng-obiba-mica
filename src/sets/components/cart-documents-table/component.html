@@ -41,25 +41,14 @@
   </div>
   <div class="clearfix"></div>
   <div class="table-responsive">
-    <div class="alert alert-warning actions-select" ng-show="$ctrl.allPageSelected[$ctrl.pagination.currentPage]">
-      <span ng-hide="$ctrl.allSelected">
-        <span translate>sets.cart.all-cart-page-selected</span>
-        <a href ng-click="$ctrl.updateAllSelected()" class="hoffset2">
-          <i class="fa fa-square-o"></i>
-          <b><span translate>sets.cart.select-all-cart</span></b>
-        </a>
-      </span>
-      <span ng-show="$ctrl.allSelected">
-        <span translate>sets.cart.all-cart-selected</span>
-        <a href ng-click="$ctrl.updateAllSelected()" class="hoffset2">
-          <i class="fa fa-check-square-o"></i>
-          <b><span translate>sets.cart.unselect-all-cart</span></b>
-        </a>
-      </span>
-    </div>
+    <table-alert-header
+      all-selected="$ctrl.allSelected"
+      on-select-all="$ctrl.updateAllSelected()"
+      ng-show="$ctrl.allPageSelected[$ctrl.pagination.currentPage]">
+    </table-alert-header>
     <table class="table table-bordered table-striped table-layout-fixed" ng-if="$ctrl.documents.total>0">
       <thead>
-        <th style="width: 50px">
+        <th style="width: 3%">
             <input
             ng-model="$ctrl.allPageSelected[$ctrl.pagination.currentPage]"
             type="checkbox"

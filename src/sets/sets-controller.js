@@ -188,6 +188,12 @@
     $scope.canDelete = {};
     $scope.selectedSet = {};
 
+    function findSetById(sets, id) {
+      return (sets || []).filter(function(set) {
+        return set.id === id;
+      }).pop();
+    }
+
     function initSets() {
       MetaTaxonomyService.getMetaTaxonomyForTargets(['variable']).then(function (metaTaxonomies) {
         $scope.useableTabs = metaTaxonomies;
@@ -196,13 +202,26 @@
             return allSets.filter(function (set) { return set.name; });
           }).then(function (sets) {
             $scope.sets[meta.name] = sets;
+            var selectedSetId = $scope.selectedSet.id;
+            var selectedInSet = findSetById(sets, selectedSetId); // ensure selected is not deleted
 
-            if (!$scope.selectedSet.id) {
+            if (selectedInSet) {
+              selectSetId(selectedInSet.id);
+            } else if (!selectedInSet) {
+              // ensure route ID exists and hasn't been deleted
+              let routeId =
+                $route.current.params.id && $route.current.params.id !== selectedSetId ? $route.current.params.id : null;
+
               let setToSelect = null;
-              if ($route.current.params.id) {
-                setToSelect = $route.current.params.id;
+              if (routeId) {
+                setToSelect = routeId;
               } else if (sets.length > 0) {
                 setToSelect = sets[0].id;
+              } else {
+                $scope.selectedSet = {};
+                unsetLocationChange();
+                $location.search('id', null);
+                setLocationChange();
               }
               selectSetId(setToSelect);
             }
