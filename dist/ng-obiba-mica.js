@@ -3802,7 +3802,7 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
                                 var routeId = $route.current.params.id && $route.current.params.id !== selectedSetId ? $route.current.params.id : null;
                                 var setToSelect = null;
                                 if (routeId) {
-                                    setToSelect = $route.current.params.id;
+                                    setToSelect = routeId;
                                 }
                                 else if (sets.length > 0) {
                                     setToSelect = sets[0].id;
