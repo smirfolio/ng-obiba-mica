@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-02-24
+ * Date: 2019-02-25
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -3142,7 +3142,7 @@ var DocumentsSetTableComponentController = /** @class */ (function () {
             currentPage: 1,
             from: 0,
             itemsPerPage: 10,
-            maxSize: 10,
+            maxSize: 3,
             to: 0,
             totalHits: 0,
         };
@@ -3229,6 +3229,7 @@ var DocumentsSetTableComponentController = /** @class */ (function () {
             component: "addToSetModal",
             keyboard: false,
             resolve: {
+                excludeId: function () { return _this.setId; },
                 ids: function () { return _this.allSelected ? {} : _this.selections; },
                 query: function () { return _this.SetService.getSearchQuery(_this.type, _this.setId); },
                 type: function () { return _this.type; },
@@ -3314,7 +3315,7 @@ var AddToSetComponentModalController = /** @class */ (function () {
     AddToSetComponentModalController.prototype.$onInit = function () {
         var _this = this;
         this.SetsResource.query({ type: this.resolve.type }).$promise.then(function (allSets) {
-            _this.sets = allSets.filter(function (set) { return set.name; });
+            _this.sets = allSets.filter(function (set) { return set.name && (!_this.resolve.excludeId || _this.resolve.excludeId !== set.id); });
             _this.canAddMoreSets = _this.sets.length < _this.SetService.getMaxNumberOfSets();
         });
     };
@@ -3392,8 +3393,10 @@ var CartDocumentsTableController = /** @class */ (function (_super) {
         _this.$translate = $translate;
         _this.$log = $log;
         _this.$scope = $scope;
-        _this.showStudies = !_this.SetService.isSingleStudy();
-        _this.showVariableType = _this.SetService.hasHarmonizedDatasets();
+        SetService.serverConfig().then(function (config) {
+            _this.showStudies = !_this.SetService.isSingleStudy();
+            _this.showVariableType = _this.SetService.hasHarmonizedDatasets();
+        });
         return _this;
     }
     CartDocumentsTableController.prototype.showAnalysis = function () {
@@ -20160,14 +20163,14 @@ angular.module("search/components/result/variables-result-table/component.html",
     "      <table class=\"table table-bordered table-striped table-layout-fixed\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "        <thead>\n" +
     "          <tr>\n" +
-    "            <th style=\"width: 3%\">\n" +
+    "            <th class=\"col-width-xs\">\n" +
     "              <input\n" +
     "                      ng-model=\"page.selections[pagination.currentPage]\"\n" +
     "                      type=\"checkbox\"\n" +
     "                      ng-click=\"selectPage()\"/>\n" +
     "            </th>\n" +
-    "            <th style=\"width: 30%\" translate>name</th>\n" +
-    "            <th style=\"width: 30%\" translate>search.variable.label</th>\n" +
+    "            <th class=\"col-width-md\" translate>name</th>\n" +
+    "            <th class=\"col-width-md\" translate>search.variable.label</th>\n" +
     "            <th translate ng-if=\"optionsCols.showVariablesTypeColumn\">type</th>\n" +
     "            <th translate ng-if=\"optionsCols.showVariablesStudiesColumn\">search.study.label</th>\n" +
     "            <th translate ng-if=\"optionsCols.showVariablesDatasetsColumn\">search.dataset.label</th>\n" +
@@ -21022,14 +21025,14 @@ angular.module("sets/components/cart-documents-table/component.html", []).run(["
     "    </table-alert-header>\n" +
     "    <table class=\"table table-bordered table-striped table-layout-fixed\" ng-if=\"$ctrl.documents.total>0\">\n" +
     "      <thead>\n" +
-    "        <th style=\"width: 3%\">\n" +
+    "        <th class=\"col-width-xs\">\n" +
     "            <input\n" +
     "            ng-model=\"$ctrl.allPageSelected[$ctrl.pagination.currentPage]\"\n" +
     "            type=\"checkbox\"\n" +
     "            ng-click=\"$ctrl.updateAllCurrentPageSelected()\"/>\n" +
     "        </th>\n" +
-    "        <th style=\"width: 30%\" translate>taxonomy.target.variable</th>\n" +
-    "        <th style=\"width: 30%\" translate>search.variable.label</th>\n" +
+    "        <th class=\"col-width-md\" translate>taxonomy.target.variable</th>\n" +
+    "        <th class=\"col-width-md\" translate>search.variable.label</th>\n" +
     "        <th ng-if=\"$ctrl.showVariableType\" translate>type</th>\n" +
     "        <th ng-if=\"$ctrl.showStudies\" translate>taxonomy.target.study</th>\n" +
     "        <th translate>taxonomy.target.dataset</th>\n" +
@@ -21108,11 +21111,11 @@ angular.module("sets/components/set-variables-table/component.html", []).run(["$
     "    </table-alert-header>\n" +
     "    <table class=\"table table-bordered table-striped table-layout-fixed\" ng-if=\"$ctrl.documents.total>0\">\n" +
     "      <thead>\n" +
-    "        <th style=\"width: 3%\">\n" +
+    "        <th class=\"col-width-xs\">\n" +
     "          <input ng-model=\"$ctrl.allPageSelected[$ctrl.pagination.currentPage]\" type=\"checkbox\" ng-click=\"$ctrl.updateAllCurrentPageSelected()\" />\n" +
     "        </th>\n" +
-    "        <th style=\"width: 30%\" translate>taxonomy.target.variable</th>\n" +
-    "        <th style=\"width: 30%\" translate>search.variable.label</th>\n" +
+    "        <th class=\"col-width-md\" translate>taxonomy.target.variable</th>\n" +
+    "        <th class=\"col-width-md\" translate>search.variable.label</th>\n" +
     "        <th ng-if=\"$ctrl.showVariableType\" translate>type</th>\n" +
     "        <th ng-if=\"$ctrl.showStudies\" translate>taxonomy.target.study</th>\n" +
     "        <th translate>taxonomy.target.dataset</th>\n" +
@@ -21205,14 +21208,14 @@ angular.module("utils/components/table-alert-header/component.html", []).run(["$
   $templateCache.put("utils/components/table-alert-header/component.html",
     "<div class=\"alert alert-warning actions-select\">\n" +
     "  <span ng-hide=\"$ctrl.allSelected\">\n" +
-    "    <a href ng-click=\"$ctrl.selectAll()\" class=\"hoffset\">\n" +
+    "    <a href ng-click=\"$ctrl.selectAll()\" class=\"hoffset1\">\n" +
     "      <i class=\"fa fa-square-o\"></i>\n" +
     "      <strong><span translate>table-selections.select-all</span></strong>\n" +
     "    </a>\n" +
     "    <strong><span class=\"pull-right\" translate>table-selections.all-page-selected</span></strong>\n" +
     "  </span>\n" +
     "  <span ng-show=\"$ctrl.allSelected\">\n" +
-    "    <a href ng-click=\"$ctrl.selectAll()\" class=\"hoffset\">\n" +
+    "    <a href ng-click=\"$ctrl.selectAll()\" class=\"hoffset1\">\n" +
     "      <i class=\"fa fa-check-square-o\"></i>\n" +
     "      <b><span translate>table-selections.unselect-all</span></b>\n" +
     "    </a>\n" +
