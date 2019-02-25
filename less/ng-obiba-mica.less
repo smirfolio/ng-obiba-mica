@@ -528,9 +528,22 @@ meta-taxonomy-filter-panel{
 }
 
 .table-layout-fixed {
-  table-layout: fixed !important;
+
+  @media all and (min-width: 768px) {
+    table-layout: fixed !important;
+  }
 
   th, td {
     overflow-wrap: break-word;
   }
+
+  th.col-width-xs {
+    width: @table-layout-fixed-col-xs !important;
+  }
+
+  th.col-width-md {
+    width: @table-layout-fixed-col-md !important;
+  }
+
+  overflow: auto !important;
 }

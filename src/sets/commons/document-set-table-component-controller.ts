@@ -7,15 +7,25 @@ interface IDocumentsSetTableComponentController extends ng.IComponentController 
   table: any;
   type: string;
   localizedTotal: string;
+
   clearSet(): void;
+
   download(): void;
+
   hasSelections(): boolean;
+
   entitiesCount(): void;
+
   onPageChange(type: string, from: number): void;
+
   pageChanged(): void;
+
   search(): void;
+
   updateAllSelected(): void;
+
   updateAllCurrentPageSelected(): void;
+
   updateSelection(documentId: any): void;
 }
 
@@ -51,7 +61,7 @@ abstract class DocumentsSetTableComponentController implements IDocumentsSetTabl
       currentPage: 1,
       from: 0,
       itemsPerPage: 10,
-      maxSize: 10,
+      maxSize: 3,
       to: 0,
       totalHits: 0,
     };
@@ -144,6 +154,7 @@ abstract class DocumentsSetTableComponentController implements IDocumentsSetTabl
       component: "addToSetModal",
       keyboard: false,
       resolve: {
+        excludeId: () => this.setId,
         ids: () => this.allSelected ? {} : this.selections,
         query: () => this.SetService.getSearchQuery(this.type, this.setId),
         type: () => this.type,

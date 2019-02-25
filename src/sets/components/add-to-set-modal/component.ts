@@ -3,7 +3,9 @@
 interface IAddToSetModalComponentController extends ng.IComponentController {
 
   resolve: { query: string, type: string, ids?: any };
+
   close(result?: any): void;
+
   dismiss(reason?: any): void;
 }
 
@@ -19,7 +21,7 @@ class AddToSetComponentModalController implements IAddToSetModalComponentControl
     "SetsImportResource",
     "SetService"];
 
-  public resolve: { query: string, type: string, ids?: any };
+  public resolve: { query: string, type: string, excludeId?: string, ids?: any };
   public choice: { radio: string, selected?: any, name?: string };
   public canAccept: boolean;
   public sets: any[];
@@ -33,7 +35,8 @@ class AddToSetComponentModalController implements IAddToSetModalComponentControl
     private RqlQueryUtils: any,
     private SetsResource: any,
     private SetsImportResource: any,
-    private SetService: ISetService) { }
+    private SetService: ISetService) {
+  }
 
   public accept() {
     if (this.choice.radio === "NEW") {
@@ -50,7 +53,7 @@ class AddToSetComponentModalController implements IAddToSetModalComponentControl
       });
     } else {
       this.SetsImportResource.save({type: this.resolve.type, name: this.choice.name}, "")
-      .$promise.then((set) => {
+        .$promise.then((set) => {
         this.processDocumentSet(
           set.id,
           this.resolve.type,
@@ -91,8 +94,10 @@ class AddToSetComponentModalController implements IAddToSetModalComponentControl
   }
 
   public $onInit() {
-    this.SetsResource.query({ type: this.resolve.type }).$promise.then((allSets: any[]) => {
-      this.sets = allSets.filter((set: any) => set.name);
+    this.SetsResource.query({type: this.resolve.type}).$promise.then((allSets: any[]) => {
+      this.sets = allSets.filter(
+        (set: any) => set.name && (!this.resolve.excludeId || this.resolve.excludeId !== set.id),
+      );
       this.canAddMoreSets = this.sets.length < this.SetService.getMaxNumberOfSets();
     });
   }
@@ -103,7 +108,7 @@ class AddToSetComponentModalController implements IAddToSetModalComponentControl
 
     const queryWithLimitAndFields =
       this.RqlQueryUtils
-      .rewriteQueryWithLimitAndFields(parsedQuery, target, this.SetService.getMaxItemsPerSets(), ["id"]);
+        .rewriteQueryWithLimitAndFields(parsedQuery, target, this.SetService.getMaxItemsPerSets(), ["id"]);
     return this.SetService.addDocumentQueryToSet(setId, type, queryWithLimitAndFields);
   }
 

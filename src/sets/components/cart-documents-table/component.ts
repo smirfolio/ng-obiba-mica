@@ -30,8 +30,10 @@ class CartDocumentsTableController extends DocumentsSetTableComponentController 
     private $scope: any) {
     super(SetService, $log, null);
 
-    this.showStudies = !this.SetService.isSingleStudy();
-    this.showVariableType = this.SetService.hasHarmonizedDatasets();
+    SetService.serverConfig().then((config) => {
+      this.showStudies = !this.SetService.isSingleStudy();
+      this.showVariableType = this.SetService.hasHarmonizedDatasets();
+    });
   }
 
   public showAnalysis(): boolean {
