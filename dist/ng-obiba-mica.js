@@ -18055,11 +18055,11 @@ angular.module("graphics/views/tables-directive.html", []).run(["$templateCache"
 angular.module("lists/components/badge-count/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("lists/components/badge-count/component.html",
     "<span ng-if=\"$ctrl.badgeOptions.showBadge\">\n" +
-    "  <span class=\"btn btn-default btn-xxs\" test-ref=\"dataSchemaVariableCount\"\n" +
-    "        ng-if=\"$ctrl.badgeOptions.showBadge && !$ctrl.badgeOptions.showTab\">\n" +
+    "  <a class=\"btn btn-default btn-xxs disabled\" test-ref=\"dataSchemaVariableCount\"\n" +
+    "        ng-if=\"$ctrl.badgeOptions.showBadge && !$ctrl.badgeOptions.showTab\" disabled>\n" +
     "    <localized-number value=\"$ctrl.entityCount\"></localized-number>\n" +
     "  {{ $ctrl.labelBadge | translate }}\n" +
-    "  </span>\n" +
+    "  </a>\n" +
     "  <a class=\"btn btn-default btn-xxs\"\n" +
     "     test-ref=\"dataSchemaVariableCount\" href=\"{{$ctrl.entityType | doSearchQuery:$ctrl.query }}\" ng-if=\"$ctrl.badgeOptions.showTab\">\n" +
     "    <localized-number value=\"$ctrl.entityCount\"></localized-number>\n" +
