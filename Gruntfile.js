@@ -99,6 +99,7 @@ module.exports = function (grunt) {
           'built/lists/lists-service.js',
           'built/lists/lists-controller.js',
           'built/lists/lists-directive.js',
+          'built/lists/components/**/*.js',
           'built/graphics/graphics.js',
           'built/graphics/graphics-directive.js',
           'built/graphics/graphics-controller.js',
