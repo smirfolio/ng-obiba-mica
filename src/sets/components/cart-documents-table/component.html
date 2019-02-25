@@ -48,14 +48,14 @@
     </table-alert-header>
     <table class="table table-bordered table-striped table-layout-fixed" ng-if="$ctrl.documents.total>0">
       <thead>
-        <th style="width: 3%">
+        <th class="col-width-xs">
             <input
             ng-model="$ctrl.allPageSelected[$ctrl.pagination.currentPage]"
             type="checkbox"
             ng-click="$ctrl.updateAllCurrentPageSelected()"/>
         </th>
-        <th style="width: 30%" translate>taxonomy.target.variable</th>
-        <th style="width: 30%" translate>search.variable.label</th>
+        <th class="col-width-md" translate>taxonomy.target.variable</th>
+        <th class="col-width-md" translate>search.variable.label</th>
         <th ng-if="$ctrl.showVariableType" translate>type</th>
         <th ng-if="$ctrl.showStudies" translate>taxonomy.target.study</th>
         <th translate>taxonomy.target.dataset</th>
