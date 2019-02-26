@@ -521,14 +521,28 @@ ngObibaMica.access
 
       var save = function () {
         $scope.dataAccessRequest.content = angular.toJson($scope.sfForm.model || {});
-
-        if ($scope.newRequest) {
-          DataAccessRequestsResource.save($scope.dataAccessRequest, onSuccess, onError);
-        } else {
+        function doSaveOnGoingRequest() {
           DataAccessRequestResource.save($scope.dataAccessRequest, function () {
             FormDirtyStateObserver.unobserve();
             $location.path('/data-access-request' + ($scope.dataAccessRequest.id ? '/' + $scope.dataAccessRequest.id : 's')).replace();
           }, onError);
+        }
+
+        if ($scope.newRequest) {
+          DataAccessRequestsResource.save($scope.dataAccessRequest, onSuccess, onError);
+        } else {
+          var isUnusual = ['OPENED', 'CONDITIONALLY_APPROVED'].indexOf($scope.dataAccessRequest.status) === -1;
+
+          if (isUnusual) {
+            $scope.$broadcast('schemaFormValidate');
+            if ($scope.form.$valid) {
+              doSaveOnGoingRequest();
+            } else {
+              validate($scope.form);
+            }
+          } else {
+            doSaveOnGoingRequest();
+          }
         }
       };
 
