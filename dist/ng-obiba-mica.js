@@ -3054,7 +3054,7 @@ var SetService = /** @class */ (function () {
         });
     };
     SetService.prototype.saveCart = function (documentType, set) {
-        if (set && set.id) {
+        if (set && set.id) { // sanity check
             this.localStorageService.set(this.getCartKey(documentType), set);
             this.notifyCartChanged(documentType);
             return set;
@@ -8991,6 +8991,9 @@ var CRITERIA_ITEM_EVENT = {
                 templateUrl: TEMPLATE_URL
             };
         }])
+        /**
+         * This directive creates a hierarchical structure matching that of a RqlQuery tree.
+         */
         .directive('criteriaLeaf', ['CriteriaNodeCompileService', function (CriteriaNodeCompileService) {
             return {
                 restrict: 'EA',
@@ -9031,6 +9034,9 @@ ngObibaMica.search
         };
     }
 ])
+    /**
+     * Directive specialized for vocabulary of type String
+     */
     .directive('matchCriterion', [function () {
         return {
             restrict: 'EA',
@@ -9237,6 +9243,9 @@ ngObibaMica.search
         $scope.updateSelection = updateSelection;
     }
 ])
+    /**
+     * Directive specialized for vocabulary of type String
+     */
     .directive('stringCriterionTerms', [function () {
         return {
             restrict: 'EA',
@@ -10020,7 +10029,7 @@ function BaseTaxonomiesController($rootScope, $scope, $translate, $location, Tax
     this.updateStateFromLocation = function () {
         var search = $location.search();
         var taxonomyName = search.taxonomy, vocabularyName = search.vocabulary, taxonomy = null, vocabulary = null;
-        if (!$scope.taxonomies.all) {
+        if (!$scope.taxonomies.all) { //page loading
             return;
         }
         $scope.taxonomies.all.forEach(function (t) {
@@ -15854,7 +15863,7 @@ ngObibaMica.fileBrowser
         };
         var searchKeyUp = function (event) {
             switch (event.keyCode) {
-                case 13:// ENTER
+                case 13: // ENTER
                     if ($scope.data.search.text) {
                         searchDocuments($scope.data.search.text);
                     }
@@ -15862,7 +15871,7 @@ ngObibaMica.fileBrowser
                         clearSearch();
                     }
                     break;
-                case 27:// ESC
+                case 27: // ESC
                     if ($scope.data.search.active) {
                         clearSearch();
                     }
@@ -19990,7 +19999,7 @@ angular.module("search/components/result/search-result/list.html", []).run(["$te
     "  <result-tabs-order-count options=\"options\" result-tabs-order=\"resultTabsOrder\" active-target=\"activeTarget\" target-type-map=\"targetTypeMap\">\n" +
     "  </result-tabs-order-count>\n" +
     "  <div class=\"voffset2\" ng-class=\"{'pull-right': options.studies.showSearchTab, 'pull-left': !options.studies.showSearchTab, 'hoffset2': !options.studies.showSearchTab}\">\n" +
-    "    <div class=\"btn-group\" ng-if=\"type=='variables' && options.variables.showCart && (userCanCreateCart || userCanCreateSets)\">\n" +
+    "    <div class=\"btn-group\" ng-if=\"type=='variables' && options.variables.showCart && (userCanCreateCart && userCanCreateSets)\">\n" +
     "      <button type=\"button\" class=\"btn btn-success dropdown-toggle\" data-toggle=\"dropdown\">\n" +
     "        <i class=\"fa fa-cart-plus\"></i> <span class=\"caret\"></span>\n" +
     "      </button>\n" +
@@ -19999,6 +20008,10 @@ angular.module("search/components/result/search-result/list.html", []).run(["$te
     "        <li><a ng-if=\"userCanCreateSets\" ng-click=\"addToSet(type)\" href>{{'sets.add.button.set-label' | translate}}</a></li>\n" +
     "      </ul>\n" +
     "    </div>\n" +
+    "    <a ng-click=\"addToSet(type)\" target=\"_self\" ng-if=\"type=='variables' && options.variables.showCart && !userCanCreateCart && userCanCreateSets\" download class=\"btn btn-success\"\n" +
+    "      href>\n" +
+    "      <i class=\"fa fa-cart-plus\"></i>\n" +
+    "    </a>\n" +
     "\n" +
     "    <a obiba-file-download url=\"getStudySpecificReportUrl()\" target=\"_self\" ng-if=\"type=='studies'\" download class=\"btn btn-info\"\n" +
     "      href>\n" +

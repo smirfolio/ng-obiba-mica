@@ -12,7 +12,7 @@
   <result-tabs-order-count options="options" result-tabs-order="resultTabsOrder" active-target="activeTarget" target-type-map="targetTypeMap">
   </result-tabs-order-count>
   <div class="voffset2" ng-class="{'pull-right': options.studies.showSearchTab, 'pull-left': !options.studies.showSearchTab, 'hoffset2': !options.studies.showSearchTab}">
-    <div class="btn-group" ng-if="type=='variables' && options.variables.showCart && (userCanCreateCart || userCanCreateSets)">
+    <div class="btn-group" ng-if="type=='variables' && options.variables.showCart && (userCanCreateCart && userCanCreateSets)">
       <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
         <i class="fa fa-cart-plus"></i> <span class="caret"></span>
       </button>
@@ -21,6 +21,10 @@
         <li><a ng-if="userCanCreateSets" ng-click="addToSet(type)" href>{{'sets.add.button.set-label' | translate}}</a></li>
       </ul>
     </div>
+    <a ng-click="addToSet(type)" target="_self" ng-if="type=='variables' && options.variables.showCart && !userCanCreateCart && userCanCreateSets" download class="btn btn-success"
+      href>
+      <i class="fa fa-cart-plus"></i>
+    </a>
 
     <a obiba-file-download url="getStudySpecificReportUrl()" target="_self" ng-if="type=='studies'" download class="btn btn-info"
       href>
