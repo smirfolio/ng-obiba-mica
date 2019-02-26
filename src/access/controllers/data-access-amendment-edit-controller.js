@@ -94,13 +94,28 @@
         $scope.requestEntity.applicant= SessionProxy.login();
       }
 
-      if (!$routeParams.id) {
-        DataAccessEntityResource.create($scope.entityUrl, $scope.requestEntity, onSuccess, onError);
-      } else {
+      function doSaveOnGoingRequest() {
         DataAccessEntityResource.update($scope.entityUrl, $scope.requestEntity).$promise.then(function () {
           FormDirtyStateObserver.unobserve();
           $location.path($scope.entityUrl).replace();
         }, onError);
+      }
+
+      if (!$routeParams.id) {
+        DataAccessEntityResource.create($scope.entityUrl, $scope.requestEntity, onSuccess, onError);
+      } else {
+        var isUnusual = ['OPENED', 'CONDITIONALLY_APPROVED'].indexOf($scope.requestEntity.status) === -1;
+
+          if (isUnusual) {
+            $scope.$broadcast('schemaFormValidate');
+            if ($scope.forms.requestForm.$valid) {
+              doSaveOnGoingRequest();
+            } else {
+              $scope.validate($scope.forms.requestForm);
+            }
+          } else {
+            doSaveOnGoingRequest();
+          }
       }
     };
 
