@@ -83,7 +83,10 @@ class SetService implements ISetService {
     private SetImportQueryResource: any,
     private SetRemoveResource: any,
     private ObibaServerConfigResource: any) {
-    this.serverConfigPromise = ObibaServerConfigResource.get((micaConfig) => {
+  }
+
+  public serverConfig(): any {
+    const serverConfigPromise = this.ObibaServerConfigResource.get((micaConfig) => {
       this.hasMultipleStudies = !micaConfig.isSingleStudyEnabled || micaConfig.isHarmonizedDatasetEnabled;
       this.hasHarmonization = micaConfig.isHarmonizedDatasetEnabled;
 
@@ -92,10 +95,7 @@ class SetService implements ISetService {
 
       return micaConfig;
     });
-  }
-
-  public serverConfig(): any {
-    return this.serverConfigPromise.$promise || this.serverConfigPromise;
+    return serverConfigPromise.$promise || serverConfigPromise;
   }
 
   public isSingleStudy(): boolean {

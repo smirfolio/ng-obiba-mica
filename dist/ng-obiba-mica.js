@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-02-25
+ * Date: 2019-02-26
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -2715,7 +2715,6 @@ ngObibaMica.sets = angular.module('obiba.mica.sets', [
 "use strict";
 var SetService = /** @class */ (function () {
     function SetService($window, $log, $translate, localStorageService, PageUrlService, SetsImportResource, SetResource, SetDocumentsResource, SetClearResource, SetExistsResource, SetImportResource, SetImportQueryResource, SetRemoveResource, ObibaServerConfigResource) {
-        var _this = this;
         this.$window = $window;
         this.$log = $log;
         this.$translate = $translate;
@@ -2730,16 +2729,17 @@ var SetService = /** @class */ (function () {
         this.SetImportQueryResource = SetImportQueryResource;
         this.SetRemoveResource = SetRemoveResource;
         this.ObibaServerConfigResource = ObibaServerConfigResource;
-        this.serverConfigPromise = ObibaServerConfigResource.get(function (micaConfig) {
+    }
+    SetService.prototype.serverConfig = function () {
+        var _this = this;
+        var serverConfigPromise = this.ObibaServerConfigResource.get(function (micaConfig) {
             _this.hasMultipleStudies = !micaConfig.isSingleStudyEnabled || micaConfig.isHarmonizedDatasetEnabled;
             _this.hasHarmonization = micaConfig.isHarmonizedDatasetEnabled;
             _this.maxNumberOfSets = micaConfig.maxNumberOfSets;
             _this.maxItemsPerSets = micaConfig.maxItemsPerSet;
             return micaConfig;
         });
-    }
-    SetService.prototype.serverConfig = function () {
-        return this.serverConfigPromise.$promise || this.serverConfigPromise;
+        return serverConfigPromise.$promise || serverConfigPromise;
     };
     SetService.prototype.isSingleStudy = function () {
         return !this.hasMultipleStudies;
