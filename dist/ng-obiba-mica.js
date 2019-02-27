@@ -11814,6 +11814,7 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
             this.component.page.selections[this.component.pagination.currentPage] = checked;
         }
         else {
+            this.component.page.all = false;
             delete this.component.page.selections[this.component.pagination.currentPage];
         }
         this.component.summaries.forEach(function (summary) { return checked
