@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-02-26
+ * Date: 2019-02-27
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -126,9 +126,9 @@ function NgObibaMicaTemplateUrlFactory() {
             'DataAccessRequestsExportCsvResource': 'ws/data-access-requests/csv?lang=:lang',
             'DataAccessRequestResource': 'ws/data-access-request/:id',
             'DataAccessRequestActionLogsResource': 'ws/data-access-request/:id/_log-actions',
-            'DataAccessAmendmentsLogHistoryResource': '/ws/data-access-request/:id/amendments/_history',
-            'DataAccessRequestAttachmentsUpdateResource': '/ws/data-access-request/:id/_attachments',
-            'DataAccessRequestAttachmentDownloadResource': '/ws/data-access-request/:id/attachments/:attachmentId/_download',
+            'DataAccessAmendmentsLogHistoryResource': 'ws/data-access-request/:id/amendments/_history',
+            'DataAccessRequestAttachmentsUpdateResource': 'ws/data-access-request/:id/_attachments',
+            'DataAccessRequestAttachmentDownloadResource': 'ws/data-access-request/:id/attachments/:attachmentId/_download',
             'SchemaFormAttachmentDownloadResource': '/ws/:path/form/attachments/:attachmentName/:attachmentId/_download',
             'DataAccessRequestDownloadPdfResource': '/ws/data-access-request/:id/_pdf',
             'DataAccessRequestCommentsResource': 'ws/data-access-request/:id/comments?admin=:admin',
@@ -163,7 +163,7 @@ function NgObibaMicaTemplateUrlFactory() {
             'StudyPage': '#/:type/:study',
             'StudyPopulationsPage': '#/:type/:study',
             'DatasetPage': '#/:type/:dataset',
-            'BaseUrl': '/',
+            'BaseUrl': '',
             'FileBrowserFileResource': 'ws/file/:path/',
             'FileBrowserSearchResource': 'ws/files-search/:path',
             'FileBrowserDownloadUrl': 'ws/draft/file-dl/:path?inline=:inline',
