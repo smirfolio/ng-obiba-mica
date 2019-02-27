@@ -108,6 +108,7 @@ class SearchResultSelectionsDecorator extends AbstractSelectionsDecorator {
     if (checked) {
       this.component.page.selections[this.component.pagination.currentPage] = checked;
     } else {
+      this.component.page.all = false;
       delete this.component.page.selections[this.component.pagination.currentPage];
     }
 
