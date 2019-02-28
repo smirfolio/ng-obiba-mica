@@ -100,26 +100,38 @@ ngObibaMica.search
         return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(queryWithLimit));
       };
 
-      function showAlert(setName, addedCount, addedMsgKey, noCountMsgKey) {
+      function showAlert(setId, setName, addedCount, addedMsgKey, noCountMsgKey) {
         let msgKey = addedMsgKey;
-        let msgArgs = setName ? [setName].concat(addedCount) : [addedCount];
+        let msgArgs = [];
+
+        if (setId) {
+          msgArgs.push(setId);
+        }
+
+        msgArgs.push(addedCount);
+
+        if (setName) {
+          msgArgs.push(setName);
+        }
 
         if (addedCount === 0) {
           msgKey = noCountMsgKey;
           msgArgs = [];
         }
+
         AlertService.growl({
           id: 'SearchControllerGrowl',
           type: 'info',
           msgKey: msgKey,
           msgArgs: msgArgs,
-          delay: 3000
+          delay: 4000
         });
       }
 
       $scope.onCartUpdate = function(beforeCount, set) {
         var addedCount = set.count - (beforeCount ? beforeCount.count : 0);
         showAlert(
+          null,
           null,
           addedCount,
           'sets.cart.variables-added',
@@ -128,8 +140,9 @@ ngObibaMica.search
         SearchResultSelectionsService.clearSelections($scope.type);
       };
 
-      $scope.onSetUpdate = function (setName, addedCount) {
+      $scope.onSetUpdate = function (setId, setName, addedCount) {
         showAlert(
+          setId,
           setName,
           addedCount,
           'sets.set.variables-added',
@@ -166,7 +179,7 @@ ngObibaMica.search
             query: function() { return $scope.query; }, type: function() { return type; }, ids: function() { return sels; }
           }
         }).result.then(function(result) {
-          $scope.onSetUpdate(result.name, result.newCount);
+          $scope.onSetUpdate(result.id, result.name, result.newCount);
         });
       };
 

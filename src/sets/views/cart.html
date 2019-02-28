@@ -7,6 +7,7 @@
   <cart-documents-table 
     type="'variables'" 
     documents="variables"
+    on-update="onUpdate"
     on-page-change="onPaginate"></cart-documents-table>
   <p ng-hide="loading || variables && variables.total>0" translate>sets.cart.no-variables</p>
 </div>

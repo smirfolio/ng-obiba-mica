@@ -38,7 +38,7 @@ abstract class DocumentsSetTableComponentController implements IDocumentsSetTabl
   public type: string;
   public table: any;
   public localizedTotal: string;
-  public onUpdate: () => void;
+  public onUpdate: (id: string, name: string, count: number) => void;
 
   protected allSelected: boolean;
   protected allPageSelected: any;
@@ -159,9 +159,9 @@ abstract class DocumentsSetTableComponentController implements IDocumentsSetTabl
         query: () => this.SetService.getSearchQuery(this.type, this.setId),
         type: () => this.type,
       },
-    }).result.then(() => {
+    }).result.then((result) => {
       this.clearSelections();
-      this.onUpdate();
+      this.onUpdate(result.id, result.name, result.newCount);
     });
   }
 

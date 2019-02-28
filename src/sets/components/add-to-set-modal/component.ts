@@ -49,7 +49,15 @@ class AddToSetComponentModalController implements IAddToSetModalComponentControl
         this.resolve.type,
         this.resolve.query,
         this.resolve.ids).then((updatedSet) => {
-        this.close({$value: {name: updatedSet.name, newCount: updatedSet.count - this.choice.selected.count}});
+        this.close(
+          {
+            $value: {
+              id: updatedSet.id,
+              name: updatedSet.name,
+              newCount: updatedSet.count - this.choice.selected.count,
+            },
+          },
+        );
       });
     } else {
       this.SetsImportResource.save({type: this.resolve.type, name: this.choice.name}, "")
@@ -59,7 +67,15 @@ class AddToSetComponentModalController implements IAddToSetModalComponentControl
           this.resolve.type,
           this.resolve.query,
           this.resolve.ids).then((updatedSet) => {
-          this.close({$value: {name: updatedSet.name, newCount: updatedSet.count}});
+          this.close(
+            {
+              $value: {
+                id: updatedSet.id,
+                name: updatedSet.name,
+                newCount: updatedSet.count,
+              },
+            },
+          );
         });
       });
     }
@@ -98,7 +114,7 @@ class AddToSetComponentModalController implements IAddToSetModalComponentControl
       this.sets = allSets.filter(
         (set: any) => set.name && (!this.resolve.excludeId || this.resolve.excludeId !== set.id),
       );
-      this.canAddMoreSets = this.sets.length < this.SetService.getMaxNumberOfSets();
+      this.canAddMoreSets = this.sets.length < this.SetService.getMaxNumberOfSets() - (this.resolve.excludeId ? 1 : 0);
     });
   }
 
