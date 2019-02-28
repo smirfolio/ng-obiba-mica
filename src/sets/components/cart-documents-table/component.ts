@@ -15,10 +15,11 @@ declare var ngObibaMica: any;
 class CartDocumentsTableController extends DocumentsSetTableComponentController {
 
   private static $inject = ["PageUrlService", "LocalizedValues", "SetService", "AnalysisConfigService",
-    "$translate", "$log", "$scope"];
+    "$translate", "$log", "$scope", "$uibModal"];
 
   public showStudies: boolean;
   public showVariableType: boolean;
+  private currentUserCanCreateSets: boolean;
 
   constructor(
     private PageUrlService: any,
@@ -27,12 +28,14 @@ class CartDocumentsTableController extends DocumentsSetTableComponentController 
     private AnalysisConfigService: any,
     private $translate: any,
     protected $log: any,
-    private $scope: any) {
-    super(SetService, $log, null);
+    private $scope: any,
+    $uibModal) {
+    super(SetService, $log, $uibModal);
 
     SetService.serverConfig().then((config) => {
       this.showStudies = !this.SetService.isSingleStudy();
       this.showVariableType = this.SetService.hasHarmonizedDatasets();
+      this.currentUserCanCreateSets = config.currentUserCanCreateSets;
     });
   }
 
@@ -151,6 +154,7 @@ class CartDocumentsTableComponent implements ng.IComponentOptions {
     this.bindings = {
       documents: "<",
       onPageChange: "<",
+      onUpdate: "<",
       type: "<",
     };
     this.controller = CartDocumentsTableController;

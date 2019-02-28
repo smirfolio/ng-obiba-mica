@@ -359,7 +359,9 @@ class SetService implements ISetService {
 
   public getSearchQuery(documentType: string, setId: string): string {
     const target = typeToTarget(documentType);
-    return  setId ? target + "(in(Mica_" + target + ".sets," + setId + "))" : null;
+    return  setId
+      ? target + "(in(Mica_" + target + ".sets," + setId + "))"
+      : target + "(in(Mica_" + target + ".sets," + this.getCartSet(documentType).id + "))";
   }
 
   /**

@@ -43,7 +43,8 @@
     '$cookies',
     'SetService',
     'ngObibaMicaSetsTemplateUrl',
-    function($scope, $location, $translate, $cookies, SetService, ngObibaMicaSetsTemplateUrl) {
+    'AlertService',
+    function($scope, $location, $translate, $cookies, SetService, ngObibaMicaSetsTemplateUrl, AlertService) {
       $scope.options = {};
       manageCartHelpText($scope, $translate, $cookies);
       $scope.cartHeaderTemplateUrl = ngObibaMicaSetsTemplateUrl.getHeaderUrl('cart');
@@ -62,6 +63,35 @@
         $scope.variables = { total: 0 };
       }
 
+
+      function showAlert(setId, setName, addedCount, addedMsgKey, noCountMsgKey) {
+        let msgKey = addedMsgKey;
+        let msgArgs = [setId, addedCount, setName];
+
+        if (addedCount === 0) {
+          msgKey = noCountMsgKey;
+          msgArgs = [];
+        }
+
+        AlertService.growl({
+          id: 'MainControllerGrowl',
+          type: 'info',
+          msgKey: msgKey,
+          msgArgs: msgArgs,
+          delay: 4000
+        });
+      }
+
+      function onUpdate(setId, setName, addedCount) {
+        showAlert(
+          setId,
+          setName,
+          addedCount,
+          'sets.set.variables-added',
+          'sets.set.no-variable-added'
+        );
+      }
+
       $scope.$on('cart-cleared', function(event, type) {
         $scope.loading = true;
         SetService.getCartDocuments(type, 0, limit).then(onDocuments);
@@ -70,6 +100,8 @@
       $scope.onPaginate = function(type, from) {
         SetService.getCartDocuments(type, from, limit).then(onDocuments);
       };
+
+      $scope.onUpdate = onUpdate;
     }])
 
   .controller('VariableToCartController', [
@@ -153,6 +185,7 @@
     'SetResource',
     'SetService',
     'NOTIFICATION_EVENTS',
+    'AlertService',
     function (
       $rootScope,
       $scope,
@@ -164,7 +197,8 @@
       SetsResource,
       SetResource,
       SetService,
-      NOTIFICATION_EVENTS) {
+      NOTIFICATION_EVENTS,
+      AlertService) {
 
     var searchTaxonomyDisplay = {
       variable: ObibaSearchOptions.variables.showSearchTab,
@@ -286,7 +320,33 @@
       $scope.selectedSet.count = documents.total;
     }
 
-    function onUpdate() {
+    function showAlert(setId, setName, addedCount, addedMsgKey, noCountMsgKey) {
+      let msgKey = addedMsgKey;
+      let msgArgs = [setId, addedCount, setName];
+
+      if (addedCount === 0) {
+        msgKey = noCountMsgKey;
+        msgArgs = [];
+      }
+
+      AlertService.growl({
+        id: 'MainControllerGrowl',
+        type: 'info',
+        msgKey: msgKey,
+        msgArgs: msgArgs,
+        delay: 4000
+      });
+    }
+
+    function onUpdate(setId, setName, addedCount) {
+      showAlert(
+        setId,
+        setName,
+        addedCount,
+        'sets.set.variables-added',
+        'sets.set.no-variable-added'
+      );
+
       initSets();
     }
 
