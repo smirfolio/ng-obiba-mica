@@ -2744,7 +2744,7 @@ ngObibaMica.sets = angular.module('obiba.mica.sets', [
  */
 "use strict";
 var SetService = /** @class */ (function () {
-    function SetService($window, $log, $translate, localStorageService, PageUrlService, SetsImportResource, SetResource, SetDocumentsResource, SetClearResource, SetExistsResource, SetImportResource, SetImportQueryResource, SetRemoveResource, ObibaServerConfigResource) {
+    function SetService($window, $log, $translate, localStorageService, PageUrlService, SetsImportResource, SetResource, SetDocumentsResource, SetClearResource, SetExistsResource, SetImportResource, SetImportQueryResource, SetRemoveResource, ObibaServerConfigResource, SessionProxy) {
         this.$window = $window;
         this.$log = $log;
         this.$translate = $translate;
@@ -2759,6 +2759,7 @@ var SetService = /** @class */ (function () {
         this.SetImportQueryResource = SetImportQueryResource;
         this.SetRemoveResource = SetRemoveResource;
         this.ObibaServerConfigResource = ObibaServerConfigResource;
+        this.SessionProxy = SessionProxy;
     }
     SetService.prototype.serverConfig = function () {
         var _this = this;
@@ -3050,7 +3051,9 @@ var SetService = /** @class */ (function () {
      * @param documentType the document type
      */
     SetService.prototype.getCartSet = function (documentType) {
-        return this.localStorageService.get(this.getCartKey(documentType));
+        var storage = this.localStorageService.get(this.getCartKey(documentType)) || {};
+        var username = this.SessionProxy.login() || "anonymous";
+        return storage[username];
     };
     /**
      * Always get the cart set in case of the set was deleted from the server. If unknown or not found, create it.
@@ -3059,7 +3062,7 @@ var SetService = /** @class */ (function () {
      */
     SetService.prototype.getOrCreateCart = function (documentType) {
         var _this = this;
-        var cartSet = this.localStorageService.get(this.getCartKey(documentType));
+        var cartSet = this.getCartSet(documentType);
         if (cartSet) {
             return this.SetResource.get({ type: documentType, id: cartSet.id }).$promise
                 .then(function (set) {
@@ -3087,7 +3090,9 @@ var SetService = /** @class */ (function () {
     };
     SetService.prototype.saveCart = function (documentType, set) {
         if (set && set.id) { // sanity check
-            this.localStorageService.set(this.getCartKey(documentType), set);
+            var storage = this.localStorageService.get(this.getCartKey(documentType)) || {};
+            storage[set.username] = set;
+            this.localStorageService.set(this.getCartKey(documentType), storage);
             this.notifyCartChanged(documentType);
             return set;
         }
@@ -3150,7 +3155,8 @@ var SetService = /** @class */ (function () {
         "SetImportResource",
         "SetImportQueryResource",
         "SetRemoveResource",
-        "ObibaServerConfigResource"
+        "ObibaServerConfigResource",
+        "SessionProxy"
     ];
     return SetService;
 }());
@@ -3762,14 +3768,17 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
             $scope.canBeRemoved = false;
             $scope.loading = true;
             $scope.onInit = function (id) {
-                SetService.isDocumentInCart('variables', id)
-                    .then(function () {
-                    $scope.loading = false;
-                    $scope.canBeRemoved = true;
-                })
-                    .catch(function () {
-                    $scope.loading = false;
-                    $scope.canBeAdded = true;
+                SetService.serverConfig().then(function (config) {
+                    var canEditCart = config.isCartEnabled && config.currentUserCanCreateCart;
+                    SetService.isDocumentInCart('variables', id)
+                        .then(function () {
+                        $scope.loading = false;
+                        $scope.canBeRemoved = canEditCart;
+                    })
+                        .catch(function () {
+                        $scope.loading = false;
+                        $scope.canBeAdded = canEditCart;
+                    });
                 });
             };
             $scope.onAdd = function (id) {
@@ -20100,6 +20109,10 @@ angular.module("search/components/result/search-result/list.html", []).run(["$te
     "      </ul>\n" +
     "    </div>\n" +
     "    <a ng-click=\"addToSet(type)\" target=\"_self\" ng-if=\"type=='variables' && options.variables.showCart && !userCanCreateCart && userCanCreateSets\" download class=\"btn btn-success\"\n" +
+    "      href>\n" +
+    "      <i class=\"fa fa-cart-plus\"></i>\n" +
+    "    </a>\n" +
+    "    <a ng-click=\"addToCart(type)\" target=\"_self\" ng-if=\"type=='variables' && options.variables.showCart && userCanCreateCart && !userCanCreateSets\" download class=\"btn btn-success\"\n" +
     "      href>\n" +
     "      <i class=\"fa fa-cart-plus\"></i>\n" +
     "    </a>\n" +
