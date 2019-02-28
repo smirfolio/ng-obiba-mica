@@ -25,6 +25,10 @@
       href>
       <i class="fa fa-cart-plus"></i>
     </a>
+    <a ng-click="addToCart(type)" target="_self" ng-if="type=='variables' && options.variables.showCart && userCanCreateCart && !userCanCreateSets" download class="btn btn-success"
+      href>
+      <i class="fa fa-cart-plus"></i>
+    </a>
 
     <a obiba-file-download url="getStudySpecificReportUrl()" target="_self" ng-if="type=='studies'" download class="btn btn-info"
       href>

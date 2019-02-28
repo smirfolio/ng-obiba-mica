@@ -114,15 +114,19 @@
       $scope.loading = true;
 
       $scope.onInit = function(id) {
-        SetService.isDocumentInCart('variables', id)
-          .then(function() {
-            $scope.loading = false;
-            $scope.canBeRemoved = true;
-          })
-          .catch(function() {
-            $scope.loading = false;
-            $scope.canBeAdded = true;
-          });
+        SetService.serverConfig().then((config) => {
+          const canEditCart = config.isCartEnabled && config.currentUserCanCreateCart;
+
+          SetService.isDocumentInCart('variables', id)
+            .then(function () {
+              $scope.loading = false;
+              $scope.canBeRemoved = canEditCart;
+            })
+            .catch(function () {
+              $scope.loading = false;
+              $scope.canBeAdded = canEditCart;
+            });
+        });
       };
 
       $scope.onAdd = function(id) {
