@@ -4,19 +4,21 @@ declare var QUERY_TYPES: any;
 
 class VariablesSetTableComponentController extends DocumentsSetTableComponentController {
 
-  private static $inject = ["SetService", "$log", "$translate", "PageUrlService", "LocalizedValues", "$uibModal"];
+  private static $inject = ["SetService", "AnalysisConfigService", "$log", "$translate", "PageUrlService",
+    "LocalizedValues", "$uibModal"];
 
   public showStudies: boolean;
   public showVariableType: boolean;
 
   constructor(
     protected SetService: ISetService,
+    protected AnalysisConfigService: any,
     protected $log: any,
     private $translate: any,
     private PageUrlService: any,
     private LocalizedValues: any,
     protected $uibModal: any) {
-    super(SetService, $log, $uibModal);
+    super(SetService, AnalysisConfigService, $log, $uibModal);
     SetService.serverConfig().then((config) => {
       this.showStudies = !this.SetService.isSingleStudy();
       this.showVariableType = this.SetService.hasHarmonizedDatasets();

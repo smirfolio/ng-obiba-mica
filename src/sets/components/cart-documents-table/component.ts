@@ -25,22 +25,18 @@ class CartDocumentsTableController extends DocumentsSetTableComponentController 
     private PageUrlService: any,
     private LocalizedValues: any,
     protected SetService: any,
-    private AnalysisConfigService: any,
+    protected AnalysisConfigService: any,
     private $translate: any,
     protected $log: any,
     private $scope: any,
     $uibModal) {
-    super(SetService, $log, $uibModal);
+    super(SetService, AnalysisConfigService, $log, $uibModal);
 
     SetService.serverConfig().then((config) => {
       this.showStudies = !this.SetService.isSingleStudy();
       this.showVariableType = this.SetService.hasHarmonizedDatasets();
       this.currentUserCanCreateSets = config.currentUserCanCreateSets;
     });
-  }
-
-  public showAnalysis(): boolean {
-    return this.AnalysisConfigService.showAnalysis();
   }
 
   public search(): void {
