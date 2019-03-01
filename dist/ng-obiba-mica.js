@@ -11871,9 +11871,6 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
                 if (this.component.page.all) {
                     this.selectPageInternal(this.component.page.all);
                 }
-                else {
-                    this.selectPage();
-                }
             }
         }
     };
