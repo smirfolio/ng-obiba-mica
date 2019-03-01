@@ -96,8 +96,6 @@ class SearchResultSelectionsDecorator extends AbstractSelectionsDecorator {
       } else if (currentPagination.currentPage !== state.currentPage) {
         if (this.component.page.all) {
           this.selectPageInternal(this.component.page.all);
-        } else {
-          this.selectPage();
         }
       }
     }
