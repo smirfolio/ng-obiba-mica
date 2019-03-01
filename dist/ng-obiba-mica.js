@@ -3161,8 +3161,9 @@ ngObibaMica.sets.service("SetService", SetService);
 //# sourceMappingURL=set-service.js.map
 "use strict";
 var DocumentsSetTableComponentController = /** @class */ (function () {
-    function DocumentsSetTableComponentController(SetService, $log, $uibModal) {
+    function DocumentsSetTableComponentController(SetService, AnalysisConfigService, $log, $uibModal) {
         this.SetService = SetService;
+        this.AnalysisConfigService = AnalysisConfigService;
         this.$log = $log;
         this.$uibModal = $uibModal;
         this.allSelected = false;
@@ -3182,6 +3183,9 @@ var DocumentsSetTableComponentController = /** @class */ (function () {
             totalHits: 0,
         };
     }
+    DocumentsSetTableComponentController.prototype.showAnalysis = function () {
+        return this.AnalysisConfigService.showAnalysis();
+    };
     DocumentsSetTableComponentController.prototype.hasSelections = function () {
         return this.allSelected || this.getSelectedDocumentIds().length > 0;
     };
@@ -3432,7 +3436,7 @@ var __extends = (this && this.__extends) || (function () {
 var CartDocumentsTableController = /** @class */ (function (_super) {
     __extends(CartDocumentsTableController, _super);
     function CartDocumentsTableController(PageUrlService, LocalizedValues, SetService, AnalysisConfigService, $translate, $log, $scope, $uibModal) {
-        var _this = _super.call(this, SetService, $log, $uibModal) || this;
+        var _this = _super.call(this, SetService, AnalysisConfigService, $log, $uibModal) || this;
         _this.PageUrlService = PageUrlService;
         _this.LocalizedValues = LocalizedValues;
         _this.SetService = SetService;
@@ -3447,9 +3451,6 @@ var CartDocumentsTableController = /** @class */ (function (_super) {
         });
         return _this;
     }
-    CartDocumentsTableController.prototype.showAnalysis = function () {
-        return this.AnalysisConfigService.showAnalysis();
-    };
     CartDocumentsTableController.prototype.search = function () {
         this.SetService.gotoSearch(this.type);
     };
@@ -3573,9 +3574,10 @@ var __extends = (this && this.__extends) || (function () {
 })();
 var VariablesSetTableComponentController = /** @class */ (function (_super) {
     __extends(VariablesSetTableComponentController, _super);
-    function VariablesSetTableComponentController(SetService, $log, $translate, PageUrlService, LocalizedValues, $uibModal) {
-        var _this = _super.call(this, SetService, $log, $uibModal) || this;
+    function VariablesSetTableComponentController(SetService, AnalysisConfigService, $log, $translate, PageUrlService, LocalizedValues, $uibModal) {
+        var _this = _super.call(this, SetService, AnalysisConfigService, $log, $uibModal) || this;
         _this.SetService = SetService;
+        _this.AnalysisConfigService = AnalysisConfigService;
         _this.$log = $log;
         _this.$translate = $translate;
         _this.PageUrlService = PageUrlService;
@@ -3652,7 +3654,8 @@ var VariablesSetTableComponentController = /** @class */ (function (_super) {
         }
         return table;
     };
-    VariablesSetTableComponentController.$inject = ["SetService", "$log", "$translate", "PageUrlService", "LocalizedValues", "$uibModal"];
+    VariablesSetTableComponentController.$inject = ["SetService", "AnalysisConfigService", "$log", "$translate", "PageUrlService",
+        "LocalizedValues", "$uibModal"];
     return VariablesSetTableComponentController;
 }(DocumentsSetTableComponentController));
 var DocumentSetTableComponent = /** @class */ (function () {
@@ -21215,6 +21218,18 @@ angular.module("sets/components/set-variables-table/component.html", []).run(["$
     "    <a href=\"\" ng-click=\"$ctrl.addToSet(type)\" class=\"action btn btn-info btn-responsive\">\n" +
     "      <i class=\"fa fa-plus\"></i> {{'sets.add.button.set-label' | translate}}\n" +
     "    </a>\n" +
+    "\n" +
+    "    <div ng-if=\"$ctrl.showAnalysis()\" class=\"btn-group\" uib-dropdown is-open=\"$ctrl.analysis.isopen\">\n" +
+    "      <button id=\"single-button\" type=\"button\" class=\"btn btn-primary\" uib-dropdown-toggle ng-disabled=\"disabled\">\n" +
+    "        <i class=\"fa fa-cog\"></i> {{'analysis.action' | translate}} <span class=\"caret\"></span>\n" +
+    "      </button>\n" +
+    "      <ul class=\"dropdown-menu\" uib-dropdown-menu role=\"menu\" aria-labelledby=\"single-button\">\n" +
+    "        <li role=\"menuitem\">\n" +
+    "          <a href=\"\" ng-click=\"$ctrl.entitiesCount()\">\n" +
+    "            {{'analysis.entities-count.action' | translate}}</a>\n" +
+    "        </li>\n" +
+    "      </ul>\n" +
+    "    </div>\n" +
     "\n" +
     "    <a obiba-file-download get-url=\"$ctrl.download()\" target=\"_self\" download class=\"action btn btn-info btn-responsive\">\n" +
     "      <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
