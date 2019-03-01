@@ -46,6 +46,7 @@ abstract class DocumentsSetTableComponentController implements IDocumentsSetTabl
 
   constructor(
     protected SetService: ISetService,
+    protected AnalysisConfigService: any,
     protected $log: any,
     protected $uibModal: any,
   ) {
@@ -65,6 +66,10 @@ abstract class DocumentsSetTableComponentController implements IDocumentsSetTabl
       to: 0,
       totalHits: 0,
     };
+  }
+
+  public showAnalysis(): boolean {
+    return this.AnalysisConfigService.showAnalysis();
   }
 
   public hasSelections(): boolean {
