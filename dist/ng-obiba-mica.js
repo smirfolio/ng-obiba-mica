@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-02-28
+ * Date: 2019-03-01
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -21096,7 +21096,7 @@ angular.module("sets/components/add-to-set-modal/component.html", []).run(["$tem
     "    <p translate>sets.add.modal.sub-title</p>\n" +
     "\n" +
     "    <div ng-if=\"$ctrl.canAddMoreSets\">\n" +
-    "        <div class=\"radio\">\n" +
+    "        <div class=\"radio\" ng-show=\"$ctrl.sets.length\">\n" +
     "          <label for=\"new_set_choice\">\n" +
     "            <input type=\"radio\" ng-model=\"$ctrl.choice.radio\" ng-required=\"!$ctrl.choice.radio\" value=\"NEW\" id=\"new_set_choice\" ng-change=\"$ctrl.onRadioChanged()\">\n" +
     "            {{'sets.add.modal.create-new' | translate}}\n" +
