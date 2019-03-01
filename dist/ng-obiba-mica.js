@@ -644,9 +644,6 @@ var TableAlarmHeaderController = /** @class */ (function () {
     TableAlarmHeaderController.prototype.selectAll = function () {
         this.onSelectAll({});
     };
-    TableAlarmHeaderController.prototype.$onChanges = function (changes) {
-        this.$log.info(">>>> ", changes);
-    };
     TableAlarmHeaderController.$inject = ["$log"];
     return TableAlarmHeaderController;
 }());
