@@ -13,7 +13,6 @@
 declare var ngObibaMica: any;
 
 interface ISetService {
-  serverConfigPromise: any;
 
   serverConfig(): any;
   isSingleStudy(): boolean;
@@ -58,9 +57,8 @@ class SetService implements ISetService {
     "SetImportResource",
     "SetImportQueryResource",
     "SetRemoveResource",
-    "ObibaServerConfigResource"];
-
-  public serverConfigPromise: any;
+    "ObibaServerConfigResource",
+    "SessionProxy"];
 
   private hasMultipleStudies: boolean;
   private hasHarmonization: boolean;
@@ -82,7 +80,8 @@ class SetService implements ISetService {
     private SetImportResource: any,
     private SetImportQueryResource: any,
     private SetRemoveResource: any,
-    private ObibaServerConfigResource: any) {
+    private ObibaServerConfigResource: any,
+    private SessionProxy: any) {
   }
 
   public serverConfig(): any {
@@ -388,7 +387,9 @@ class SetService implements ISetService {
    * @param documentType the document type
    */
   public getCartSet(documentType: string): any {
-    return this.localStorageService.get(this.getCartKey(documentType));
+    const storage = this.localStorageService.get(this.getCartKey(documentType)) || {};
+    const username = this.SessionProxy.login() || "anonymous";
+    return storage[username];
   }
 
   /**
@@ -397,7 +398,7 @@ class SetService implements ISetService {
    * @param documentType the document type
    */
   private getOrCreateCart(documentType: string): any {
-    const cartSet = this.localStorageService.get(this.getCartKey(documentType));
+    const cartSet = this.getCartSet(documentType);
     if (cartSet) {
       return this.SetResource.get({ type: documentType, id: cartSet.id }).$promise
         .then((set) => {
@@ -425,7 +426,9 @@ class SetService implements ISetService {
 
   private saveCart(documentType: string, set: any) {
     if (set && set.id) { // sanity check
-      this.localStorageService.set(this.getCartKey(documentType), set);
+      const storage = this.localStorageService.get(this.getCartKey(documentType)) || {};
+      storage[set.username] = set;
+      this.localStorageService.set(this.getCartKey(documentType), storage);
       this.notifyCartChanged(documentType);
       return set;
     }
