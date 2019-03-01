@@ -22,10 +22,6 @@ class TableAlarmHeaderController implements ng.IComponentController {
   public selectAll(): void {
     this.onSelectAll({});
   }
-
-  public $onChanges(changes: any): void {
-    this.$log.info(">>>> ", changes);
-  }
 }
 
 class TableAlarmHeaderComponent implements ng.IComponentOptions {
