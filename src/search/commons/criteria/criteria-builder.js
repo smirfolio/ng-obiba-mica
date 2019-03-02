@@ -20,17 +20,16 @@
  * @param taxonomies
  * @param LocalizedValues
  * @param lang
- * @param SetService
  * @constructor
  */
-function CriteriaBuilder(rootRql, rootItem, taxonomies, LocalizedValues, lang, SetService) {
+function CriteriaBuilder(rootRql, rootItem, taxonomies, LocalizedValues, lang) {
 
   /**
    * Helper to get a builder
    * @returns {CriteriaItemBuilder}
    */
   this.newCriteriaItemBuilder = function () {
-    return new CriteriaItemBuilder(LocalizedValues, lang, SetService);
+    return new CriteriaItemBuilder(LocalizedValues, lang);
   };
 
   this.initialize = function (target) {
@@ -40,7 +39,6 @@ function CriteriaBuilder(rootRql, rootItem, taxonomies, LocalizedValues, lang, S
     this.taxonomies = taxonomies;
     this.LocalizedValues = LocalizedValues;
     this.lang = lang;
-    this.SetService = SetService;
     this.rootItem = this.newCriteriaItemBuilder()
       .parent(rootItem)
       .type(this.target)
@@ -59,7 +57,7 @@ function CriteriaBuilder(rootRql, rootItem, taxonomies, LocalizedValues, lang, S
   this.buildLeafItem = function (targetTaxonomy, targetVocabulary, targetTerms, node, parentItem) {
     var self = this;
 
-    var builder = new CriteriaItemBuilder(self.LocalizedValues, self.lang, self.SetService)
+    var builder = new CriteriaItemBuilder(self.LocalizedValues, self.lang)
       .type(node.name)
       .target(self.target)
       .taxonomy(targetTaxonomy)

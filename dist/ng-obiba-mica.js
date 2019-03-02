@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-03-01
+ * Date: 2019-03-02
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -4464,16 +4464,15 @@ ngObibaMica.search = angular.module('obiba.mica.search', [
  * @param taxonomies
  * @param LocalizedValues
  * @param lang
- * @param SetService
  * @constructor
  */
-function CriteriaBuilder(rootRql, rootItem, taxonomies, LocalizedValues, lang, SetService) {
+function CriteriaBuilder(rootRql, rootItem, taxonomies, LocalizedValues, lang) {
     /**
      * Helper to get a builder
      * @returns {CriteriaItemBuilder}
      */
     this.newCriteriaItemBuilder = function () {
-        return new CriteriaItemBuilder(LocalizedValues, lang, SetService);
+        return new CriteriaItemBuilder(LocalizedValues, lang);
     };
     this.initialize = function (target) {
         this.leafItemMap = {};
@@ -4482,7 +4481,6 @@ function CriteriaBuilder(rootRql, rootItem, taxonomies, LocalizedValues, lang, S
         this.taxonomies = taxonomies;
         this.LocalizedValues = LocalizedValues;
         this.lang = lang;
-        this.SetService = SetService;
         this.rootItem = this.newCriteriaItemBuilder()
             .parent(rootItem)
             .type(this.target)
@@ -4499,7 +4497,7 @@ function CriteriaBuilder(rootRql, rootItem, taxonomies, LocalizedValues, lang, S
      */
     this.buildLeafItem = function (targetTaxonomy, targetVocabulary, targetTerms, node, parentItem) {
         var self = this;
-        var builder = new CriteriaItemBuilder(self.LocalizedValues, self.lang, self.SetService)
+        var builder = new CriteriaItemBuilder(self.LocalizedValues, self.lang)
             .type(node.name)
             .target(self.target)
             .taxonomy(targetTaxonomy)
@@ -4684,7 +4682,7 @@ CriteriaIdGenerator.generate = function (taxonomy, vocabulary, term) {
 /* global CriteriaIdGenerator */
 /* global CriteriaItem */
 /* exported CriteriaItemBuilder */
-function CriteriaItemBuilder(LocalizedValues, useLang, SetService) {
+function CriteriaItemBuilder(LocalizedValues, useLang) {
     var criteria = {
         type: null,
         rqlQuery: null,
@@ -4714,23 +4712,6 @@ function CriteriaItemBuilder(LocalizedValues, useLang, SetService) {
     };
     this.vocabulary = function (value) {
         criteria.vocabulary = value;
-        // decorate 'sets' vocabulary with local sets info
-        if (criteria.vocabulary.name === 'sets') {
-            switch (criteria.taxonomy.name) {
-                case 'Mica_variable':
-                    appendSetTerms(criteria, 'variables');
-                    break;
-                case 'Mica_dataset':
-                    appendSetTerms(criteria, 'datasets');
-                    break;
-                case 'Mica_study':
-                    appendSetTerms(criteria, 'studies');
-                    break;
-                case 'Mica_network':
-                    appendSetTerms(criteria, 'networks');
-                    break;
-            }
-        }
         return this;
     };
     this.term = function (value) {
@@ -4795,41 +4776,6 @@ function CriteriaItemBuilder(LocalizedValues, useLang, SetService) {
             }
         }
         criteria.id = CriteriaIdGenerator.generate(criteria.taxonomy, criteria.vocabulary, criteria.term);
-    }
-    /**
-     * Decorate the 'sets' vocabulary with the sets that are living in the browser local storage.
-     * @param criteria the criteria that holds the 'sets' vocabulary
-     * @param documentType the document type
-     */
-    function appendSetTerms(criteria, documentType) {
-        // note: for now there is only a cart set
-        var cartSet = SetService.getCartSet(documentType);
-        if (cartSet) {
-            var cartTerm;
-            if (criteria.vocabulary.terms) {
-                // look for a placeholder to get alternate translations
-                var cTerm = criteria.vocabulary.terms.filter(function (term) {
-                    return term.name === 'cart';
-                });
-                if (cTerm.length > 0) {
-                    cartTerm = cTerm[0];
-                }
-            }
-            if (!cartTerm) {
-                // create default title, if not found reference term was not found
-                cartTerm = {
-                    title: [
-                        { locale: 'en', text: 'Cart' },
-                        { locale: 'fr', text: 'Panier' }
-                    ]
-                };
-            }
-            cartTerm.name = cartSet.id;
-            criteria.vocabulary.terms = [cartTerm];
-        }
-        else {
-            criteria.vocabulary.terms = [];
-        }
     }
     this.build = function () {
         if (criteria.taxonomy && criteria.vocabulary) {
@@ -5414,8 +5360,8 @@ var AbstractSelectionsDecorator = /** @class */ (function () {
  */
 'use strict';
 (function () {
-    ngObibaMica.search.factory('JoinQuerySearchResource', ['$resource', 'ngObibaMicaUrl',
-        function ($resource, ngObibaMicaUrl) {
+    ngObibaMica.search.factory('JoinQuerySearchResource', ['$resource', 'ngObibaMicaUrl', '$translate', 'SetService',
+        function ($resource, ngObibaMicaUrl, $translate, SetService) {
             var resourceUrl = ngObibaMicaUrl.getUrl('JoinQuerySearchResource');
             var actionFactory = function (type) {
                 var method = resourceUrl.indexOf(':query') === -1 ? 'POST' : 'GET';
@@ -5434,7 +5380,33 @@ var AbstractSelectionsDecorator = /** @class */ (function () {
                     },
                     errorHandler: true,
                     params: { type: type },
-                    transformRequest: requestTransformer
+                    transformRequest: requestTransformer,
+                    transformResponse: function (data) {
+                        var parsedResponse = JSON.parse(data);
+                        var cartSet = SetService.getCartSet(type);
+                        var workingDto;
+                        if (type === 'variables') {
+                            workingDto = parsedResponse.variableResultDto;
+                        }
+                        else if (type === 'datasets') {
+                            workingDto = parsedResponse.datasetResultDto;
+                        }
+                        else if (type === 'studies') {
+                            workingDto = parsedResponse.studyResultDto;
+                        }
+                        else if (type === 'networks') {
+                            workingDto = parsedResponse.networkResultDto;
+                        }
+                        if (workingDto && Array.isArray(workingDto.aggs)) {
+                            workingDto.aggs.filter(function (agg) { return agg.aggregation === 'sets'; }).forEach(function (setsAgg) {
+                                var terms = setsAgg['obiba.mica.TermsAggregationResultDto.terms'];
+                                if (Array.isArray(terms)) {
+                                    setsAgg['obiba.mica.TermsAggregationResultDto.terms'] = terms.filter(function (term) { return term.title || term.key === cartSet.id; });
+                                }
+                            });
+                        }
+                        return parsedResponse;
+                    }
                 };
             };
             return $resource(resourceUrl, {}, {
@@ -5458,14 +5430,37 @@ var AbstractSelectionsDecorator = /** @class */ (function () {
 'use strict';
 (function () {
     ngObibaMica.search
-        .factory('TaxonomiesResource', ['$resource', 'ngObibaMicaUrl', '$cacheFactory',
-        function ($resource, ngObibaMicaUrl, $cacheFactory) {
+        .factory('TaxonomiesResource', ['$resource', 'ngObibaMicaUrl', '$cacheFactory', 'SetService', '$translate',
+        function ($resource, ngObibaMicaUrl, $cacheFactory, SetService, $translate) {
             return $resource(ngObibaMicaUrl.getUrl('TaxonomiesResource'), {}, {
                 'get': {
                     method: 'GET',
                     isArray: true,
                     errorHandler: true,
-                    cache: $cacheFactory('taxonomiesResource')
+                    cache: $cacheFactory('taxonomiesResource'),
+                    transformResponse: function (data) {
+                        var parsedData = JSON.parse(data);
+                        parsedData.filter(function (taxonomy) { return taxonomy.name.startsWith('Mica_'); }).forEach(function (micaTaxonomy) {
+                            var cartSet = SetService.getCartSet(targetToType(micaTaxonomy.name.split('Mica_')[1]));
+                            if (cartSet) {
+                                (micaTaxonomy.vocabularies || []).filter(function (vocabulary) { return vocabulary.name === 'sets'; })
+                                    .forEach(function (setsVocabulary) {
+                                    if (Array.isArray(setsVocabulary.terms)) {
+                                        var filteredTerms = setsVocabulary.terms.filter(function (term) {
+                                            if (term.name === cartSet.id) {
+                                                $translate(['sets.cart.title']).then(function (translation) {
+                                                    term.title = [{ locale: $translate.use(), text: translation['sets.cart.title'] }];
+                                                });
+                                            }
+                                            return Array.isArray(term.title) || term.name === cartSet.id;
+                                        });
+                                        setsVocabulary.terms = filteredTerms;
+                                    }
+                                });
+                            }
+                        });
+                        return parsedData;
+                    }
                 }
             });
         }]);
@@ -5505,15 +5500,39 @@ var AbstractSelectionsDecorator = /** @class */ (function () {
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 'use strict';
+// SetService filter out other carts
 (function () {
     ngObibaMica.search
-        .factory('TaxonomyResource', ['$resource', 'ngObibaMicaUrl', '$cacheFactory',
-        function ($resource, ngObibaMicaUrl, $cacheFactory) {
+        .factory('TaxonomyResource', ['$resource', 'ngObibaMicaUrl', '$cacheFactory', 'SetService', '$translate',
+        function ($resource, ngObibaMicaUrl, $cacheFactory, SetService, $translate) {
             return $resource(ngObibaMicaUrl.getUrl('TaxonomyResource'), {}, {
                 'get': {
                     method: 'GET',
                     errorHandler: true,
-                    cache: $cacheFactory('taxonomyResource')
+                    cache: $cacheFactory('taxonomyResource'),
+                    transformResponse: function (data) {
+                        var taxonomy = JSON.parse(data);
+                        if (taxonomy.name.startsWith('Mica_') && !taxonomy.name.endsWith('_taxonomy')) {
+                            var cartSet = SetService.getCartSet(targetToType(taxonomy.name.split('Mica_')[1]));
+                            if (cartSet) {
+                                (taxonomy.vocabularies || []).filter(function (vocabulary) { return vocabulary.name === 'sets'; })
+                                    .forEach(function (setsVocabulary) {
+                                    if (Array.isArray(setsVocabulary.terms)) {
+                                        var filteredTerms = setsVocabulary.terms.filter(function (term) {
+                                            if (term.name === cartSet.id) {
+                                                $translate(['sets.cart.title']).then(function (translation) {
+                                                    term.title = [{ locale: $translate.use(), text: translation['sets.cart.title'] }];
+                                                });
+                                            }
+                                            return Array.isArray(term.title) || term.name === cartSet.id;
+                                        });
+                                        setsVocabulary.terms = filteredTerms;
+                                    }
+                                });
+                            }
+                        }
+                        return taxonomy;
+                    }
                 }
             });
         }]);
@@ -7029,7 +7048,7 @@ function typeToTarget(type) {
     throw new Error('Invalid type: ' + type);
 }
 (function () {
-    function RqlQueryService($q, $log, TaxonomiesResource, TaxonomyResource, LocalizedValues, VocabularyService, RqlQueryUtils, ngObibaMicaSearch, SetService) {
+    function RqlQueryService($q, $log, TaxonomiesResource, TaxonomyResource, LocalizedValues, VocabularyService, RqlQueryUtils, ngObibaMicaSearch) {
         var taxonomiesCache = {
             variable: null,
             dataset: null,
@@ -7303,7 +7322,7 @@ function typeToTarget(type) {
          */
         this.createCriteriaItem = function (target, taxonomy, vocabulary, term, lang) {
             function createBuilder(taxonomy, vocabulary, term) {
-                return new CriteriaItemBuilder(LocalizedValues, lang, SetService)
+                return new CriteriaItemBuilder(LocalizedValues, lang)
                     .target(target)
                     .taxonomy(taxonomy)
                     .vocabulary(vocabulary)
@@ -7407,7 +7426,7 @@ function typeToTarget(type) {
         this.builders = function (target, rootRql, rootItem, lang) {
             var deferred = $q.defer();
             function build(rootRql, rootItem) {
-                var builder = new CriteriaBuilder(rootRql, rootItem, taxonomiesCache[target], LocalizedValues, lang, SetService);
+                var builder = new CriteriaBuilder(rootRql, rootItem, taxonomiesCache[target], LocalizedValues, lang);
                 builder.initialize(target);
                 builder.build();
                 deferred.resolve({ root: builder.getRootItem(), map: builder.getLeafItemMap() });
@@ -7831,7 +7850,6 @@ function typeToTarget(type) {
         'VocabularyService',
         'RqlQueryUtils',
         'ngObibaMicaSearch',
-        'SetService',
         RqlQueryService]);
 })();
 //# sourceMappingURL=rql-query-service.js.map
@@ -9998,7 +10016,7 @@ ngObibaMica.search
  */
 'use strict';
 (function () {
-    function Controller(MetaTaxonomyService, TaxonomyService) {
+    function Controller(MetaTaxonomyService, TaxonomyService, $timeout) {
         var ctrl = this;
         /**
          * Retrieves all meta taxonomies
@@ -10017,7 +10035,7 @@ ngObibaMica.search
                 ctrl.selectedTaxonomy.state.active();
                 ctrl.selectedTaxonomy.state.loading();
                 // enough delay for UI rendering
-                setTimeout(function () {
+                $timeout(function () {
                     TaxonomyService.getTaxonomies(target, selectedTaxonomy.info.names || selectedTaxonomy.info.name)
                         .then(function (taxonomy) {
                         ctrl.selectedTaxonomy.state.loaded();
@@ -10051,7 +10069,7 @@ ngObibaMica.search
             rqlQuery: '<'
         },
         templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html',
-        controller: ['MetaTaxonomyService', 'TaxonomyService', Controller]
+        controller: ['MetaTaxonomyService', 'TaxonomyService', '$timeout', Controller]
     });
 })();
 //# sourceMappingURL=component.js.map

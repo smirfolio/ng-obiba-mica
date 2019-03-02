@@ -12,8 +12,8 @@
 
 (function () {
 
-  ngObibaMica.search.factory('JoinQuerySearchResource', ['$resource', 'ngObibaMicaUrl',
-    function ($resource, ngObibaMicaUrl) {
+  ngObibaMica.search.factory('JoinQuerySearchResource', ['$resource', 'ngObibaMicaUrl', '$translate', 'SetService',
+    function ($resource, ngObibaMicaUrl, $translate, SetService) {
       var resourceUrl = ngObibaMicaUrl.getUrl('JoinQuerySearchResource');
       var actionFactory = function (type) {
         var method = resourceUrl.indexOf(':query') === -1 ? 'POST' : 'GET';
@@ -32,7 +32,33 @@
           },
           errorHandler: true,
           params: { type: type },
-          transformRequest: requestTransformer
+          transformRequest: requestTransformer,
+          transformResponse: (data) => {
+            var parsedResponse = JSON.parse(data);
+            var cartSet = SetService.getCartSet(type);
+
+            var workingDto;
+            if (type === 'variables') {
+              workingDto = parsedResponse.variableResultDto;
+            } else if (type === 'datasets') {
+              workingDto = parsedResponse.datasetResultDto;
+            } else if (type === 'studies') {
+              workingDto = parsedResponse.studyResultDto;
+            } else if (type === 'networks') {
+              workingDto = parsedResponse.networkResultDto;
+            }
+
+            if (workingDto && Array.isArray(workingDto.aggs)) {
+              workingDto.aggs.filter((agg) => agg.aggregation === 'sets').forEach((setsAgg) => {
+                var terms = setsAgg['obiba.mica.TermsAggregationResultDto.terms'];
+                if (Array.isArray(terms)) {
+                  setsAgg['obiba.mica.TermsAggregationResultDto.terms'] = terms.filter((term) => term.title || term.key === cartSet.id);
+                }
+              });
+            }
+
+            return parsedResponse;
+          }
         };
       };
       return $resource(resourceUrl, {}, {
