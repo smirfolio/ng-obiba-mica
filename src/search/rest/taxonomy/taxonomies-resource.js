@@ -13,14 +13,41 @@
 (function () {
 
   ngObibaMica.search
-    .factory('TaxonomiesResource', ['$resource', 'ngObibaMicaUrl', '$cacheFactory',
-      function ($resource, ngObibaMicaUrl, $cacheFactory) {
+    .factory('TaxonomiesResource', ['$resource', 'ngObibaMicaUrl', '$cacheFactory', 'SetService', '$translate',
+      function ($resource, ngObibaMicaUrl, $cacheFactory, SetService, $translate) {
         return $resource(ngObibaMicaUrl.getUrl('TaxonomiesResource'), {}, {
           'get': {
             method: 'GET',
             isArray: true,
             errorHandler: true,
-            cache: $cacheFactory('taxonomiesResource')
+            cache: $cacheFactory('taxonomiesResource'),
+            transformResponse: (data) => {
+              var parsedData = JSON.parse(data);
+
+              parsedData.filter((taxonomy) => taxonomy.name.startsWith('Mica_')).forEach((micaTaxonomy) => {
+                var cartSet = SetService.getCartSet(targetToType(micaTaxonomy.name.split('Mica_')[1]));
+
+                if (cartSet) {
+                  (micaTaxonomy.vocabularies || []).filter((vocabulary) => vocabulary.name === 'sets')
+                  .forEach((setsVocabulary) => {
+                    if (Array.isArray(setsVocabulary.terms)) {
+                      var filteredTerms = setsVocabulary.terms.filter((term) => {
+                        if (term.name === cartSet.id) {
+                          $translate(['sets.cart.title']).then((translation) => {
+                            term.title = [ {locale: $translate.use(), text: translation['sets.cart.title']} ];
+                          });
+                        }
+                        return Array.isArray(term.title) || term.name === cartSet.id;
+                      });
+
+                      setsVocabulary.terms = filteredTerms;
+                    }
+                  });
+                }
+              });
+
+              return parsedData;
+            }
           }
         });
       }]);

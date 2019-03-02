@@ -18,7 +18,7 @@
 /* global CriteriaIdGenerator */
 /* global CriteriaItem */
 /* exported CriteriaItemBuilder */
-function CriteriaItemBuilder(LocalizedValues, useLang, SetService) {
+function CriteriaItemBuilder(LocalizedValues, useLang) {
   var criteria = {
     type: null,
     rqlQuery: null,
@@ -54,25 +54,6 @@ function CriteriaItemBuilder(LocalizedValues, useLang, SetService) {
 
   this.vocabulary = function (value) {
     criteria.vocabulary = value;
-
-    // decorate 'sets' vocabulary with local sets info
-    if (criteria.vocabulary.name === 'sets') {
-      switch (criteria.taxonomy.name) {
-        case 'Mica_variable':
-         appendSetTerms(criteria, 'variables');
-         break;
-        case 'Mica_dataset':
-         appendSetTerms(criteria, 'datasets');
-          break;
-        case 'Mica_study':
-          appendSetTerms(criteria, 'studies');
-          break;
-        case 'Mica_network':
-          appendSetTerms(criteria, 'networks');
-          break;
-      }
-    }
-  
     return this;
   };
 
@@ -141,41 +122,6 @@ function CriteriaItemBuilder(LocalizedValues, useLang, SetService) {
     }
 
     criteria.id = CriteriaIdGenerator.generate(criteria.taxonomy, criteria.vocabulary, criteria.term);
-  }
-
-  /**
-   * Decorate the 'sets' vocabulary with the sets that are living in the browser local storage.
-   * @param criteria the criteria that holds the 'sets' vocabulary
-   * @param documentType the document type
-   */
-  function appendSetTerms(criteria, documentType) {
-    // note: for now there is only a cart set
-    var cartSet = SetService.getCartSet(documentType);
-    if (cartSet) {
-      var cartTerm;
-      if (criteria.vocabulary.terms) {
-        // look for a placeholder to get alternate translations
-        var cTerm = criteria.vocabulary.terms.filter(function(term) {
-          return term.name === 'cart';
-        });
-        if (cTerm.length>0) {
-          cartTerm = cTerm[0];
-        }
-      }
-      if (!cartTerm) {
-        // create default title, if not found reference term was not found
-        cartTerm = {
-          title: [
-            {locale: 'en', text: 'Cart'},
-            {locale: 'fr', text: 'Panier'}
-          ]
-        };
-      }
-      cartTerm.name = cartSet.id;
-      criteria.vocabulary.terms = [cartTerm];
-    } else {
-      criteria.vocabulary.terms = [];
-    }
   }
 
   this.build = function () {

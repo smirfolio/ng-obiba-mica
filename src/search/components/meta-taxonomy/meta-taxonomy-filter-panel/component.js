@@ -12,7 +12,7 @@
 
 (function() {
 
-  function Controller(MetaTaxonomyService, TaxonomyService) {
+  function Controller(MetaTaxonomyService, TaxonomyService, $timeout) {
     var ctrl = this;
     /**
      * Retrieves all meta taxonomies
@@ -34,7 +34,7 @@
         ctrl.selectedTaxonomy.state.loading();
 
         // enough delay for UI rendering
-        setTimeout(function() {
+        $timeout(function() {
           TaxonomyService.getTaxonomies(target, selectedTaxonomy.info.names || selectedTaxonomy.info.name)
             .then(function (taxonomy) {
               ctrl.selectedTaxonomy.state.loaded();
@@ -71,7 +71,7 @@
         rqlQuery: '<'
       },
       templateUrl: 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html',
-      controller: ['MetaTaxonomyService', 'TaxonomyService', Controller]
+      controller: ['MetaTaxonomyService', 'TaxonomyService', '$timeout', Controller]
     });
 })();
 
