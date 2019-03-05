@@ -388,7 +388,7 @@ class SetService implements ISetService {
    */
   public getCartSet(documentType: string): any {
     const storage = this.localStorageService.get(this.getCartKey(documentType)) || {};
-    const username = this.SessionProxy.login() || "anonymous";
+    const username = this.SessionProxy.profile() ? this.SessionProxy.login() : "anonymous";
     return storage[username];
   }
 
