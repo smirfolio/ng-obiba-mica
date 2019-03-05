@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-03-02
+ * Date: 2019-03-05
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -3049,7 +3049,7 @@ var SetService = /** @class */ (function () {
      */
     SetService.prototype.getCartSet = function (documentType) {
         var storage = this.localStorageService.get(this.getCartKey(documentType)) || {};
-        var username = this.SessionProxy.login() || "anonymous";
+        var username = this.SessionProxy.profile() ? this.SessionProxy.login() : "anonymous";
         return storage[username];
     };
     /**
