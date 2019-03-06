@@ -5,8 +5,8 @@
   </div>
 
   <div class="modal-body">
+    <obiba-alert id="MaxAttainedAlert"></obiba-alert>
     <p translate>sets.add.modal.sub-title</p>
-
     <div ng-if="$ctrl.canAddMoreSets">
         <div class="radio" ng-show="$ctrl.sets.length">
           <label for="new_set_choice">
@@ -18,8 +18,8 @@
         <input class="form-control" type="text" ng-model="$ctrl.choice.name" ng-keyup="$ctrl.onNameChanged()">
     </div>
 
-    <div ng-if="$ctrl.sets.length">
-        <div class="radio">
+    <div ng-if="$ctrl.sets.length" class="margin-top-10">
+        <div class="radio" ng-show="$ctrl.canAddMoreSets">
           <label for="existing_set_choice">
             <input type="radio" ng-model="$ctrl.choice.radio" ng-required="!$ctrl.choice.radio" value="EXISTING" id="existing_set_choice" ng-change="$ctrl.onRadioChanged()">
             {{'sets.add.modal.to-existing' | translate}}
