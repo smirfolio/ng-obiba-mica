@@ -46,7 +46,8 @@
     "targetToType": true,
     "typeToTarget": true,
     "QUERY_TARGETS": true,
-    "QUERY_TYPES": true
+    "QUERY_TYPES": true,
+    "SetsAlertBuilder": true
   }
 
 }
