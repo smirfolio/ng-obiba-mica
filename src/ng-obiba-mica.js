@@ -157,6 +157,8 @@ function NgObibaMicaTemplateUrlFactory() {
         'VocabularyResource': 'ws/taxonomy/:taxonomy/vocabulary/:vocabulary/_filter',
         'VariableResource': 'ws/variable/:id',
         'VariableSummaryResource': 'ws/variable/:id/summary',
+        'CartPage': '#/cart',
+        'SetsPage': '#/sets',
         'SetsResource': 'ws/:type/sets',
         'SetsImportResource': 'ws/:type/sets/_import',
         'SetResource': 'ws/:type/set/:id',

@@ -32,7 +32,6 @@
     if ($cookies.get(cookiesCartHelp)) {
       $scope.options.CartHelpText = null;
     }
-
   }
 
   ngObibaMica.sets
@@ -44,7 +43,8 @@
     'SetService',
     'ngObibaMicaSetsTemplateUrl',
     'AlertService',
-    function($scope, $location, $translate, $cookies, SetService, ngObibaMicaSetsTemplateUrl, AlertService) {
+    'ngObibaMicaUrl',
+    function($scope, $location, $translate, $cookies, SetService, ngObibaMicaSetsTemplateUrl, AlertService, ngObibaMicaUrl) {
       $scope.options = {};
       manageCartHelpText($scope, $translate, $cookies);
       $scope.cartHeaderTemplateUrl = ngObibaMicaSetsTemplateUrl.getHeaderUrl('cart');
@@ -63,33 +63,15 @@
         $scope.variables = { total: 0 };
       }
 
-
-      function showAlert(setId, setName, addedCount, addedMsgKey, noCountMsgKey) {
-        let msgKey = addedMsgKey;
-        let msgArgs = [setId, addedCount, setName];
-
-        if (addedCount === 0) {
-          msgKey = noCountMsgKey;
-          msgArgs = [];
-        }
-
-        AlertService.growl({
-          id: 'MainControllerGrowl',
-          type: 'info',
-          msgKey: msgKey,
-          msgArgs: msgArgs,
-          delay: 4000
-        });
-      }
-
       function onUpdate(setId, setName, addedCount) {
-        showAlert(
-          setId,
-          setName,
-          addedCount,
-          'sets.set.variables-added',
-          'sets.set.no-variable-added'
-        );
+        SetsAlertBuilder.newBuilder(AlertService)
+          .withId(setId)
+          .withName(setName)
+          .withCount(addedCount)
+          .withMsgKey('sets.set.variables-added')
+          .withEmptyMsgKey('sets.set.no-variable-added')
+          .withRedirectUrl(ngObibaMicaUrl.getUrl('SetsPage'))
+          .showAlert();
       }
 
       $scope.$on('cart-cleared', function(event, type) {
@@ -108,7 +90,8 @@
     '$scope',
     'SetService',
     'AlertService',
-    function($scope, SetService, AlertService) {
+    'ngObibaMicaUrl',
+    function($scope, SetService, AlertService, ngObibaMicaUrl) {
       $scope.canBeAdded = false;
       $scope.canBeRemoved = false;
       $scope.loading = true;
@@ -136,16 +119,15 @@
           .then(function(set) {
             $scope.loading = false;
             var addedCount = set.count - (beforeCart ? beforeCart.count : 0);
-            var msgKey = addedCount === 0 ? 'sets.cart.no-variable-added' : 'sets.cart.variable-added';
             $scope.canBeRemoved = addedCount > 0;
             $scope.canBeAdded = !$scope.canBeRemoved;
-            AlertService.growl({
-              id: 'VariableToCartControllerGrowl',
-              type: 'info',
-              msgKey: msgKey,
-              msgArgs: [],
-              delay: 3000
-            });
+
+            SetsAlertBuilder.newBuilder(AlertService)
+              .withCount(addedCount)
+              .withMsgKey('sets.cart.variable-added')
+              .withEmptyMsgKey('sets.cart.no-variable-added')
+              .withRedirectUrl(ngObibaMicaUrl.getUrl('CartPage'))
+              .showAlert();
           })
           .catch(function() {
             $scope.loading = false;
@@ -159,16 +141,15 @@
           .then(function(set) {
             $scope.loading = false;
             var removedCount = (beforeCart ? beforeCart.count : 0) - set.count;
-            var msgKey = removedCount > 0 ? 'sets.cart.variable-removed' : 'sets.cart.no-variable-removed';
             $scope.canBeAdded = removedCount > 0;
             $scope.canBeRemoved = !$scope.canBeAdded;
-            AlertService.growl({
-              id: 'VariableToCartControllerGrowl',
-              type: 'info',
-              msgKey: msgKey,
-              msgArgs: [],
-              delay: 3000
-            });
+
+            SetsAlertBuilder.newBuilder(AlertService)
+              .withCount(removedCount)
+              .withMsgKey('sets.cart.variable-removed')
+              .withEmptyMsgKey('sets.cart.no-variable-removed')
+              .withRedirectUrl(ngObibaMicaUrl.getUrl('CartPage'))
+              .showAlert();
          })
          .catch(function() {
            $scope.loading = false;
@@ -190,6 +171,7 @@
     'SetService',
     'NOTIFICATION_EVENTS',
     'AlertService',
+    'ngObibaMicaUrl',
     function (
       $rootScope,
       $scope,
@@ -202,7 +184,8 @@
       SetResource,
       SetService,
       NOTIFICATION_EVENTS,
-      AlertService) {
+      AlertService,
+      ngObibaMicaUrl) {
 
     var searchTaxonomyDisplay = {
       variable: ObibaSearchOptions.variables.showSearchTab,
@@ -324,9 +307,9 @@
       $scope.selectedSet.count = documents.total;
     }
 
-    function showAlert(setId, setName, addedCount, addedMsgKey, noCountMsgKey) {
+    function showAlert(setId, setName, addedCount, addedMsgKey, noCountMsgKey, url) {
       let msgKey = addedMsgKey;
-      let msgArgs = [setId, addedCount, setName];
+      let msgArgs = [url, setId, addedCount, setName];
 
       if (addedCount === 0) {
         msgKey = noCountMsgKey;
@@ -348,7 +331,8 @@
         setName,
         addedCount,
         'sets.set.variables-added',
-        'sets.set.no-variable-added'
+        'sets.set.no-variable-added',
+        ngObibaMicaUrl.getUrl('SetsPage')
       );
 
       initSets();

@@ -86,7 +86,9 @@ ngObibaMica.search
         );
 
         // Using timeout due to digest cycle glitch, this way the selections are cleared.
-        $timeout(function () {SearchResultSelectionsService.clearSelections($scope.type);});
+        $timeout(function () {
+          SearchResultSelectionsService.clearSelections($scope.type);
+        });
 
         return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(rql));
 
@@ -100,54 +102,26 @@ ngObibaMica.search
         return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(queryWithLimit));
       };
 
-      function showAlert(setId, setName, addedCount, addedMsgKey, noCountMsgKey) {
-        let msgKey = addedMsgKey;
-        let msgArgs = [];
-
-        if (setId) {
-          msgArgs.push(setId);
-        }
-
-        msgArgs.push(addedCount);
-
-        if (setName) {
-          msgArgs.push(setName);
-        }
-
-        if (addedCount === 0) {
-          msgKey = noCountMsgKey;
-          msgArgs = [];
-        }
-
-        AlertService.growl({
-          id: 'SearchControllerGrowl',
-          type: 'info',
-          msgKey: msgKey,
-          msgArgs: msgArgs,
-          delay: 4000
-        });
-      }
-
-      $scope.onCartUpdate = function(beforeCount, set) {
-        var addedCount = set.count - (beforeCount ? beforeCount.count : 0);
-        showAlert(
-          null,
-          null,
-          addedCount,
-          'sets.cart.variables-added',
-          'sets.cart.no-variable-added'
-        );
+      $scope.onCartUpdate = function (beforeCount, set) {
+        const addedCount = set.count - (beforeCount ? beforeCount.count : 0);
+        SetsAlertBuilder.newBuilder(AlertService)
+          .withCount(addedCount)
+          .withMsgKey('sets.cart.variables-added')
+          .withEmptyMsgKey('sets.cart.no-variable-added')
+          .withRedirectUrl(ngObibaMicaUrl.getUrl('CartPage'))
+          .showAlert();
         SearchResultSelectionsService.clearSelections($scope.type);
       };
 
       $scope.onSetUpdate = function (setId, setName, addedCount) {
-        showAlert(
-          setId,
-          setName,
-          addedCount,
-          'sets.set.variables-added',
-          'sets.set.no-variable-added'
-        );
+        SetsAlertBuilder.newBuilder(AlertService)
+          .withId(setId)
+          .withName(setName)
+          .withCount(addedCount)
+          .withMsgKey('sets.set.variables-added')
+          .withEmptyMsgKey('sets.set.no-variable-added')
+          .withRedirectUrl(ngObibaMicaUrl.getUrl('SetsPage'))
+          .showAlert();
         SearchResultSelectionsService.clearSelections($scope.type);
       };
 
@@ -161,24 +135,32 @@ ngObibaMica.search
         const beforeCart = SetService.getCartSet(type);
 
         if (keys && keys.length > 0) {
-          SetService.addDocumentToCart(type, keys).then(function(set) {$scope.onCartUpdate(beforeCart, set);});
+          SetService.addDocumentToCart(type, keys).then(function (set) {
+            $scope.onCartUpdate(beforeCart, set);
+          });
         } else {
           const queryWithLimit = rewriteQueryWithLimitAndFields(SetService.getMaxItemsPerSets(), ['id']);
-          SetService.addDocumentQueryToCart('variables', queryWithLimit).then(function(set) {
+          SetService.addDocumentQueryToCart('variables', queryWithLimit).then(function (set) {
             $scope.onCartUpdate(beforeCart, set);
           });
         }
       };
 
-      $scope.addToSet = function(type) {
+      $scope.addToSet = function (type) {
         var sels = SearchResultSelectionsService.getSelections($scope.type);
         $uibModal.open({
           keyboard: false,
           component: 'addToSetModal',
           resolve: {
-            query: function() { return $scope.query; }, type: function() { return type; }, ids: function() { return sels; }
+            query: function () {
+              return $scope.query;
+            }, type: function () {
+              return type;
+            }, ids: function () {
+              return sels;
+            }
           }
-        }).result.then(function(result) {
+        }).result.then(function (result) {
           $scope.onSetUpdate(result.id, result.name, result.newCount);
         });
       };
