@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-03-05
+ * Date: 2019-03-06
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -143,6 +143,8 @@ function NgObibaMicaTemplateUrlFactory() {
             'VocabularyResource': 'ws/taxonomy/:taxonomy/vocabulary/:vocabulary/_filter',
             'VariableResource': 'ws/variable/:id',
             'VariableSummaryResource': 'ws/variable/:id/summary',
+            'CartPage': '#/cart',
+            'SetsPage': '#/sets',
             'SetsResource': 'ws/:type/sets',
             'SetsImportResource': 'ws/:type/sets/_import',
             'SetResource': 'ws/:type/set/:id',
@@ -3298,6 +3300,72 @@ var DocumentsSetTableComponentController = /** @class */ (function () {
     return DocumentsSetTableComponentController;
 }());
 //# sourceMappingURL=document-set-table-component-controller.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+"use strict";
+var SetsAlertBuilder = /** @class */ (function () {
+    function SetsAlertBuilder(AlertService) {
+        this.AlertService = AlertService;
+    }
+    SetsAlertBuilder.newBuilder = function (AlertService) {
+        return new SetsAlertBuilder(AlertService);
+    };
+    SetsAlertBuilder.prototype.withId = function (value) {
+        this.id = value;
+        return this;
+    };
+    SetsAlertBuilder.prototype.withName = function (value) {
+        this.name = value;
+        return this;
+    };
+    SetsAlertBuilder.prototype.withCount = function (value) {
+        this.count = value;
+        return this;
+    };
+    SetsAlertBuilder.prototype.withMsgKey = function (value) {
+        this.msgKey = value;
+        return this;
+    };
+    SetsAlertBuilder.prototype.withEmptyMsgKey = function (value) {
+        this.emptyMsgKey = value;
+        return this;
+    };
+    SetsAlertBuilder.prototype.withRedirectUrl = function (value) {
+        this.redirectUrl = value;
+        return this;
+    };
+    SetsAlertBuilder.prototype.showAlert = function () {
+        var msgKey = this.msgKey;
+        var msgArgs = [this.redirectUrl];
+        if (this.id) {
+            msgArgs.push(this.id);
+        }
+        msgArgs.push(this.count + "");
+        if (this.name) {
+            msgArgs.push(this.name);
+        }
+        if (this.count === 0) {
+            msgKey = this.emptyMsgKey;
+            msgArgs = [];
+        }
+        this.AlertService.growl({
+            delay: 4000,
+            id: "MainControllerGrowl",
+            msgArgs: msgArgs,
+            msgKey: msgKey,
+            type: "info",
+        });
+    };
+    return SetsAlertBuilder;
+}());
+//# sourceMappingURL=sets-alert-builder.js.map
 "use strict";
 var AddToSetComponentModalController = /** @class */ (function () {
     function AddToSetComponentModalController(RqlQueryService, RqlQueryUtils, SetsResource, SetsImportResource, SetService) {
@@ -3714,7 +3782,8 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
         'SetService',
         'ngObibaMicaSetsTemplateUrl',
         'AlertService',
-        function ($scope, $location, $translate, $cookies, SetService, ngObibaMicaSetsTemplateUrl, AlertService) {
+        'ngObibaMicaUrl',
+        function ($scope, $location, $translate, $cookies, SetService, ngObibaMicaSetsTemplateUrl, AlertService, ngObibaMicaUrl) {
             $scope.options = {};
             manageCartHelpText($scope, $translate, $cookies);
             $scope.cartHeaderTemplateUrl = ngObibaMicaSetsTemplateUrl.getHeaderUrl('cart');
@@ -3731,23 +3800,15 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
             else {
                 $scope.variables = { total: 0 };
             }
-            function showAlert(setId, setName, addedCount, addedMsgKey, noCountMsgKey) {
-                var msgKey = addedMsgKey;
-                var msgArgs = [setId, addedCount, setName];
-                if (addedCount === 0) {
-                    msgKey = noCountMsgKey;
-                    msgArgs = [];
-                }
-                AlertService.growl({
-                    id: 'MainControllerGrowl',
-                    type: 'info',
-                    msgKey: msgKey,
-                    msgArgs: msgArgs,
-                    delay: 4000
-                });
-            }
             function onUpdate(setId, setName, addedCount) {
-                showAlert(setId, setName, addedCount, 'sets.set.variables-added', 'sets.set.no-variable-added');
+                SetsAlertBuilder.newBuilder(AlertService)
+                    .withId(setId)
+                    .withName(setName)
+                    .withCount(addedCount)
+                    .withMsgKey('sets.set.variables-added')
+                    .withEmptyMsgKey('sets.set.no-variable-added')
+                    .withRedirectUrl(ngObibaMicaUrl.getUrl('SetsPage'))
+                    .showAlert();
             }
             $scope.$on('cart-cleared', function (event, type) {
                 $scope.loading = true;
@@ -3763,7 +3824,8 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
         '$scope',
         'SetService',
         'AlertService',
-        function ($scope, SetService, AlertService) {
+        'ngObibaMicaUrl',
+        function ($scope, SetService, AlertService, ngObibaMicaUrl) {
             $scope.canBeAdded = false;
             $scope.canBeRemoved = false;
             $scope.loading = true;
@@ -3788,16 +3850,14 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
                     .then(function (set) {
                     $scope.loading = false;
                     var addedCount = set.count - (beforeCart ? beforeCart.count : 0);
-                    var msgKey = addedCount === 0 ? 'sets.cart.no-variable-added' : 'sets.cart.variable-added';
                     $scope.canBeRemoved = addedCount > 0;
                     $scope.canBeAdded = !$scope.canBeRemoved;
-                    AlertService.growl({
-                        id: 'VariableToCartControllerGrowl',
-                        type: 'info',
-                        msgKey: msgKey,
-                        msgArgs: [],
-                        delay: 3000
-                    });
+                    SetsAlertBuilder.newBuilder(AlertService)
+                        .withCount(addedCount)
+                        .withMsgKey('sets.cart.variable-added')
+                        .withEmptyMsgKey('sets.cart.no-variable-added')
+                        .withRedirectUrl(ngObibaMicaUrl.getUrl('CartPage'))
+                        .showAlert();
                 })
                     .catch(function () {
                     $scope.loading = false;
@@ -3810,16 +3870,14 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
                     .then(function (set) {
                     $scope.loading = false;
                     var removedCount = (beforeCart ? beforeCart.count : 0) - set.count;
-                    var msgKey = removedCount > 0 ? 'sets.cart.variable-removed' : 'sets.cart.no-variable-removed';
                     $scope.canBeAdded = removedCount > 0;
                     $scope.canBeRemoved = !$scope.canBeAdded;
-                    AlertService.growl({
-                        id: 'VariableToCartControllerGrowl',
-                        type: 'info',
-                        msgKey: msgKey,
-                        msgArgs: [],
-                        delay: 3000
-                    });
+                    SetsAlertBuilder.newBuilder(AlertService)
+                        .withCount(removedCount)
+                        .withMsgKey('sets.cart.variable-removed')
+                        .withEmptyMsgKey('sets.cart.no-variable-removed')
+                        .withRedirectUrl(ngObibaMicaUrl.getUrl('CartPage'))
+                        .showAlert();
                 })
                     .catch(function () {
                     $scope.loading = false;
@@ -3840,7 +3898,8 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
         'SetService',
         'NOTIFICATION_EVENTS',
         'AlertService',
-        function ($rootScope, $scope, $route, $location, ObibaSearchOptions, ngObibaMicaSetsTemplateUrl, MetaTaxonomyService, SetsResource, SetResource, SetService, NOTIFICATION_EVENTS, AlertService) {
+        'ngObibaMicaUrl',
+        function ($rootScope, $scope, $route, $location, ObibaSearchOptions, ngObibaMicaSetsTemplateUrl, MetaTaxonomyService, SetsResource, SetResource, SetService, NOTIFICATION_EVENTS, AlertService, ngObibaMicaUrl) {
             var searchTaxonomyDisplay = {
                 variable: ObibaSearchOptions.variables.showSearchTab,
                 dataset: ObibaSearchOptions.datasets.showSearchTab,
@@ -3946,9 +4005,9 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
                 $scope.documents = documents;
                 $scope.selectedSet.count = documents.total;
             }
-            function showAlert(setId, setName, addedCount, addedMsgKey, noCountMsgKey) {
+            function showAlert(setId, setName, addedCount, addedMsgKey, noCountMsgKey, url) {
                 var msgKey = addedMsgKey;
-                var msgArgs = [setId, addedCount, setName];
+                var msgArgs = [url, setId, addedCount, setName];
                 if (addedCount === 0) {
                     msgKey = noCountMsgKey;
                     msgArgs = [];
@@ -3962,7 +4021,7 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
                 });
             }
             function onUpdate(setId, setName, addedCount) {
-                showAlert(setId, setName, addedCount, 'sets.set.variables-added', 'sets.set.no-variable-added');
+                showAlert(setId, setName, addedCount, 'sets.set.variables-added', 'sets.set.no-variable-added', ngObibaMicaUrl.getUrl('SetsPage'));
                 initSets();
             }
             function onPaginate(type, from) {
@@ -11661,7 +11720,9 @@ ngObibaMica.search
         $scope.getSelectionsReportUrl = function () {
             var rql = RqlQueryUtils.createSelectionsQuery(RqlQueryService.parseQuery($scope.query), typeToTarget($scope.type), 100000, null, SearchResultSelectionsService.getSelectionIds($scope.type));
             // Using timeout due to digest cycle glitch, this way the selections are cleared.
-            $timeout(function () { SearchResultSelectionsService.clearSelections($scope.type); });
+            $timeout(function () {
+                SearchResultSelectionsService.clearSelections($scope.type);
+            });
             return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(rql));
         };
         $scope.getReportUrl = function () {
@@ -11671,35 +11732,25 @@ ngObibaMica.search
             var queryWithLimit = rewriteQueryWithLimitAndFields(100000);
             return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(queryWithLimit));
         };
-        function showAlert(setId, setName, addedCount, addedMsgKey, noCountMsgKey) {
-            var msgKey = addedMsgKey;
-            var msgArgs = [];
-            if (setId) {
-                msgArgs.push(setId);
-            }
-            msgArgs.push(addedCount);
-            if (setName) {
-                msgArgs.push(setName);
-            }
-            if (addedCount === 0) {
-                msgKey = noCountMsgKey;
-                msgArgs = [];
-            }
-            AlertService.growl({
-                id: 'SearchControllerGrowl',
-                type: 'info',
-                msgKey: msgKey,
-                msgArgs: msgArgs,
-                delay: 4000
-            });
-        }
         $scope.onCartUpdate = function (beforeCount, set) {
             var addedCount = set.count - (beforeCount ? beforeCount.count : 0);
-            showAlert(null, null, addedCount, 'sets.cart.variables-added', 'sets.cart.no-variable-added');
+            SetsAlertBuilder.newBuilder(AlertService)
+                .withCount(addedCount)
+                .withMsgKey('sets.cart.variables-added')
+                .withEmptyMsgKey('sets.cart.no-variable-added')
+                .withRedirectUrl(ngObibaMicaUrl.getUrl('CartPage'))
+                .showAlert();
             SearchResultSelectionsService.clearSelections($scope.type);
         };
         $scope.onSetUpdate = function (setId, setName, addedCount) {
-            showAlert(setId, setName, addedCount, 'sets.set.variables-added', 'sets.set.no-variable-added');
+            SetsAlertBuilder.newBuilder(AlertService)
+                .withId(setId)
+                .withName(setName)
+                .withCount(addedCount)
+                .withMsgKey('sets.set.variables-added')
+                .withEmptyMsgKey('sets.set.no-variable-added')
+                .withRedirectUrl(ngObibaMicaUrl.getUrl('SetsPage'))
+                .showAlert();
             SearchResultSelectionsService.clearSelections($scope.type);
         };
         $scope.addToCart = function (type) {
@@ -11710,7 +11761,9 @@ ngObibaMica.search
             }
             var beforeCart = SetService.getCartSet(type);
             if (keys && keys.length > 0) {
-                SetService.addDocumentToCart(type, keys).then(function (set) { $scope.onCartUpdate(beforeCart, set); });
+                SetService.addDocumentToCart(type, keys).then(function (set) {
+                    $scope.onCartUpdate(beforeCart, set);
+                });
             }
             else {
                 var queryWithLimit = rewriteQueryWithLimitAndFields(SetService.getMaxItemsPerSets(), ['id']);
@@ -11725,7 +11778,13 @@ ngObibaMica.search
                 keyboard: false,
                 component: 'addToSetModal',
                 resolve: {
-                    query: function () { return $scope.query; }, type: function () { return type; }, ids: function () { return sels; }
+                    query: function () {
+                        return $scope.query;
+                    }, type: function () {
+                        return type;
+                    }, ids: function () {
+                        return sels;
+                    }
                 }
             }).result.then(function (result) {
                 $scope.onSetUpdate(result.id, result.name, result.newCount);
