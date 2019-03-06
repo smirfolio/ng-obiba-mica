@@ -3368,12 +3368,14 @@ var SetsAlertBuilder = /** @class */ (function () {
 //# sourceMappingURL=sets-alert-builder.js.map
 "use strict";
 var AddToSetComponentModalController = /** @class */ (function () {
-    function AddToSetComponentModalController(RqlQueryService, RqlQueryUtils, SetsResource, SetsImportResource, SetService) {
+    function AddToSetComponentModalController(RqlQueryService, RqlQueryUtils, SetsResource, SetsImportResource, SetService, ngObibaMicaUrl, AlertService) {
         this.RqlQueryService = RqlQueryService;
         this.RqlQueryUtils = RqlQueryUtils;
         this.SetsResource = SetsResource;
         this.SetsImportResource = SetsImportResource;
         this.SetService = SetService;
+        this.ngObibaMicaUrl = ngObibaMicaUrl;
+        this.AlertService = AlertService;
     }
     AddToSetComponentModalController.prototype.accept = function () {
         var _this = this;
@@ -3435,7 +3437,17 @@ var AddToSetComponentModalController = /** @class */ (function () {
         var _this = this;
         this.SetsResource.query({ type: this.resolve.type }).$promise.then(function (allSets) {
             _this.sets = allSets.filter(function (set) { return set.name && (!_this.resolve.excludeId || _this.resolve.excludeId !== set.id); });
-            _this.canAddMoreSets = _this.sets.length < _this.SetService.getMaxNumberOfSets() - (_this.resolve.excludeId ? 1 : 0);
+            var maxNumberOfSets = _this.SetService.getMaxNumberOfSets();
+            _this.canAddMoreSets = _this.sets.length < maxNumberOfSets - (_this.resolve.excludeId ? 1 : 0);
+            if (!_this.canAddMoreSets) {
+                _this.AlertService.alert({
+                    delay: 0,
+                    id: "MaxAttainedAlert",
+                    msgArgs: [maxNumberOfSets, _this.ngObibaMicaUrl.getUrl("SetsPage")],
+                    msgKey: "sets.maximum-number-attained",
+                    type: "warning",
+                });
+            }
         });
     };
     AddToSetComponentModalController.prototype.addQuery = function (setId, type, query) {
@@ -3461,7 +3473,9 @@ var AddToSetComponentModalController = /** @class */ (function () {
         "RqlQueryUtils",
         "SetsResource",
         "SetsImportResource",
-        "SetService"
+        "SetService",
+        "ngObibaMicaUrl",
+        "AlertService"
     ];
     return AddToSetComponentModalController;
 }());
@@ -21167,8 +21181,8 @@ angular.module("sets/components/add-to-set-modal/component.html", []).run(["$tem
     "  </div>\n" +
     "\n" +
     "  <div class=\"modal-body\">\n" +
+    "    <obiba-alert id=\"MaxAttainedAlert\"></obiba-alert>\n" +
     "    <p translate>sets.add.modal.sub-title</p>\n" +
-    "\n" +
     "    <div ng-if=\"$ctrl.canAddMoreSets\">\n" +
     "        <div class=\"radio\" ng-show=\"$ctrl.sets.length\">\n" +
     "          <label for=\"new_set_choice\">\n" +
@@ -21180,8 +21194,8 @@ angular.module("sets/components/add-to-set-modal/component.html", []).run(["$tem
     "        <input class=\"form-control\" type=\"text\" ng-model=\"$ctrl.choice.name\" ng-keyup=\"$ctrl.onNameChanged()\">\n" +
     "    </div>\n" +
     "\n" +
-    "    <div ng-if=\"$ctrl.sets.length\">\n" +
-    "        <div class=\"radio\">\n" +
+    "    <div ng-if=\"$ctrl.sets.length\" class=\"margin-top-10\">\n" +
+    "        <div class=\"radio\" ng-show=\"$ctrl.canAddMoreSets\">\n" +
     "          <label for=\"existing_set_choice\">\n" +
     "            <input type=\"radio\" ng-model=\"$ctrl.choice.radio\" ng-required=\"!$ctrl.choice.radio\" value=\"EXISTING\" id=\"existing_set_choice\" ng-change=\"$ctrl.onRadioChanged()\">\n" +
     "            {{'sets.add.modal.to-existing' | translate}}\n" +
@@ -21440,7 +21454,8 @@ angular.module("sets/views/sets.html", []).run(["$templateCache", function($temp
     "      <set-variables-table set-id=\"selectedSet.id\" type=\"'variables'\" documents=\"documents\" on-update=\"onUpdate\" on-page-change=\"onPaginate\"></set-variables-table>\n" +
     "    </div>\n" +
     "  </div>\n" +
-    "</div>");
+    "</div>\n" +
+    "");
 }]);
 
 angular.module("utils/components/entity-schema-form/component.html", []).run(["$templateCache", function($templateCache) {

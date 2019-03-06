@@ -19,7 +19,9 @@ class AddToSetComponentModalController implements IAddToSetModalComponentControl
     "RqlQueryUtils",
     "SetsResource",
     "SetsImportResource",
-    "SetService"];
+    "SetService",
+    "ngObibaMicaUrl",
+    "AlertService"];
 
   public resolve: { query: string, type: string, excludeId?: string, ids?: any };
   public choice: { radio: string, selected?: any, name?: string };
@@ -35,7 +37,9 @@ class AddToSetComponentModalController implements IAddToSetModalComponentControl
     private RqlQueryUtils: any,
     private SetsResource: any,
     private SetsImportResource: any,
-    private SetService: ISetService) {
+    private SetService: ISetService,
+    private ngObibaMicaUrl: any,
+    private AlertService: any) {
   }
 
   public accept() {
@@ -114,7 +118,17 @@ class AddToSetComponentModalController implements IAddToSetModalComponentControl
       this.sets = allSets.filter(
         (set: any) => set.name && (!this.resolve.excludeId || this.resolve.excludeId !== set.id),
       );
-      this.canAddMoreSets = this.sets.length < this.SetService.getMaxNumberOfSets() - (this.resolve.excludeId ? 1 : 0);
+      const maxNumberOfSets = this.SetService.getMaxNumberOfSets();
+      this.canAddMoreSets = this.sets.length < maxNumberOfSets - (this.resolve.excludeId ? 1 : 0);
+      if (!this.canAddMoreSets) {
+        this.AlertService.alert({
+          delay: 0,
+          id: "MaxAttainedAlert",
+          msgArgs: [maxNumberOfSets, this.ngObibaMicaUrl.getUrl("SetsPage")],
+          msgKey: "sets.maximum-number-attained",
+          type: "warning",
+        });
+      }
     });
   }
 
