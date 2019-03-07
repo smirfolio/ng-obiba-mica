@@ -31,8 +31,12 @@
 
   </div>
 
-  <div class="modal-footer">
+  <div class="modal-footer" ng-if="!$ctrl.disableActions">
     <button class="btn btn-responsive btn-default" type="button" ng-click="$ctrl.cancel()" translate>cancel</button>
     <button class="btn btn-responsive btn-primary" type="button" ng-click="$ctrl.accept()" ng-disabled="!$ctrl.canAccept" translate>save</button>
+  </div>
+
+  <div class="modal-footer" ng-if="$ctrl.disableActions">
+    <span class="loading"></span>
   </div>
 </div>
