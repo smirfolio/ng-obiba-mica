@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-03-06
+ * Date: 2019-03-07
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -3376,9 +3376,11 @@ var AddToSetComponentModalController = /** @class */ (function () {
         this.SetService = SetService;
         this.ngObibaMicaUrl = ngObibaMicaUrl;
         this.AlertService = AlertService;
+        this.disableActions = false;
     }
     AddToSetComponentModalController.prototype.accept = function () {
         var _this = this;
+        this.disableActions = true;
         if (this.choice.radio === "NEW") {
             this.choice.name = this.choice.name.trim();
         }
@@ -21207,9 +21209,13 @@ angular.module("sets/components/add-to-set-modal/component.html", []).run(["$tem
     "\n" +
     "  </div>\n" +
     "\n" +
-    "  <div class=\"modal-footer\">\n" +
+    "  <div class=\"modal-footer\" ng-if=\"!$ctrl.disableActions\">\n" +
     "    <button class=\"btn btn-responsive btn-default\" type=\"button\" ng-click=\"$ctrl.cancel()\" translate>cancel</button>\n" +
     "    <button class=\"btn btn-responsive btn-primary\" type=\"button\" ng-click=\"$ctrl.accept()\" ng-disabled=\"!$ctrl.canAccept\" translate>save</button>\n" +
+    "  </div>\n" +
+    "\n" +
+    "  <div class=\"modal-footer\" ng-if=\"$ctrl.disableActions\">\n" +
+    "    <span class=\"loading\"></span>\n" +
     "  </div>\n" +
     "</div>");
 }]);
