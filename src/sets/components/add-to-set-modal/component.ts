@@ -28,6 +28,7 @@ class AddToSetComponentModalController implements IAddToSetModalComponentControl
   public canAccept: boolean;
   public sets: any[];
   public canAddMoreSets: boolean;
+  public disableActions: boolean;
 
   public close: (result?: any) => void;
   public dismiss: (reason?: any) => void;
@@ -40,9 +41,11 @@ class AddToSetComponentModalController implements IAddToSetModalComponentControl
     private SetService: ISetService,
     private ngObibaMicaUrl: any,
     private AlertService: any) {
+    this.disableActions = false;
   }
 
   public accept() {
+    this.disableActions = true;
     if (this.choice.radio === "NEW") {
       this.choice.name = this.choice.name.trim();
     }
