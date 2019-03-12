@@ -12,15 +12,8 @@
                       DataAccessAmendmentFormConfigResource,
                       DataAccessEntityUrls,
                       AlertService,
-                      ngObibaMicaAccessTemplateUrl) {
-    // Begin profileService
-    function getAttributeValue(attributes, key) {
-      var result = attributes.filter(function (attribute) {
-        return attribute.key === key;
-      });
-
-      return result && result.length > 0 ? result[0].value : null;
-    }
+                      ngObibaMicaAccessTemplateUrl,
+                      UserProfileService) {
 
     $rootScope.$on('$translateChangeSuccess', function () {
       DataAccessAmendmentFormConfigResource.get().$promise.then(function (value) {
@@ -36,25 +29,13 @@
       });
     };
 
-    $scope.getFullName = function (profile) {
-      if (profile) {
-        if (profile.attributes) {
-          return getAttributeValue(profile.attributes, 'firstName') + ' ' + getAttributeValue(profile.attributes, 'lastName');
-        }
-        return profile.username;
-      }
-      return null;
-    };
+    function getFullName(profile) {
+      return UserProfileService.getFullName(profile);
+    }
 
-    $scope.getProfileEmail = function (profile) {
-      if (profile) {
-        if (profile.attributes) {
-          return getAttributeValue(profile.attributes, 'email');
-        }
-      }
-      return null;
-    };
-    // End profileService
+    function getProfileEmail(profile) {
+      return UserProfileService.getEmail(profile);
+    }
 
     function getDataContent(data) {
       return data.content ? JSON.parse(data.content) : {};
@@ -119,6 +100,9 @@
     $scope.toggleFormDrawnStatus = function (value) {
       $scope.formDrawn = value;
     };
+
+    $scope.getFullName = getFullName;
+    $scope.getProfileEmail = getProfileEmail;
   }
 
   angular.module('obiba.mica.access').controller('DataAccessAmendmentViewController', [
@@ -134,6 +118,7 @@
     'DataAccessEntityUrls',
     'AlertService',
     'ngObibaMicaAccessTemplateUrl',
+    'UserProfileService',
     Controller
   ]);
 })();

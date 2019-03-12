@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-03-07
+ * Date: 2019-03-12
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -1930,6 +1930,9 @@ ngObibaMica.access
         function getFullName(profile) {
             return UserProfileService.getFullName(profile);
         }
+        function getProfileEmail(profile) {
+            return UserProfileService.getEmail(profile);
+        }
         $scope.logsHistory = [];
         $scope.parentId = undefined;
         $scope.loading = false;
@@ -1958,6 +1961,7 @@ ngObibaMica.access
         $scope.reject = reject;
         $scope.conditionallyApprove = conditionallyApprove;
         $scope.UserProfileService = UserProfileService;
+        $scope.getProfileEmail = getProfileEmail;
         $scope.userProfile = function (profile) {
             $scope.applicant = profile;
             $uibModal.open({
@@ -2239,14 +2243,7 @@ ngObibaMica.access
 //# sourceMappingURL=data-access-amendment-edit-controller.js.map
 'use strict';
 (function () {
-    function Controller($scope, $rootScope, $routeParams, $q, $uibModal, DataAccessEntityResource, DataAccessEntityService, DataAccessEntityFormService, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, AlertService, ngObibaMicaAccessTemplateUrl) {
-        // Begin profileService
-        function getAttributeValue(attributes, key) {
-            var result = attributes.filter(function (attribute) {
-                return attribute.key === key;
-            });
-            return result && result.length > 0 ? result[0].value : null;
-        }
+    function Controller($scope, $rootScope, $routeParams, $q, $uibModal, DataAccessEntityResource, DataAccessEntityService, DataAccessEntityFormService, DataAccessAmendmentFormConfigResource, DataAccessEntityUrls, AlertService, ngObibaMicaAccessTemplateUrl, UserProfileService) {
         $rootScope.$on('$translateChangeSuccess', function () {
             DataAccessAmendmentFormConfigResource.get().$promise.then(function (value) {
                 $scope.dataAccessForm = value;
@@ -2259,24 +2256,12 @@ ngObibaMica.access
                 templateUrl: 'access/views/data-access-request-profile-user-modal.html'
             });
         };
-        $scope.getFullName = function (profile) {
-            if (profile) {
-                if (profile.attributes) {
-                    return getAttributeValue(profile.attributes, 'firstName') + ' ' + getAttributeValue(profile.attributes, 'lastName');
-                }
-                return profile.username;
-            }
-            return null;
-        };
-        $scope.getProfileEmail = function (profile) {
-            if (profile) {
-                if (profile.attributes) {
-                    return getAttributeValue(profile.attributes, 'email');
-                }
-            }
-            return null;
-        };
-        // End profileService
+        function getFullName(profile) {
+            return UserProfileService.getFullName(profile);
+        }
+        function getProfileEmail(profile) {
+            return UserProfileService.getEmail(profile);
+        }
         function getDataContent(data) {
             return data.content ? JSON.parse(data.content) : {};
         }
@@ -2331,6 +2316,8 @@ ngObibaMica.access
         $scope.toggleFormDrawnStatus = function (value) {
             $scope.formDrawn = value;
         };
+        $scope.getFullName = getFullName;
+        $scope.getProfileEmail = getProfileEmail;
     }
     angular.module('obiba.mica.access').controller('DataAccessAmendmentViewController', [
         '$scope',
@@ -2345,6 +2332,7 @@ ngObibaMica.access
         'DataAccessEntityUrls',
         'AlertService',
         'ngObibaMicaAccessTemplateUrl',
+        'UserProfileService',
         Controller
     ]);
 })();

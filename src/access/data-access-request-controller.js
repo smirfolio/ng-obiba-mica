@@ -380,6 +380,10 @@ ngObibaMica.access
           return UserProfileService.getFullName(profile);
         }
 
+        function getProfileEmail(profile) {
+          return UserProfileService.getEmail(profile);
+        }
+
         $scope.logsHistory = [];
         $scope.parentId = undefined;
         $scope.loading = false;
@@ -409,6 +413,8 @@ ngObibaMica.access
         $scope.conditionallyApprove = conditionallyApprove;
         $scope.UserProfileService = UserProfileService;
 
+
+        $scope.getProfileEmail = getProfileEmail;
         $scope.userProfile = function (profile) {
           $scope.applicant = profile;
           $uibModal.open({
