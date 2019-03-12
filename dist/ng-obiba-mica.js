@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-03-07
+ * Date: 2019-03-12
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -1930,6 +1930,9 @@ ngObibaMica.access
         function getFullName(profile) {
             return UserProfileService.getFullName(profile);
         }
+        function getProfileEmail(profile) {
+            return UserProfileService.getEmail(profile);
+        }
         $scope.logsHistory = [];
         $scope.parentId = undefined;
         $scope.loading = false;
@@ -1958,6 +1961,7 @@ ngObibaMica.access
         $scope.reject = reject;
         $scope.conditionallyApprove = conditionallyApprove;
         $scope.UserProfileService = UserProfileService;
+        $scope.getProfileEmail = getProfileEmail;
         $scope.userProfile = function (profile) {
             $scope.applicant = profile;
             $uibModal.open({
