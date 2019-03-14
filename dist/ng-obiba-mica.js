@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-03-12
+ * Date: 2019-03-14
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -5447,26 +5447,28 @@ var AbstractSelectionsDecorator = /** @class */ (function () {
                     transformResponse: function (data) {
                         var parsedResponse = JSON.parse(data);
                         var cartSet = SetService.getCartSet(type);
-                        var workingDto;
-                        if (type === 'variables') {
-                            workingDto = parsedResponse.variableResultDto;
-                        }
-                        else if (type === 'datasets') {
-                            workingDto = parsedResponse.datasetResultDto;
-                        }
-                        else if (type === 'studies') {
-                            workingDto = parsedResponse.studyResultDto;
-                        }
-                        else if (type === 'networks') {
-                            workingDto = parsedResponse.networkResultDto;
-                        }
-                        if (workingDto && Array.isArray(workingDto.aggs)) {
-                            workingDto.aggs.filter(function (agg) { return agg.aggregation === 'sets'; }).forEach(function (setsAgg) {
-                                var terms = setsAgg['obiba.mica.TermsAggregationResultDto.terms'];
-                                if (Array.isArray(terms)) {
-                                    setsAgg['obiba.mica.TermsAggregationResultDto.terms'] = terms.filter(function (term) { return term.title || term.key === cartSet.id; });
-                                }
-                            });
+                        if (cartSet) {
+                            var workingDto;
+                            if (type === 'variables') {
+                                workingDto = parsedResponse.variableResultDto;
+                            }
+                            else if (type === 'datasets') {
+                                workingDto = parsedResponse.datasetResultDto;
+                            }
+                            else if (type === 'studies') {
+                                workingDto = parsedResponse.studyResultDto;
+                            }
+                            else if (type === 'networks') {
+                                workingDto = parsedResponse.networkResultDto;
+                            }
+                            if (workingDto && Array.isArray(workingDto.aggs)) {
+                                workingDto.aggs.filter(function (agg) { return agg.aggregation === 'sets'; }).forEach(function (setsAgg) {
+                                    var terms = setsAgg['obiba.mica.TermsAggregationResultDto.terms'];
+                                    if (Array.isArray(terms)) {
+                                        setsAgg['obiba.mica.TermsAggregationResultDto.terms'] = terms.filter(function (term) { return term.title || term.key === cartSet.id; });
+                                    }
+                                });
+                            }
                         }
                         return parsedResponse;
                     }
