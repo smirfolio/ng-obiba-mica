@@ -37,26 +37,28 @@
             var parsedResponse = JSON.parse(data);
             var cartSet = SetService.getCartSet(type);
 
-            var workingDto;
-            if (type === 'variables') {
-              workingDto = parsedResponse.variableResultDto;
-            } else if (type === 'datasets') {
-              workingDto = parsedResponse.datasetResultDto;
-            } else if (type === 'studies') {
-              workingDto = parsedResponse.studyResultDto;
-            } else if (type === 'networks') {
-              workingDto = parsedResponse.networkResultDto;
-            }
+            if (cartSet) {
+              var workingDto;
+              if (type === 'variables') {
+                workingDto = parsedResponse.variableResultDto;
+              } else if (type === 'datasets') {
+                workingDto = parsedResponse.datasetResultDto;
+              } else if (type === 'studies') {
+                workingDto = parsedResponse.studyResultDto;
+              } else if (type === 'networks') {
+                workingDto = parsedResponse.networkResultDto;
+              }
 
-            if (workingDto && Array.isArray(workingDto.aggs)) {
-              workingDto.aggs.filter((agg) => agg.aggregation === 'sets').forEach((setsAgg) => {
-                var terms = setsAgg['obiba.mica.TermsAggregationResultDto.terms'];
-                if (Array.isArray(terms)) {
-                  setsAgg['obiba.mica.TermsAggregationResultDto.terms'] = terms.filter((term) => term.title || term.key === cartSet.id);
-                }
-              });
+              if (workingDto && Array.isArray(workingDto.aggs)) {
+                workingDto.aggs.filter((agg) => agg.aggregation === 'sets').forEach((setsAgg) => {
+                  var terms = setsAgg['obiba.mica.TermsAggregationResultDto.terms'];
+                  if (Array.isArray(terms)) {
+                    setsAgg['obiba.mica.TermsAggregationResultDto.terms'] = terms.filter((term) => term.title || term.key === cartSet.id);
+                  }
+                });
+              }
             }
-
+            
             return parsedResponse;
           }
         };
