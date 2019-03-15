@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-03-14
+ * Date: 2019-03-15
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -18508,10 +18508,10 @@ angular.module("lists/views/list/studies-search-result-table-template.html", [])
     "                        </blockquote-small>\n" +
     "                        <div class=\"sm-top-margin\">\n" +
     "                            {{counts=summary['obiba.mica.CountStatsDto.studyCountStats'];\"\"}}\n" +
-    "                            <badge-count ng-if=\"counts\"\n" +
+    "                            <badge-count ng-if=\"counts.networks\"\n" +
     "                                    entity-count=\"counts.networks\"\n" +
     "                                    entity-type=\"'networks'\"\n" +
-    "                                    label-badge=\"counts>1?'networks':'network.label'\"\n" +
+    "                                    label-badge=\"counts.networks>1?'networks':'network.label'\"\n" +
     "                                    badge-options=\"options.obibaListOptions.showNetworkBadge\"\n" +
     "                                    query=\"'network(in(Mica_network.studyIds,' + summary.id +  '))'\">\n" +
     "                            </badge-count>\n" +
@@ -18535,7 +18535,7 @@ angular.module("lists/views/list/studies-search-result-table-template.html", [])
     "                            <badge-count ng-if=\"counts.dataschemaVariables\"\n" +
     "                                         entity-count=\"counts.dataschemaVariables\"\n" +
     "                                         entity-type=\"'variables'\"\n" +
-    "                                         label-badge=\"counts.studyVariables>1?'client.label.dataschema-variables':'client.label.dataschema-variable'\"\n" +
+    "                                         label-badge=\"counts.dataschemaVariables>1?'client.label.dataschema-variables':'client.label.dataschema-variable'\"\n" +
     "                                         badge-options=\"options.obibaListOptions.showVariableBadge\"\n" +
     "                                         query=\"'study(in(Mica_study.id,' + summary.id + ')),variable(in(Mica_variable.variableType,Dataschema))'\">\n" +
     "                            </badge-count>\n" +
