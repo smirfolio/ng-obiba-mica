@@ -147,13 +147,6 @@ function typeToTarget(type) {
     RqlQueryUtils,
     ngObibaMicaSearch) {
 
-    var taxonomiesCache = {
-      variable: null,
-      dataset: null,
-      study: null,
-      network: null
-    };
-
     var self = this;
     var searchOptions = ngObibaMicaSearch.getOptions();
     this.findItemNodeById = function (root, targetId, result, strict) {
@@ -564,23 +557,6 @@ function typeToTarget(type) {
       }
     };
 
-    this.getTaxonomyByTarget = function (target) {
-      var deferred = $q.defer();
-      var taxonomy = taxonomiesCache[target];
-      if (taxonomy) {
-        deferred.resolve(taxonomy);
-      } else {
-        TaxonomiesResource.get({
-          target: target
-        }).$promise.then(function (response) {
-          taxonomiesCache[target] = response;
-          deferred.resolve(response);
-        });
-      }
-
-      return deferred.promise;
-    };
-
     /**
      * Builders registry
      *
@@ -589,16 +565,18 @@ function typeToTarget(type) {
     this.builders = function (target, rootRql, rootItem, lang) {
       var deferred = $q.defer();
 
-      function build(rootRql, rootItem) {
-        var builder = new CriteriaBuilder(rootRql, rootItem, taxonomiesCache[target], LocalizedValues, lang);
+      function build(rootRql, rootItem, taxonomies) {
+        var builder = new CriteriaBuilder(rootRql, rootItem, taxonomies, LocalizedValues, lang);
         builder.initialize(target);
         builder.build();
         deferred.resolve({ root: builder.getRootItem(), map: builder.getLeafItemMap() });
       }
 
-      self.getTaxonomyByTarget(target).then(function () {
-        build(rootRql, rootItem);
-      });
+      TaxonomiesResource.get({target: target})
+        .$promise
+        .then(function (taxonomies) {
+          build(rootRql, rootItem, taxonomies);
+        });
 
       return deferred.promise;
     };

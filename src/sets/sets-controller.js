@@ -172,6 +172,7 @@
     'NOTIFICATION_EVENTS',
     'AlertService',
     'ngObibaMicaUrl',
+    'ServerErrorUtils',
     function (
       $rootScope,
       $scope,
@@ -185,7 +186,8 @@
       SetService,
       NOTIFICATION_EVENTS,
       AlertService,
-      ngObibaMicaUrl) {
+      ngObibaMicaUrl,
+      ServerErrorUtils) {
 
     var searchTaxonomyDisplay = {
       variable: ObibaSearchOptions.variables.showSearchTab,
@@ -246,6 +248,12 @@
               }
               selectSetId(setToSelect);
             }
+          }).catch(function(response) {
+            AlertService.alert({
+              id: 'MainController',
+              type: 'danger',
+              msg: ServerErrorUtils.buildMessage(response)
+            });
           });
         });
       });

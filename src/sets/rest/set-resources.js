@@ -12,14 +12,23 @@
 
 (function () {
   ngObibaMica.sets
-    .factory('SetResource', ['$resource', 'ngObibaMicaUrl',
-      function ($resource, ngObibaMicaUrl) {
+    .factory('SetResource', ['$resource', 'CacheService', 'ngObibaMicaUrl',
+      function ($resource, CacheService, ngObibaMicaUrl) {
         const url = ngObibaMicaUrl.getUrl('SetResource');
         return $resource(url, {}, {
           'get': {
             method: 'GET',
             params: {type: '@type', id: '@id'},
             errorHandler: true
+          },
+          'delete': {
+            method: 'DELETE',
+            params: {type: '@type', id: '@id'},
+            errorHandler: true,
+            transformResponse: () => {
+              CacheService.clearCache('taxonomyResource');
+              CacheService.clearCache('taxonomiesResource');
+            }
           }
         });
       }])

@@ -12,25 +12,35 @@
 
 (function () {
   ngObibaMica.sets
-    .factory('SetsResource', ['$resource', 'ngObibaMicaUrl',
-      function ($resource, ngObibaMicaUrl) {
+    .factory('SetsResource', ['$resource', 'CacheService', 'ngObibaMicaUrl',
+      function ($resource, CacheService, ngObibaMicaUrl) {
         return $resource(ngObibaMicaUrl.getUrl('SetsResource'), {}, {
           'save': {
             method: 'POST',
             params: {type: '@type'},
-            errorHandler: true
+            errorHandler: true,
+            transformResponse: (data) => {
+              CacheService.clearCache('taxonomyResource');
+              CacheService.clearCache('taxonomiesResource');
+              return JSON.parse(data);
+            }
           }
         });
       }])
 
-    .factory('SetsImportResource', ['$resource', 'ngObibaMicaUrl',
-      function ($resource, ngObibaMicaUrl) {
+    .factory('SetsImportResource', ['$resource', 'CacheService', 'ngObibaMicaUrl',
+      function ($resource, CacheService, ngObibaMicaUrl) {
         return $resource(ngObibaMicaUrl.getUrl('SetsImportResource'), {}, {
           'save': {
             method: 'POST',
             params: {type: '@type'},
             headers: {'Content-Type': 'text/plain'},
-            errorHandler: true
+            errorHandler: true,
+            transformResponse: (data) => {
+              CacheService.clearCache('taxonomyResource');
+              CacheService.clearCache('taxonomiesResource');
+              return JSON.parse(data);
+            }
           }
         });
       }]);
