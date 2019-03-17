@@ -84,6 +84,8 @@ class CartDocumentsTableController extends DocumentsSetTableComponentController 
     this.pagination.totalHits = this.documents ? this.documents.total : 0;
     this.pagination.currentPage = this.documents ? this.documents.from / this.documents.limit + 1 : 0;
     this.pagination.itemsPerPage = this.documents ? this.documents.limit : 0;
+    this.pagination.pageCount = Math.ceil (this.pagination.totalHits / this.pagination.itemsPerPage);
+    this.pagination.currentPage = this.documents ? this.documents.from / this.documents.limit + 1 : 0;
     this.pagination.from = this.documents ? this.documents.from + 1 : 0;
     const documentCounts = this.documents && this.documents[this.type] ? this.documents[this.type].length : 0;
     this.pagination.to = this.documents ? this.documents.from + documentCounts : 0;

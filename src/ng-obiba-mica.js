@@ -100,6 +100,7 @@ function NgObibaMicaTemplateUrlFactory() {
       'obiba.mica.access',
       'obiba.mica.search',
       'obiba.mica.analysis',
+      'obiba.mica.sets',
       'obiba.mica.graphics',
       'obiba.mica.localized',
       'obiba.mica.fileBrowser',
