@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-03-15
+ * Date: 2019-03-17
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -91,6 +91,7 @@ function NgObibaMicaTemplateUrlFactory() {
         'obiba.mica.access',
         'obiba.mica.search',
         'obiba.mica.analysis',
+        'obiba.mica.sets',
         'obiba.mica.graphics',
         'obiba.mica.localized',
         'obiba.mica.fileBrowser',
@@ -438,6 +439,35 @@ function NgObibaMicaTemplateUrlFactory() {
         }]);
 })();
 //# sourceMappingURL=utils.js.map
+/*
+ * Copyright (c) 2018 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+"use strict";
+var ApplicationCacheService = /** @class */ (function () {
+    function ApplicationCacheService($cacheFactory, $log) {
+        this.$cacheFactory = $cacheFactory;
+        this.$log = $log;
+    }
+    ApplicationCacheService.prototype.clearCache = function (key) {
+        var cache = this.$cacheFactory.get(key);
+        if (cache) {
+            cache.removeAll();
+        }
+    };
+    ApplicationCacheService.prototype.getCache = function (key) {
+        return this.$cacheFactory.get(key);
+    };
+    ApplicationCacheService.$inject = ["$cacheFactory", "$log"];
+    return ApplicationCacheService;
+}());
+ngObibaMica.utils.service("ApplicationCacheService", ApplicationCacheService);
+//# sourceMappingURL=cache-service22.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
@@ -2595,14 +2625,23 @@ ngObibaMica.sets = angular.module('obiba.mica.sets', [
 'use strict';
 (function () {
     ngObibaMica.sets
-        .factory('SetResource', ['$resource', 'ngObibaMicaUrl',
-        function ($resource, ngObibaMicaUrl) {
+        .factory('SetResource', ['$resource', 'ApplicationCacheService', 'ngObibaMicaUrl',
+        function ($resource, ApplicationCacheService, ngObibaMicaUrl) {
             var url = ngObibaMicaUrl.getUrl('SetResource');
             return $resource(url, {}, {
                 'get': {
                     method: 'GET',
                     params: { type: '@type', id: '@id' },
                     errorHandler: true
+                },
+                'delete': {
+                    method: 'DELETE',
+                    params: { type: '@type', id: '@id' },
+                    errorHandler: true,
+                    transformResponse: function () {
+                        ApplicationCacheService.clearCache('taxonomyResource');
+                        ApplicationCacheService.clearCache('taxonomiesResource');
+                    }
                 }
             });
         }])
@@ -2697,24 +2736,34 @@ ngObibaMica.sets = angular.module('obiba.mica.sets', [
 'use strict';
 (function () {
     ngObibaMica.sets
-        .factory('SetsResource', ['$resource', 'ngObibaMicaUrl',
-        function ($resource, ngObibaMicaUrl) {
+        .factory('SetsResource', ['$resource', 'ApplicationCacheService', 'ngObibaMicaUrl',
+        function ($resource, ApplicationCacheService, ngObibaMicaUrl) {
             return $resource(ngObibaMicaUrl.getUrl('SetsResource'), {}, {
                 'save': {
                     method: 'POST',
                     params: { type: '@type' },
-                    errorHandler: true
+                    errorHandler: true,
+                    transformResponse: function (data) {
+                        ApplicationCacheService.clearCache('taxonomyResource');
+                        ApplicationCacheService.clearCache('taxonomiesResource');
+                        return JSON.parse(data);
+                    }
                 }
             });
         }])
-        .factory('SetsImportResource', ['$resource', 'ngObibaMicaUrl',
-        function ($resource, ngObibaMicaUrl) {
+        .factory('SetsImportResource', ['$resource', 'ApplicationCacheService', 'ngObibaMicaUrl',
+        function ($resource, ApplicationCacheService, ngObibaMicaUrl) {
             return $resource(ngObibaMicaUrl.getUrl('SetsImportResource'), {}, {
                 'save': {
                     method: 'POST',
                     params: { type: '@type' },
                     headers: { 'Content-Type': 'text/plain' },
-                    errorHandler: true
+                    errorHandler: true,
+                    transformResponse: function (data) {
+                        ApplicationCacheService.clearCache('taxonomyResource');
+                        ApplicationCacheService.clearCache('taxonomiesResource');
+                        return JSON.parse(data);
+                    }
                 }
             });
         }]);
@@ -3169,6 +3218,7 @@ var DocumentsSetTableComponentController = /** @class */ (function () {
             from: 0,
             itemsPerPage: 10,
             maxSize: 3,
+            pageCount: 1,
             to: 0,
             totalHits: 0,
         };
@@ -3567,6 +3617,8 @@ var CartDocumentsTableController = /** @class */ (function (_super) {
         this.pagination.totalHits = this.documents ? this.documents.total : 0;
         this.pagination.currentPage = this.documents ? this.documents.from / this.documents.limit + 1 : 0;
         this.pagination.itemsPerPage = this.documents ? this.documents.limit : 0;
+        this.pagination.pageCount = Math.ceil(this.pagination.totalHits / this.pagination.itemsPerPage);
+        this.pagination.currentPage = this.documents ? this.documents.from / this.documents.limit + 1 : 0;
         this.pagination.from = this.documents ? this.documents.from + 1 : 0;
         var documentCounts = this.documents && this.documents[this.type] ? this.documents[this.type].length : 0;
         this.pagination.to = this.documents ? this.documents.from + documentCounts : 0;
@@ -3682,6 +3734,7 @@ var VariablesSetTableComponentController = /** @class */ (function (_super) {
         this.pagination.totalHits = this.documents ? this.documents.total : 0;
         this.pagination.currentPage = this.documents ? this.documents.from / this.documents.limit + 1 : 0;
         this.pagination.itemsPerPage = this.documents ? this.documents.limit : 0;
+        this.pagination.pageCount = Math.ceil(this.pagination.totalHits / this.pagination.itemsPerPage);
         this.pagination.from = this.documents ? this.documents.from + 1 : 0;
         var documentCounts = this.documents && this.documents[this.type] ? this.documents[this.type].length : 0;
         this.pagination.to = this.documents ? this.documents.from + documentCounts : 0;
@@ -3903,7 +3956,8 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
         'NOTIFICATION_EVENTS',
         'AlertService',
         'ngObibaMicaUrl',
-        function ($rootScope, $scope, $route, $location, ObibaSearchOptions, ngObibaMicaSetsTemplateUrl, MetaTaxonomyService, SetsResource, SetResource, SetService, NOTIFICATION_EVENTS, AlertService, ngObibaMicaUrl) {
+        'ServerErrorUtils',
+        function ($rootScope, $scope, $route, $location, ObibaSearchOptions, ngObibaMicaSetsTemplateUrl, MetaTaxonomyService, SetsResource, SetResource, SetService, NOTIFICATION_EVENTS, AlertService, ngObibaMicaUrl, ServerErrorUtils) {
             var searchTaxonomyDisplay = {
                 variable: ObibaSearchOptions.variables.showSearchTab,
                 dataset: ObibaSearchOptions.datasets.showSearchTab,
@@ -3957,6 +4011,12 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
                                 }
                                 selectSetId(setToSelect);
                             }
+                        }).catch(function (response) {
+                            AlertService.alert({
+                                id: 'MainController',
+                                type: 'danger',
+                                msg: ServerErrorUtils.buildMessage(response)
+                            });
                         });
                     });
                 });
@@ -5447,28 +5507,26 @@ var AbstractSelectionsDecorator = /** @class */ (function () {
                     transformResponse: function (data) {
                         var parsedResponse = JSON.parse(data);
                         var cartSet = SetService.getCartSet(type);
-                        if (cartSet) {
-                            var workingDto;
-                            if (type === 'variables') {
-                                workingDto = parsedResponse.variableResultDto;
-                            }
-                            else if (type === 'datasets') {
-                                workingDto = parsedResponse.datasetResultDto;
-                            }
-                            else if (type === 'studies') {
-                                workingDto = parsedResponse.studyResultDto;
-                            }
-                            else if (type === 'networks') {
-                                workingDto = parsedResponse.networkResultDto;
-                            }
-                            if (workingDto && Array.isArray(workingDto.aggs)) {
-                                workingDto.aggs.filter(function (agg) { return agg.aggregation === 'sets'; }).forEach(function (setsAgg) {
-                                    var terms = setsAgg['obiba.mica.TermsAggregationResultDto.terms'];
-                                    if (Array.isArray(terms)) {
-                                        setsAgg['obiba.mica.TermsAggregationResultDto.terms'] = terms.filter(function (term) { return term.title || term.key === cartSet.id; });
-                                    }
-                                });
-                            }
+                        var workingDto;
+                        if (type === 'variables') {
+                            workingDto = parsedResponse.variableResultDto;
+                        }
+                        else if (type === 'datasets') {
+                            workingDto = parsedResponse.datasetResultDto;
+                        }
+                        else if (type === 'studies') {
+                            workingDto = parsedResponse.studyResultDto;
+                        }
+                        else if (type === 'networks') {
+                            workingDto = parsedResponse.networkResultDto;
+                        }
+                        if (workingDto && Array.isArray(workingDto.aggs)) {
+                            workingDto.aggs.filter(function (agg) { return agg.aggregation === 'sets'; }).forEach(function (setsAgg) {
+                                var terms = setsAgg['obiba.mica.TermsAggregationResultDto.terms'];
+                                if (Array.isArray(terms)) {
+                                    setsAgg['obiba.mica.TermsAggregationResultDto.terms'] = terms.filter(function (term) { return term.title || term.key === (cartSet || {}).id; });
+                                }
+                            });
                         }
                         return parsedResponse;
                     }
@@ -7114,12 +7172,6 @@ function typeToTarget(type) {
 }
 (function () {
     function RqlQueryService($q, $log, TaxonomiesResource, TaxonomyResource, LocalizedValues, VocabularyService, RqlQueryUtils, ngObibaMicaSearch) {
-        var taxonomiesCache = {
-            variable: null,
-            dataset: null,
-            study: null,
-            network: null
-        };
         var self = this;
         var searchOptions = ngObibaMicaSearch.getOptions();
         this.findItemNodeById = function (root, targetId, result, strict) {
@@ -7467,22 +7519,6 @@ function typeToTarget(type) {
                 }
             }
         };
-        this.getTaxonomyByTarget = function (target) {
-            var deferred = $q.defer();
-            var taxonomy = taxonomiesCache[target];
-            if (taxonomy) {
-                deferred.resolve(taxonomy);
-            }
-            else {
-                TaxonomiesResource.get({
-                    target: target
-                }).$promise.then(function (response) {
-                    taxonomiesCache[target] = response;
-                    deferred.resolve(response);
-                });
-            }
-            return deferred.promise;
-        };
         /**
          * Builders registry
          *
@@ -7490,14 +7526,16 @@ function typeToTarget(type) {
          */
         this.builders = function (target, rootRql, rootItem, lang) {
             var deferred = $q.defer();
-            function build(rootRql, rootItem) {
-                var builder = new CriteriaBuilder(rootRql, rootItem, taxonomiesCache[target], LocalizedValues, lang);
+            function build(rootRql, rootItem, taxonomies) {
+                var builder = new CriteriaBuilder(rootRql, rootItem, taxonomies, LocalizedValues, lang);
                 builder.initialize(target);
                 builder.build();
                 deferred.resolve({ root: builder.getRootItem(), map: builder.getLeafItemMap() });
             }
-            self.getTaxonomyByTarget(target).then(function () {
-                build(rootRql, rootItem);
+            TaxonomiesResource.get({ target: target })
+                .$promise
+                .then(function (taxonomies) {
+                build(rootRql, rootItem, taxonomies);
             });
             return deferred.promise;
         };
@@ -21236,7 +21274,7 @@ angular.module("sets/components/cart-documents-table/component.html", []).run(["
     "    <a href=\"\" ng-click=\"$ctrl.clearSet()\" ng-disabled=\"!$ctrl.hasSelections()\" class=\"action btn btn-danger btn-responsive\">\n" +
     "      <i class=\"fa fa-trash-o\"></i></a>\n" +
     "  </div>\n" +
-    "  <div ng-show=\"$ctrl.pagination.totalHits > 0\" class=\"pull-right\">\n" +
+    "  <div ng-show=\"$ctrl.pagination.pageCount > 1\" class=\"pull-right\">\n" +
     "    <span\n" +
     "          uib-pagination\n" +
     "          total-items=\"$ctrl.pagination.totalHits\"\n" +
@@ -21331,7 +21369,7 @@ angular.module("sets/components/set-variables-table/component.html", []).run(["$
     "    </a>\n" +
     "  </div>\n" +
     "\n" +
-    "  <div ng-show=\"$ctrl.pagination.totalHits > 0\" class=\"pull-right\">\n" +
+    "  <div ng-show=\"$ctrl.pagination.pageCount > 1\" class=\"pull-right\">\n" +
     "    <span\n" +
     "      uib-pagination\n" +
     "      total-items=\"$ctrl.pagination.totalHits\"\n" +
