@@ -17,10 +17,11 @@ interface ICacheService {
   clearCache(key: string): void;
 }
 
-class CacheService implements ICacheService {
-  private static $inject = ["$cacheFactory"];
+class ApplicationCacheService implements ICacheService {
+  private static $inject = ["$cacheFactory", "$log"];
 
-  constructor(private $cacheFactory: any) {}
+  constructor(private $cacheFactory: any, private $log: any) {
+  }
 
   public clearCache(key: string): void {
     const cache = this.$cacheFactory.get(key);
@@ -35,4 +36,4 @@ class CacheService implements ICacheService {
 
 }
 
-ngObibaMica.utils.service("CacheService", CacheService);
+ngObibaMica.utils.service("ApplicationCacheService", ApplicationCacheService);

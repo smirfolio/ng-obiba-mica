@@ -63,6 +63,7 @@ abstract class DocumentsSetTableComponentController implements IDocumentsSetTabl
       from: 0,
       itemsPerPage: 10,
       maxSize: 3,
+      pageCount: 1,
       to: 0,
       totalHits: 0,
     };

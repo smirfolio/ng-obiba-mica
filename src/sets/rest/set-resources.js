@@ -12,8 +12,8 @@
 
 (function () {
   ngObibaMica.sets
-    .factory('SetResource', ['$resource', 'CacheService', 'ngObibaMicaUrl',
-      function ($resource, CacheService, ngObibaMicaUrl) {
+    .factory('SetResource', ['$resource', 'ApplicationCacheService', 'ngObibaMicaUrl',
+      function ($resource, ApplicationCacheService, ngObibaMicaUrl) {
         const url = ngObibaMicaUrl.getUrl('SetResource');
         return $resource(url, {}, {
           'get': {
@@ -26,8 +26,8 @@
             params: {type: '@type', id: '@id'},
             errorHandler: true,
             transformResponse: () => {
-              CacheService.clearCache('taxonomyResource');
-              CacheService.clearCache('taxonomiesResource');
+              ApplicationCacheService.clearCache('taxonomyResource');
+              ApplicationCacheService.clearCache('taxonomiesResource');
             }
           }
         });

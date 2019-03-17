@@ -22,7 +22,7 @@
     <a href="" ng-click="$ctrl.clearSet()" ng-disabled="!$ctrl.hasSelections()" class="action btn btn-danger btn-responsive">
       <i class="fa fa-trash-o"></i></a>
   </div>
-  <div ng-show="$ctrl.pagination.totalHits > 0" class="pull-right">
+  <div ng-show="$ctrl.pagination.pageCount > 1" class="pull-right">
     <span
           uib-pagination
           total-items="$ctrl.pagination.totalHits"

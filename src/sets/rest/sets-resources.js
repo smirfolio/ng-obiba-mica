@@ -12,24 +12,24 @@
 
 (function () {
   ngObibaMica.sets
-    .factory('SetsResource', ['$resource', 'CacheService', 'ngObibaMicaUrl',
-      function ($resource, CacheService, ngObibaMicaUrl) {
+    .factory('SetsResource', ['$resource', 'ApplicationCacheService', 'ngObibaMicaUrl',
+      function ($resource, ApplicationCacheService, ngObibaMicaUrl) {
         return $resource(ngObibaMicaUrl.getUrl('SetsResource'), {}, {
           'save': {
             method: 'POST',
             params: {type: '@type'},
             errorHandler: true,
             transformResponse: (data) => {
-              CacheService.clearCache('taxonomyResource');
-              CacheService.clearCache('taxonomiesResource');
+              ApplicationCacheService.clearCache('taxonomyResource');
+              ApplicationCacheService.clearCache('taxonomiesResource');
               return JSON.parse(data);
             }
           }
         });
       }])
 
-    .factory('SetsImportResource', ['$resource', 'CacheService', 'ngObibaMicaUrl',
-      function ($resource, CacheService, ngObibaMicaUrl) {
+    .factory('SetsImportResource', ['$resource', 'ApplicationCacheService', 'ngObibaMicaUrl',
+      function ($resource, ApplicationCacheService, ngObibaMicaUrl) {
         return $resource(ngObibaMicaUrl.getUrl('SetsImportResource'), {}, {
           'save': {
             method: 'POST',
@@ -37,8 +37,8 @@
             headers: {'Content-Type': 'text/plain'},
             errorHandler: true,
             transformResponse: (data) => {
-              CacheService.clearCache('taxonomyResource');
-              CacheService.clearCache('taxonomiesResource');
+              ApplicationCacheService.clearCache('taxonomyResource');
+              ApplicationCacheService.clearCache('taxonomiesResource');
               return JSON.parse(data);
             }
           }
