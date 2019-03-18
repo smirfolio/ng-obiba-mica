@@ -47,7 +47,8 @@
     "typeToTarget": true,
     "QUERY_TARGETS": true,
     "QUERY_TYPES": true,
-    "SetsAlertBuilder": true
+    "SetsAlertBuilder": true,
+    "TaxonomyCartFilter": true
   }
 
 }
