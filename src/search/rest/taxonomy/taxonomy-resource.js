@@ -25,24 +25,7 @@
               var taxonomy = JSON.parse(data);
 
               if (taxonomy.name.startsWith('Mica_') && !taxonomy.name.endsWith('_taxonomy')) {
-                var cartSet = SetService.getCartSet(targetToType(taxonomy.name.split('Mica_')[1]));
-                if (cartSet) {
-                  (taxonomy.vocabularies || []).filter((vocabulary) => vocabulary.name === 'sets')
-                  .forEach((setsVocabulary) => {
-                    if (Array.isArray(setsVocabulary.terms)) {
-                      var filteredTerms = setsVocabulary.terms.filter((term) => {
-                        if (term.name === cartSet.id) {
-                          $translate(['sets.cart.title']).then((translation) => {
-                            term.title = [ {locale: $translate.use(), text: translation['sets.cart.title']} ];
-                          });
-                        }
-                        return Array.isArray(term.title) || term.name === cartSet.id;
-                      });
-
-                      setsVocabulary.terms = filteredTerms;
-                    }
-                  });
-                }
+                TaxonomyCartFilter.filter(SetService, taxonomy, $translate);
               }
 
               return taxonomy;
