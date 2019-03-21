@@ -36,6 +36,8 @@ class CartDocumentsTableController extends DocumentsSetTableComponentController 
       this.showStudies = !this.SetService.isSingleStudy();
       this.showVariableType = this.SetService.hasHarmonizedDatasets();
       this.currentUserCanCreateSets = config.currentUserCanCreateSets;
+
+      this.micaConfigShowAnalysis = config.isSetsAnalysisEnabled;
     });
   }
 
