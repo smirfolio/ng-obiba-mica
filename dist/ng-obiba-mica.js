@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-03-18
+ * Date: 2019-03-21
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -3222,9 +3222,10 @@ var DocumentsSetTableComponentController = /** @class */ (function () {
             to: 0,
             totalHits: 0,
         };
+        this.micaConfigShowAnalysis = true;
     }
     DocumentsSetTableComponentController.prototype.showAnalysis = function () {
-        return this.AnalysisConfigService.showAnalysis();
+        return this.AnalysisConfigService.showAnalysis() && this.micaConfigShowAnalysis;
     };
     DocumentsSetTableComponentController.prototype.hasSelections = function () {
         return this.allSelected || this.getSelectedDocumentIds().length > 0;
@@ -3570,6 +3571,7 @@ var CartDocumentsTableController = /** @class */ (function (_super) {
             _this.showStudies = !_this.SetService.isSingleStudy();
             _this.showVariableType = _this.SetService.hasHarmonizedDatasets();
             _this.currentUserCanCreateSets = config.currentUserCanCreateSets;
+            _this.micaConfigShowAnalysis = config.isSetsAnalysisEnabled;
         });
         return _this;
     }
@@ -3710,6 +3712,7 @@ var VariablesSetTableComponentController = /** @class */ (function (_super) {
         SetService.serverConfig().then(function (config) {
             _this.showStudies = !_this.SetService.isSingleStudy();
             _this.showVariableType = _this.SetService.hasHarmonizedDatasets();
+            _this.micaConfigShowAnalysis = config.isSetsAnalysisEnabled;
         });
         return _this;
     }
