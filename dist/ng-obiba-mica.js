@@ -3710,8 +3710,6 @@ var VariablesSetTableComponentController = /** @class */ (function (_super) {
         _this.LocalizedValues = LocalizedValues;
         _this.$uibModal = $uibModal;
         SetService.serverConfig().then(function (config) {
-            _this.showStudies = !_this.SetService.isSingleStudy();
-            _this.showVariableType = _this.SetService.hasHarmonizedDatasets();
             _this.micaConfigShowAnalysis = config.isSetsAnalysisEnabled;
         });
         return _this;
@@ -3793,6 +3791,7 @@ var DocumentSetTableComponent = /** @class */ (function () {
             documents: "<",
             onPageChange: "<",
             onUpdate: "<",
+            options: "<",
             setId: "<",
             type: "<",
         };
@@ -3961,18 +3960,25 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
         'ngObibaMicaUrl',
         'ServerErrorUtils',
         function ($rootScope, $scope, $route, $location, ObibaSearchOptions, ngObibaMicaSetsTemplateUrl, MetaTaxonomyService, SetsResource, SetResource, SetService, NOTIFICATION_EVENTS, AlertService, ngObibaMicaUrl, ServerErrorUtils) {
+            // TODO uncomment when other sets are implemented
+            // var searchTaxonomyDisplay = {
+            //   variable: ObibaSearchOptions.variables.showSearchTab,
+            //   dataset: ObibaSearchOptions.datasets.showSearchTab,
+            //   study: ObibaSearchOptions.studies.showSearchTab,
+            //   network: ObibaSearchOptions.networks.showSearchTab
+            // };
             var searchTaxonomyDisplay = {
-                variable: ObibaSearchOptions.variables.showSearchTab,
-                dataset: ObibaSearchOptions.datasets.showSearchTab,
-                study: ObibaSearchOptions.studies.showSearchTab,
-                network: ObibaSearchOptions.networks.showSearchTab
+                variable: ObibaSearchOptions.variables.showSearchTab
             };
             var limit = 100;
             var registeredlocationChangeEvent;
             $scope.setsHeaderTemplateUrl = ngObibaMicaSetsTemplateUrl.getHeaderUrl('sets');
             // use in `initSets` function instead of hard-coded ['variable'] when resources are available
-            $scope.tabs = ObibaSearchOptions.targetTabsOrder.filter(function (target) {
-                return searchTaxonomyDisplay[target];
+            $scope.tabs = ObibaSearchOptions.targetTabsOrder
+                .filter(function (target) { return searchTaxonomyDisplay[target]; })
+                .map(function (target) {
+                var type = targetToType(target);
+                return { type: type, options: ObibaSearchOptions[type] };
             });
             $scope.sets = {};
             $scope.checked = {};
@@ -21412,9 +21418,9 @@ angular.module("sets/components/set-variables-table/component.html", []).run(["$
     "        </th>\n" +
     "        <th class=\"col-width-md\" translate>taxonomy.target.variable</th>\n" +
     "        <th class=\"col-width-md\" translate>search.variable.label</th>\n" +
-    "        <th ng-if=\"$ctrl.showVariableType\" translate>type</th>\n" +
-    "        <th ng-if=\"$ctrl.showStudies\" translate>taxonomy.target.study</th>\n" +
-    "        <th translate>taxonomy.target.dataset</th>\n" +
+    "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesTypeColumn\" translate>type</th>\n" +
+    "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesStudiesColumn\" translate>taxonomy.target.study</th>\n" +
+    "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesDatasetsColumn\" translate>taxonomy.target.dataset</th>\n" +
     "      </thead>\n" +
     "      <tbody>\n" +
     "        <tr ng-repeat=\"row in $ctrl.table.rows\">\n" +
@@ -21423,9 +21429,9 @@ angular.module("sets/components/set-variables-table/component.html", []).run(["$
     "          </td>\n" +
     "          <td><a href=\"{{row[1].link}}\">{{row[1].value}}</a></td>\n" +
     "          <td>{{row[2].value}}</td>\n" +
-    "          <td ng-if=\"$ctrl.showVariableType\">{{'search.variable.' + row[3].value.toLowerCase() | translate}}</td>\n" +
-    "          <td ng-if=\"$ctrl.showStudies\"><a href=\"{{row[3].link}}\">{{row[4].value}}</a></td>\n" +
-    "          <td><a href=\"{{row[5].link}}\">{{row[5].value}}</a></td>\n" +
+    "          <td ng-if=\"$ctrl.options.variablesColumn.showVariablesTypeColumn\">{{'search.variable.' + row[3].value.toLowerCase() | translate}}</td>\n" +
+    "          <td ng-if=\"$ctrl.options.variablesColumn.showVariablesStudiesColumn\"><a href=\"{{row[3].link}}\">{{row[4].value}}</a></td>\n" +
+    "          <td ng-if=\"$ctrl.options.variablesColumn.showVariablesDatasetsColumn\"><a href=\"{{row[5].link}}\">{{row[5].value}}</a></td>\n" +
     "        </tr>\n" +
     "      </tbody>\n" +
     "    </table>\n" +
@@ -21490,7 +21496,15 @@ angular.module("sets/views/sets.html", []).run(["$templateCache", function($temp
     "\n" +
     "    <div class=\"col-md-9\">\n" +
     "      <span ng-if=\"loading\" class=\"voffset2 loading\"></span>\n" +
-    "      <set-variables-table set-id=\"selectedSet.id\" type=\"'variables'\" documents=\"documents\" on-update=\"onUpdate\" on-page-change=\"onPaginate\"></set-variables-table>\n" +
+    "      <div ng-repeat=\"tab in tabs\" >\n" +
+    "        <set-variables-table ng-if=\"'variables' === tab.type\"\n" +
+    "                             set-id=\"selectedSet.id\"\n" +
+    "                             type=\"tab.type\"\n" +
+    "                             options=\"tab.options\"\n" +
+    "                             documents=\"documents\"\n" +
+    "                             on-update=\"onUpdate\"\n" +
+    "                             on-page-change=\"onPaginate\"></set-variables-table>\n" +
+    "      </div>\n" +
     "    </div>\n" +
     "  </div>\n" +
     "</div>\n" +
