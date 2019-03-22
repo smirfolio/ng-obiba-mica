@@ -36,7 +36,15 @@
 
     <div class="col-md-9">
       <span ng-if="loading" class="voffset2 loading"></span>
-      <set-variables-table set-id="selectedSet.id" type="'variables'" documents="documents" on-update="onUpdate" on-page-change="onPaginate"></set-variables-table>
+      <div ng-repeat="tab in tabs" >
+        <set-variables-table ng-if="'variables' === tab.type"
+                             set-id="selectedSet.id"
+                             type="tab.type"
+                             options="tab.options"
+                             documents="documents"
+                             on-update="onUpdate"
+                             on-page-change="onPaginate"></set-variables-table>
+      </div>
     </div>
   </div>
 </div>
