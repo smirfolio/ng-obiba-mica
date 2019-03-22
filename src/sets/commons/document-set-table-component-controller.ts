@@ -44,6 +44,8 @@ abstract class DocumentsSetTableComponentController implements IDocumentsSetTabl
   protected allPageSelected: any;
   protected selections: any;
 
+  protected micaConfigShowAnalysis: boolean;
+
   constructor(
     protected SetService: ISetService,
     protected AnalysisConfigService: any,
@@ -67,10 +69,12 @@ abstract class DocumentsSetTableComponentController implements IDocumentsSetTabl
       to: 0,
       totalHits: 0,
     };
+
+    this.micaConfigShowAnalysis = true;
   }
 
   public showAnalysis(): boolean {
-    return this.AnalysisConfigService.showAnalysis();
+    return this.AnalysisConfigService.showAnalysis() && this.micaConfigShowAnalysis;
   }
 
   public hasSelections(): boolean {

@@ -22,6 +22,8 @@ class VariablesSetTableComponentController extends DocumentsSetTableComponentCon
     SetService.serverConfig().then((config) => {
       this.showStudies = !this.SetService.isSingleStudy();
       this.showVariableType = this.SetService.hasHarmonizedDatasets();
+
+      this.micaConfigShowAnalysis = config.isSetsAnalysisEnabled;
     });
   }
 
