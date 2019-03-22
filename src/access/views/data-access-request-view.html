@@ -67,13 +67,15 @@
           class="btn btn-primary" title="{{'edit' | translate}}">
           <i class="fa fa-pencil-square-o"></i>
         </a>
-        <a ng-if="dataAccessForm.downloadTemplate === false" ng-click="printForm()"
+        <span ng-if="tabs.activeTab === TAB_NAMES.form">
+          <a ng-if="dataAccessForm.downloadTemplate === false" ng-click="printForm()"
            class="btn btn-default" title="{{'global.print' | translate}}">
-          <i class="fa fa-print"></i> <span translate>global.print</span>
-        </a>
-        <a ng-if="dataAccessForm.downloadTemplate === true" target="_self" href="{{requestDownloadUrl}}" class="btn btn-default">
-          <i class="fa fa-download"></i> <span>{{config.downloadButtonCaption || 'download' | translate}}</span>
-        </a>
+            <i class="fa fa-print"></i> <span translate>global.print</span>
+          </a>
+          <a ng-if="dataAccessForm.downloadTemplate === true" target="_self" href="{{requestDownloadUrl}}" class="btn btn-default">
+            <i class="fa fa-download"></i> <span>{{config.downloadButtonCaption || 'download' | translate}}</span>
+          </a>
+        </span>
         <a ng-click="delete()"
           ng-if="actions.canDelete(dataAccessRequest)"
           class="btn btn-danger" title="{{'delete' | translate}}">
