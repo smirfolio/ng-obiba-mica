@@ -189,11 +189,16 @@
       ngObibaMicaUrl,
       ServerErrorUtils) {
 
+    // TODO uncomment when other sets are implemented
+    // var searchTaxonomyDisplay = {
+    //   variable: ObibaSearchOptions.variables.showSearchTab,
+    //   dataset: ObibaSearchOptions.datasets.showSearchTab,
+    //   study: ObibaSearchOptions.studies.showSearchTab,
+    //   network: ObibaSearchOptions.networks.showSearchTab
+    // };
+
     var searchTaxonomyDisplay = {
-      variable: ObibaSearchOptions.variables.showSearchTab,
-      dataset: ObibaSearchOptions.datasets.showSearchTab,
-      study: ObibaSearchOptions.studies.showSearchTab,
-      network: ObibaSearchOptions.networks.showSearchTab
+      variable: ObibaSearchOptions.variables.showSearchTab
     };
 
     var limit = 100;
@@ -202,9 +207,12 @@
     $scope.setsHeaderTemplateUrl = ngObibaMicaSetsTemplateUrl.getHeaderUrl('sets');
 
     // use in `initSets` function instead of hard-coded ['variable'] when resources are available
-    $scope.tabs = ObibaSearchOptions.targetTabsOrder.filter(function (target) {
-      return searchTaxonomyDisplay[target];
-    });
+    $scope.tabs = ObibaSearchOptions.targetTabsOrder
+      .filter((target) => searchTaxonomyDisplay[target])
+      .map((target) => {
+        const type = targetToType(target);
+        return {type: type, options: ObibaSearchOptions[type]};
+      });
 
     $scope.sets = {};
     $scope.checked = {};

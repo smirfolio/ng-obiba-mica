@@ -7,9 +7,6 @@ class VariablesSetTableComponentController extends DocumentsSetTableComponentCon
   private static $inject = ["SetService", "AnalysisConfigService", "$log", "$translate", "PageUrlService",
     "LocalizedValues", "$uibModal"];
 
-  public showStudies: boolean;
-  public showVariableType: boolean;
-
   constructor(
     protected SetService: ISetService,
     protected AnalysisConfigService: any,
@@ -20,9 +17,6 @@ class VariablesSetTableComponentController extends DocumentsSetTableComponentCon
     protected $uibModal: any) {
     super(SetService, AnalysisConfigService, $log, $uibModal);
     SetService.serverConfig().then((config) => {
-      this.showStudies = !this.SetService.isSingleStudy();
-      this.showVariableType = this.SetService.hasHarmonizedDatasets();
-
       this.micaConfigShowAnalysis = config.isSetsAnalysisEnabled;
     });
   }
@@ -117,6 +111,7 @@ class DocumentSetTableComponent implements ng.IComponentOptions {
       documents: "<",
       onPageChange: "<",
       onUpdate: "<",
+      options: "<",
       setId: "<",
       type: "<",
     };
