@@ -16650,7 +16650,7 @@ angular.module("access/views/data-access-amendment-view.html", []).run(["$templa
     "\n" +
     "    <obiba-alert id=\"DataAccessAmendmentViewController\"></obiba-alert>\n" +
     "\n" +
-    "    <p class=\"help-block pull-left\" ng-if=\"requestEntity.applicant\">\n" +
+    "    <p class=\"help-block col-md-4\" ng-if=\"requestEntity.applicant\">\n" +
     "      <span translate>created-by</span>\n" +
     "      <span ng-if=\"!actions.canViewProfile('mica-data-access-officer')\">\n" +
     "        {{getFullName(requestEntity.profile) || requestEntity.applicant}},\n" +
@@ -17085,7 +17085,7 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "\n" +
     "    <div ng-if=\"validForm\">\n" +
     "\n" +
-    "      <p class=\"help-block pull-left\"><span translate>created-by</span>\n" +
+    "      <p class=\"help-block col-md-4\"><span translate>created-by</span>\n" +
     "        <span ng-if=\"!actions.canViewProfile('mica-data-access-officer')\">\n" +
     "           {{getFullName(dataAccessRequest.profile) || dataAccessRequest.applicant}},\n" +
     "        </span>\n" +
