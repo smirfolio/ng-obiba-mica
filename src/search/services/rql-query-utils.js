@@ -455,6 +455,10 @@
     }
 
     function createSelectionsQuery(parsedQuery, target, maximumLimit, fieldsArray, selections) {
+      var localeQuery = parsedQuery.args.filter(function (query) {
+        return query.name === RQL_NODE.LOCALE;
+      }).pop();
+
       var currentTargetQuery = parsedQuery.args.filter(function (query) {
         return query.name === target;
       }).pop();
@@ -479,7 +483,11 @@
 
       rootQuery.args.push(targetQuery);
 
-      return rootQuery;
+      if (localeQuery) {
+        rootQuery.args.push(localeQuery);
+      }
+
+      return new RqlQuery().serializeArgs(rootQuery.args);
     }
 
     // exports
