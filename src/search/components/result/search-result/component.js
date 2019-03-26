@@ -77,6 +77,11 @@ ngObibaMica.search
       };
 
       $scope.getSelectionsReportUrl = function () {
+        // TODO remove condition when all document page have selections
+        if (QUERY_TYPES.VARIABLES !== $scope.type) {
+          return $scope.getReportUrl();
+        }
+
         const rql = RqlQueryUtils.createSelectionsQuery(
           RqlQueryService.parseQuery($scope.query),
           typeToTarget($scope.type),
@@ -91,7 +96,6 @@ ngObibaMica.search
         });
 
         return ngObibaMicaUrl.getUrl('JoinQuerySearchCsvResource').replace(':type', $scope.type).replace(':query', encodeURI(rql));
-
       };
 
       $scope.getReportUrl = function () {
