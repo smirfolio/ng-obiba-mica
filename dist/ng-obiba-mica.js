@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-03-22
+ * Date: 2019-03-26
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -8371,6 +8371,9 @@ function typeToTarget(type) {
             return new RqlQuery().serializeArgs(parsedQuery.args);
         }
         function createSelectionsQuery(parsedQuery, target, maximumLimit, fieldsArray, selections) {
+            var localeQuery = parsedQuery.args.filter(function (query) {
+                return query.name === RQL_NODE.LOCALE;
+            }).pop();
             var currentTargetQuery = parsedQuery.args.filter(function (query) {
                 return query.name === target;
             }).pop();
@@ -8389,7 +8392,10 @@ function typeToTarget(type) {
                 }
             });
             rootQuery.args.push(targetQuery);
-            return rootQuery;
+            if (localeQuery) {
+                rootQuery.args.push(localeQuery);
+            }
+            return new RqlQuery().serializeArgs(rootQuery.args);
         }
         // exports
         this.vocabularyTermNames = vocabularyTermNames;
@@ -11771,6 +11777,10 @@ ngObibaMica.search
             return $scope.result.list[type + 'ResultDto'].totalHits;
         };
         $scope.getSelectionsReportUrl = function () {
+            // TODO remove condition when all document page have selections
+            if (QUERY_TYPES.VARIABLES !== $scope.type) {
+                return $scope.getReportUrl();
+            }
             var rql = RqlQueryUtils.createSelectionsQuery(RqlQueryService.parseQuery($scope.query), typeToTarget($scope.type), 100000, null, SearchResultSelectionsService.getSelectionIds($scope.type));
             // Using timeout due to digest cycle glitch, this way the selections are cleared.
             $timeout(function () {
