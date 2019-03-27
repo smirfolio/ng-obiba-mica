@@ -12,25 +12,25 @@
 
 (function() {
 
-  function manageCartHelpText($scope, $translate, $cookies) {
-    var cookiesCartHelp = 'micaHideCartHelpText';
+  function manageSetsCartHelpText($scope, $translate, $cookies, optionKey, trKey) {
+    var cookiesSetsCartHelp = optionKey + '_micaHideHelpText';
 
-    $translate(['sets.cart.help'])
+    $translate([trKey])
       .then(function (translation) {
-        if (!$scope.options.CartHelpText && !$cookies.get(cookiesCartHelp)) {
-          $scope.options.CartHelpText = translation['sets.cart.help'];
+        if (!$scope.options[optionKey] && !$cookies.get(cookiesSetsCartHelp)) {
+          $scope.options[optionKey] = translation[trKey];
         }
       });
 
     // Close the cart help box and set the local cookies
     $scope.closeHelpBox = function () {
-      $cookies.put(cookiesCartHelp, true);
-      $scope.options.CartHelpText = null;
+      $cookies.put(cookiesSetsCartHelp, true);
+      $scope.options[optionKey] = null;
     };
 
     // Retrieve from local cookies if user has disabled the cart help box and hide the box if true
-    if ($cookies.get(cookiesCartHelp)) {
-      $scope.options.CartHelpText = null;
+    if ($cookies.get(cookiesSetsCartHelp)) {
+      $scope.options[optionKey] = null;
     }
   }
 
@@ -44,9 +44,10 @@
     'ngObibaMicaSetsTemplateUrl',
     'AlertService',
     'ngObibaMicaUrl',
-    function($scope, $location, $translate, $cookies, SetService, ngObibaMicaSetsTemplateUrl, AlertService, ngObibaMicaUrl) {
+    'ObibaSearchOptions',
+    function($scope, $location, $translate, $cookies, SetService, ngObibaMicaSetsTemplateUrl, AlertService, ngObibaMicaUrl, ObibaSearchOptions) {
       $scope.options = {};
-      manageCartHelpText($scope, $translate, $cookies);
+      manageSetsCartHelpText($scope, $translate, $cookies, 'CartHelpText', 'sets.cart.help');
       $scope.cartHeaderTemplateUrl = ngObibaMicaSetsTemplateUrl.getHeaderUrl('cart');
       $scope.loading = true;
       var limit = 100;
@@ -73,6 +74,26 @@
           .withRedirectUrl(ngObibaMicaUrl.getUrl('SetsPage'))
           .showAlert();
       }
+
+      // TODO uncomment when other sets are implemented
+      // var searchTaxonomyDisplay = {
+      //   variable: ObibaSearchOptions.variables.showSearchTab,
+      //   dataset: ObibaSearchOptions.datasets.showSearchTab,
+      //   study: ObibaSearchOptions.studies.showSearchTab,
+      //   network: ObibaSearchOptions.networks.showSearchTab
+      // };
+
+      var searchTaxonomyDisplay = {
+        variable: ObibaSearchOptions.variables.showSearchTab
+      };
+
+      // use in `initSets` function instead of hard-coded ['variable'] when resources are available
+      $scope.tabs = ObibaSearchOptions.targetTabsOrder
+        .filter((target) => searchTaxonomyDisplay[target])
+        .map((target) => {
+          const type = targetToType(target);
+          return {type: type, options: ObibaSearchOptions[type]};
+        });
 
       $scope.$on('cart-cleared', function(event, type) {
         $scope.loading = true;
@@ -163,6 +184,8 @@
     '$scope',
     '$route',
     '$location',
+    '$cookies',
+    '$translate',
     'ObibaSearchOptions',
     'ngObibaMicaSetsTemplateUrl',
     'MetaTaxonomyService',
@@ -178,6 +201,8 @@
       $scope,
       $route,
       $location,
+      $cookies,
+      $translate,
       ObibaSearchOptions,
       ngObibaMicaSetsTemplateUrl,
       MetaTaxonomyService,
@@ -188,6 +213,9 @@
       AlertService,
       ngObibaMicaUrl,
       ServerErrorUtils) {
+
+      $scope.options = {};
+      manageSetsCartHelpText($scope, $translate, $cookies, 'SetsHelpText','sets.set.help');
 
     // TODO uncomment when other sets are implemented
     // var searchTaxonomyDisplay = {
