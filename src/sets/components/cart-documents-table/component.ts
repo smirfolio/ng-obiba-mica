@@ -155,6 +155,7 @@ class CartDocumentsTableComponent implements ng.IComponentOptions {
       documents: "<",
       onPageChange: "<",
       onUpdate: "<",
+      options: "<",
       type: "<",
     };
     this.controller = CartDocumentsTableController;

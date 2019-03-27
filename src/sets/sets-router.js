@@ -22,7 +22,10 @@ ngObibaMica.sets
         .when('/cart', {
           templateUrl: 'sets/views/cart.html',
           controller: 'CartController',
-          reloadOnSearch: false
+          reloadOnSearch: false,
+          resolve: {
+            ObibaSearchOptions: optionsResolve
+          }
         })
         .when('/sets', {
           templateUrl: 'sets/views/sets.html',

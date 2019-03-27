@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-03-26
+ * Date: 2019-03-27
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -3676,6 +3676,7 @@ var CartDocumentsTableComponent = /** @class */ (function () {
             documents: "<",
             onPageChange: "<",
             onUpdate: "<",
+            options: "<",
             type: "<",
         };
         this.controller = CartDocumentsTableController;
@@ -3814,22 +3815,22 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
  */
 'use strict';
 (function () {
-    function manageCartHelpText($scope, $translate, $cookies) {
-        var cookiesCartHelp = 'micaHideCartHelpText';
-        $translate(['sets.cart.help'])
+    function manageSetsCartHelpText($scope, $translate, $cookies, optionKey, trKey) {
+        var cookiesSetsCartHelp = optionKey + '_micaHideHelpText';
+        $translate([trKey])
             .then(function (translation) {
-            if (!$scope.options.CartHelpText && !$cookies.get(cookiesCartHelp)) {
-                $scope.options.CartHelpText = translation['sets.cart.help'];
+            if (!$scope.options[optionKey] && !$cookies.get(cookiesSetsCartHelp)) {
+                $scope.options[optionKey] = translation[trKey];
             }
         });
         // Close the cart help box and set the local cookies
         $scope.closeHelpBox = function () {
-            $cookies.put(cookiesCartHelp, true);
-            $scope.options.CartHelpText = null;
+            $cookies.put(cookiesSetsCartHelp, true);
+            $scope.options[optionKey] = null;
         };
         // Retrieve from local cookies if user has disabled the cart help box and hide the box if true
-        if ($cookies.get(cookiesCartHelp)) {
-            $scope.options.CartHelpText = null;
+        if ($cookies.get(cookiesSetsCartHelp)) {
+            $scope.options[optionKey] = null;
         }
     }
     ngObibaMica.sets
@@ -3842,9 +3843,10 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
         'ngObibaMicaSetsTemplateUrl',
         'AlertService',
         'ngObibaMicaUrl',
-        function ($scope, $location, $translate, $cookies, SetService, ngObibaMicaSetsTemplateUrl, AlertService, ngObibaMicaUrl) {
+        'ObibaSearchOptions',
+        function ($scope, $location, $translate, $cookies, SetService, ngObibaMicaSetsTemplateUrl, AlertService, ngObibaMicaUrl, ObibaSearchOptions) {
             $scope.options = {};
-            manageCartHelpText($scope, $translate, $cookies);
+            manageSetsCartHelpText($scope, $translate, $cookies, 'CartHelpText', 'sets.cart.help');
             $scope.cartHeaderTemplateUrl = ngObibaMicaSetsTemplateUrl.getHeaderUrl('cart');
             $scope.loading = true;
             var limit = 100;
@@ -3869,6 +3871,23 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
                     .withRedirectUrl(ngObibaMicaUrl.getUrl('SetsPage'))
                     .showAlert();
             }
+            // TODO uncomment when other sets are implemented
+            // var searchTaxonomyDisplay = {
+            //   variable: ObibaSearchOptions.variables.showSearchTab,
+            //   dataset: ObibaSearchOptions.datasets.showSearchTab,
+            //   study: ObibaSearchOptions.studies.showSearchTab,
+            //   network: ObibaSearchOptions.networks.showSearchTab
+            // };
+            var searchTaxonomyDisplay = {
+                variable: ObibaSearchOptions.variables.showSearchTab
+            };
+            // use in `initSets` function instead of hard-coded ['variable'] when resources are available
+            $scope.tabs = ObibaSearchOptions.targetTabsOrder
+                .filter(function (target) { return searchTaxonomyDisplay[target]; })
+                .map(function (target) {
+                var type = targetToType(target);
+                return { type: type, options: ObibaSearchOptions[type] };
+            });
             $scope.$on('cart-cleared', function (event, type) {
                 $scope.loading = true;
                 SetService.getCartDocuments(type, 0, limit).then(onDocuments);
@@ -3949,6 +3968,8 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
         '$scope',
         '$route',
         '$location',
+        '$cookies',
+        '$translate',
         'ObibaSearchOptions',
         'ngObibaMicaSetsTemplateUrl',
         'MetaTaxonomyService',
@@ -3959,7 +3980,9 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
         'AlertService',
         'ngObibaMicaUrl',
         'ServerErrorUtils',
-        function ($rootScope, $scope, $route, $location, ObibaSearchOptions, ngObibaMicaSetsTemplateUrl, MetaTaxonomyService, SetsResource, SetResource, SetService, NOTIFICATION_EVENTS, AlertService, ngObibaMicaUrl, ServerErrorUtils) {
+        function ($rootScope, $scope, $route, $location, $cookies, $translate, ObibaSearchOptions, ngObibaMicaSetsTemplateUrl, MetaTaxonomyService, SetsResource, SetResource, SetService, NOTIFICATION_EVENTS, AlertService, ngObibaMicaUrl, ServerErrorUtils) {
+            $scope.options = {};
+            manageSetsCartHelpText($scope, $translate, $cookies, 'SetsHelpText', 'sets.set.help');
             // TODO uncomment when other sets are implemented
             // var searchTaxonomyDisplay = {
             //   variable: ObibaSearchOptions.variables.showSearchTab,
@@ -4168,7 +4191,10 @@ ngObibaMica.sets
             .when('/cart', {
             templateUrl: 'sets/views/cart.html',
             controller: 'CartController',
-            reloadOnSearch: false
+            reloadOnSearch: false,
+            resolve: {
+                ObibaSearchOptions: optionsResolve
+            }
         })
             .when('/sets', {
             templateUrl: 'sets/views/sets.html',
@@ -21333,9 +21359,9 @@ angular.module("sets/components/cart-documents-table/component.html", []).run(["
     "        </th>\n" +
     "        <th class=\"col-width-md\" translate>taxonomy.target.variable</th>\n" +
     "        <th class=\"col-width-md\" translate>search.variable.label</th>\n" +
-    "        <th ng-if=\"$ctrl.showVariableType\" translate>type</th>\n" +
-    "        <th ng-if=\"$ctrl.showStudies\" translate>taxonomy.target.study</th>\n" +
-    "        <th translate>taxonomy.target.dataset</th>\n" +
+    "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesTypeColumn\" translate>type</th>\n" +
+    "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesStudiesColumn\" translate>taxonomy.target.study</th>\n" +
+    "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesDatasetsColumn\" translate>taxonomy.target.dataset</th>\n" +
     "      </thead>\n" +
     "      <tbody>\n" +
     "        <tr ng-repeat=\"row in $ctrl.table.rows\">\n" +
@@ -21347,9 +21373,9 @@ angular.module("sets/components/cart-documents-table/component.html", []).run(["
     "          </td>\n" +
     "          <td><a href=\"{{row[1].link}}\">{{row[1].value}}</a></td>\n" +
     "          <td>{{row[2].value}}</td>\n" +
-    "          <td ng-if=\"$ctrl.showVariableType\">{{'search.variable.' + row[3].value.toLowerCase() | translate}}</td>\n" +
-    "          <td ng-if=\"$ctrl.showStudies\"><a href=\"{{row[3].link}}\">{{row[4].value}}</a></td>\n" +
-    "          <td><a href=\"{{row[5].link}}\">{{row[5].value}}</a></td>\n" +
+    "          <td ng-if=\"$ctrl.options.variablesColumn.showVariablesTypeColumn\">{{'search.variable.' + row[3].value.toLowerCase() | translate}}</td>\n" +
+    "          <td ng-if=\"$ctrl.options.variablesColumn.showVariablesStudiesColumn\"><a href=\"{{row[4].link}}\">{{row[4].value}}</a></td>\n" +
+    "          <td ng-if=\"$ctrl.options.variablesColumn.showVariablesDatasetsColumn\"><a href=\"{{row[5].link}}\">{{row[5].value}}</a></td>\n" +
     "        </tr>\n" +
     "      </tbody>\n" +
     "    </table>\n" +
@@ -21440,7 +21466,7 @@ angular.module("sets/components/set-variables-table/component.html", []).run(["$
     "          <td><a href=\"{{row[1].link}}\">{{row[1].value}}</a></td>\n" +
     "          <td>{{row[2].value}}</td>\n" +
     "          <td ng-if=\"$ctrl.options.variablesColumn.showVariablesTypeColumn\">{{'search.variable.' + row[3].value.toLowerCase() | translate}}</td>\n" +
-    "          <td ng-if=\"$ctrl.options.variablesColumn.showVariablesStudiesColumn\"><a href=\"{{row[3].link}}\">{{row[4].value}}</a></td>\n" +
+    "          <td ng-if=\"$ctrl.options.variablesColumn.showVariablesStudiesColumn\"><a href=\"{{row[4].link}}\">{{row[4].value}}</a></td>\n" +
     "          <td ng-if=\"$ctrl.options.variablesColumn.showVariablesDatasetsColumn\"><a href=\"{{row[5].link}}\">{{row[5].value}}</a></td>\n" +
     "        </tr>\n" +
     "      </tbody>\n" +
@@ -21457,12 +21483,17 @@ angular.module("sets/views/cart.html", []).run(["$templateCache", function($temp
     "    <span translate>variables</span>\n" +
     "    <span ng-if=\"loading\" class=\"voffset2 loading\"></span>\n" +
     "  </h3>\n" +
-    "  <cart-documents-table \n" +
-    "    type=\"'variables'\" \n" +
-    "    documents=\"variables\"\n" +
-    "    on-update=\"onUpdate\"\n" +
-    "    on-page-change=\"onPaginate\"></cart-documents-table>\n" +
-    "  <p ng-hide=\"loading || variables && variables.total>0\" translate>sets.cart.no-variables</p>\n" +
+    "\n" +
+    "  <div ng-repeat=\"tab in tabs\" >\n" +
+    "    <cart-documents-table ng-if=\"'variables' === tab.type\"\n" +
+    "                         type=\"tab.type\"\n" +
+    "                         documents=\"variables\"\n" +
+    "                         on-update=\"onUpdate\"\n" +
+    "                         options=\"tab.options\"\n" +
+    "                         on-page-change=\"onPaginate\"></cart-documents-table>\n" +
+    "\n" +
+    "    <p ng-hide=\"loading || variables && variables.total>0\" translate>sets.cart.no-variables</p>\n" +
+    "  </div>\n" +
     "</div>");
 }]);
 

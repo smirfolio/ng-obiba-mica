@@ -4,10 +4,15 @@
     <span translate>variables</span>
     <span ng-if="loading" class="voffset2 loading"></span>
   </h3>
-  <cart-documents-table 
-    type="'variables'" 
-    documents="variables"
-    on-update="onUpdate"
-    on-page-change="onPaginate"></cart-documents-table>
-  <p ng-hide="loading || variables && variables.total>0" translate>sets.cart.no-variables</p>
+
+  <div ng-repeat="tab in tabs" >
+    <cart-documents-table ng-if="'variables' === tab.type"
+                         type="tab.type"
+                         documents="variables"
+                         on-update="onUpdate"
+                         options="tab.options"
+                         on-page-change="onPaginate"></cart-documents-table>
+
+    <p ng-hide="loading || variables && variables.total>0" translate>sets.cart.no-variables</p>
+  </div>
 </div>
