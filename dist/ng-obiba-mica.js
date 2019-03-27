@@ -21360,8 +21360,8 @@ angular.module("sets/components/cart-documents-table/component.html", []).run(["
     "        <th class=\"col-width-md\" translate>taxonomy.target.variable</th>\n" +
     "        <th class=\"col-width-md\" translate>search.variable.label</th>\n" +
     "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesTypeColumn\" translate>type</th>\n" +
-    "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesStudiesColumn\" translate>taxonomy.target.study</th>\n" +
-    "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesDatasetsColumn\" translate>taxonomy.target.dataset</th>\n" +
+    "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesStudiesColumn\" translate>search.study.label</th>\n" +
+    "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesDatasetsColumn\" translate>search.dataset.label</th>\n" +
     "      </thead>\n" +
     "      <tbody>\n" +
     "        <tr ng-repeat=\"row in $ctrl.table.rows\">\n" +
@@ -21455,8 +21455,8 @@ angular.module("sets/components/set-variables-table/component.html", []).run(["$
     "        <th class=\"col-width-md\" translate>taxonomy.target.variable</th>\n" +
     "        <th class=\"col-width-md\" translate>search.variable.label</th>\n" +
     "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesTypeColumn\" translate>type</th>\n" +
-    "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesStudiesColumn\" translate>taxonomy.target.study</th>\n" +
-    "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesDatasetsColumn\" translate>taxonomy.target.dataset</th>\n" +
+    "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesStudiesColumn\" translate>search.study.label</th>\n" +
+    "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesDatasetsColumn\" translate>search.dataset.label</th>\n" +
     "      </thead>\n" +
     "      <tbody>\n" +
     "        <tr ng-repeat=\"row in $ctrl.table.rows\">\n" +
