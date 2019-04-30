@@ -22,7 +22,10 @@
       var sType = (type.toLowerCase() === 'individual' ? 'individual' : 'harmonization') + '-study';
       return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyPopulationsPage'), { ':type': urlEncode(sType), ':study': urlEncode(id), ':population': urlEncode(populationId) }) : '';
     };
-
+    this.StudyDcePage = function (id, type, dceId) {
+      var sType = (type.toLowerCase() === 'individual' ? 'individual' : 'harmonization') + '-study';
+      return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyDcePage'), { ':type': urlEncode(sType), ':study': urlEncode(id), ':dce': dceId }) : '';
+    };
     this.networkPage = function (id) {
       return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('NetworkPage'), { ':network': urlEncode(id) }) : '';
     };

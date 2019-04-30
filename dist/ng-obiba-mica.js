@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-03-29
+ * Date: 2019-04-30
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -165,6 +165,7 @@ function NgObibaMicaTemplateUrlFactory() {
             'NetworkPage': '#/network/:network',
             'StudyPage': '#/:type/:study',
             'StudyPopulationsPage': '#/:type/:study',
+            'StudyDcePage': '#/:type/:study/dce-id-:dce',
             'DatasetPage': '#/:type/:dataset',
             'BaseUrl': '',
             'FileBrowserFileResource': 'ws/file/:path/',
@@ -6995,6 +6996,10 @@ ngObibaMica.search.service("CoverageGroupByService", ["ngObibaMicaSearch", Cover
             var sType = (type.toLowerCase() === 'individual' ? 'individual' : 'harmonization') + '-study';
             return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyPopulationsPage'), { ':type': urlEncode(sType), ':study': urlEncode(id), ':population': urlEncode(populationId) }) : '';
         };
+        this.StudyDcePage = function (id, type, dceId) {
+            var sType = (type.toLowerCase() === 'individual' ? 'individual' : 'harmonization') + '-study';
+            return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('StudyDcePage'), { ':type': urlEncode(sType), ':study': urlEncode(id), ':dce': dceId }) : '';
+        };
         this.networkPage = function (id) {
             return id ? StringUtils.replaceAll(ngObibaMicaUrl.getUrl('NetworkPage'), { ':network': urlEncode(id) }) : '';
         };
@@ -11033,7 +11038,7 @@ ngObibaMica.search
                         current: currentYearMonth,
                         end: row.end,
                         progressClass: odd ? 'info' : 'warning',
-                        url: PageUrlService.studyPopulationPage(ids[0], isHarmo ? 'harmonization' : 'individual', ids[1]),
+                        url: PageUrlService.StudyDcePage(ids[0], isHarmo ? 'harmonization' : 'individual', row.value),
                         rowSpan: 1,
                         index: i++
                     });
