@@ -1,9 +1,13 @@
 <div class="panel-heading">
-  <label uib-popover="{{$ctrl.vocabulary.description ? $ctrl.vocabulary.description : $ctrl.vocabulary.title | localizedString}}"
-    popover-title="{{$ctrl.vocabulary.description ? $ctrl.vocabulary.title : null | localizedString}}" popover-placement="bottom"
-    popover-trigger="'mouseenter'" popover-popup-delay="250" popover-class="right-panel-popover">
+  <label >
     {{$ctrl.vocabulary.title | localizedString}}
   </label>
+  <span
+       uib-popover="{{$ctrl.vocabulary.description ? $ctrl.vocabulary.description : $ctrl.vocabulary.title | localizedString}}"
+       popover-title="{{$ctrl.vocabulary.description ? $ctrl.vocabulary.title : null | localizedString}}" popover-placement="bottom"
+       popover-trigger="'mouseenter'" popover-popup-delay="250">
+    <i class="fa fa-info-circle"> </i>
+  </span>
 
   <div class="pull-right">
     <a href="" ng-click="$ctrl.removeCriterion()" ng-if="$ctrl.vocabulary.existingItem">{{'clear' | translate}}</a>
