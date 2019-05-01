@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-04-30
+ * Date: 2019-05-01
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -20741,11 +20741,15 @@ angular.module("search/components/vocabulary-filter-detail-heading/component.htm
 angular.module("search/components/vocabulary/vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/vocabulary/vocabulary-filter-detail/component.html",
     "<div class=\"panel-heading\">\n" +
-    "  <label uib-popover=\"{{$ctrl.vocabulary.description ? $ctrl.vocabulary.description : $ctrl.vocabulary.title | localizedString}}\"\n" +
-    "    popover-title=\"{{$ctrl.vocabulary.description ? $ctrl.vocabulary.title : null | localizedString}}\" popover-placement=\"bottom\"\n" +
-    "    popover-trigger=\"'mouseenter'\" popover-popup-delay=\"250\" popover-class=\"right-panel-popover\">\n" +
+    "  <label >\n" +
     "    {{$ctrl.vocabulary.title | localizedString}}\n" +
     "  </label>\n" +
+    "  <span\n" +
+    "       uib-popover=\"{{$ctrl.vocabulary.description ? $ctrl.vocabulary.description : $ctrl.vocabulary.title | localizedString}}\"\n" +
+    "       popover-title=\"{{$ctrl.vocabulary.description ? $ctrl.vocabulary.title : null | localizedString}}\" popover-placement=\"bottom\"\n" +
+    "       popover-trigger=\"'mouseenter'\" popover-popup-delay=\"250\">\n" +
+    "    <i class=\"fa fa-info-circle\"> </i>\n" +
+    "  </span>\n" +
     "\n" +
     "  <div class=\"pull-right\">\n" +
     "    <a href=\"\" ng-click=\"$ctrl.removeCriterion()\" ng-if=\"$ctrl.vocabulary.existingItem\">{{'clear' | translate}}</a>\n" +
