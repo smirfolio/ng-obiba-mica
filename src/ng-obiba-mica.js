@@ -179,6 +179,7 @@ function NgObibaMicaTemplateUrlFactory() {
         'NetworkPage': '#/network/:network',
         'StudyPage': '#/:type/:study',
         'StudyPopulationsPage': '#/:type/:study',
+        'StudyDcePage': '#/:type/:study/dce-id-:dce',
         'DatasetPage': '#/:type/:dataset',
         'BaseUrl': '',
         'FileBrowserFileResource': 'ws/file/:path/',

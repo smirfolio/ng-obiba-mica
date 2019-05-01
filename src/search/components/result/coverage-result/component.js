@@ -356,7 +356,7 @@ ngObibaMica.search
               current: currentYearMonth,
               end: row.end,
               progressClass: odd ? 'info' : 'warning',
-              url: PageUrlService.studyPopulationPage(ids[0], isHarmo ? 'harmonization' : 'individual', ids[1]),
+              url: PageUrlService.StudyDcePage(ids[0], isHarmo ? 'harmonization' : 'individual', row.value),
               rowSpan: 1,
               index: i++
             });
