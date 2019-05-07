@@ -1,6 +1,6 @@
 <div class="coverage">
 
-  <div ng-if="hasVariableTarget()">
+  <div ng-if="hasVariableTarget() && table.taxonomyHeaders">
     <ul class="nav nav-pills pull-left">
       <li ng-if="groupByOptions.canShowStudy() && groupByOptions.canShowDataset()" ng-class="{'active': bucket.startsWith('study') || bucketStartsWithDce}"
         class="studies">
@@ -46,7 +46,7 @@
   </div>
 
   <p class="help-block" ng-if="!loading && !table.taxonomyHeaders">
-    <span ng-if="!hasVariableTarget()" translate>search.no-coverage</span>
+    <span ng-if="!hasVariableTarget() || !table.taxonomyHeaders" translate>search.no-coverage</span>
     <span ng-if="hasVariableTarget()" translate>search.no-results</span>
   </p>
 
