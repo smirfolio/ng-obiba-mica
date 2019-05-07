@@ -19803,7 +19803,7 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
   $templateCache.put("search/components/result/coverage-result/component.html",
     "<div class=\"coverage\">\n" +
     "\n" +
-    "  <div ng-if=\"hasVariableTarget()\">\n" +
+    "  <div ng-if=\"hasVariableTarget() && table.taxonomyHeaders\">\n" +
     "    <ul class=\"nav nav-pills pull-left\">\n" +
     "      <li ng-if=\"groupByOptions.canShowStudy() && groupByOptions.canShowDataset()\" ng-class=\"{'active': bucket.startsWith('study') || bucketStartsWithDce}\"\n" +
     "        class=\"studies\">\n" +
@@ -19849,7 +19849,7 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "  </div>\n" +
     "\n" +
     "  <p class=\"help-block\" ng-if=\"!loading && !table.taxonomyHeaders\">\n" +
-    "    <span ng-if=\"!hasVariableTarget()\" translate>search.no-coverage</span>\n" +
+    "    <span ng-if=\"!hasVariableTarget() || !table.taxonomyHeaders\" translate>search.no-coverage</span>\n" +
     "    <span ng-if=\"hasVariableTarget()\" translate>search.no-results</span>\n" +
     "  </p>\n" +
     "\n" +
