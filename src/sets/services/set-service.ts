@@ -45,6 +45,7 @@ class SetService implements ISetService {
 
   private static $inject = [
     "$window",
+    "$location",
     "$log",
     "$translate",
     "localStorageService",
@@ -68,6 +69,7 @@ class SetService implements ISetService {
 
   constructor(
     private $window: any,
+    private $location: any,
     private $log: any,
     private $translate: any,
     private localStorageService: any,
@@ -323,6 +325,7 @@ class SetService implements ISetService {
         return "all(" + id + ")";
       }).join(",");
       this.$window.location.href = this.PageUrlService.entitiesCountPage(queryStr);
+      this.$location.replace();
     }
   }
 
@@ -379,6 +382,7 @@ class SetService implements ISetService {
     if (id) {
       const queryStr = this.getSearchQuery(documentType, id);
       this.$window.location.href = this.PageUrlService.searchPage(queryStr);
+      this.$location.replace();
     }
   }
 

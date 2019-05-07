@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-05-01
+ * Date: 2019-05-07
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -2781,8 +2781,9 @@ ngObibaMica.sets = angular.module('obiba.mica.sets', [
  */
 "use strict";
 var SetService = /** @class */ (function () {
-    function SetService($window, $log, $translate, localStorageService, PageUrlService, SetsImportResource, SetResource, SetDocumentsResource, SetClearResource, SetExistsResource, SetImportResource, SetImportQueryResource, SetRemoveResource, ObibaServerConfigResource, SessionProxy) {
+    function SetService($window, $location, $log, $translate, localStorageService, PageUrlService, SetsImportResource, SetResource, SetDocumentsResource, SetClearResource, SetExistsResource, SetImportResource, SetImportQueryResource, SetRemoveResource, ObibaServerConfigResource, SessionProxy) {
         this.$window = $window;
+        this.$location = $location;
         this.$log = $log;
         this.$translate = $translate;
         this.localStorageService = localStorageService;
@@ -3030,6 +3031,7 @@ var SetService = /** @class */ (function () {
                 return "all(" + id + ")";
             }).join(",");
             this.$window.location.href = this.PageUrlService.entitiesCountPage(queryStr);
+            this.$location.replace();
         }
     };
     SetService.prototype.getDownloadUrl = function (documentType, setId) {
@@ -3081,6 +3083,7 @@ var SetService = /** @class */ (function () {
         if (id) {
             var queryStr = this.getSearchQuery(documentType, id);
             this.$window.location.href = this.PageUrlService.searchPage(queryStr);
+            this.$location.replace();
         }
     };
     /**
@@ -3180,6 +3183,7 @@ var SetService = /** @class */ (function () {
     };
     SetService.$inject = [
         "$window",
+        "$location",
         "$log",
         "$translate",
         "localStorageService",
