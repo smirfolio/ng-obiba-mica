@@ -17,7 +17,7 @@
     </div>
     <a obiba-file-download get-url="$ctrl.download()" target="_self" download class="action btn btn-info btn-responsive">
       <i class="fa fa-download"></i> {{'download' | translate}}</a>
-    <a href="" ng-click="$ctrl.search()" class="action btn btn-info btn-responsive">
+    <a ng-if="$ctrl.micaConfigShowSearch" href="" ng-click="$ctrl.search()" class="action btn btn-info btn-responsive">
       <i class="fa fa-search"></i></a>
     <a href="" ng-click="$ctrl.clearSet()" ng-disabled="!$ctrl.hasSelections()" class="action btn btn-danger btn-responsive">
       <i class="fa fa-trash-o"></i></a>

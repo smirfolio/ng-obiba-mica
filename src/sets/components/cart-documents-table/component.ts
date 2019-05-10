@@ -38,6 +38,7 @@ class CartDocumentsTableController extends DocumentsSetTableComponentController 
       this.currentUserCanCreateSets = config.currentUserCanCreateSets;
 
       this.micaConfigShowAnalysis = config.isSetsAnalysisEnabled;
+      this.micaConfigShowSearch = config.isSetsSearchEnabled;
     });
   }
 

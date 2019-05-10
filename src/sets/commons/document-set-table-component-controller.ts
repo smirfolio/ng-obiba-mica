@@ -45,6 +45,7 @@ abstract class DocumentsSetTableComponentController implements IDocumentsSetTabl
   protected selections: any;
 
   protected micaConfigShowAnalysis: boolean;
+  protected micaConfigShowSearch: boolean;
 
   constructor(
     protected SetService: ISetService,

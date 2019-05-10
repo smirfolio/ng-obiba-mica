@@ -18,6 +18,7 @@ class VariablesSetTableComponentController extends DocumentsSetTableComponentCon
     super(SetService, AnalysisConfigService, $log, $uibModal);
     SetService.serverConfig().then((config) => {
       this.micaConfigShowAnalysis = config.isSetsAnalysisEnabled;
+      this.micaConfigShowSearch = config.isSetsSearchEnabled;
     });
   }
 
