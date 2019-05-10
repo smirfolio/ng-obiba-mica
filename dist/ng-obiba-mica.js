@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-05-07
+ * Date: 2019-05-10
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -3577,6 +3577,7 @@ var CartDocumentsTableController = /** @class */ (function (_super) {
             _this.showVariableType = _this.SetService.hasHarmonizedDatasets();
             _this.currentUserCanCreateSets = config.currentUserCanCreateSets;
             _this.micaConfigShowAnalysis = config.isSetsAnalysisEnabled;
+            _this.micaConfigShowSearch = config.isSetsSearchEnabled;
         });
         return _this;
     }
@@ -3717,6 +3718,7 @@ var VariablesSetTableComponentController = /** @class */ (function (_super) {
         _this.$uibModal = $uibModal;
         SetService.serverConfig().then(function (config) {
             _this.micaConfigShowAnalysis = config.isSetsAnalysisEnabled;
+            _this.micaConfigShowSearch = config.isSetsSearchEnabled;
         });
         return _this;
     }
@@ -21334,7 +21336,7 @@ angular.module("sets/components/cart-documents-table/component.html", []).run(["
     "    </div>\n" +
     "    <a obiba-file-download get-url=\"$ctrl.download()\" target=\"_self\" download class=\"action btn btn-info btn-responsive\">\n" +
     "      <i class=\"fa fa-download\"></i> {{'download' | translate}}</a>\n" +
-    "    <a href=\"\" ng-click=\"$ctrl.search()\" class=\"action btn btn-info btn-responsive\">\n" +
+    "    <a ng-if=\"$ctrl.micaConfigShowSearch\" href=\"\" ng-click=\"$ctrl.search()\" class=\"action btn btn-info btn-responsive\">\n" +
     "      <i class=\"fa fa-search\"></i></a>\n" +
     "    <a href=\"\" ng-click=\"$ctrl.clearSet()\" ng-disabled=\"!$ctrl.hasSelections()\" class=\"action btn btn-danger btn-responsive\">\n" +
     "      <i class=\"fa fa-trash-o\"></i></a>\n" +
@@ -21425,7 +21427,7 @@ angular.module("sets/components/set-variables-table/component.html", []).run(["$
     "      <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
     "    </a>\n" +
     "\n" +
-    "    <a href=\"\" ng-click=\"$ctrl.search()\" class=\"action btn btn-info btn-responsive\">\n" +
+    "    <a ng-if=\"$ctrl.micaConfigShowSearch\" href=\"\" ng-click=\"$ctrl.search()\" class=\"action btn btn-info btn-responsive\">\n" +
     "      <i class=\"fa fa-search\"></i>\n" +
     "    </a>\n" +
     "\n" +
