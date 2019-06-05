@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-05-10
+ * Date: 2019-06-05
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -2798,7 +2798,24 @@ var SetService = /** @class */ (function () {
         this.SetRemoveResource = SetRemoveResource;
         this.ObibaServerConfigResource = ObibaServerConfigResource;
         this.SessionProxy = SessionProxy;
+        this.options = {
+            CartHelpText: null,
+            SetsHelpText: null,
+        };
     }
+    SetService.prototype.setSettingOption = function (newOptions) {
+        var _this = this;
+        if (typeof (newOptions) === "object") {
+            Object.keys(newOptions).forEach(function (option) {
+                if (option in _this.options) {
+                    _this.options[option] = newOptions[option];
+                }
+            });
+        }
+    };
+    SetService.prototype.setGettingOption = function () {
+        return angular.copy(this.options);
+    };
     SetService.prototype.serverConfig = function () {
         var _this = this;
         var serverConfigPromise = this.ObibaServerConfigResource.get(function (micaConfig) {
@@ -3852,7 +3869,7 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
         'ngObibaMicaUrl',
         'ObibaSearchOptions',
         function ($scope, $location, $translate, $cookies, SetService, ngObibaMicaSetsTemplateUrl, AlertService, ngObibaMicaUrl, ObibaSearchOptions) {
-            $scope.options = {};
+            $scope.options = SetService.setGettingOption();
             manageSetsCartHelpText($scope, $translate, $cookies, 'CartHelpText', 'sets.cart.help');
             $scope.cartHeaderTemplateUrl = ngObibaMicaSetsTemplateUrl.getHeaderUrl('cart');
             $scope.loading = true;
@@ -3988,7 +4005,7 @@ angular.module("obiba.mica.sets").component("setVariablesTable", new DocumentSet
         'ngObibaMicaUrl',
         'ServerErrorUtils',
         function ($rootScope, $scope, $route, $location, $cookies, $translate, ObibaSearchOptions, ngObibaMicaSetsTemplateUrl, MetaTaxonomyService, SetsResource, SetResource, SetService, NOTIFICATION_EVENTS, AlertService, ngObibaMicaUrl, ServerErrorUtils) {
-            $scope.options = {};
+            $scope.options = SetService.setGettingOption();
             manageSetsCartHelpText($scope, $translate, $cookies, 'SetsHelpText', 'sets.set.help');
             // TODO uncomment when other sets are implemented
             // var searchTaxonomyDisplay = {
@@ -20497,17 +20514,17 @@ angular.module("search/components/result/variables-result-table/component.html",
     "      <table class=\"table table-bordered table-striped table-layout-fixed\" ng-init=\"lang = $parent.$parent.lang\">\n" +
     "        <thead>\n" +
     "          <tr>\n" +
-    "            <th class=\"col-width-xs\">\n" +
+    "            <th class=\"checkbox-width\">\n" +
     "              <input\n" +
     "                      ng-model=\"page.selections[pagination.currentPage]\"\n" +
     "                      type=\"checkbox\"\n" +
     "                      ng-click=\"selectPage()\"/>\n" +
     "            </th>\n" +
-    "            <th class=\"col-width-md\" translate>name</th>\n" +
-    "            <th class=\"col-width-md\" translate>search.variable.label</th>\n" +
-    "            <th translate ng-if=\"optionsCols.showVariablesTypeColumn\">type</th>\n" +
-    "            <th translate ng-if=\"optionsCols.showVariablesStudiesColumn\">search.study.label</th>\n" +
-    "            <th translate ng-if=\"optionsCols.showVariablesDatasetsColumn\">search.dataset.label</th>\n" +
+    "            <th class=\"col-width-35\" translate>name</th>\n" +
+    "            <th class=\"col-width-35\" translate>search.variable.label</th>\n" +
+    "            <th class=\"col-width-10\" translate ng-if=\"optionsCols.showVariablesTypeColumn\">type</th>\n" +
+    "            <th class=\"col-width-10\" translate ng-if=\"optionsCols.showVariablesStudiesColumn\">search.study.label</th>\n" +
+    "            <th class=\"col-width-15\" translate ng-if=\"optionsCols.showVariablesDatasetsColumn\">search.dataset.label</th>\n" +
     "          </tr>\n" +
     "        </thead>\n" +
     "        <tbody test-ref=\"search-results\">\n" +
@@ -21469,14 +21486,14 @@ angular.module("sets/components/set-variables-table/component.html", []).run(["$
     "    </table-alert-header>\n" +
     "    <table class=\"table table-bordered table-striped table-layout-fixed\" ng-if=\"$ctrl.documents.total>0\">\n" +
     "      <thead>\n" +
-    "        <th class=\"col-width-xs\">\n" +
+    "        <th class=\"checkbox-width\">\n" +
     "          <input ng-model=\"$ctrl.allPageSelected[$ctrl.pagination.currentPage]\" type=\"checkbox\" ng-click=\"$ctrl.updateAllCurrentPageSelected()\" />\n" +
     "        </th>\n" +
-    "        <th class=\"col-width-md\" translate>taxonomy.target.variable</th>\n" +
-    "        <th class=\"col-width-md\" translate>search.variable.label</th>\n" +
-    "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesTypeColumn\" translate>type</th>\n" +
-    "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesStudiesColumn\" translate>search.study.label</th>\n" +
-    "        <th ng-if=\"$ctrl.options.variablesColumn.showVariablesDatasetsColumn\" translate>search.dataset.label</th>\n" +
+    "        <th class=\"col-width-35\" translate>taxonomy.target.variable</th>\n" +
+    "        <th class=\"col-width-35\" translate>search.variable.label</th>\n" +
+    "        <th class=\"col-width-10\" ng-if=\"$ctrl.options.variablesColumn.showVariablesTypeColumn\" translate>type</th>\n" +
+    "        <th class=\"col-width-10\" ng-if=\"$ctrl.options.variablesColumn.showVariablesStudiesColumn\" translate>search.study.label</th>\n" +
+    "        <th class=\"col-width-15\" ng-if=\"$ctrl.options.variablesColumn.showVariablesDatasetsColumn\" translate>search.dataset.label</th>\n" +
     "      </thead>\n" +
     "      <tbody>\n" +
     "        <tr ng-repeat=\"row in $ctrl.table.rows\">\n" +

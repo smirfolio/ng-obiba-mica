@@ -62,14 +62,14 @@
     </table-alert-header>
     <table class="table table-bordered table-striped table-layout-fixed" ng-if="$ctrl.documents.total>0">
       <thead>
-        <th class="col-width-xs">
+        <th class="checkbox-width">
           <input ng-model="$ctrl.allPageSelected[$ctrl.pagination.currentPage]" type="checkbox" ng-click="$ctrl.updateAllCurrentPageSelected()" />
         </th>
-        <th class="col-width-md" translate>taxonomy.target.variable</th>
-        <th class="col-width-md" translate>search.variable.label</th>
-        <th ng-if="$ctrl.options.variablesColumn.showVariablesTypeColumn" translate>type</th>
-        <th ng-if="$ctrl.options.variablesColumn.showVariablesStudiesColumn" translate>search.study.label</th>
-        <th ng-if="$ctrl.options.variablesColumn.showVariablesDatasetsColumn" translate>search.dataset.label</th>
+        <th class="col-width-35" translate>taxonomy.target.variable</th>
+        <th class="col-width-35" translate>search.variable.label</th>
+        <th class="col-width-10" ng-if="$ctrl.options.variablesColumn.showVariablesTypeColumn" translate>type</th>
+        <th class="col-width-10" ng-if="$ctrl.options.variablesColumn.showVariablesStudiesColumn" translate>search.study.label</th>
+        <th class="col-width-15" ng-if="$ctrl.options.variablesColumn.showVariablesDatasetsColumn" translate>search.dataset.label</th>
       </thead>
       <tbody>
         <tr ng-repeat="row in $ctrl.table.rows">

@@ -7,17 +7,17 @@
       <table class="table table-bordered table-striped table-layout-fixed" ng-init="lang = $parent.$parent.lang">
         <thead>
           <tr>
-            <th class="col-width-xs">
+            <th class="checkbox-width">
               <input
                       ng-model="page.selections[pagination.currentPage]"
                       type="checkbox"
                       ng-click="selectPage()"/>
             </th>
-            <th class="col-width-md" translate>name</th>
-            <th class="col-width-md" translate>search.variable.label</th>
-            <th translate ng-if="optionsCols.showVariablesTypeColumn">type</th>
-            <th translate ng-if="optionsCols.showVariablesStudiesColumn">search.study.label</th>
-            <th translate ng-if="optionsCols.showVariablesDatasetsColumn">search.dataset.label</th>
+            <th class="col-width-35" translate>name</th>
+            <th class="col-width-35" translate>search.variable.label</th>
+            <th class="col-width-10" translate ng-if="optionsCols.showVariablesTypeColumn">type</th>
+            <th class="col-width-10" translate ng-if="optionsCols.showVariablesStudiesColumn">search.study.label</th>
+            <th class="col-width-15" translate ng-if="optionsCols.showVariablesDatasetsColumn">search.dataset.label</th>
           </tr>
         </thead>
         <tbody test-ref="search-results">

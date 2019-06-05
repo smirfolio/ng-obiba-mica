@@ -39,6 +39,8 @@ interface ISetService {
   getSearchQuery(documentType: string, setId: string): string;
   gotoSearch(documentType: string, setId: string): void;
   getCartSet(documentType: string): any;
+  setSettingOption(newOptions: any): void;
+  setGettingOption(): any;
 }
 
 class SetService implements ISetService {
@@ -66,6 +68,7 @@ class SetService implements ISetService {
 
   private maxNumberOfSets: number;
   private maxItemsPerSets: number;
+  private options: any;
 
   constructor(
     private $window: any,
@@ -84,6 +87,24 @@ class SetService implements ISetService {
     private SetRemoveResource: any,
     private ObibaServerConfigResource: any,
     private SessionProxy: any) {
+    this.options = {
+      CartHelpText: null,
+      SetsHelpText: null,
+    };
+  }
+
+  public setSettingOption(newOptions: any): void {
+    if (typeof(newOptions) === "object") {
+      Object.keys(newOptions).forEach((option) => {
+        if (option in this.options) {
+          this.options[option] = newOptions[option];
+        }
+      });
+    }
+  }
+
+  public setGettingOption(): any {
+    return angular.copy(this.options);
   }
 
   public serverConfig(): any {
