@@ -530,19 +530,31 @@ meta-taxonomy-filter-panel{
 .table-layout-fixed {
 
   @media all and (min-width: 768px) {
-    table-layout: fixed !important;
+    table-layout: auto!important;
   }
 
   th, td {
     overflow-wrap: break-word;
   }
 
-  th.col-width-xs {
-    width: @table-layout-fixed-col-xs !important;
+  th.col-width-10 {
+   width: @table-layout-fixed-col-10 !important;
   }
 
-  th.col-width-md {
-    width: @table-layout-fixed-col-md !important;
+  th.col-width-15 {
+   width: @table-layout-fixed-col-15 !important;
+  }
+
+  th.col-width-20 {
+   width: @table-layout-fixed-col-20 !important;
+  }
+
+  th.col-width-35 {
+   min-width: @table-layout-fixed-col-35 !important;
+  }
+
+  th.checkbox-width{
+    width: 2em;
   }
 
   overflow: auto !important;

@@ -46,7 +46,7 @@
     'ngObibaMicaUrl',
     'ObibaSearchOptions',
     function($scope, $location, $translate, $cookies, SetService, ngObibaMicaSetsTemplateUrl, AlertService, ngObibaMicaUrl, ObibaSearchOptions) {
-      $scope.options = {};
+      $scope.options = SetService.setGettingOption();
       manageSetsCartHelpText($scope, $translate, $cookies, 'CartHelpText', 'sets.cart.help');
       $scope.cartHeaderTemplateUrl = ngObibaMicaSetsTemplateUrl.getHeaderUrl('cart');
       $scope.loading = true;
@@ -214,7 +214,7 @@
       ngObibaMicaUrl,
       ServerErrorUtils) {
 
-      $scope.options = {};
+      $scope.options = SetService.setGettingOption();
       manageSetsCartHelpText($scope, $translate, $cookies, 'SetsHelpText','sets.set.help');
 
     // TODO uncomment when other sets are implemented
