@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-06-05
+ * Date: 2019-06-10
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -230,7 +230,16 @@ function NgObibaMicaTemplateUrlFactory() {
     ngObibaMica.utils
         .factory('urlEncode', function () {
         return function (input) {
-            return window.encodeURIComponent(input);
+            function encodeSpecialChar(string) {
+                if (string.match(/%2F|%24|%26|%5C/gm)) {
+                    string = string.replace('%2F', '%252F');
+                    string = string.replace('%24', '%2524');
+                    string = string.replace('%26', '%2526');
+                    string = string.replace('%5C', '%255C');
+                }
+                return string;
+            }
+            return encodeSpecialChar(window.encodeURIComponent(input));
         };
     })
         .service('GraphicChartsConfigurations', function () {

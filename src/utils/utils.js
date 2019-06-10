@@ -16,7 +16,16 @@ ngObibaMica.utils = angular.module('obiba.mica.utils', ['schemaForm', 'LocalStor
 ngObibaMica.utils
   .factory('urlEncode', function() {
     return function(input) {
-      return window.encodeURIComponent(input);
+      function encodeSpecialChar(string){
+        if(string.match(/%2F|%24|%26|%5C/gm)){
+          string = string.replace('%2F', '%252F'); //'/'
+          string = string.replace('%24', '%2524'); //'$'
+          string = string.replace('%26', '%2526'); //'&'
+          string = string.replace('%5C', '%255C'); //'\'
+        }
+        return string;
+      }
+      return encodeSpecialChar(window.encodeURIComponent(input));
     };
   })
 
