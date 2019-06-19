@@ -492,7 +492,7 @@
         rootQuery.args.push(localeQuery);
       }
 
-      return new RqlQuery().serializeArgs(rootQuery.args);
+      return decodeURIComponent(new RqlQuery().serializeArgs(rootQuery.args));
     }
 
     // exports
