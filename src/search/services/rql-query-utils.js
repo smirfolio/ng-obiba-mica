@@ -492,6 +492,14 @@
         rootQuery.args.push(localeQuery);
       }
 
+      if (selections.length === 0) {
+        var otherQueries = parsedQuery.args.filter(function (query) {
+          return query.name !== RQL_NODE.LOCALE && query.name !== target;
+        });
+
+        rootQuery.args = rootQuery.args.concat(otherQueries);
+      }
+
       return decodeURIComponent(new RqlQuery().serializeArgs(rootQuery.args));
     }
 
