@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-06-17
+ * Date: 2019-06-21
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -8473,7 +8473,13 @@ function typeToTarget(type) {
             if (localeQuery) {
                 rootQuery.args.push(localeQuery);
             }
-            return new RqlQuery().serializeArgs(rootQuery.args);
+            if (selections.length === 0) {
+                var otherQueries = parsedQuery.args.filter(function (query) {
+                    return query.name !== RQL_NODE.LOCALE && query.name !== target;
+                });
+                rootQuery.args = rootQuery.args.concat(otherQueries);
+            }
+            return decodeURIComponent(new RqlQuery().serializeArgs(rootQuery.args));
         }
         // exports
         this.vocabularyTermNames = vocabularyTermNames;
