@@ -36,6 +36,7 @@
 
         var windowFirstChild = document.querySelector('body :first-child');
         var onscroll;
+        var theadRectangle ;
         if (window.onscroll) {
           onscroll = window.onscroll;
         }
@@ -60,16 +61,16 @@
         }
 
         window.onscroll = function (event) {
-          var theadRectangle = getElementRectangle(elem.find('table > thead')[0]);
+          var thead = elem.find('table > thead');
+          theadRectangle = theadRectangle || getElementRectangle(thead[0]);
 
           var bodyFirstItemHeight = windowFirstChild.getBoundingClientRect().height;
           var itemTop = theadRectangle.top + bodyFirstItemHeight;
-          console.log('item', theadRectangle, 'window', getWindowScroll().top, 'nav', bodyFirstItemHeight);
 
           if (getWindowScroll().top > itemTop) {
-            elem.find('table thead').css('transform', 'translateY(' + Math.max(0, getWindowScroll().top + bodyFirstItemHeight - theadRectangle.top) + 'px)');
+            thead.css('transform', 'translateY(' + Math.max(0, getWindowScroll().top + bodyFirstItemHeight - theadRectangle.top) + 'px)');
           } else {
-            elem.find('table thead').css('transform', 'translateY(0)');
+            thead.css('transform', 'translateY(0)');
           }
           return onscroll && onscroll(event);
         };
