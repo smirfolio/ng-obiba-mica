@@ -559,3 +559,17 @@ meta-taxonomy-filter-panel{
 
   overflow: auto !important;
 }
+
+.table-scroll table {
+  height: 100%;
+  display: block;
+  overflow: auto;
+
+  thead {
+    z-index: 1;
+  }
+
+  tbody {
+    z-index: -1;
+  }
+}
