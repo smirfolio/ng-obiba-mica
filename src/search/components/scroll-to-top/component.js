@@ -26,4 +26,56 @@
   }
 
   ngObibaMica.search.directive('scrollToTop', ScrollToTop);
+
+  ngObibaMica.search.directive('tableScroll', function() {
+    return {
+      restrict: 'C',
+      scope: {},
+      link: function(scope, elem) {
+        // *******
+
+        var windowFirstChild = document.querySelector('body :first-child');
+        var onscroll;
+        if (window.onscroll) {
+          onscroll = window.onscroll;
+        }
+
+        function getWindowScroll() {
+          return {
+            top: window.pageYOffset,
+            left: window.pageXOffset
+          };
+        }
+
+        function getElementRectangle(item) {
+          var rectangle = item.getBoundingClientRect();
+          var windowScroll = getWindowScroll();
+
+          return {
+            left: rectangle.left + windowScroll.left,
+            top: rectangle.top + windowScroll.top,
+            width: rectangle.width,
+            height: rectangle.height
+          };
+        }
+
+        window.onscroll = function (event) {
+          var theadRectangle = getElementRectangle(elem.find('table > thead')[0]);
+
+          var bodyFirstItemHeight = windowFirstChild.getBoundingClientRect().height;
+          var itemTop = theadRectangle.top + bodyFirstItemHeight;
+          console.log('item', theadRectangle, 'window', getWindowScroll().top, 'nav', bodyFirstItemHeight);
+
+          if (getWindowScroll().top > itemTop) {
+            elem.find('table thead').css('transform', 'translateY(' + Math.max(0, getWindowScroll().top + bodyFirstItemHeight - theadRectangle.top) + 'px)');
+          } else {
+            elem.find('table thead').css('transform', 'translateY(0)');
+          }
+          return onscroll && onscroll(event);
+        };
+
+        // *******
+      }
+    };
+  });
 })();
