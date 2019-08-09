@@ -12352,8 +12352,24 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
                 var onscroll;
                 var theadRectangle;
                 var initialTheadBackgroundColor = elem.find('table > thead').css('background-color');
+                var opaqueTheadBackground = rgbaToRgb(initialTheadBackgroundColor);
                 if (window.onscroll) {
                     onscroll = window.onscroll;
+                }
+                function rgbaToRgb(color) {
+                    var rgbaRegex = /^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+),?[\s+]?(\S+)\)$/i;
+                    var matches = color.match(rgbaRegex);
+                    if (matches && matches.length >= 4) {
+                        var r = parseInt(matches[1], 10);
+                        var g = parseInt(matches[2], 10);
+                        var b = parseInt(matches[3], 10);
+                        var a = parseFloat(matches[4] || '1', 10);
+                        var rPrime = (1 - a) * 255 + a * r;
+                        var gPrime = (1 - a) * 255 + a * g;
+                        var bPrime = (1 - a) * 255 + a * b;
+                        return 'rgb(' + rPrime + ', ' + gPrime + ', ' + bPrime + ')';
+                    }
+                    return color;
                 }
                 function getWindowScroll() {
                     return {
@@ -12378,7 +12394,7 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
                     var itemTop = theadRectangle.top + bodyFirstItemHeight;
                     if (getWindowScroll().top > itemTop) {
                         thead.css('transform', 'translateY(' + Math.max(0, getWindowScroll().top + bodyFirstItemHeight - theadRectangle.top) + 'px)');
-                        thead.css('background-color', 'white');
+                        thead.css('background-color', opaqueTheadBackground);
                     }
                     else {
                         thead.css('transform', 'translateY(0)');
