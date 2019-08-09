@@ -12348,7 +12348,7 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
             restrict: 'C',
             scope: {},
             link: function (scope, elem) {
-                var windowFirstChild = document.querySelector('body > .navbar');
+                var windowFirstChild = document.querySelector('body .navbar-fixed-top');
                 var onscroll;
                 var theadRectangle;
                 var initialTheadBackgroundColor = elem.find('table > thead').css('background-color');
@@ -12390,7 +12390,7 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
                 window.onscroll = function (event) {
                     var thead = elem.find('table > thead');
                     theadRectangle = theadRectangle || getElementRectangle(thead[0]);
-                    var bodyFirstItemHeight = windowFirstChild.getBoundingClientRect().height;
+                    var bodyFirstItemHeight = windowFirstChild ? windowFirstChild.getBoundingClientRect().height : 0;
                     var itemTop = theadRectangle.top + bodyFirstItemHeight;
                     if (getWindowScroll().top > itemTop) {
                         thead.css('transform', 'translateY(' + Math.max(0, getWindowScroll().top + bodyFirstItemHeight - theadRectangle.top) + 'px)');
@@ -21309,7 +21309,7 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "                                criteria=\"search.criteria\" on-select-term=\"onSelectTerm\"\n" +
     "                                on-refresh=\"refreshQuery\" lang=\"lang\"></taxonomies-facets-panel>\n" +
     "      </div>\n" +
-    "      <div class=\"col-md-3\" ng-if=\"!hasFacetedTaxonomies\">\n" +
+    "      <div class=\"col-sm-12 col-lg-3\" ng-if=\"!hasFacetedTaxonomies\">\n" +
     "        <!-- Search Facets region -->\n" +
     "        <meta-taxonomy-filter-panel\n" +
     "            show-taxonomy-panel=\"search.showTaxonomyPanel\"\n" +
@@ -21317,7 +21317,7 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "            rql-query=\"search.rqlQuery\"\n" +
     "            on-toggle=\"onTaxonomyFilterPanelToggleVisibility(target, taxonomy)\"></meta-taxonomy-filter-panel>\n" +
     "      </div>\n" +
-    "      <div class=\"col-md-9\">\n" +
+    "      <div class=\"col-sm-12 col-lg-9\">\n" +
     "        <!-- Search Results region -->\n" +
     "        <div class=\"panel panel-default\" ng-if=\"search.showTaxonomyPanel\">\n" +
     "          <taxonomy-filter-panel\n" +
