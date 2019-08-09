@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-06-25
+ * Date: 2019-08-09
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -12343,6 +12343,56 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
         };
     }
     ngObibaMica.search.directive('scrollToTop', ScrollToTop);
+    ngObibaMica.search.directive('tableScroll', function () {
+        return {
+            restrict: 'C',
+            scope: {},
+            link: function (scope, elem) {
+                // *******
+                var windowFirstChild = document.querySelector('body :first-child');
+                var onscroll;
+                var theadRectangle;
+                var initialTheadBackgroundColor = elem.find('table > thead').css('background-color');
+                var theadBackgroundColor = elem.css('background-color');
+                if (window.onscroll) {
+                    onscroll = window.onscroll;
+                }
+                function getWindowScroll() {
+                    return {
+                        top: window.pageYOffset,
+                        left: window.pageXOffset
+                    };
+                }
+                function getElementRectangle(item) {
+                    var rectangle = item.getBoundingClientRect();
+                    var windowScroll = getWindowScroll();
+                    return {
+                        left: rectangle.left + windowScroll.left,
+                        top: rectangle.top + windowScroll.top,
+                        width: rectangle.width,
+                        height: rectangle.height
+                    };
+                }
+                window.onscroll = function (event) {
+                    var thead = elem.find('table > thead');
+                    theadRectangle = theadRectangle || getElementRectangle(thead[0]);
+                    var bodyFirstItemHeight = windowFirstChild.getBoundingClientRect().height;
+                    var itemTop = theadRectangle.top + bodyFirstItemHeight;
+                    console.log(theadBackgroundColor);
+                    if (getWindowScroll().top > itemTop) {
+                        thead.css('transform', 'translateY(' + Math.max(0, getWindowScroll().top + bodyFirstItemHeight - theadRectangle.top) + 'px)');
+                        thead.css('background-color', 'white');
+                    }
+                    else {
+                        thead.css('transform', 'translateY(0)');
+                        thead.css('background-color', initialTheadBackgroundColor);
+                    }
+                    return onscroll && onscroll(event);
+                };
+                // *******
+            }
+        };
+    });
 })();
 //# sourceMappingURL=component.js.map
 /*
@@ -19899,7 +19949,7 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
-    "  <div class=\"table-responsive\" ng-if=\"!loading && table.taxonomyHeaders.length > 0\">\n" +
+    "  <div class=\"table-responsive table-scroll\" ng-if=\"!loading && table.taxonomyHeaders.length > 0\">\n" +
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
     "        <tr>\n" +
