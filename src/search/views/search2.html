@@ -22,7 +22,7 @@
                                 criteria="search.criteria" on-select-term="onSelectTerm"
                                 on-refresh="refreshQuery" lang="lang"></taxonomies-facets-panel>
       </div>
-      <div class="col-md-3" ng-if="!hasFacetedTaxonomies">
+      <div class="col-sm-12 col-lg-3" ng-if="!hasFacetedTaxonomies">
         <!-- Search Facets region -->
         <meta-taxonomy-filter-panel
             show-taxonomy-panel="search.showTaxonomyPanel"
@@ -30,7 +30,7 @@
             rql-query="search.rqlQuery"
             on-toggle="onTaxonomyFilterPanelToggleVisibility(target, taxonomy)"></meta-taxonomy-filter-panel>
       </div>
-      <div class="col-md-9">
+      <div class="col-sm-12 col-lg-9">
         <!-- Search Results region -->
         <div class="panel panel-default" ng-if="search.showTaxonomyPanel">
           <taxonomy-filter-panel

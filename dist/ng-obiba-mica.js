@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-06-25
+ * Date: 2019-08-09
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -12343,6 +12343,68 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
         };
     }
     ngObibaMica.search.directive('scrollToTop', ScrollToTop);
+    ngObibaMica.search.directive('tableScroll', function () {
+        return {
+            restrict: 'C',
+            scope: {},
+            link: function (scope, elem) {
+                var windowFirstChild = document.querySelector('body .navbar-fixed-top');
+                var onscroll;
+                var theadRectangle;
+                var initialTheadBackgroundColor = elem.find('table > thead').css('background-color');
+                var opaqueTheadBackground = rgbaToRgb(initialTheadBackgroundColor);
+                if (window.onscroll) {
+                    onscroll = window.onscroll;
+                }
+                function rgbaToRgb(color) {
+                    var rgbaRegex = /^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+),?[\s+]?(\S+)\)$/i;
+                    var matches = color.match(rgbaRegex);
+                    if (matches && matches.length >= 4) {
+                        var r = parseInt(matches[1], 10);
+                        var g = parseInt(matches[2], 10);
+                        var b = parseInt(matches[3], 10);
+                        var a = parseFloat(matches[4] || '1', 10);
+                        var rPrime = (1 - a) * 255 + a * r;
+                        var gPrime = (1 - a) * 255 + a * g;
+                        var bPrime = (1 - a) * 255 + a * b;
+                        return 'rgb(' + rPrime + ', ' + gPrime + ', ' + bPrime + ')';
+                    }
+                    return color;
+                }
+                function getWindowScroll() {
+                    return {
+                        top: window.pageYOffset,
+                        left: window.pageXOffset
+                    };
+                }
+                function getElementRectangle(item) {
+                    var rectangle = item.getBoundingClientRect();
+                    var windowScroll = getWindowScroll();
+                    return {
+                        left: rectangle.left + windowScroll.left,
+                        top: rectangle.top + windowScroll.top,
+                        width: rectangle.width,
+                        height: rectangle.height
+                    };
+                }
+                window.onscroll = function (event) {
+                    var thead = elem.find('table > thead');
+                    theadRectangle = theadRectangle || getElementRectangle(thead[0]);
+                    var bodyFirstItemHeight = windowFirstChild ? windowFirstChild.getBoundingClientRect().height : 0;
+                    var itemTop = theadRectangle.top + bodyFirstItemHeight;
+                    if (getWindowScroll().top > itemTop) {
+                        thead.css('transform', 'translateY(' + Math.max(0, getWindowScroll().top + bodyFirstItemHeight - theadRectangle.top) + 'px)');
+                        thead.css('background-color', opaqueTheadBackground);
+                    }
+                    else {
+                        thead.css('transform', 'translateY(0)');
+                        thead.css('background-color', initialTheadBackgroundColor);
+                    }
+                    return onscroll && onscroll(event);
+                };
+            }
+        };
+    });
 })();
 //# sourceMappingURL=component.js.map
 /*
@@ -19899,7 +19961,7 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
-    "  <div class=\"table-responsive\" ng-if=\"!loading && table.taxonomyHeaders.length > 0\">\n" +
+    "  <div class=\"table-responsive table-scroll\" ng-if=\"!loading && table.taxonomyHeaders.length > 0\">\n" +
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
     "        <tr>\n" +
@@ -21247,7 +21309,7 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "                                criteria=\"search.criteria\" on-select-term=\"onSelectTerm\"\n" +
     "                                on-refresh=\"refreshQuery\" lang=\"lang\"></taxonomies-facets-panel>\n" +
     "      </div>\n" +
-    "      <div class=\"col-md-3\" ng-if=\"!hasFacetedTaxonomies\">\n" +
+    "      <div class=\"col-sm-12 col-lg-3\" ng-if=\"!hasFacetedTaxonomies\">\n" +
     "        <!-- Search Facets region -->\n" +
     "        <meta-taxonomy-filter-panel\n" +
     "            show-taxonomy-panel=\"search.showTaxonomyPanel\"\n" +
@@ -21255,7 +21317,7 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "            rql-query=\"search.rqlQuery\"\n" +
     "            on-toggle=\"onTaxonomyFilterPanelToggleVisibility(target, taxonomy)\"></meta-taxonomy-filter-panel>\n" +
     "      </div>\n" +
-    "      <div class=\"col-md-9\">\n" +
+    "      <div class=\"col-sm-12 col-lg-9\">\n" +
     "        <!-- Search Results region -->\n" +
     "        <div class=\"panel panel-default\" ng-if=\"search.showTaxonomyPanel\">\n" +
     "          <taxonomy-filter-panel\n" +
