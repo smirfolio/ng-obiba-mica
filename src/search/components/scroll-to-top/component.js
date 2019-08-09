@@ -33,7 +33,7 @@
       scope: {},
       link: function(scope, elem) {
 
-        var windowFirstChild = document.querySelector('body :first-child');
+        var windowFirstChild = document.querySelector('body > .navbar');
         var onscroll;
         var theadRectangle ;
         var initialTheadBackgroundColor = elem.find('table > thead').css('background-color');
