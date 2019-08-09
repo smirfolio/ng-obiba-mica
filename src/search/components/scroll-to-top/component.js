@@ -32,11 +32,11 @@
       restrict: 'C',
       scope: {},
       link: function(scope, elem) {
-        // *******
 
         var windowFirstChild = document.querySelector('body :first-child');
         var onscroll;
         var theadRectangle ;
+        var initialTheadBackgroundColor = elem.find('table > thead').css('background-color');
         if (window.onscroll) {
           onscroll = window.onscroll;
         }
@@ -69,13 +69,13 @@
 
           if (getWindowScroll().top > itemTop) {
             thead.css('transform', 'translateY(' + Math.max(0, getWindowScroll().top + bodyFirstItemHeight - theadRectangle.top) + 'px)');
+            thead.css('background-color', 'white');
           } else {
             thead.css('transform', 'translateY(0)');
+            thead.css('background-color', initialTheadBackgroundColor);
           }
           return onscroll && onscroll(event);
         };
-
-        // *******
       }
     };
   });
