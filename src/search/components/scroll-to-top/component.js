@@ -33,7 +33,7 @@
       scope: {},
       link: function(scope, elem) {
 
-        var windowFirstChild = document.querySelector('body > .navbar');
+        var windowFirstChild = document.querySelector('body .navbar-fixed-top');
         var onscroll;
         var theadRectangle ;
         var initialTheadBackgroundColor = elem.find('table > thead').css('background-color');
@@ -85,7 +85,7 @@
           var thead = elem.find('table > thead');
           theadRectangle = theadRectangle || getElementRectangle(thead[0]);
 
-          var bodyFirstItemHeight = windowFirstChild.getBoundingClientRect().height;
+          var bodyFirstItemHeight = windowFirstChild ? windowFirstChild.getBoundingClientRect().height : 0;
           var itemTop = theadRectangle.top + bodyFirstItemHeight;
 
           if (getWindowScroll().top > itemTop) {
