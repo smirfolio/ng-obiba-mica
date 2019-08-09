@@ -12348,12 +12348,10 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
             restrict: 'C',
             scope: {},
             link: function (scope, elem) {
-                // *******
                 var windowFirstChild = document.querySelector('body :first-child');
                 var onscroll;
                 var theadRectangle;
                 var initialTheadBackgroundColor = elem.find('table > thead').css('background-color');
-                var theadBackgroundColor = elem.css('background-color');
                 if (window.onscroll) {
                     onscroll = window.onscroll;
                 }
@@ -12378,7 +12376,6 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
                     theadRectangle = theadRectangle || getElementRectangle(thead[0]);
                     var bodyFirstItemHeight = windowFirstChild.getBoundingClientRect().height;
                     var itemTop = theadRectangle.top + bodyFirstItemHeight;
-                    console.log(theadBackgroundColor);
                     if (getWindowScroll().top > itemTop) {
                         thead.css('transform', 'translateY(' + Math.max(0, getWindowScroll().top + bodyFirstItemHeight - theadRectangle.top) + 'px)');
                         thead.css('background-color', 'white');
@@ -12389,7 +12386,6 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
                     }
                     return onscroll && onscroll(event);
                 };
-                // *******
             }
         };
     });
