@@ -136,13 +136,6 @@ module.exports = function (grunt) {
       tmp: ['tmp']
     },
 
-    karma: {
-      unit: {
-        configFile: 'test/karma.conf.js',
-        singleRun: true
-      }
-    },
-
     /* convert AngularJs html templates to cached JavaScript */
     html2js: {
       ngObibaMica: {
@@ -183,7 +176,8 @@ module.exports = function (grunt) {
     jshint: {
       files: ['src/**/*.js'],
       options: {
-        jshintrc: '.jshintrc'
+        jshintrc: '.jshintrc',
+        reporterOutput: ''
       }
     },
 
@@ -224,11 +218,10 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-html2js');
-  grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-contrib-watch');
 
   // TODO uncomment below and remove last line once unit tests are implemented
-  // grunt.registerTask('default', ['clean:build', 'less', 'jshint', 'html2js', 'concat', 'clean:tmp', 'karma', 'uglify', 'copy']);
+  // grunt.registerTask('default', ['clean:build', 'less', 'jshint', 'html2js', 'concat', 'clean:tmp', 'uglify', 'copy']);
   grunt.registerTask('default', ['clean:build', 'tslint', 'ts', 'less', 'jshint', 'html2js', 'concat', 'clean:tmp', 'uglify', 'copy']);
   grunt.registerTask('watchChanges', ['default', 'watch']);
 };
