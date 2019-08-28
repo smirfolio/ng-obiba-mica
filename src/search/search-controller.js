@@ -131,7 +131,7 @@
           prev[$scope.taxonomyTypeMap[k]] = k;
           return prev;
         }, {});
-        
+
         $scope.lang = $translate.use();
 
         function initSearchTabs() {
@@ -369,7 +369,7 @@
               if (hasVariableCriteria) {
                 $scope.search.loading = true;
                 $scope.search.executedQuery = RqlQueryService.prepareCoverageQuery(localizedQuery, $scope.search.bucket);
-                JoinQueryCoverageResource.get({ query: $scope.search.executedQuery },
+                JoinQueryCoverageResource.get({ query: $scope.search.executedQuery, withZeros: $scope.search.withZeros },
                   function onSuccess(response) {
                     $scope.search.result.coverage = response;
                     $scope.search.loading = false;
@@ -612,6 +612,8 @@
         };
 
         function onLocationChange (event, newLocation, oldLocation) {
+          $scope.search.withZeros = $location.search().withZeros === undefined || $location.search().withZeros === 'true' ? true : false;
+
           if (newLocation !== oldLocation) {
             try {
               validateBucket($location.search().bucket);
@@ -825,6 +827,7 @@
           executedQuery: null,
           type: null,
           bucket: null,
+          withZeros: true,
           result: {
             list: null,
             coverage: null,
