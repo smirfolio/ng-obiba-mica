@@ -20028,6 +20028,15 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "            </small>\n" +
     "          </th>\n" +
     "        </tr>\n" +
+    "        <tr>\n" +
+    "          <th></th>\n" +
+    "          <th colspan=\"{{table.cols.colSpan}}\" translate>all</th>\n" +
+    "          <th ng-repeat=\"header in ::table.termHeaders\" title=\"{{header.entity.descriptions[0].value}}\">\n" +
+    "            <a href ng-click=\"updateCriteria(null, header, $index, 'variables')\">\n" +
+    "              <localized-number value=\"header.hits\"></localized-number>\n" +
+    "            </a>\n" +
+    "          </th>\n" +
+    "          </tr>\n" +
     "      </thead>\n" +
     "      <tbody>\n" +
     "        <tr ng-repeat=\"row in ::table.rows track by row.value\" ng-show=\"showMissing || table.termHeaders.length == row.hits.length\">\n" +
