@@ -673,6 +673,14 @@ ngObibaMica.search
         });
       };
 
+      $scope.onZeroColumnsToggle = function () {
+        $location.search('withZeros', $scope.coverage.withZeros ? 'true' : 'false');
+      };
+
+      $scope.coverage = {
+        withZeros: $location.search().withZeros === undefined || $location.search().withZeros === 'true' ? true : false
+      };
+
       init();
     }])
 

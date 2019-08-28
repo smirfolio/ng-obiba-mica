@@ -34,6 +34,11 @@
         <input type="checkbox" ng-model="bucketSelection.dceBucketSelected">
         <span translate>search.coverage-buckets.dce</span>
       </label>
+
+      <label class="checkbox-inline">
+          <input type="checkbox" ng-model="coverage.withZeros" ng-change="onZeroColumnsToggle()">
+          <span translate>search.coverage-with-zeros</span>
+      </label>
     </div>
 
     <div class="voffset2" ng-if="!singleStudy && groupByOptions.canShowStudyType()">
