@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-08-15
+ * Date: 2019-08-28
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -6055,7 +6055,7 @@ var TaxonomyCartFilter = /** @class */ (function () {
                         if (hasVariableCriteria) {
                             $scope.search.loading = true;
                             $scope.search.executedQuery = RqlQueryService.prepareCoverageQuery(localizedQuery, $scope.search.bucket);
-                            JoinQueryCoverageResource.get({ query: $scope.search.executedQuery }, function onSuccess(response) {
+                            JoinQueryCoverageResource.get({ query: $scope.search.executedQuery, withZeros: $scope.search.withZeros }, function onSuccess(response) {
                                 $scope.search.result.coverage = response;
                                 $scope.search.loading = false;
                                 $scope.search.countResult = response.totalCounts;
@@ -6265,6 +6265,7 @@ var TaxonomyCartFilter = /** @class */ (function () {
                 }
             };
             function onLocationChange(event, newLocation, oldLocation) {
+                $scope.search.withZeros = $location.search().withZeros === undefined || $location.search().withZeros === 'true' ? true : false;
                 if (newLocation !== oldLocation) {
                     try {
                         validateBucket($location.search().bucket);
@@ -6451,6 +6452,7 @@ var TaxonomyCartFilter = /** @class */ (function () {
                 executedQuery: null,
                 type: null,
                 bucket: null,
+                withZeros: true,
                 result: {
                     list: null,
                     coverage: null,
@@ -11371,6 +11373,12 @@ ngObibaMica.search
             RqlQueryService.createCriteriaItem(QUERY_TARGETS.VARIABLE, vocabulary.taxonomyName, vocabulary.entity.name).then(function (item) {
                 $scope.onRemoveCriteria(item);
             });
+        };
+        $scope.onZeroColumnsToggle = function () {
+            $location.search('withZeros', $scope.coverage.withZeros ? 'true' : 'false');
+        };
+        $scope.coverage = {
+            withZeros: $location.search().withZeros === undefined || $location.search().withZeros === 'true' ? true : false
         };
         init();
     }
@@ -19942,6 +19950,11 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "      <label class=\"checkbox-inline\">\n" +
     "        <input type=\"checkbox\" ng-model=\"bucketSelection.dceBucketSelected\">\n" +
     "        <span translate>search.coverage-buckets.dce</span>\n" +
+    "      </label>\n" +
+    "\n" +
+    "      <label class=\"checkbox-inline\">\n" +
+    "          <input type=\"checkbox\" ng-model=\"coverage.withZeros\" ng-change=\"onZeroColumnsToggle()\">\n" +
+    "          <span translate>search.coverage-with-zeros</span>\n" +
     "      </label>\n" +
     "    </div>\n" +
     "\n" +
