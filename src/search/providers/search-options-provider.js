@@ -140,6 +140,10 @@
         ]
       },
       coverage: {
+        total: {
+          showInHeader: true,
+          showInFooter: false
+        },
         groupBy: {
           study: true,
           dce: true,
