@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-08-28
+ * Date: 2019-09-06
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -4416,6 +4416,10 @@ ngObibaMica.search = angular.module('obiba.mica.search', [
                 ]
             },
             coverage: {
+                total: {
+                    showInHeader: true,
+                    showInFooter: false
+                },
                 groupBy: {
                     study: true,
                     dce: true,
@@ -10792,7 +10796,8 @@ ngObibaMica.search
     'StudyFilterShortcutService',
     'TaxonomyService',
     'AlertService',
-    function ($scope, $location, $q, $translate, $filter, LocalizedValues, PageUrlService, RqlQueryUtils, RqlQueryService, CoverageGroupByService, StudyFilterShortcutService, TaxonomyService, AlertService) {
+    'ngObibaMicaSearch',
+    function ($scope, $location, $q, $translate, $filter, LocalizedValues, PageUrlService, RqlQueryUtils, RqlQueryService, CoverageGroupByService, StudyFilterShortcutService, TaxonomyService, AlertService, ngObibaMicaSearch) {
         var targetMap = {}, vocabulariesTermsMap = {};
         targetMap[BUCKET_TYPES.NETWORK] = QUERY_TARGETS.NETWORK;
         targetMap[BUCKET_TYPES.STUDY] = QUERY_TARGETS.STUDY;
@@ -11168,6 +11173,7 @@ ngObibaMica.search
         function init() {
             onLocationChange();
         }
+        $scope.totalOptions = ngObibaMicaSearch.getOptions().coverage.total;
         $scope.showMissing = true;
         $scope.toggleMissing = function (value) {
             $scope.showMissing = value;
@@ -20028,9 +20034,9 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "            </small>\n" +
     "          </th>\n" +
     "        </tr>\n" +
-    "        <tr>\n" +
+    "        <tr ng-show=\"totalOptions.showInHeader\">\n" +
     "          <th></th>\n" +
-    "          <th colspan=\"{{table.cols.colSpan}}\" translate>all</th>\n" +
+    "          <th colspan=\"{{table.cols.colSpan}}\"></th>\n" +
     "          <th ng-repeat=\"header in ::table.termHeaders\" title=\"{{header.entity.descriptions[0].value}}\">\n" +
     "            <a href ng-click=\"updateCriteria(null, header, $index, 'variables')\">\n" +
     "              <localized-number value=\"header.hits\"></localized-number>\n" +
@@ -20074,7 +20080,7 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "          </td>\n" +
     "        </tr>\n" +
     "      </tbody>\n" +
-    "      <tfoot>\n" +
+    "      <tfoot ng-show=\"totalOptions.showInFooter\">\n" +
     "        <tr>\n" +
     "          <th></th>\n" +
     "          <th colspan=\"{{table.cols.colSpan}}\" translate>all</th>\n" +

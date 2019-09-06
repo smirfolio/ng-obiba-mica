@@ -18,6 +18,7 @@ ngObibaMica.search
     'StudyFilterShortcutService',
     'TaxonomyService',
     'AlertService',
+    'ngObibaMicaSearch',
     function ($scope,
       $location,
       $q,
@@ -30,8 +31,10 @@ ngObibaMica.search
       CoverageGroupByService,
       StudyFilterShortcutService,
       TaxonomyService,
-      AlertService) {
+      AlertService,
+      ngObibaMicaSearch) {
       var targetMap = {}, vocabulariesTermsMap = {};
+
 
       targetMap[BUCKET_TYPES.NETWORK] = QUERY_TARGETS.NETWORK;
       targetMap[BUCKET_TYPES.STUDY] = QUERY_TARGETS.STUDY;
@@ -442,6 +445,7 @@ ngObibaMica.search
         onLocationChange();
       }
 
+      $scope.totalOptions = ngObibaMicaSearch.getOptions().coverage.total;
       $scope.showMissing = true;
       $scope.toggleMissing = function (value) {
         $scope.showMissing = value;
