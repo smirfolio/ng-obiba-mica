@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-09-06
+ * Date: 2019-09-09
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -6147,6 +6147,9 @@ var TaxonomyCartFilter = /** @class */ (function () {
                 taxonomyVocabulary.existingItem =
                     RqlQueryService.findCriteriaItemFromTreeById(target, CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria, true);
             }
+            function toggleLeftPanelVisibility() {
+                $scope.showLeftPanel = !$scope.showLeftPanel;
+            }
             function onTaxonomyFilterPanelToggleVisibility(target, taxonomy) {
                 if (target && taxonomy) {
                     if (Array.isArray(taxonomy)) {
@@ -6469,6 +6472,7 @@ var TaxonomyCartFilter = /** @class */ (function () {
             $scope.viewMode = VIEW_MODES.SEARCH;
             $scope.searchHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('search');
             $scope.classificationsHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('classifications');
+            $scope.toggleLeftPanelVisibility = toggleLeftPanelVisibility;
             $scope.onTaxonomyFilterPanelToggleVisibility = onTaxonomyFilterPanelToggleVisibility;
             $scope.selectDisplay = onDisplayChanged;
             $scope.selectCriteria = selectCriteria;
@@ -6510,6 +6514,7 @@ var TaxonomyCartFilter = /** @class */ (function () {
                 searchSuggestion(target, suggestion, withSpecificFields);
             });
             function init() {
+                $scope.showLeftPanel = true;
                 $scope.taxonomyNav = [];
                 $scope.lang = $translate.use();
                 SearchContext.setLocale($scope.lang);
@@ -21323,21 +21328,35 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
     "  -->\n" +
     "\n" +
-    "<div ng-show=\"inSearchMode()\">\n" +
+    "<div ng-show=\"inSearchMode()\" class=\"can-full-screen\"  fullscreen=\"isFullscreen\">\n" +
     "\n" +
     "  <!-- Search criteria region -->\n" +
     "  <search-criteria-region options=\"options\" search=\"search\"></search-criteria-region>\n" +
+    "  <div>\n" +
+    "    <a href\n" +
+    "       class=\"btn btn-sm btn-default\"\n" +
+    "       ng-click=\"toggleLeftPanelVisibility()\"\n" +
+    "       title=\"{{showLeftPanel ? 'search.left-panel-close-tooltip' : 'search.left-panel-open-tooltip' | translate}}\">\n" +
+    "      <span><i class=\"fa\" ng-class=\"{'fa-times': showLeftPanel, 'fa-bars': !showLeftPanel}\"></i></span>\n" +
+    "    </a>\n" +
+    "    <a href\n" +
+    "       class=\"btn btn-sm btn-default pull-right\"\n" +
+    "       ng-click=\"toggleFullscreen()\"\n" +
+    "       title=\"{{isFullscreen ? 'exit-fullscreen' : 'fullscreen' | translate}}\">\n" +
+    "      <i class=\"glyphicon\" ng-class=\"{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}\"></i>\n" +
+    "    </a>\n" +
+    "  </div>\n" +
     "  <div ng-class=\"{'overlay-back-on': search.showTaxonomyPanel}\">\n" +
     "  </div>\n" +
     "  <div ng-class=\"{'overlay-front-on': search.showTaxonomyPanel}\">\n" +
-    "    <div class=\"row voffset2\">\n" +
-    "      <div class=\"col-md-3\" ng-if=\"hasFacetedTaxonomies\">\n" +
+    "    <div class=\"row voffset1\">\n" +
+    "      <div class=\"col-md-3\" ng-if=\"hasFacetedTaxonomies && showLeftPanel\">\n" +
     "        <!-- Search Facets region -->\n" +
     "        <taxonomies-facets-panel id=\"search-facets-region\" faceted-taxonomies=\"facetedTaxonomies\"\n" +
     "                                criteria=\"search.criteria\" on-select-term=\"onSelectTerm\"\n" +
     "                                on-refresh=\"refreshQuery\" lang=\"lang\"></taxonomies-facets-panel>\n" +
     "      </div>\n" +
-    "      <div class=\"col-sm-12 col-lg-3\" ng-if=\"!hasFacetedTaxonomies\">\n" +
+    "      <div class=\"col-sm-12 col-lg-3\" ng-if=\"!hasFacetedTaxonomies && showLeftPanel\">\n" +
     "        <!-- Search Facets region -->\n" +
     "        <meta-taxonomy-filter-panel\n" +
     "            show-taxonomy-panel=\"search.showTaxonomyPanel\"\n" +
@@ -21345,7 +21364,7 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "            rql-query=\"search.rqlQuery\"\n" +
     "            on-toggle=\"onTaxonomyFilterPanelToggleVisibility(target, taxonomy)\"></meta-taxonomy-filter-panel>\n" +
     "      </div>\n" +
-    "      <div class=\"col-sm-12 col-lg-9\">\n" +
+    "      <div class=\"col-sm-12\" ng-class=\"{'col-lg-9': showLeftPanel, 'col-lg-12': !showLeftPanel}\">\n" +
     "        <!-- Search Results region -->\n" +
     "        <div class=\"panel panel-default\" ng-if=\"search.showTaxonomyPanel\">\n" +
     "          <taxonomy-filter-panel\n" +
@@ -21361,13 +21380,9 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "              on-toggle=\"onTaxonomyFilterPanelToggleVisibility\"></taxonomy-filter-panel>\n" +
     "        </div>\n" +
     "        <div class=\"clearfix\"></div>\n" +
-    "        <div id=\"search-result-region\" class=\"can-full-screen\"\n" +
-    "            ng-if=\"!search.showTaxonomyPanel && canExecuteWithEmptyQuery()\" fullscreen=\"isFullscreen\">\n" +
+    "        <div id=\"search-result-region\"\n" +
+    "            ng-if=\"!search.showTaxonomyPanel && canExecuteWithEmptyQuery()\">\n" +
     "          <div ng-if=\"searchTabsOrder.length > 1\">\n" +
-    "            <a href class=\"btn btn-sm btn-default pull-right\" ng-click=\"toggleFullscreen()\">\n" +
-    "              <i class=\"glyphicon\"\n" +
-    "                ng-class=\"{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}\"></i>\n" +
-    "            </a>\n" +
     "            <ul class=\"nav nav-tabs\">\n" +
     "              <li role=\"presentation\" ng-repeat=\"tab in searchTabsOrder\"\n" +
     "                  ng-class=\"{active: search.display === tab}\">\n" +
