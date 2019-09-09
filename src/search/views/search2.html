@@ -8,21 +8,35 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
-<div ng-show="inSearchMode()">
+<div ng-show="inSearchMode()" class="can-full-screen"  fullscreen="isFullscreen">
 
   <!-- Search criteria region -->
   <search-criteria-region options="options" search="search"></search-criteria-region>
+  <div>
+    <a href
+       class="btn btn-sm btn-default"
+       ng-click="toggleLeftPanelVisibility()"
+       title="{{showLeftPanel ? 'search.left-panel-close-tooltip' : 'search.left-panel-open-tooltip' | translate}}">
+      <span><i class="fa" ng-class="{'fa-times': showLeftPanel, 'fa-bars': !showLeftPanel}"></i></span>
+    </a>
+    <a href
+       class="btn btn-sm btn-default pull-right"
+       ng-click="toggleFullscreen()"
+       title="{{isFullscreen ? 'exit-fullscreen' : 'fullscreen' | translate}}">
+      <i class="glyphicon" ng-class="{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}"></i>
+    </a>
+  </div>
   <div ng-class="{'overlay-back-on': search.showTaxonomyPanel}">
   </div>
   <div ng-class="{'overlay-front-on': search.showTaxonomyPanel}">
-    <div class="row voffset2">
-      <div class="col-md-3" ng-if="hasFacetedTaxonomies">
+    <div class="row voffset1">
+      <div class="col-md-3" ng-if="hasFacetedTaxonomies && showLeftPanel">
         <!-- Search Facets region -->
         <taxonomies-facets-panel id="search-facets-region" faceted-taxonomies="facetedTaxonomies"
                                 criteria="search.criteria" on-select-term="onSelectTerm"
                                 on-refresh="refreshQuery" lang="lang"></taxonomies-facets-panel>
       </div>
-      <div class="col-sm-12 col-lg-3" ng-if="!hasFacetedTaxonomies">
+      <div class="col-sm-12 col-lg-3" ng-if="!hasFacetedTaxonomies && showLeftPanel">
         <!-- Search Facets region -->
         <meta-taxonomy-filter-panel
             show-taxonomy-panel="search.showTaxonomyPanel"
@@ -30,7 +44,7 @@
             rql-query="search.rqlQuery"
             on-toggle="onTaxonomyFilterPanelToggleVisibility(target, taxonomy)"></meta-taxonomy-filter-panel>
       </div>
-      <div class="col-sm-12 col-lg-9">
+      <div class="col-sm-12" ng-class="{'col-lg-9': showLeftPanel, 'col-lg-12': !showLeftPanel}">
         <!-- Search Results region -->
         <div class="panel panel-default" ng-if="search.showTaxonomyPanel">
           <taxonomy-filter-panel
@@ -46,13 +60,9 @@
               on-toggle="onTaxonomyFilterPanelToggleVisibility"></taxonomy-filter-panel>
         </div>
         <div class="clearfix"></div>
-        <div id="search-result-region" class="can-full-screen"
-            ng-if="!search.showTaxonomyPanel && canExecuteWithEmptyQuery()" fullscreen="isFullscreen">
+        <div id="search-result-region"
+            ng-if="!search.showTaxonomyPanel && canExecuteWithEmptyQuery()">
           <div ng-if="searchTabsOrder.length > 1">
-            <a href class="btn btn-sm btn-default pull-right" ng-click="toggleFullscreen()">
-              <i class="glyphicon"
-                ng-class="{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}"></i>
-            </a>
             <ul class="nav nav-tabs">
               <li role="presentation" ng-repeat="tab in searchTabsOrder"
                   ng-class="{active: search.display === tab}">
