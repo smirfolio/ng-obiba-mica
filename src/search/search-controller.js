@@ -480,6 +480,10 @@
               CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria, true);
         }
 
+        function toggleLeftPanelVisibility() {
+          $scope.showLeftPanel = !$scope.showLeftPanel;
+        }
+
         function onTaxonomyFilterPanelToggleVisibility(target, taxonomy) {
           if (target && taxonomy) {
             if (Array.isArray(taxonomy)) {
@@ -842,6 +846,7 @@
 
         $scope.searchHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('search');
         $scope.classificationsHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('classifications');
+        $scope.toggleLeftPanelVisibility = toggleLeftPanelVisibility;
         $scope.onTaxonomyFilterPanelToggleVisibility = onTaxonomyFilterPanelToggleVisibility;
         $scope.selectDisplay = onDisplayChanged;
         $scope.selectCriteria = selectCriteria;
@@ -895,6 +900,7 @@
         });
 
         function init() {
+          $scope.showLeftPanel = true;
           $scope.taxonomyNav = [];
           $scope.lang = $translate.use();
           SearchContext.setLocale($scope.lang);
