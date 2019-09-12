@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-09-09
+ * Date: 2019-09-12
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -4343,6 +4343,15 @@ ngObibaMica.search = angular.module('obiba.mica.search', [
                     showDatasetsStudiesColumn: true,
                     showDatasetsVariablesColumn: true
                 },
+                fields: [
+                    'attributes.label.*',
+                    'variableType',
+                    'datasetId',
+                    'datasetAcronym'
+                ],
+                annotationTaxonomies: [
+                    'Mlstr_area'
+                ],
                 showCart: true
             },
             datasets: {
@@ -7339,12 +7348,12 @@ function typeToTarget(type) {
                         case QUERY_TARGETS.STUDY:
                             return RqlQueryUtils.fields(searchOptions.studies.fields);
                         case QUERY_TARGETS.VARIABLE:
-                            return RqlQueryUtils.fields([
-                                'attributes.label.*',
-                                'variableType',
-                                'datasetId',
-                                'datasetAcronym'
-                            ]);
+                            var fields = (searchOptions.variables.fields || [])
+                                .concat((searchOptions.variables.annotationTaxonomies || [])
+                                .map(function (taxonomy) {
+                                return 'attributes.' + taxonomy + '*';
+                            }));
+                            return RqlQueryUtils.fields(fields);
                         case QUERY_TARGETS.DATASET:
                             return RqlQueryUtils.fields(searchOptions.datasets.fields);
                         case QUERY_TARGETS.NETWORK:
@@ -8755,6 +8764,101 @@ ngObibaMica.search.service("SearchResultSelectionsService", SearchResultSelectio
         .service('TaxonomyService', ['$q', 'TaxonomiesResource', 'TaxonomyResource', 'VocabularyService', TaxonomyService]);
 })();
 //# sourceMappingURL=taxonomy-service.js.map
+/*
+ * Copyright (c) 2019 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var VariableAnnotationsService = /** @class */ (function () {
+    function VariableAnnotationsService($q, $log, $translate, $cacheFactory, ngObibaMicaSearch, TaxonomyResource, LocalizedValues) {
+        this.$q = $q;
+        this.$log = $log;
+        this.$translate = $translate;
+        this.$cacheFactory = $cacheFactory;
+        this.ngObibaMicaSearch = ngObibaMicaSearch;
+        this.TaxonomyResource = TaxonomyResource;
+        this.LocalizedValues = LocalizedValues;
+        this.localizedAnnotations = {};
+        this.annotationTaxonomies = this.ngObibaMicaSearch.getOptions().variables.annotationTaxonomies;
+        this.annotationsEnabled = this.annotationTaxonomies && this.annotationTaxonomies.length > 0;
+    }
+    VariableAnnotationsService.prototype.isAnnotationsEnabled = function () {
+        return this.annotationsEnabled;
+    };
+    VariableAnnotationsService.prototype.processAnnotations = function (variables) {
+        var _this = this;
+        var deferred = this.$q.defer();
+        if (!this.annotationsEnabled || !variables || variables.length < 0) {
+            deferred.resolve();
+        }
+        this.ensureAnnotationTaxonomies().then(function () {
+            variables.forEach(function (variable) {
+                (variable.annotations || []).forEach(function (annotation) {
+                    annotation.title = _this.localizedAnnotations[_this.createMapKey(annotation)];
+                    if (!annotation.title) {
+                        _this.localizeAnnotation(annotation).then(function (localized) {
+                            annotation.title = localized;
+                        });
+                    }
+                });
+            });
+            deferred.resolve();
+        });
+        return deferred.promise;
+    };
+    VariableAnnotationsService.prototype.createMapKey = function (annotation) {
+        return annotation.taxonomy + "_" + annotation.vocabulary + "_" + annotation.value;
+    };
+    VariableAnnotationsService.prototype.ensureAnnotationTaxonomies = function () {
+        var _this = this;
+        var deferred = this.$q.defer();
+        this.annotationTaxonomies.forEach(function (taxonomy) {
+            // cache in Angular App
+            _this.TaxonomyResource.get({
+                target: QUERY_TARGETS.VARIABLE,
+                taxonomy: taxonomy,
+            }).$promise.then(deferred.resolve());
+        });
+        return deferred.promise;
+    };
+    VariableAnnotationsService.prototype.localizeAnnotation = function (annotation) {
+        var _this = this;
+        var deferred = this.$q.defer();
+        var key = this.createMapKey(annotation);
+        if (this.localizedAnnotations[key]) {
+            deferred.resolve(this.localizedAnnotations[key] || annotation.value);
+        }
+        var localized = null;
+        this.TaxonomyResource.get({
+            target: QUERY_TARGETS.VARIABLE,
+            taxonomy: annotation.taxonomy,
+        }).$promise.then(function (taxonomy) {
+            taxonomy.vocabularies.some(function (vocabulary) {
+                if (vocabulary.name === annotation.vocabulary) {
+                    (vocabulary.terms || []).some(function (term) {
+                        if (term.name === annotation.value) {
+                            localized = _this.LocalizedValues.forLocale(term.title, _this.$translate.use());
+                            return true;
+                        }
+                    });
+                    return true;
+                }
+            });
+            _this.localizedAnnotations[key] = localized;
+            deferred.resolve(localized || annotation.value);
+        });
+        return deferred.promise;
+    };
+    VariableAnnotationsService.$inject = ["$q", "$log", "$translate", "$cacheFactory",
+        "ngObibaMicaSearch", "TaxonomyResource", "LocalizedValues"];
+    return VariableAnnotationsService;
+}());
+ngObibaMica.search.service("VariableAnnotationsService", VariableAnnotationsService);
+//# sourceMappingURL=variable-annotations-service.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
@@ -12316,7 +12420,7 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
  */
 'use strict';
 (function () {
-    function VariablesResultTable(PageUrlService, ngObibaMicaSearch, SearchResultSelectionsService) {
+    function VariablesResultTable(PageUrlService, ngObibaMicaSearch, VariableAnnotationsService, SearchResultSelectionsService) {
         return {
             restrict: 'EA',
             replace: true,
@@ -12327,14 +12431,26 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
             },
             templateUrl: 'search/components/result/variables-result-table/component.html',
             link: function (scope) {
+                scope.annotationsEnabled = VariableAnnotationsService.isAnnotationsEnabled();
+                function setSummaries(summaries) {
+                    if (summaries) {
+                        VariableAnnotationsService.processAnnotations(summaries).then(function () {
+                            scope._summaries = summaries;
+                        });
+                    }
+                }
                 scope.options = ngObibaMicaSearch.getOptions().variables;
                 scope.optionsCols = scope.options.variablesColumn;
                 scope.PageUrlService = PageUrlService;
+                if (scope.annotationsEnabled) {
+                    scope.__defineSetter__('summaries', setSummaries);
+                    scope.__defineGetter__('summaries', function () { return scope._summaries; });
+                }
                 SearchResultSelectionsService.decorateSearchResult(QUERY_TYPES.VARIABLES, scope);
             }
         };
     }
-    ngObibaMica.search.directive('variablesResultTable', ['PageUrlService', 'ngObibaMicaSearch', 'SearchResultSelectionsService', VariablesResultTable]);
+    ngObibaMica.search.directive('variablesResultTable', ['PageUrlService', 'ngObibaMicaSearch', 'VariableAnnotationsService', 'SearchResultSelectionsService', VariablesResultTable]);
 })();
 //# sourceMappingURL=component.js.map
 /*
@@ -20640,8 +20756,9 @@ angular.module("search/components/result/variables-result-table/component.html",
     "                      type=\"checkbox\"\n" +
     "                      ng-click=\"selectPage()\"/>\n" +
     "            </th>\n" +
-    "            <th class=\"col-width-35\" translate>name</th>\n" +
-    "            <th class=\"col-width-35\" translate>search.variable.label</th>\n" +
+    "            <th ng-class=\"{'col-width-20': annotationsEnabled, 'col-width-35': !annotationsEnabled}\" translate>name</th>\n" +
+    "            <th ng-class=\"{'col-width-20': annotationsEnabled, 'col-width-35': !annotationsEnabled}\" translate>search.variable.label</th>\n" +
+    "            <th ng-if=\"annotationsEnabled\" class=\"col-width-20\">Annotations</th>\n" +
     "            <th class=\"col-width-10\" translate ng-if=\"optionsCols.showVariablesTypeColumn\">type</th>\n" +
     "            <th class=\"col-width-10\" translate ng-if=\"optionsCols.showVariablesStudiesColumn\">search.study.label</th>\n" +
     "            <th class=\"col-width-15\" translate ng-if=\"optionsCols.showVariablesDatasetsColumn\">search.dataset.label</th>\n" +
@@ -20659,6 +20776,12 @@ angular.module("search/components/result/variables-result-table/component.html",
     "            </td>\n" +
     "            <td>\n" +
     "              <localized value=\"summary.variableLabel\" lang=\"lang\"></localized>\n" +
+    "            </td>\n" +
+    "            <td ng-if=\"annotationsEnabled\">\n" +
+    "              <ul class=\"list-annotations no-padding-left\" ng-if=\"summary.annotations.length > 1\">\n" +
+    "                <li ng-repeat=\"annotation in summary.annotations\"><span>{{annotation.title}}</span></li>\n" +
+    "              </ul>\n" +
+    "              <span ng-if=\"summary.annotations.length === 1\">{{summary.annotations[0].title}}</span>\n" +
     "            </td>\n" +
     "            <td ng-if=\"optionsCols.showVariablesTypeColumn\">\n" +
     "              {{'search.variable.' + summary.variableType.toLowerCase() | translate}}\n" +

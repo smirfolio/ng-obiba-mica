@@ -11,7 +11,10 @@
 'use strict';
 
 (function () {
-  function VariablesResultTable(PageUrlService, ngObibaMicaSearch, SearchResultSelectionsService) {
+  function VariablesResultTable(PageUrlService,
+                                ngObibaMicaSearch,
+                                VariableAnnotationsService,
+                                SearchResultSelectionsService) {
     return {
       restrict: 'EA',
       replace: true,
@@ -22,9 +25,24 @@
       },
       templateUrl: 'search/components/result/variables-result-table/component.html',
       link: function (scope) {
+        scope.annotationsEnabled = VariableAnnotationsService.isAnnotationsEnabled();
+
+        function setSummaries(summaries) {
+          if (summaries) {
+            VariableAnnotationsService.processAnnotations(summaries).then(function () {
+              scope._summaries = summaries;
+            });
+          }
+        }
+
         scope.options = ngObibaMicaSearch.getOptions().variables;
         scope.optionsCols = scope.options.variablesColumn;
         scope.PageUrlService = PageUrlService;
+
+        if (scope.annotationsEnabled) {
+          scope.__defineSetter__('summaries', setSummaries);
+          scope.__defineGetter__('summaries', function() {return scope._summaries;});
+        }
 
         SearchResultSelectionsService.decorateSearchResult(QUERY_TYPES.VARIABLES, scope);
       }
@@ -32,5 +50,5 @@
   }
 
   ngObibaMica.search.directive('variablesResultTable',
-    ['PageUrlService', 'ngObibaMicaSearch', 'SearchResultSelectionsService', VariablesResultTable]);
+    ['PageUrlService', 'ngObibaMicaSearch', 'VariableAnnotationsService', 'SearchResultSelectionsService', VariablesResultTable]);
 })();
