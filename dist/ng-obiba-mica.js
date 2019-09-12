@@ -5948,6 +5948,7 @@ var TaxonomyCartFilter = /** @class */ (function () {
                     validateBucket(bucket);
                     validateDisplay(display);
                     $scope.search.type = type;
+                    $scope.search.withZeros = search.withZeros;
                     $scope.search.bucket = bucket;
                     $scope.search.display = display;
                     $scope.search.query = query;
