@@ -67,6 +67,15 @@
           showDatasetsStudiesColumn: true,
           showDatasetsVariablesColumn: true
         },
+        fields: [
+          'attributes.label.*',
+          'variableType',
+          'datasetId',
+          'datasetAcronym'
+        ],
+        annotationTaxonomies: [
+          'Mlstr_area'
+        ],
         showCart: true
       },
       datasets: {
