@@ -240,13 +240,13 @@ function typeToTarget(type) {
               return RqlQueryUtils.fields(searchOptions.studies.fields);
 
             case QUERY_TARGETS.VARIABLE:
-              return RqlQueryUtils.fields(
-                [
-                  'attributes.label.*',
-                  'variableType',
-                  'datasetId',
-                  'datasetAcronym'
-                ]);
+              var fields = (searchOptions.variables.fields || [])
+                .concat((searchOptions.variables.annotationTaxonomies || [])
+                  .map(function(taxonomy) {
+                    return 'attributes.' + taxonomy + '*';
+                  })
+                );
+              return RqlQueryUtils.fields(fields);
 
             case QUERY_TARGETS.DATASET:
               return RqlQueryUtils.fields(searchOptions.datasets.fields);

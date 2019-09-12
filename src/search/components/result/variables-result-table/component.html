@@ -13,8 +13,9 @@
                       type="checkbox"
                       ng-click="selectPage()"/>
             </th>
-            <th class="col-width-35" translate>name</th>
-            <th class="col-width-35" translate>search.variable.label</th>
+            <th ng-class="{'col-width-20': annotationsEnabled, 'col-width-35': !annotationsEnabled}" translate>name</th>
+            <th ng-class="{'col-width-20': annotationsEnabled, 'col-width-35': !annotationsEnabled}" translate>search.variable.label</th>
+            <th ng-if="annotationsEnabled" class="col-width-20">Annotations</th>
             <th class="col-width-10" translate ng-if="optionsCols.showVariablesTypeColumn">type</th>
             <th class="col-width-10" translate ng-if="optionsCols.showVariablesStudiesColumn">search.study.label</th>
             <th class="col-width-15" translate ng-if="optionsCols.showVariablesDatasetsColumn">search.dataset.label</th>
@@ -32,6 +33,12 @@
             </td>
             <td>
               <localized value="summary.variableLabel" lang="lang"></localized>
+            </td>
+            <td ng-if="annotationsEnabled">
+              <ul class="list-annotations no-padding-left" ng-if="summary.annotations.length > 1">
+                <li ng-repeat="annotation in summary.annotations"><span>{{annotation.title}}</span></li>
+              </ul>
+              <span ng-if="summary.annotations.length === 1">{{summary.annotations[0].title}}</span>
             </td>
             <td ng-if="optionsCols.showVariablesTypeColumn">
               {{'search.variable.' + summary.variableType.toLowerCase() | translate}}
