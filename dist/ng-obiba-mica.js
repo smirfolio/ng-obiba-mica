@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-09-12
+ * Date: 2019-09-13
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -11281,6 +11281,7 @@ ngObibaMica.search
             StudyFilterShortcutService.filter(choice, $scope.lang);
         }
         function init() {
+            $scope.fullCoverageDisabled = true;
             onLocationChange();
         }
         $scope.totalOptions = ngObibaMicaSearch.getOptions().coverage.total;
@@ -11398,6 +11399,7 @@ ngObibaMica.search
                 vocabulariesTermsMap = decorateTermHeaders($scope.table.vocabularyHeaders, $scope.table.termHeaders, 'vocabularyName');
                 decorateTermHeaders($scope.table.taxonomyHeaders, $scope.table.termHeaders, 'taxonomyName');
                 decorateVocabularyHeaders($scope.table.taxonomyHeaders, $scope.table.vocabularyHeaders);
+                $scope.isFullCoverageImpossibleOrCoverageAlreadyFull();
             }
         });
         $scope.updateCriteria = function (id, term, idx, type) {
@@ -11450,10 +11452,7 @@ ngObibaMica.search
                     }
                 }
             });
-            if (rowsWithZeroHitColumn === 0) {
-                return true;
-            }
-            return rows.length === rowsWithZeroHitColumn;
+            $scope.fullCoverageDisabled = rowsWithZeroHitColumn === 0 || rows.length === rowsWithZeroHitColumn;
         };
         $scope.selectFullAndFilter = function () {
             var selected = [];
@@ -11491,6 +11490,7 @@ ngObibaMica.search
             });
         };
         $scope.onZeroColumnsToggle = function () {
+            $scope.coverage.withZeros = !$scope.coverage.withZeros;
             $location.search('withZeros', $scope.coverage.withZeros ? 'true' : 'false');
         };
         $scope.coverage = {
@@ -20044,7 +20044,6 @@ angular.module("search/components/result/cell-stat-value/component.html", []).ru
 angular.module("search/components/result/coverage-result/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/result/coverage-result/component.html",
     "<div class=\"coverage\">\n" +
-    "\n" +
     "  <div ng-if=\"hasVariableTarget() && table.taxonomyHeaders\">\n" +
     "    <ul class=\"nav nav-pills pull-left\">\n" +
     "      <li ng-if=\"groupByOptions.canShowStudy() && groupByOptions.canShowDataset()\" ng-class=\"{'active': bucket.startsWith('study') || bucketStartsWithDce}\"\n" +
@@ -20058,18 +20057,34 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "    </ul>\n" +
     "\n" +
     "    <div ng-class=\"{'pull-right': groupByOptions.canShowStudy() && groupByOptions.canShowDataset()}\">\n" +
-    "      <a ng-if=\"hasSelected()\" href class=\"btn btn-default\" ng-click=\"updateFilterCriteria()\">\n" +
-    "        <i class=\"fa fa-filter\"></i> {{'search.filter' | translate}}\n" +
-    "      </a>\n" +
+    "      <div ng-if=\"table.taxonomyHeaders.length > 0\">\n" +
+    "        <a ng-if=\"hasSelected()\" href class=\"btn btn-default\" ng-click=\"updateFilterCriteria()\">\n" +
+    "          <i class=\"fa fa-filter\"></i> {{'search.apply-selections' | translate}}\n" +
+    "        </a>\n" +
     "\n" +
-    "      <span ng-if=\"table.taxonomyHeaders.length > 0\">\n" +
-    "        <a href class=\"btn btn-info btn-responsive\" ng-click=\"selectFullAndFilter()\" ng-hide=\"isFullCoverageImpossibleOrCoverageAlreadyFull()\">\n" +
-    "          {{'search.coverage-select.full' | translate}}\n" +
-    "        </a>\n" +
-    "        <a obiba-file-download url=\"downloadUrl()\" target=\"_self\" download class=\"btn btn-info btn-responsive\" href>\n" +
-    "          <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
-    "        </a>\n" +
-    "      </span>\n" +
+    "        <div class=\"btn-group\">\n" +
+    "          <button type=\"button\" class=\"btn btn-success dropdown-toggle\" data-toggle=\"dropdown\">\n" +
+    "            <span><i class=\"fa fa-filter\"></i> {{'search.filter' | translate}} <i class=\"fa fa-caret-down\"></i></span>\n" +
+    "          </button>\n" +
+    "\n" +
+    "          <ul class=\"dropdown-menu\">\n" +
+    "            <li>\n" +
+    "              <a ng-click=\"onZeroColumnsToggle()\" href >{{coverage.withZeros ? 'search.coverage-without-zeros' : 'search.coverage-with-zeros' | translate}}</a>\n" +
+    "            </li>\n" +
+    "            <li>\n" +
+    "              <a href ng-click=\"selectFullAndFilter()\" ng-hide=\"fullCoverageDisabled\">\n" +
+    "                {{'search.coverage-select.full' | translate}}\n" +
+    "              </a>\n" +
+    "            </li>\n" +
+    "          </ul>\n" +
+    "        </div>\n" +
+    "        <span>\n" +
+    "          <a obiba-file-download url=\"downloadUrl()\" target=\"_self\" download class=\"btn btn-info btn-responsive\" href>\n" +
+    "            <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
+    "          </a>\n" +
+    "        </span>\n" +
+    "      </div>\n" +
+    "\n" +
     "    </div>\n" +
     "\n" +
     "    <div class=\"clearfix\"></div>\n" +
@@ -20078,11 +20093,6 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "      <label class=\"checkbox-inline\">\n" +
     "        <input type=\"checkbox\" ng-model=\"bucketSelection.dceBucketSelected\">\n" +
     "        <span translate>search.coverage-buckets.dce</span>\n" +
-    "      </label>\n" +
-    "\n" +
-    "      <label class=\"checkbox-inline\">\n" +
-    "          <input type=\"checkbox\" ng-model=\"coverage.withZeros\" ng-change=\"onZeroColumnsToggle()\">\n" +
-    "          <span translate>search.coverage-with-zeros</span>\n" +
     "      </label>\n" +
     "    </div>\n" +
     "\n" +
@@ -20119,7 +20129,7 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "                <li role=\"menuitem\">\n" +
     "                  <a href ng-click=\"selectNone()\" translate>search.coverage-select.none</a>\n" +
     "                </li>\n" +
-    "                <li role=\"menuitem\">\n" +
+    "                <li ng-hide=\"fullCoverageDisabled\" role=\"menuitem\">\n" +
     "                  <a href ng-click=\"selectFull()\" translate>search.coverage-select.full</a>\n" +
     "                </li>\n" +
     "              </ul>\n" +
