@@ -1,5 +1,4 @@
 <div class="coverage">
-
   <div ng-if="hasVariableTarget() && table.taxonomyHeaders">
     <ul class="nav nav-pills pull-left">
       <li ng-if="groupByOptions.canShowStudy() && groupByOptions.canShowDataset()" ng-class="{'active': bucket.startsWith('study') || bucketStartsWithDce}"
@@ -13,18 +12,34 @@
     </ul>
 
     <div ng-class="{'pull-right': groupByOptions.canShowStudy() && groupByOptions.canShowDataset()}">
-      <a ng-if="hasSelected()" href class="btn btn-default" ng-click="updateFilterCriteria()">
-        <i class="fa fa-filter"></i> {{'search.filter' | translate}}
-      </a>
+      <div ng-if="table.taxonomyHeaders.length > 0">
+        <a ng-if="hasSelected()" href class="btn btn-default" ng-click="updateFilterCriteria()">
+          <i class="fa fa-filter"></i> {{'search.apply-selections' | translate}}
+        </a>
 
-      <span ng-if="table.taxonomyHeaders.length > 0">
-        <a href class="btn btn-info btn-responsive" ng-click="selectFullAndFilter()" ng-hide="isFullCoverageImpossibleOrCoverageAlreadyFull()">
-          {{'search.coverage-select.full' | translate}}
-        </a>
-        <a obiba-file-download url="downloadUrl()" target="_self" download class="btn btn-info btn-responsive" href>
-          <i class="fa fa-download"></i> {{'download' | translate}}
-        </a>
-      </span>
+        <div class="btn-group">
+          <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
+            <span><i class="fa fa-filter"></i> {{'search.filter' | translate}} <i class="fa fa-caret-down"></i></span>
+          </button>
+
+          <ul class="dropdown-menu">
+            <li>
+              <a ng-click="onZeroColumnsToggle()" href >{{coverage.withZeros ? 'search.coverage-without-zeros' : 'search.coverage-with-zeros' | translate}}</a>
+            </li>
+            <li>
+              <a href ng-click="selectFullAndFilter()" ng-hide="fullCoverageDisabled">
+                {{'search.coverage-select.full' | translate}}
+              </a>
+            </li>
+          </ul>
+        </div>
+        <span>
+          <a obiba-file-download url="downloadUrl()" target="_self" download class="btn btn-info btn-responsive" href>
+            <i class="fa fa-download"></i> {{'download' | translate}}
+          </a>
+        </span>
+      </div>
+
     </div>
 
     <div class="clearfix"></div>
@@ -33,11 +48,6 @@
       <label class="checkbox-inline">
         <input type="checkbox" ng-model="bucketSelection.dceBucketSelected">
         <span translate>search.coverage-buckets.dce</span>
-      </label>
-
-      <label class="checkbox-inline">
-          <input type="checkbox" ng-model="coverage.withZeros" ng-change="onZeroColumnsToggle()">
-          <span translate>search.coverage-with-zeros</span>
       </label>
     </div>
 
@@ -74,7 +84,7 @@
                 <li role="menuitem">
                   <a href ng-click="selectNone()" translate>search.coverage-select.none</a>
                 </li>
-                <li role="menuitem">
+                <li ng-hide="fullCoverageDisabled" role="menuitem">
                   <a href ng-click="selectFull()" translate>search.coverage-select.full</a>
                 </li>
               </ul>

@@ -442,6 +442,7 @@ ngObibaMica.search
       }
 
       function init() {
+        $scope.fullCoverageDisabled = true;
         onLocationChange();
       }
 
@@ -576,6 +577,7 @@ ngObibaMica.search
           vocabulariesTermsMap = decorateTermHeaders($scope.table.vocabularyHeaders, $scope.table.termHeaders, 'vocabularyName');
           decorateTermHeaders($scope.table.taxonomyHeaders, $scope.table.termHeaders, 'taxonomyName');
           decorateVocabularyHeaders($scope.table.taxonomyHeaders, $scope.table.vocabularyHeaders);
+          $scope.isFullCoverageImpossibleOrCoverageAlreadyFull();
         }
       });
 
@@ -630,11 +632,7 @@ ngObibaMica.search
           }
         });
 
-        if (rowsWithZeroHitColumn === 0) {
-          return true;
-        }
-
-        return rows.length === rowsWithZeroHitColumn;
+        $scope.fullCoverageDisabled = rowsWithZeroHitColumn === 0 || rows.length === rowsWithZeroHitColumn;
       };
 
       $scope.selectFullAndFilter = function () {
@@ -678,6 +676,7 @@ ngObibaMica.search
       };
 
       $scope.onZeroColumnsToggle = function () {
+        $scope.coverage.withZeros = !$scope.coverage.withZeros;
         $location.search('withZeros', $scope.coverage.withZeros ? 'true' : 'false');
       };
 
