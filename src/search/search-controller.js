@@ -483,6 +483,7 @@
 
         function toggleLeftPanelVisibility() {
           $scope.showLeftPanel = !$scope.showLeftPanel;
+          $scope.$broadcast('ngObibaMicaLeftPaneToggle', $scope.showLeftPanel);
         }
 
         function onTaxonomyFilterPanelToggleVisibility(target, taxonomy) {

@@ -27,7 +27,7 @@
 
   ngObibaMica.search.directive('scrollToTop', ScrollToTop);
 
-  ngObibaMica.search.directive('tableScroll', function() {
+  ngObibaMica.search.directive('tableScroll', ['$timeout', function($timeout) {
     return {
       restrict: 'C',
       scope: {},
@@ -81,6 +81,14 @@
           };
         }
 
+        // Update the theadRectangle on Left panel toggling useful in responsive small screen
+        scope.$on('ngObibaMicaLeftPaneToggle', function () {
+          $timeout(function (){
+            var thead = elem.find('table > thead');
+            theadRectangle = getElementRectangle(thead[0]);
+          });
+        });
+
         window.onscroll = function (event) {
           var thead = elem.find('table > thead');
           theadRectangle = theadRectangle || getElementRectangle(thead[0]);
@@ -99,5 +107,5 @@
         };
       }
     };
-  });
+  }]);
 })();
