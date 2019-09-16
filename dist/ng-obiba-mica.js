@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-08-15
+ * Date: 2019-09-16
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -4343,6 +4343,15 @@ ngObibaMica.search = angular.module('obiba.mica.search', [
                     showDatasetsStudiesColumn: true,
                     showDatasetsVariablesColumn: true
                 },
+                fields: [
+                    'attributes.label.*',
+                    'variableType',
+                    'datasetId',
+                    'datasetAcronym'
+                ],
+                annotationTaxonomies: [
+                    'Mlstr_area'
+                ],
                 showCart: true
             },
             datasets: {
@@ -4416,6 +4425,10 @@ ngObibaMica.search = angular.module('obiba.mica.search', [
                 ]
             },
             coverage: {
+                total: {
+                    showInHeader: true,
+                    showInFooter: false
+                },
                 groupBy: {
                     study: true,
                     dce: true,
@@ -5935,6 +5948,7 @@ var TaxonomyCartFilter = /** @class */ (function () {
                     validateBucket(bucket);
                     validateDisplay(display);
                     $scope.search.type = type;
+                    $scope.search.withZeros = search.withZeros;
                     $scope.search.bucket = bucket;
                     $scope.search.display = display;
                     $scope.search.query = query;
@@ -6055,7 +6069,7 @@ var TaxonomyCartFilter = /** @class */ (function () {
                         if (hasVariableCriteria) {
                             $scope.search.loading = true;
                             $scope.search.executedQuery = RqlQueryService.prepareCoverageQuery(localizedQuery, $scope.search.bucket);
-                            JoinQueryCoverageResource.get({ query: $scope.search.executedQuery }, function onSuccess(response) {
+                            JoinQueryCoverageResource.get({ query: $scope.search.executedQuery, withZeros: $scope.search.withZeros }, function onSuccess(response) {
                                 $scope.search.result.coverage = response;
                                 $scope.search.loading = false;
                                 $scope.search.countResult = response.totalCounts;
@@ -6142,6 +6156,10 @@ var TaxonomyCartFilter = /** @class */ (function () {
                 taxonomyVocabulary.__defineGetter__('existingItem', function () { return taxonomyVocabulary._existingItem; });
                 taxonomyVocabulary.existingItem =
                     RqlQueryService.findCriteriaItemFromTreeById(target, CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria, true);
+            }
+            function toggleLeftPanelVisibility() {
+                $scope.showLeftPanel = !$scope.showLeftPanel;
+                $scope.$broadcast('ngObibaMicaLeftPaneToggle', $scope.showLeftPanel);
             }
             function onTaxonomyFilterPanelToggleVisibility(target, taxonomy) {
                 if (target && taxonomy) {
@@ -6265,6 +6283,7 @@ var TaxonomyCartFilter = /** @class */ (function () {
                 }
             };
             function onLocationChange(event, newLocation, oldLocation) {
+                $scope.search.withZeros = $location.search().withZeros === undefined || $location.search().withZeros === 'true' ? true : false;
                 if (newLocation !== oldLocation) {
                     try {
                         validateBucket($location.search().bucket);
@@ -6451,6 +6470,7 @@ var TaxonomyCartFilter = /** @class */ (function () {
                 executedQuery: null,
                 type: null,
                 bucket: null,
+                withZeros: true,
                 result: {
                     list: null,
                     coverage: null,
@@ -6463,6 +6483,7 @@ var TaxonomyCartFilter = /** @class */ (function () {
             $scope.viewMode = VIEW_MODES.SEARCH;
             $scope.searchHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('search');
             $scope.classificationsHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('classifications');
+            $scope.toggleLeftPanelVisibility = toggleLeftPanelVisibility;
             $scope.onTaxonomyFilterPanelToggleVisibility = onTaxonomyFilterPanelToggleVisibility;
             $scope.selectDisplay = onDisplayChanged;
             $scope.selectCriteria = selectCriteria;
@@ -6504,6 +6525,7 @@ var TaxonomyCartFilter = /** @class */ (function () {
                 searchSuggestion(target, suggestion, withSpecificFields);
             });
             function init() {
+                $scope.showLeftPanel = true;
                 $scope.taxonomyNav = [];
                 $scope.lang = $translate.use();
                 SearchContext.setLocale($scope.lang);
@@ -7328,12 +7350,12 @@ function typeToTarget(type) {
                         case QUERY_TARGETS.STUDY:
                             return RqlQueryUtils.fields(searchOptions.studies.fields);
                         case QUERY_TARGETS.VARIABLE:
-                            return RqlQueryUtils.fields([
-                                'attributes.label.*',
-                                'variableType',
-                                'datasetId',
-                                'datasetAcronym'
-                            ]);
+                            var fields = (searchOptions.variables.fields || [])
+                                .concat((searchOptions.variables.annotationTaxonomies || [])
+                                .map(function (taxonomy) {
+                                return 'attributes.' + taxonomy + '*';
+                            }));
+                            return RqlQueryUtils.fields(fields);
                         case QUERY_TARGETS.DATASET:
                             return RqlQueryUtils.fields(searchOptions.datasets.fields);
                         case QUERY_TARGETS.NETWORK:
@@ -8744,6 +8766,101 @@ ngObibaMica.search.service("SearchResultSelectionsService", SearchResultSelectio
         .service('TaxonomyService', ['$q', 'TaxonomiesResource', 'TaxonomyResource', 'VocabularyService', TaxonomyService]);
 })();
 //# sourceMappingURL=taxonomy-service.js.map
+/*
+ * Copyright (c) 2019 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var VariableAnnotationsService = /** @class */ (function () {
+    function VariableAnnotationsService($q, $log, $translate, $cacheFactory, ngObibaMicaSearch, TaxonomyResource, LocalizedValues) {
+        this.$q = $q;
+        this.$log = $log;
+        this.$translate = $translate;
+        this.$cacheFactory = $cacheFactory;
+        this.ngObibaMicaSearch = ngObibaMicaSearch;
+        this.TaxonomyResource = TaxonomyResource;
+        this.LocalizedValues = LocalizedValues;
+        this.localizedAnnotations = {};
+        this.annotationTaxonomies = this.ngObibaMicaSearch.getOptions().variables.annotationTaxonomies;
+        this.annotationsEnabled = this.annotationTaxonomies && this.annotationTaxonomies.length > 0;
+    }
+    VariableAnnotationsService.prototype.isAnnotationsEnabled = function () {
+        return this.annotationsEnabled;
+    };
+    VariableAnnotationsService.prototype.processAnnotations = function (variables) {
+        var _this = this;
+        var deferred = this.$q.defer();
+        if (!this.annotationsEnabled || !variables || variables.length < 0) {
+            deferred.resolve();
+        }
+        this.ensureAnnotationTaxonomies().then(function () {
+            variables.forEach(function (variable) {
+                (variable.annotations || []).forEach(function (annotation) {
+                    annotation.title = _this.localizedAnnotations[_this.createMapKey(annotation)];
+                    if (!annotation.title) {
+                        _this.localizeAnnotation(annotation).then(function (localized) {
+                            annotation.title = localized;
+                        });
+                    }
+                });
+            });
+            deferred.resolve();
+        });
+        return deferred.promise;
+    };
+    VariableAnnotationsService.prototype.createMapKey = function (annotation) {
+        return annotation.taxonomy + "_" + annotation.vocabulary + "_" + annotation.value;
+    };
+    VariableAnnotationsService.prototype.ensureAnnotationTaxonomies = function () {
+        var _this = this;
+        var deferred = this.$q.defer();
+        this.annotationTaxonomies.forEach(function (taxonomy) {
+            // cache in Angular App
+            _this.TaxonomyResource.get({
+                target: QUERY_TARGETS.VARIABLE,
+                taxonomy: taxonomy,
+            }).$promise.then(deferred.resolve());
+        });
+        return deferred.promise;
+    };
+    VariableAnnotationsService.prototype.localizeAnnotation = function (annotation) {
+        var _this = this;
+        var deferred = this.$q.defer();
+        var key = this.createMapKey(annotation);
+        if (this.localizedAnnotations[key]) {
+            deferred.resolve(this.localizedAnnotations[key] || annotation.value);
+        }
+        var localized = null;
+        this.TaxonomyResource.get({
+            target: QUERY_TARGETS.VARIABLE,
+            taxonomy: annotation.taxonomy,
+        }).$promise.then(function (taxonomy) {
+            taxonomy.vocabularies.some(function (vocabulary) {
+                if (vocabulary.name === annotation.vocabulary) {
+                    (vocabulary.terms || []).some(function (term) {
+                        if (term.name === annotation.value) {
+                            localized = _this.LocalizedValues.forLocale(term.title, _this.$translate.use());
+                            return true;
+                        }
+                    });
+                    return true;
+                }
+            });
+            _this.localizedAnnotations[key] = localized;
+            deferred.resolve(localized || annotation.value);
+        });
+        return deferred.promise;
+    };
+    VariableAnnotationsService.$inject = ["$q", "$log", "$translate", "$cacheFactory",
+        "ngObibaMicaSearch", "TaxonomyResource", "LocalizedValues"];
+    return VariableAnnotationsService;
+}());
+ngObibaMica.search.service("VariableAnnotationsService", VariableAnnotationsService);
+//# sourceMappingURL=variable-annotations-service.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
@@ -10790,7 +10907,8 @@ ngObibaMica.search
     'StudyFilterShortcutService',
     'TaxonomyService',
     'AlertService',
-    function ($scope, $location, $q, $translate, $filter, LocalizedValues, PageUrlService, RqlQueryUtils, RqlQueryService, CoverageGroupByService, StudyFilterShortcutService, TaxonomyService, AlertService) {
+    'ngObibaMicaSearch',
+    function ($scope, $location, $q, $translate, $filter, LocalizedValues, PageUrlService, RqlQueryUtils, RqlQueryService, CoverageGroupByService, StudyFilterShortcutService, TaxonomyService, AlertService, ngObibaMicaSearch) {
         var targetMap = {}, vocabulariesTermsMap = {};
         targetMap[BUCKET_TYPES.NETWORK] = QUERY_TARGETS.NETWORK;
         targetMap[BUCKET_TYPES.STUDY] = QUERY_TARGETS.STUDY;
@@ -11164,8 +11282,10 @@ ngObibaMica.search
             StudyFilterShortcutService.filter(choice, $scope.lang);
         }
         function init() {
+            $scope.fullCoverageDisabled = true;
             onLocationChange();
         }
+        $scope.totalOptions = ngObibaMicaSearch.getOptions().coverage.total;
         $scope.showMissing = true;
         $scope.toggleMissing = function (value) {
             $scope.showMissing = value;
@@ -11280,6 +11400,7 @@ ngObibaMica.search
                 vocabulariesTermsMap = decorateTermHeaders($scope.table.vocabularyHeaders, $scope.table.termHeaders, 'vocabularyName');
                 decorateTermHeaders($scope.table.taxonomyHeaders, $scope.table.termHeaders, 'taxonomyName');
                 decorateVocabularyHeaders($scope.table.taxonomyHeaders, $scope.table.vocabularyHeaders);
+                $scope.isFullCoverageImpossibleOrCoverageAlreadyFull();
             }
         });
         $scope.updateCriteria = function (id, term, idx, type) {
@@ -11332,10 +11453,7 @@ ngObibaMica.search
                     }
                 }
             });
-            if (rowsWithZeroHitColumn === 0) {
-                return true;
-            }
-            return rows.length === rowsWithZeroHitColumn;
+            $scope.fullCoverageDisabled = rowsWithZeroHitColumn === 0 || rows.length === rowsWithZeroHitColumn;
         };
         $scope.selectFullAndFilter = function () {
             var selected = [];
@@ -11371,6 +11489,13 @@ ngObibaMica.search
             RqlQueryService.createCriteriaItem(QUERY_TARGETS.VARIABLE, vocabulary.taxonomyName, vocabulary.entity.name).then(function (item) {
                 $scope.onRemoveCriteria(item);
             });
+        };
+        $scope.onZeroColumnsToggle = function () {
+            $scope.coverage.withZeros = !$scope.coverage.withZeros;
+            $location.search('withZeros', $scope.coverage.withZeros ? 'true' : 'false');
+        };
+        $scope.coverage = {
+            withZeros: $location.search().withZeros === undefined || $location.search().withZeros === 'true' ? true : false
         };
         init();
     }
@@ -12297,7 +12422,7 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
  */
 'use strict';
 (function () {
-    function VariablesResultTable(PageUrlService, ngObibaMicaSearch, SearchResultSelectionsService) {
+    function VariablesResultTable(PageUrlService, ngObibaMicaSearch, VariableAnnotationsService, SearchResultSelectionsService) {
         return {
             restrict: 'EA',
             replace: true,
@@ -12308,14 +12433,26 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
             },
             templateUrl: 'search/components/result/variables-result-table/component.html',
             link: function (scope) {
+                scope.annotationsEnabled = VariableAnnotationsService.isAnnotationsEnabled();
+                function setSummaries(summaries) {
+                    if (summaries) {
+                        VariableAnnotationsService.processAnnotations(summaries).then(function () {
+                            scope._summaries = summaries;
+                        });
+                    }
+                }
                 scope.options = ngObibaMicaSearch.getOptions().variables;
                 scope.optionsCols = scope.options.variablesColumn;
                 scope.PageUrlService = PageUrlService;
+                if (scope.annotationsEnabled) {
+                    scope.__defineSetter__('summaries', setSummaries);
+                    scope.__defineGetter__('summaries', function () { return scope._summaries; });
+                }
                 SearchResultSelectionsService.decorateSearchResult(QUERY_TYPES.VARIABLES, scope);
             }
         };
     }
-    ngObibaMica.search.directive('variablesResultTable', ['PageUrlService', 'ngObibaMicaSearch', 'SearchResultSelectionsService', VariablesResultTable]);
+    ngObibaMica.search.directive('variablesResultTable', ['PageUrlService', 'ngObibaMicaSearch', 'VariableAnnotationsService', 'SearchResultSelectionsService', VariablesResultTable]);
 })();
 //# sourceMappingURL=component.js.map
 /*
@@ -12343,68 +12480,75 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
         };
     }
     ngObibaMica.search.directive('scrollToTop', ScrollToTop);
-    ngObibaMica.search.directive('tableScroll', function () {
-        return {
-            restrict: 'C',
-            scope: {},
-            link: function (scope, elem) {
-                var windowFirstChild = document.querySelector('body .navbar-fixed-top');
-                var onscroll;
-                var theadRectangle;
-                var initialTheadBackgroundColor = elem.find('table > thead').css('background-color');
-                var opaqueTheadBackground = rgbaToRgb(initialTheadBackgroundColor);
-                if (window.onscroll) {
-                    onscroll = window.onscroll;
-                }
-                function rgbaToRgb(color) {
-                    var rgbaRegex = /^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+),?[\s+]?(\S+)\)$/i;
-                    var matches = color.match(rgbaRegex);
-                    if (matches && matches.length >= 4) {
-                        var r = parseInt(matches[1], 10);
-                        var g = parseInt(matches[2], 10);
-                        var b = parseInt(matches[3], 10);
-                        var a = parseFloat(matches[4] || '1', 10);
-                        var rPrime = (1 - a) * 255 + a * r;
-                        var gPrime = (1 - a) * 255 + a * g;
-                        var bPrime = (1 - a) * 255 + a * b;
-                        return 'rgb(' + rPrime + ', ' + gPrime + ', ' + bPrime + ')';
+    ngObibaMica.search.directive('tableScroll', ['$timeout', function ($timeout) {
+            return {
+                restrict: 'C',
+                scope: {},
+                link: function (scope, elem) {
+                    var windowFirstChild = document.querySelector('body .navbar-fixed-top');
+                    var onscroll;
+                    var theadRectangle;
+                    var initialTheadBackgroundColor = elem.find('table > thead').css('background-color');
+                    var opaqueTheadBackground = rgbaToRgb(initialTheadBackgroundColor);
+                    if (window.onscroll) {
+                        onscroll = window.onscroll;
                     }
-                    return color;
-                }
-                function getWindowScroll() {
-                    return {
-                        top: window.pageYOffset,
-                        left: window.pageXOffset
+                    function rgbaToRgb(color) {
+                        var rgbaRegex = /^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+),?[\s+]?(\S+)\)$/i;
+                        var matches = color.match(rgbaRegex);
+                        if (matches && matches.length >= 4) {
+                            var r = parseInt(matches[1], 10);
+                            var g = parseInt(matches[2], 10);
+                            var b = parseInt(matches[3], 10);
+                            var a = parseFloat(matches[4] || '1', 10);
+                            var rPrime = (1 - a) * 255 + a * r;
+                            var gPrime = (1 - a) * 255 + a * g;
+                            var bPrime = (1 - a) * 255 + a * b;
+                            return 'rgb(' + rPrime + ', ' + gPrime + ', ' + bPrime + ')';
+                        }
+                        return color;
+                    }
+                    function getWindowScroll() {
+                        return {
+                            top: window.pageYOffset,
+                            left: window.pageXOffset
+                        };
+                    }
+                    function getElementRectangle(item) {
+                        var rectangle = item.getBoundingClientRect();
+                        var windowScroll = getWindowScroll();
+                        return {
+                            left: rectangle.left + windowScroll.left,
+                            top: rectangle.top + windowScroll.top,
+                            width: rectangle.width,
+                            height: rectangle.height
+                        };
+                    }
+                    // Update the theadRectangle on Left panel toggling useful in responsive small screen
+                    scope.$on('ngObibaMicaLeftPaneToggle', function () {
+                        $timeout(function () {
+                            var thead = elem.find('table > thead');
+                            theadRectangle = getElementRectangle(thead[0]);
+                        });
+                    });
+                    window.onscroll = function (event) {
+                        var thead = elem.find('table > thead');
+                        theadRectangle = theadRectangle || getElementRectangle(thead[0]);
+                        var bodyFirstItemHeight = windowFirstChild ? windowFirstChild.getBoundingClientRect().height : 0;
+                        var itemTop = theadRectangle.top + bodyFirstItemHeight;
+                        if (getWindowScroll().top > itemTop) {
+                            thead.css('transform', 'translateY(' + Math.max(0, getWindowScroll().top + bodyFirstItemHeight - theadRectangle.top) + 'px)');
+                            thead.css('background-color', opaqueTheadBackground);
+                        }
+                        else {
+                            thead.css('transform', 'translateY(0)');
+                            thead.css('background-color', initialTheadBackgroundColor);
+                        }
+                        return onscroll && onscroll(event);
                     };
                 }
-                function getElementRectangle(item) {
-                    var rectangle = item.getBoundingClientRect();
-                    var windowScroll = getWindowScroll();
-                    return {
-                        left: rectangle.left + windowScroll.left,
-                        top: rectangle.top + windowScroll.top,
-                        width: rectangle.width,
-                        height: rectangle.height
-                    };
-                }
-                window.onscroll = function (event) {
-                    var thead = elem.find('table > thead');
-                    theadRectangle = theadRectangle || getElementRectangle(thead[0]);
-                    var bodyFirstItemHeight = windowFirstChild ? windowFirstChild.getBoundingClientRect().height : 0;
-                    var itemTop = theadRectangle.top + bodyFirstItemHeight;
-                    if (getWindowScroll().top > itemTop) {
-                        thead.css('transform', 'translateY(' + Math.max(0, getWindowScroll().top + bodyFirstItemHeight - theadRectangle.top) + 'px)');
-                        thead.css('background-color', opaqueTheadBackground);
-                    }
-                    else {
-                        thead.css('transform', 'translateY(0)');
-                        thead.css('background-color', initialTheadBackgroundColor);
-                    }
-                    return onscroll && onscroll(event);
-                };
-            }
-        };
-    });
+            };
+        }]);
 })();
 //# sourceMappingURL=component.js.map
 /*
@@ -19908,7 +20052,6 @@ angular.module("search/components/result/cell-stat-value/component.html", []).ru
 angular.module("search/components/result/coverage-result/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/result/coverage-result/component.html",
     "<div class=\"coverage\">\n" +
-    "\n" +
     "  <div ng-if=\"hasVariableTarget() && table.taxonomyHeaders\">\n" +
     "    <ul class=\"nav nav-pills pull-left\">\n" +
     "      <li ng-if=\"groupByOptions.canShowStudy() && groupByOptions.canShowDataset()\" ng-class=\"{'active': bucket.startsWith('study') || bucketStartsWithDce}\"\n" +
@@ -19922,18 +20065,34 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "    </ul>\n" +
     "\n" +
     "    <div ng-class=\"{'pull-right': groupByOptions.canShowStudy() && groupByOptions.canShowDataset()}\">\n" +
-    "      <a ng-if=\"hasSelected()\" href class=\"btn btn-default\" ng-click=\"updateFilterCriteria()\">\n" +
-    "        <i class=\"fa fa-filter\"></i> {{'search.filter' | translate}}\n" +
-    "      </a>\n" +
+    "      <div ng-if=\"table.taxonomyHeaders.length > 0\">\n" +
+    "        <a ng-if=\"hasSelected()\" href class=\"btn btn-default\" ng-click=\"updateFilterCriteria()\">\n" +
+    "          <i class=\"fa fa-filter\"></i> {{'search.apply-selections' | translate}}\n" +
+    "        </a>\n" +
     "\n" +
-    "      <span ng-if=\"table.taxonomyHeaders.length > 0\">\n" +
-    "        <a href class=\"btn btn-info btn-responsive\" ng-click=\"selectFullAndFilter()\" ng-hide=\"isFullCoverageImpossibleOrCoverageAlreadyFull()\">\n" +
-    "          {{'search.coverage-select.full' | translate}}\n" +
-    "        </a>\n" +
-    "        <a obiba-file-download url=\"downloadUrl()\" target=\"_self\" download class=\"btn btn-info btn-responsive\" href>\n" +
-    "          <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
-    "        </a>\n" +
-    "      </span>\n" +
+    "        <div class=\"btn-group\">\n" +
+    "          <button type=\"button\" class=\"btn btn-success dropdown-toggle\" data-toggle=\"dropdown\">\n" +
+    "            <span><i class=\"fa fa-filter\"></i> {{'search.filter' | translate}} <i class=\"fa fa-caret-down\"></i></span>\n" +
+    "          </button>\n" +
+    "\n" +
+    "          <ul class=\"dropdown-menu\">\n" +
+    "            <li>\n" +
+    "              <a ng-click=\"onZeroColumnsToggle()\" href >{{coverage.withZeros ? 'search.coverage-without-zeros' : 'search.coverage-with-zeros' | translate}}</a>\n" +
+    "            </li>\n" +
+    "            <li>\n" +
+    "              <a href ng-click=\"selectFullAndFilter()\" ng-hide=\"fullCoverageDisabled\">\n" +
+    "                {{'search.coverage-select.full' | translate}}\n" +
+    "              </a>\n" +
+    "            </li>\n" +
+    "          </ul>\n" +
+    "        </div>\n" +
+    "        <span>\n" +
+    "          <a obiba-file-download url=\"downloadUrl()\" target=\"_self\" download class=\"btn btn-info btn-responsive\" href>\n" +
+    "            <i class=\"fa fa-download\"></i> {{'download' | translate}}\n" +
+    "          </a>\n" +
+    "        </span>\n" +
+    "      </div>\n" +
+    "\n" +
     "    </div>\n" +
     "\n" +
     "    <div class=\"clearfix\"></div>\n" +
@@ -19978,7 +20137,7 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "                <li role=\"menuitem\">\n" +
     "                  <a href ng-click=\"selectNone()\" translate>search.coverage-select.none</a>\n" +
     "                </li>\n" +
-    "                <li role=\"menuitem\">\n" +
+    "                <li ng-hide=\"fullCoverageDisabled\" role=\"menuitem\">\n" +
     "                  <a href ng-click=\"selectFull()\" translate>search.coverage-select.full</a>\n" +
     "                </li>\n" +
     "              </ul>\n" +
@@ -20015,6 +20174,15 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "            </small>\n" +
     "          </th>\n" +
     "        </tr>\n" +
+    "        <tr ng-show=\"totalOptions.showInHeader\">\n" +
+    "          <th></th>\n" +
+    "          <th colspan=\"{{table.cols.colSpan}}\"></th>\n" +
+    "          <th ng-repeat=\"header in ::table.termHeaders\" title=\"{{header.entity.descriptions[0].value}}\">\n" +
+    "            <a href ng-click=\"updateCriteria(null, header, $index, 'variables')\">\n" +
+    "              <localized-number value=\"header.hits\"></localized-number>\n" +
+    "            </a>\n" +
+    "          </th>\n" +
+    "          </tr>\n" +
     "      </thead>\n" +
     "      <tbody>\n" +
     "        <tr ng-repeat=\"row in ::table.rows track by row.value\" ng-show=\"showMissing || table.termHeaders.length == row.hits.length\">\n" +
@@ -20052,7 +20220,7 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "          </td>\n" +
     "        </tr>\n" +
     "      </tbody>\n" +
-    "      <tfoot>\n" +
+    "      <tfoot ng-show=\"totalOptions.showInFooter\">\n" +
     "        <tr>\n" +
     "          <th></th>\n" +
     "          <th colspan=\"{{table.cols.colSpan}}\" translate>all</th>\n" +
@@ -20607,8 +20775,9 @@ angular.module("search/components/result/variables-result-table/component.html",
     "                      type=\"checkbox\"\n" +
     "                      ng-click=\"selectPage()\"/>\n" +
     "            </th>\n" +
-    "            <th class=\"col-width-35\" translate>name</th>\n" +
-    "            <th class=\"col-width-35\" translate>search.variable.label</th>\n" +
+    "            <th ng-class=\"{'col-width-20': annotationsEnabled, 'col-width-35': !annotationsEnabled}\" translate>name</th>\n" +
+    "            <th ng-class=\"{'col-width-20': annotationsEnabled, 'col-width-35': !annotationsEnabled}\" translate>search.variable.label</th>\n" +
+    "            <th ng-if=\"annotationsEnabled\" class=\"col-width-20\">Annotations</th>\n" +
     "            <th class=\"col-width-10\" translate ng-if=\"optionsCols.showVariablesTypeColumn\">type</th>\n" +
     "            <th class=\"col-width-10\" translate ng-if=\"optionsCols.showVariablesStudiesColumn\">search.study.label</th>\n" +
     "            <th class=\"col-width-15\" translate ng-if=\"optionsCols.showVariablesDatasetsColumn\">search.dataset.label</th>\n" +
@@ -20626,6 +20795,12 @@ angular.module("search/components/result/variables-result-table/component.html",
     "            </td>\n" +
     "            <td>\n" +
     "              <localized value=\"summary.variableLabel\" lang=\"lang\"></localized>\n" +
+    "            </td>\n" +
+    "            <td ng-if=\"annotationsEnabled\">\n" +
+    "              <ul class=\"list-annotations no-padding-left\" ng-if=\"summary.annotations.length > 1\">\n" +
+    "                <li ng-repeat=\"annotation in summary.annotations\"><span>{{annotation.title}}</span></li>\n" +
+    "              </ul>\n" +
+    "              <span ng-if=\"summary.annotations.length === 1\">{{summary.annotations[0].title}}</span>\n" +
     "            </td>\n" +
     "            <td ng-if=\"optionsCols.showVariablesTypeColumn\">\n" +
     "              {{'search.variable.' + summary.variableType.toLowerCase() | translate}}\n" +
@@ -21295,21 +21470,35 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
     "  -->\n" +
     "\n" +
-    "<div ng-show=\"inSearchMode()\">\n" +
+    "<div ng-show=\"inSearchMode()\" class=\"can-full-screen\"  fullscreen=\"isFullscreen\">\n" +
     "\n" +
     "  <!-- Search criteria region -->\n" +
     "  <search-criteria-region options=\"options\" search=\"search\"></search-criteria-region>\n" +
+    "  <div>\n" +
+    "    <a href\n" +
+    "       class=\"btn btn-sm btn-default\"\n" +
+    "       ng-click=\"toggleLeftPanelVisibility()\"\n" +
+    "       title=\"{{showLeftPanel ? 'search.left-panel-close-tooltip' : 'search.left-panel-open-tooltip' | translate}}\">\n" +
+    "      <span><i class=\"fa\" ng-class=\"{'fa-times': showLeftPanel, 'fa-bars': !showLeftPanel}\"></i></span>\n" +
+    "    </a>\n" +
+    "    <a href\n" +
+    "       class=\"btn btn-sm btn-default pull-right\"\n" +
+    "       ng-click=\"toggleFullscreen()\"\n" +
+    "       title=\"{{isFullscreen ? 'exit-fullscreen' : 'fullscreen' | translate}}\">\n" +
+    "      <i class=\"glyphicon\" ng-class=\"{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}\"></i>\n" +
+    "    </a>\n" +
+    "  </div>\n" +
     "  <div ng-class=\"{'overlay-back-on': search.showTaxonomyPanel}\">\n" +
     "  </div>\n" +
     "  <div ng-class=\"{'overlay-front-on': search.showTaxonomyPanel}\">\n" +
-    "    <div class=\"row voffset2\">\n" +
-    "      <div class=\"col-md-3\" ng-if=\"hasFacetedTaxonomies\">\n" +
+    "    <div class=\"row voffset1\">\n" +
+    "      <div class=\"col-md-3\" ng-if=\"hasFacetedTaxonomies && showLeftPanel\">\n" +
     "        <!-- Search Facets region -->\n" +
     "        <taxonomies-facets-panel id=\"search-facets-region\" faceted-taxonomies=\"facetedTaxonomies\"\n" +
     "                                criteria=\"search.criteria\" on-select-term=\"onSelectTerm\"\n" +
     "                                on-refresh=\"refreshQuery\" lang=\"lang\"></taxonomies-facets-panel>\n" +
     "      </div>\n" +
-    "      <div class=\"col-sm-12 col-lg-3\" ng-if=\"!hasFacetedTaxonomies\">\n" +
+    "      <div class=\"col-sm-12 col-lg-3\" ng-if=\"!hasFacetedTaxonomies && showLeftPanel\">\n" +
     "        <!-- Search Facets region -->\n" +
     "        <meta-taxonomy-filter-panel\n" +
     "            show-taxonomy-panel=\"search.showTaxonomyPanel\"\n" +
@@ -21317,7 +21506,7 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "            rql-query=\"search.rqlQuery\"\n" +
     "            on-toggle=\"onTaxonomyFilterPanelToggleVisibility(target, taxonomy)\"></meta-taxonomy-filter-panel>\n" +
     "      </div>\n" +
-    "      <div class=\"col-sm-12 col-lg-9\">\n" +
+    "      <div class=\"col-sm-12\" ng-class=\"{'col-lg-9': showLeftPanel, 'col-lg-12': !showLeftPanel}\">\n" +
     "        <!-- Search Results region -->\n" +
     "        <div class=\"panel panel-default\" ng-if=\"search.showTaxonomyPanel\">\n" +
     "          <taxonomy-filter-panel\n" +
@@ -21333,13 +21522,9 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "              on-toggle=\"onTaxonomyFilterPanelToggleVisibility\"></taxonomy-filter-panel>\n" +
     "        </div>\n" +
     "        <div class=\"clearfix\"></div>\n" +
-    "        <div id=\"search-result-region\" class=\"can-full-screen\"\n" +
-    "            ng-if=\"!search.showTaxonomyPanel && canExecuteWithEmptyQuery()\" fullscreen=\"isFullscreen\">\n" +
+    "        <div id=\"search-result-region\"\n" +
+    "            ng-if=\"!search.showTaxonomyPanel && canExecuteWithEmptyQuery()\">\n" +
     "          <div ng-if=\"searchTabsOrder.length > 1\">\n" +
-    "            <a href class=\"btn btn-sm btn-default pull-right\" ng-click=\"toggleFullscreen()\">\n" +
-    "              <i class=\"glyphicon\"\n" +
-    "                ng-class=\"{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}\"></i>\n" +
-    "            </a>\n" +
     "            <ul class=\"nav nav-tabs\">\n" +
     "              <li role=\"presentation\" ng-repeat=\"tab in searchTabsOrder\"\n" +
     "                  ng-class=\"{active: search.display === tab}\">\n" +
