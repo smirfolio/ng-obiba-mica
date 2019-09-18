@@ -25,21 +25,24 @@
     };
   }
 
-  ngObibaMica.search.directive('scrollToTop', ScrollToTop);
-
-  ngObibaMica.search.directive('tableScroll', ['$timeout', function($timeout) {
+  function TableScroll($timeout, $rootScope) {
     return {
       restrict: 'C',
       scope: {},
       link: function(scope, elem) {
-
+        var timeoutPromise = null;
+        var fullscreenElement = document.querySelector('.can-full-screen');
         var windowFirstChild = document.querySelector('body .navbar-fixed-top');
-        var onscroll;
-        var theadRectangle ;
+        var thead = elem.find('table > thead');
+        var theadTop = null;
+        var saveTheadTop = null;
         var initialTheadBackgroundColor = elem.find('table > thead').css('background-color');
         var opaqueTheadBackground = rgbaToRgb(initialTheadBackgroundColor);
-        if (window.onscroll) {
-          onscroll = window.onscroll;
+
+        function updateTHeadTop() {
+          timeoutPromise = $timeout(function (){
+            theadTop = getElementRectangle(thead[0]).top;
+          });
         }
 
         function rgbaToRgb(color) {
@@ -81,31 +84,62 @@
           };
         }
 
-        // Update the theadRectangle on Left panel toggling useful in responsive small screen
-        scope.$on('ngObibaMicaLeftPaneToggle', function () {
-          $timeout(function (){
-            var thead = elem.find('table > thead');
-            theadRectangle = getElementRectangle(thead[0]);
-          });
-        });
-
-        window.onscroll = function (event) {
-          var thead = elem.find('table > thead');
-          theadRectangle = theadRectangle || getElementRectangle(thead[0]);
-
-          var bodyFirstItemHeight = windowFirstChild ? windowFirstChild.getBoundingClientRect().height : 0;
-          var itemTop = theadRectangle.top + bodyFirstItemHeight;
-
-          if (getWindowScroll().top > itemTop) {
-            thead.css('transform', 'translateY(' + Math.max(0, getWindowScroll().top + bodyFirstItemHeight - theadRectangle.top) + 'px)');
+        function onScrollFullscreen() {
+          if (fullscreenElement.scrollTop > theadTop) {
+            thead.css('transform', 'translateY('+(fullscreenElement.scrollTop - theadTop) + 'px)');
             thead.css('background-color', opaqueTheadBackground);
           } else {
             thead.css('transform', 'translateY(0)');
             thead.css('background-color', initialTheadBackgroundColor);
           }
-          return onscroll && onscroll(event);
-        };
+        }
+
+        function onFullscreenChanged(obj, isFullscreen) {
+          if (isFullscreen) {
+            fullscreenElement.scrollTo(0, 0);
+            saveTheadTop = theadTop;
+            updateTHeadTop();
+            window.removeEventListener('scroll', onScroll);
+            fullscreenElement.addEventListener('scroll', onScrollFullscreen);
+          } else {
+            theadTop = saveTheadTop;
+            saveTheadTop = null;
+            fullscreenElement.removeEventListener('scroll', onScrollFullscreen);
+            window.addEventListener('scroll', onScroll);
+            onScroll();
+          }
+        }
+
+        function onScroll() {
+          theadTop = theadTop|| getElementRectangle(thead[0]).top;
+          var bodyFirstItemHeight = windowFirstChild ? windowFirstChild.getBoundingClientRect().height : 0;
+          var itemTop = theadTop + bodyFirstItemHeight;
+
+          if (window.scrollY > itemTop) {
+            thead.css('transform', 'translateY(' + Math.max(0, window.scrollY + bodyFirstItemHeight - theadTop) + 'px)');
+            thead.css('background-color', opaqueTheadBackground);
+          } else {
+            thead.css('transform', 'translateY(0)');
+            thead.css('background-color', initialTheadBackgroundColor);
+          }
+        }
+
+        function onDestroy() {
+          $timeout.cancel(timeoutPromise);
+          window.removeEventListener('scroll', onScroll);
+          fullscreenElement.removeEventListener('scroll', onScrollFullscreen);
+        }
+
+        $rootScope.$on('ngObibaMicaSearch.fullscreenChange', onFullscreenChanged);
+        scope.$on('ngObibaMicaLeftPaneToggle', updateTHeadTop);
+        scope.$on('$destroy', onDestroy);
+        window.addEventListener('scroll', onScroll);
+        updateTHeadTop();
       }
     };
-  }]);
+  }
+
+  ngObibaMica.search.directive('scrollToTop', ScrollToTop);
+  ngObibaMica.search.directive('tableScroll', ['$timeout', '$rootScope', TableScroll]);
+
 })();
