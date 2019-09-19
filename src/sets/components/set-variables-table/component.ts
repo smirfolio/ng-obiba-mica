@@ -65,7 +65,7 @@ class VariablesSetTableComponentController extends DocumentsSetTableComponentCon
         const datasetName = this.localize(doc.datasetName);
         const datasetLink = this.PageUrlService.datasetPage(doc.datasetId, doc.variableType);
         const variableLink = this.PageUrlService.variablePage(doc.id);
-        const attrLabel = doc.attributes.filter((attr) => attr.name === "label");
+        const attrLabel = (doc.attributes || []).filter((attr) => attr.name === "label");
         const variableLabel = attrLabel && attrLabel.length > 0 ? this.localize(attrLabel[0].values) : "";
         const row = new Array(
           {
