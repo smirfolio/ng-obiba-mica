@@ -3677,7 +3677,7 @@ var CartDocumentsTableController = /** @class */ (function (_super) {
                 var datasetName = _this.localize(doc.datasetName);
                 var datasetLink = _this.PageUrlService.datasetPage(doc.datasetId, doc.variableType);
                 var variableLink = _this.PageUrlService.variablePage(doc.id);
-                var attrLabel = doc.attributes.filter(function (attr) { return attr.name === "label"; });
+                var attrLabel = (doc.attributes || []).filter(function (attr) { return attr.name === "label"; });
                 var variableLabel = attrLabel && attrLabel.length > 0 ? _this.localize(attrLabel[0].values) : "";
                 var row = new Array({
                     link: undefined,
@@ -3795,7 +3795,7 @@ var VariablesSetTableComponentController = /** @class */ (function (_super) {
                 var datasetName = _this.localize(doc.datasetName);
                 var datasetLink = _this.PageUrlService.datasetPage(doc.datasetId, doc.variableType);
                 var variableLink = _this.PageUrlService.variablePage(doc.id);
-                var attrLabel = doc.attributes.filter(function (attr) { return attr.name === "label"; });
+                var attrLabel = (doc.attributes || []).filter(function (attr) { return attr.name === "label"; });
                 var variableLabel = attrLabel && attrLabel.length > 0 ? _this.localize(attrLabel[0].values) : "";
                 var row = new Array({
                     link: undefined,
