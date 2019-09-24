@@ -13,7 +13,7 @@ a[ng-click] {
 }
 
 span.loading {
-    display: inline-block;
+  display: inline-block;
 }
 
 .no-margin-top {
@@ -180,10 +180,22 @@ span.loading {
 
 ul.list-annotations {
   list-style: none;
-  padding-left: 1em;
+  padding-left: 0.5em;
 
-  li:not(:last-child) {
-    margin:0 0 0.7em 0;
+  li {
+    &::before {
+      font-family: 'Glyphicons Halflings';
+      content: "\e041";
+      color: gray;
+      font-size: .7em;
+      display: inline-block;
+      margin-left: -1em;
+      width: 1em;
+    }
+    span {
+      padding-left: 0.2em;
+      display: inline-grid;
+    }
   }
 }
 
@@ -275,8 +287,9 @@ ul.list-annotations {
   cursor: default !important;
 }
 
-.pagination>li>a.pagination-total  {
+.pagination > li > a.pagination-total {
   .setPaginationTotal();
+
   &:hover,
   &:focus {
     .setPaginationTotal();
@@ -305,6 +318,7 @@ ul.list-annotations {
   .list-no-style;
   padding: 3px 20px !important;
   color: #7b8a8b;
+
   label {
     font-weight: normal;
   }
@@ -429,10 +443,12 @@ ul.list-annotations {
 .panel.panel-taxonomy {
   .panel {
     border: 0;
+
     .panel-heading {
       background: #fafafa;
     }
   }
+
   .panel-group .panel + .panel {
     margin-top: 0px;
   }
@@ -457,7 +473,7 @@ span.search-help {
 }
 
 .obiba_mica_lists {
-  .caption-count{
+  .caption-count {
     position: absolute;
     bottom: 0;
   }
@@ -477,19 +493,21 @@ span.search-help {
   cursor: pointer !important;
 }
 
-meta-taxonomy-filter-panel{
-  .panel-group{
-    .panel{
+meta-taxonomy-filter-panel {
+  .panel-group {
+    .panel {
       border-radius: 0px !important;
     }
-    meta-taxonomy-filter-list:first-child{
-      .panel-default{
+
+    meta-taxonomy-filter-list:first-child {
+      .panel-default {
         border-top-left-radius: 4px !important;
         border-top-right-radius: 4px !important;
       }
     }
-    meta-taxonomy-filter-list:last-child{
-      .panel-default{
+
+    meta-taxonomy-filter-list:last-child {
+      .panel-default {
         border-bottom-left-radius: 4px !important;
         border-bottom-right-radius: 4px !important;
       }
@@ -505,7 +523,7 @@ meta-taxonomy-filter-panel{
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0,0,0,0.5);
+  background-color: rgba(0, 0, 0, 0.5);
   position: fixed;
   z-index: @overlay-background;
 }
@@ -517,7 +535,7 @@ meta-taxonomy-filter-panel{
   z-index: @overlay-foreground;
 }
 
-.overlay-front-on-box-shodow{
+.overlay-front-on-box-shodow {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
 }
 
@@ -539,7 +557,7 @@ meta-taxonomy-filter-panel{
 .table-layout-fixed {
 
   @media all and (min-width: 768px) {
-    table-layout: auto!important;
+    table-layout: auto !important;
   }
 
   th, td {
@@ -547,22 +565,22 @@ meta-taxonomy-filter-panel{
   }
 
   th.col-width-10 {
-   width: @table-layout-fixed-col-10 !important;
+    width: @table-layout-fixed-col-10 !important;
   }
 
   th.col-width-15 {
-   width: @table-layout-fixed-col-15 !important;
+    width: @table-layout-fixed-col-15 !important;
   }
 
   th.col-width-20 {
-   width: @table-layout-fixed-col-20 !important;
+    width: @table-layout-fixed-col-20 !important;
   }
 
   th.col-width-35 {
-   min-width: @table-layout-fixed-col-35 !important;
+    min-width: @table-layout-fixed-col-35 !important;
   }
 
-  th.checkbox-width{
+  th.checkbox-width {
     width: 2em;
   }
 
