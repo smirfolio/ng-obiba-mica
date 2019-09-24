@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-09-19
+ * Date: 2019-09-24
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -20830,10 +20830,9 @@ angular.module("search/components/result/variables-result-table/component.html",
     "              <localized value=\"summary.variableLabel\" lang=\"lang\"></localized>\n" +
     "            </td>\n" +
     "            <td ng-if=\"annotationsEnabled\">\n" +
-    "              <ul class=\"list-annotations no-padding-left\" ng-if=\"summary.annotations.length > 1\">\n" +
+    "              <ul class=\"list-annotations\">\n" +
     "                <li ng-repeat=\"annotation in summary.annotations\"><span>{{annotation.title}}</span></li>\n" +
     "              </ul>\n" +
-    "              <span ng-if=\"summary.annotations.length === 1\">{{summary.annotations[0].title}}</span>\n" +
     "            </td>\n" +
     "            <td ng-if=\"optionsCols.showVariablesTypeColumn\">\n" +
     "              {{'search.variable.' + summary.variableType.toLowerCase() | translate}}\n" +

@@ -35,10 +35,9 @@
               <localized value="summary.variableLabel" lang="lang"></localized>
             </td>
             <td ng-if="annotationsEnabled">
-              <ul class="list-annotations no-padding-left" ng-if="summary.annotations.length > 1">
+              <ul class="list-annotations">
                 <li ng-repeat="annotation in summary.annotations"><span>{{annotation.title}}</span></li>
               </ul>
-              <span ng-if="summary.annotations.length === 1">{{summary.annotations[0].title}}</span>
             </td>
             <td ng-if="optionsCols.showVariablesTypeColumn">
               {{'search.variable.' + summary.variableType.toLowerCase() | translate}}
