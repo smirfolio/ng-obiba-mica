@@ -225,7 +225,7 @@
             validateBucket(bucket);
             validateDisplay(display);
             $scope.search.type = type;
-            $scope.search.withZeros = search.withZeros;
+            $scope.search.withZeros = search.withZeros ? search.withZeros : true;
             $scope.search.bucket = bucket;
             $scope.search.display = display;
             $scope.search.query = query;
