@@ -481,9 +481,8 @@
               CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria, true);
         }
 
-        function toggleLeftPanelVisibility() {
-          $scope.showLeftPanel = !$scope.showLeftPanel;
-          $scope.$broadcast('ngObibaMicaLeftPaneToggle', $scope.showLeftPanel);
+        function toggleLeftPanelVisibility(visible) {
+          $scope.showLeftPanel = visible;
         }
 
         function onTaxonomyFilterPanelToggleVisibility(target, taxonomy) {
@@ -869,9 +868,16 @@
         $scope.inSearchMode = function () {
           return $scope.viewMode === VIEW_MODES.SEARCH;
         };
-        $scope.toggleFullscreen = function () {
-          $scope.isFullscreen = !$scope.isFullscreen;
+        $scope.toggleFullscreen = function (fullscreen) {
+          if ($scope.isFullscreen && $scope.isFullscreen !== fullscreen) {
+            // in case the ESC key was pressed
+            $timeout(function() {$scope.isFullscreen = fullscreen;});
+          } else {
+            $scope.isFullscreen = fullscreen;
+          }
         };
+
+        $scope.isFullscreen = false;
         $scope.isSearchAvailable = true;
 
         ObibaServerConfigResource.get(function (micaConfig) {
@@ -882,9 +888,6 @@
 
         $scope.unbindLocationChange = $scope.$on('$locationChangeSuccess', onLocationChange);
 
-        $rootScope.$on('ngObibaMicaSearch.fullscreenChange', function (obj, isEnabled) {
-          $scope.isFullscreen = isEnabled;
-        });
 
         $rootScope.$on('ngObibaMicaSearch.sortChange', function (obj, sort) {
           $scope.search.rqlQuery = RqlQueryService.prepareSearchQueryNoFields(
