@@ -6157,9 +6157,8 @@ var TaxonomyCartFilter = /** @class */ (function () {
                 taxonomyVocabulary.existingItem =
                     RqlQueryService.findCriteriaItemFromTreeById(target, CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria, true);
             }
-            function toggleLeftPanelVisibility() {
-                $scope.showLeftPanel = !$scope.showLeftPanel;
-                $scope.$broadcast('ngObibaMicaLeftPaneToggle', $scope.showLeftPanel);
+            function toggleLeftPanelVisibility(visible) {
+                $scope.showLeftPanel = visible;
             }
             function onTaxonomyFilterPanelToggleVisibility(target, taxonomy) {
                 if (target && taxonomy) {
@@ -6504,9 +6503,16 @@ var TaxonomyCartFilter = /** @class */ (function () {
             $scope.inSearchMode = function () {
                 return $scope.viewMode === VIEW_MODES.SEARCH;
             };
-            $scope.toggleFullscreen = function () {
-                $scope.isFullscreen = !$scope.isFullscreen;
+            $scope.toggleFullscreen = function (fullscreen) {
+                if ($scope.isFullscreen && $scope.isFullscreen !== fullscreen) {
+                    // in case the ESC key was pressed
+                    $timeout(function () { $scope.isFullscreen = fullscreen; });
+                }
+                else {
+                    $scope.isFullscreen = fullscreen;
+                }
             };
+            $scope.isFullscreen = false;
             $scope.isSearchAvailable = true;
             ObibaServerConfigResource.get(function (micaConfig) {
                 $scope.isSearchAvailable = !micaConfig.isSingleStudyEnabled ||
@@ -6514,9 +6520,6 @@ var TaxonomyCartFilter = /** @class */ (function () {
                     micaConfig.isCollectedDatasetEnabled || micaConfig.isHarmonizedDatasetEnabled;
             });
             $scope.unbindLocationChange = $scope.$on('$locationChangeSuccess', onLocationChange);
-            $rootScope.$on('ngObibaMicaSearch.fullscreenChange', function (obj, isEnabled) {
-                $scope.isFullscreen = isEnabled;
-            });
             $rootScope.$on('ngObibaMicaSearch.sortChange', function (obj, sort) {
                 $scope.search.rqlQuery = RqlQueryService.prepareSearchQueryNoFields($scope.search.display, $scope.search.type, $scope.search.rqlQuery, $scope.lang, sort);
                 refreshQuery();
@@ -9156,6 +9159,84 @@ ngObibaMica.search
     ngObibaMica.search.filter('sortTerms', ['VocabularyService', ngObibaMica.search.SortVocabularyTerms]);
 })();
 //# sourceMappingURL=vocabulary-filters.js.map
+/*
+ * Copyright (c) 2019 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+"use strict";
+var ButtonsPanelController = /** @class */ (function () {
+    function ButtonsPanelController($log, $rootScope, $translate) {
+        var _this = this;
+        this.$log = $log;
+        this.$rootScope = $rootScope;
+        this.$translate = $translate;
+        this.showPanel = true;
+        this.isFullscreen = false;
+        this.showIconForPanelButton = false;
+        this.showIconForFullscreenButton = false;
+        this.$rootScope.$on("ngObibaMicaSearch.fullscreenChange", function (event, isEnabled) {
+            _this.isFullscreen = isEnabled;
+            _this.onToggleFullscreen({ fullscreen: _this.isFullscreen });
+        });
+        this.$rootScope.$on("$translateChangeSuccess", function () { return _this.ensureButtonTitles(); });
+    }
+    ButtonsPanelController.prototype.toggleFullscreen = function () {
+        this.isFullscreen = !this.isFullscreen;
+        this.onToggleFullscreen({ fullscreen: this.isFullscreen });
+    };
+    ButtonsPanelController.prototype.toggleLeftPanelVisibility = function () {
+        this.showPanel = !this.showPanel;
+        this.onToggleLeftPanelVisibility({ visible: this.showPanel });
+        this.$rootScope.$broadcast("ngObibaMicaLeftPaneToggle", this.showPanel);
+    };
+    ButtonsPanelController.prototype.$onInit = function () {
+        this.ensureButtonTitles();
+    };
+    ButtonsPanelController.prototype.ensureButtonTitles = function () {
+        var _this = this;
+        var keys = [
+            "search.left-panel-close-title",
+            "search.left-panel-open-title",
+            "search.enter-fullscreen-title",
+            "search.exit-fullscreen-title"
+        ];
+        this.$translate(keys).then(function (translations) {
+            _this.showIconForFullscreenButton =
+                "" !== translations["search.enter-fullscreen-title"] &&
+                    translations["search.enter-fullscreen-title"] !== "search.enter-fullscreen-title" &&
+                    "" !== translations["search.exit-fullscreen-title"] &&
+                    translations["search.exit-fullscreen-title"] !== "search.exit-fullscreen-title";
+            _this.showIconForPanelButton =
+                "" !== translations["search.left-panel-open-title"] &&
+                    translations["search.left-panel-open-title"] !== "search.left-panel-open-title" &&
+                    "" !== translations["search.left-panel-close-title"] &&
+                    translations["search.left-panel-close-title"] !== "search.left-panel-close-title";
+        });
+    };
+    ButtonsPanelController.$inject = ["$log", "$rootScope", "$translate"];
+    return ButtonsPanelController;
+}());
+var ButtonsPanelComponent = /** @class */ (function () {
+    function ButtonsPanelComponent() {
+        this.transclude = true;
+        this.bindings = {
+            onToggleFullscreen: "&",
+            onToggleLeftPanelVisibility: "&",
+        };
+        this.controller = ButtonsPanelController;
+        this.controllerAs = "$ctrl";
+        this.templateUrl = "search/components/buttons-panel/component.html";
+    }
+    return ButtonsPanelComponent;
+}());
+ngObibaMica.search
+    .component("buttonsPanelComponent", new ButtonsPanelComponent());
+//# sourceMappingURL=component.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
@@ -16664,7 +16745,7 @@ ngObibaMica.fileBrowser
         };
     }]);
 //# sourceMappingURL=file-browser-service.js.map
-angular.module('templates-ngObibaMica', ['access/components/action-log/component.html', 'access/components/action-log/item/component.html', 'access/components/action-log/item/delete-modal.html', 'access/components/action-log/item/edit-modal.html', 'access/components/entity-list/component.html', 'access/components/print-friendly-view/component.html', 'access/components/status-progressbar/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/components/badge-count/component.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/cell-stat-value/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/add-to-set-modal/component.html', 'sets/components/cart-documents-table/component.html', 'sets/components/set-variables-table/component.html', 'sets/views/cart.html', 'sets/views/sets.html', 'utils/components/entity-schema-form/component.html', 'utils/components/table-alert-header/component.html', 'utils/services/user-profile-modal/service.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+angular.module('templates-ngObibaMica', ['access/components/action-log/component.html', 'access/components/action-log/item/component.html', 'access/components/action-log/item/delete-modal.html', 'access/components/action-log/item/edit-modal.html', 'access/components/entity-list/component.html', 'access/components/print-friendly-view/component.html', 'access/components/status-progressbar/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/components/badge-count/component.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/buttons-panel/component.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/cell-stat-value/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/add-to-set-modal/component.html', 'sets/components/cart-documents-table/component.html', 'sets/components/set-variables-table/component.html', 'sets/views/cart.html', 'sets/views/sets.html', 'utils/components/entity-schema-form/component.html', 'utils/components/table-alert-header/component.html', 'utils/services/user-profile-modal/service.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/components/action-log/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/components/action-log/component.html",
@@ -19172,6 +19253,50 @@ angular.module("localized/localized-textarea-template.html", []).run(["$template
     "</div>");
 }]);
 
+angular.module("search/components/buttons-panel/component.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/components/buttons-panel/component.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2019 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
+    "<div>\n" +
+    "  <a ng-if=\"!$ctrl.showIconForPanelButton\"\n" +
+    "     href\n" +
+    "     class=\"btn btn-sm btn-default\"\n" +
+    "     ng-click=\"$ctrl.toggleLeftPanelVisibility()\"\n" +
+    "     title=\"{{$ctrl.showPanel ? 'search.left-panel-close-tooltip' : 'search.left-panel-open-tooltip' | translate}}\">\n" +
+    "     <span><i class=\"fa\" ng-class=\"{'fa-times': $ctrl.showPanel, 'fa-bars': !$ctrl.showPanel}\"></i></span>\n" +
+    "  </a>\n" +
+    "  <a ng-if=\"!$ctrl.showIconForFullscreenButton\"\n" +
+    "    href\n" +
+    "     class=\"btn btn-sm btn-default pull-right\"\n" +
+    "     ng-click=\"$ctrl.toggleFullscreen()\"\n" +
+    "     title=\"{{$ctrl.isFullscreen ? 'exit-fullscreen' : 'fullscreen' | translate}}\">\n" +
+    "     <i class=\"glyphicon\"\n" +
+    "       ng-class=\"{'glyphicon-resize-full': !$ctrl.isFullscreen, 'glyphicon-resize-small': $ctrl.isFullscreen}\"></i>\n" +
+    "  </a>\n" +
+    "\n" +
+    "  <a ng-if=\"$ctrl.showIconForPanelButton\"\n" +
+    "     href\n" +
+    "     class=\"btn btn-xs btn-default\"\n" +
+    "     ng-click=\"$ctrl.toggleLeftPanelVisibility()\">\n" +
+    "     <span>{{$ctrl.showPanel ? 'search.left-panel-close-title' : 'search.left-panel-open-title' | translate}}</span>\n" +
+    "  </a>\n" +
+    "  <a ng-if=\"$ctrl.showIconForFullscreenButton\"\n" +
+    "     href\n" +
+    "     class=\"btn btn-xs btn-default pull-right\"\n" +
+    "     ng-click=\"$ctrl.toggleFullscreen()\">\n" +
+    "     <span>{{$ctrl.isFullscreen ? 'search.exit-fullscreen-title' : 'search.enter-fullscreen-title' | translate}}</span>\n" +
+    "  </a>\n" +
+    "</div>");
+}]);
+
 angular.module("search/components/criteria/criteria-root/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/criteria-root/component.html",
     "<div class=\"form-inline\">\n" +
@@ -21518,23 +21643,14 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "  -->\n" +
     "\n" +
     "<div ng-show=\"inSearchMode()\" class=\"can-full-screen\"  fullscreen=\"isFullscreen\">\n" +
-    "\n" +
     "  <!-- Search criteria region -->\n" +
     "  <search-criteria-region options=\"options\" search=\"search\"></search-criteria-region>\n" +
-    "  <div>\n" +
-    "    <a href\n" +
-    "       class=\"btn btn-sm btn-default\"\n" +
-    "       ng-click=\"toggleLeftPanelVisibility()\"\n" +
-    "       title=\"{{showLeftPanel ? 'search.left-panel-close-tooltip' : 'search.left-panel-open-tooltip' | translate}}\">\n" +
-    "      <span><i class=\"fa\" ng-class=\"{'fa-times': showLeftPanel, 'fa-bars': !showLeftPanel}\"></i></span>\n" +
-    "    </a>\n" +
-    "    <a href\n" +
-    "       class=\"btn btn-sm btn-default pull-right\"\n" +
-    "       ng-click=\"toggleFullscreen()\"\n" +
-    "       title=\"{{isFullscreen ? 'exit-fullscreen' : 'fullscreen' | translate}}\">\n" +
-    "      <i class=\"glyphicon\" ng-class=\"{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}\"></i>\n" +
-    "    </a>\n" +
-    "  </div>\n" +
+    "\n" +
+    "  <buttons-panel-component\n" +
+    "    on-toggle-fullscreen=\"toggleFullscreen(fullscreen)\"\n" +
+    "    on-toggle-left-panel-visibility=\"toggleLeftPanelVisibility(visible)\">\n" +
+    "  </buttons-panel-component>\n" +
+    "\n" +
     "  <div ng-class=\"{'overlay-back-on': search.showTaxonomyPanel}\">\n" +
     "  </div>\n" +
     "  <div ng-class=\"{'overlay-front-on': search.showTaxonomyPanel}\">\n" +
