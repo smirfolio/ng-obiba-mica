@@ -2,6 +2,7 @@
 
 /* global BUCKET_TYPES */
 /* global DISPLAY_TYPES */
+/* global RowPopupState */
 
 ngObibaMica.search
   .controller('CoverageResultTableController', [
@@ -34,6 +35,7 @@ ngObibaMica.search
       AlertService,
       ngObibaMicaSearch) {
       var targetMap = {}, vocabulariesTermsMap = {};
+      var rowPopupState = new RowPopupState();
 
 
       targetMap[BUCKET_TYPES.NETWORK] = QUERY_TARGETS.NETWORK;
@@ -442,10 +444,23 @@ ngObibaMica.search
       }
 
       function init() {
+        $scope.rowPopupState = null;
         $scope.fullCoverageDisabled = true;
         onLocationChange();
       }
 
+      function onRowMouseOver(event, row) {
+        rowPopupState.update(event.target, row);
+        $scope.rowPopupState = rowPopupState;
+      }
+
+      function onRowMouseLeave() {
+        rowPopupState.reset();
+        $scope.rowPopupState = null;
+      }
+
+      $scope.onRowMouseOver = onRowMouseOver;
+      $scope.onRowMouseLeave = onRowMouseLeave;
       $scope.totalOptions = ngObibaMicaSearch.getOptions().coverage.total;
       $scope.showMissing = true;
       $scope.toggleMissing = function (value) {
