@@ -22,7 +22,14 @@
       }
     }
 
+    function altEnterText(event, value) {
+      var input = new obiba.utils.NgObibaStringUtils().cleanDoubleQuotesLeftUnclosed(value);
+      var args = { text: input || '*' };
+      ctrl.onSelectArgs({ vocabulary: ctrl.vocabulary, args: args });
+    }
+
     ctrl.enterText = enterText;
+    ctrl.altEnterText = altEnterText;
   }
 
   ngObibaMica.search
