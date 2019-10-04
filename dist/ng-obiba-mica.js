@@ -3052,14 +3052,14 @@ var SetService = /** @class */ (function () {
             this.$location.replace();
         }
     };
-    SetService.prototype.getOpalViewsDownloadUrl = function (type, setId) {
+    SetService.prototype.getOpalViewsDownloadUrl = function (type, setId, ids) {
         if (!setId) {
             var cartSet = this.getCartSet("variables");
             if (cartSet) {
                 setId = cartSet.id;
             }
         }
-        return this.PageUrlService.downloadOpalView(type, setId);
+        return this.PageUrlService.downloadOpalView(type, setId, ids);
     };
     SetService.prototype.getDownloadUrl = function (documentType, setId) {
         var id = setId;
@@ -3307,7 +3307,7 @@ var DocumentsSetTableComponentController = /** @class */ (function () {
             : this.SetService.getDownloadUrl(this.type, this.setId);
     };
     DocumentsSetTableComponentController.prototype.opalExport = function () {
-        return this.SetService.getOpalViewsDownloadUrl(this.type, this.setId);
+        return this.SetService.getOpalViewsDownloadUrl(this.type, this.setId, this.hasSelections() ? this.getSelectedDocumentIds() : []);
     };
     DocumentsSetTableComponentController.prototype.search = function () {
         this.SetService.gotoSearch(this.type, this.setId);
@@ -7084,8 +7084,12 @@ ngObibaMica.search.service("CoverageGroupByService", ["ngObibaMicaSearch", Cover
             }
             return url;
         };
-        this.downloadOpalView = function (type, setId) {
-            return StringUtils.replaceAll(ngObibaMicaUrl.getUrl('SetOpalExportResource'), { ':type': type, ':id': setId });
+        this.downloadOpalView = function (type, setId, ids) {
+            var url = StringUtils.replaceAll(ngObibaMicaUrl.getUrl('SetOpalExportResource'), { ':type': type, ':id': setId });
+            if (ids && ids.length) {
+                url = url + '?ids=' + ids.join(',');
+            }
+            return url;
         };
         this.searchPage = function (query) {
             var url = ngObibaMicaUrl.getUrl('BaseUrl') + ngObibaMicaUrl.getUrl('SearchBaseUrl');
@@ -21672,7 +21676,7 @@ angular.module("sets/components/cart-documents-table/component.html", []).run(["
     "    </a>\n" +
     "\n" +
     "    <span ng-if=\"$ctrl.micaConfigShowOpalViews\">\n" +
-    "      <a obiba-file-download get-url=\"$ctrl.opalExport()\" method=\"'get'\" target=\"_self\" class=\"action btn btn-primary btn-responsive\" download title=\"{{'sets.opal-views-download-button-help' | translate}}\">\n" +
+    "      <a obiba-file-download get-url=\"$ctrl.opalExport()\" target=\"_self\" class=\"action btn btn-primary btn-responsive\" download title=\"{{'sets.opal-views-download-button-help' | translate}}\">\n" +
     "        <i class=\"fa fa-download\"></i> {{'sets.opal-views-download-button-text' | translate}}\n" +
     "      </a>\n" +
     "    </span>\n" +
@@ -21772,7 +21776,7 @@ angular.module("sets/components/set-variables-table/component.html", []).run(["$
     "    </a>\n" +
     "\n" +
     "    <span ng-if=\"$ctrl.micaConfigShowOpalViews\">\n" +
-    "      <a obiba-file-download get-url=\"$ctrl.opalExport()\" method=\"'get'\" target=\"_self\" class=\"action btn btn-primary btn-responsive\" download title=\"{{'sets.opal-views-download-button-help' | translate}}\">\n" +
+    "      <a obiba-file-download get-url=\"$ctrl.opalExport()\" target=\"_self\" class=\"action btn btn-primary btn-responsive\" download title=\"{{'sets.opal-views-download-button-help' | translate}}\">\n" +
     "        <i class=\"fa fa-download\"></i> {{'sets.opal-views-download-button-text' | translate}}\n" +
     "      </a>\n" +
     "    </span>\n" +
