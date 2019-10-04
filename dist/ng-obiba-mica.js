@@ -9709,7 +9709,13 @@ ngObibaMica.search
                 ctrl.onSelectArgs({ vocabulary: ctrl.vocabulary, args: args });
             }
         }
+        function altEnterText(event, value) {
+            var input = new obiba.utils.NgObibaStringUtils().cleanDoubleQuotesLeftUnclosed(value);
+            var args = { text: input || '*' };
+            ctrl.onSelectArgs({ vocabulary: ctrl.vocabulary, args: args });
+        }
         ctrl.enterText = enterText;
+        ctrl.altEnterText = altEnterText;
     }
     ngObibaMica.search
         .component('matchVocabularyFilterDetail', {
@@ -19424,10 +19430,16 @@ angular.module("search/components/criteria/item-region/string-terms/component.ht
 
 angular.module("search/components/criteria/match-vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/match-vocabulary-filter-detail/component.html",
-    "<input type=\"text\" class=\"form-control\"\n" +
-    "       placeholder=\"{{'search.match.placeholder' | translate}}\"\n" +
-    "       ng-model=\"$ctrl.vocabulary.matchString\"\n" +
-    "       ng-keyup=\"$ctrl.enterText($event)\">");
+    "<div class=\"input-group\">\n" +
+    "    <input type=\"text\" class=\"form-control\"\n" +
+    "    placeholder=\"{{'search.match.placeholder' | translate}}\"\n" +
+    "    ng-model=\"$ctrl.vocabulary.matchString\"\n" +
+    "    ng-keyup=\"$ctrl.enterText($event)\">\n" +
+    "    <span class=\"input-group-btn\">\n" +
+    "      <button class=\"btn btn-default\" type=\"button\" ng-disabled=\"!$ctrl.vocabulary.matchString\" ng-click=\"$ctrl.altEnterText($event, $ctrl.vocabulary.matchString)\"><i class=\"fa fa-check\"></i></button>\n" +
+    "    </span>\n" +
+    "</div>\n" +
+    "");
 }]);
 
 angular.module("search/components/criteria/numeric-vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
