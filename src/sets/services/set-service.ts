@@ -42,7 +42,7 @@ interface ISetService {
   setSettingOption(newOptions: any): void;
   setGettingOption(): any;
 
-  getOpalViewsDownloadUrl(type: string, setId: string);
+  getOpalViewsDownloadUrl(type: string, setId: string, ids: string[]): string;
 }
 
 class SetService implements ISetService {
@@ -352,7 +352,7 @@ class SetService implements ISetService {
     }
   }
 
-  public getOpalViewsDownloadUrl(type: string, setId: string) {
+  public getOpalViewsDownloadUrl(type: string, setId: string, ids: string[]) {
     if (!setId) {
       const cartSet = this.getCartSet("variables");
       if (cartSet) {
@@ -360,7 +360,7 @@ class SetService implements ISetService {
       }
     }
 
-    return this.PageUrlService.downloadOpalView(type, setId);
+    return this.PageUrlService.downloadOpalView(type, setId, ids);
   }
 
   public getDownloadUrl(documentType: string, setId: string): string {

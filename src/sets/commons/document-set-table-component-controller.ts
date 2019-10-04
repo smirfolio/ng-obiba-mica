@@ -132,7 +132,8 @@ abstract class DocumentsSetTableComponentController implements IDocumentsSetTabl
   }
 
   public opalExport(): string {
-    return this.SetService.getOpalViewsDownloadUrl(this.type, this.setId);
+    return this.SetService.getOpalViewsDownloadUrl(
+      this.type, this.setId, this.hasSelections() ? this.getSelectedDocumentIds() : []);
   }
 
   public search(): void {

@@ -55,8 +55,14 @@
       return url;
     };
 
-    this.downloadOpalView = function (type, setId) {
-      return StringUtils.replaceAll(ngObibaMicaUrl.getUrl('SetOpalExportResource'), {':type': type, ':id': setId});
+    this.downloadOpalView = function (type, setId, ids) {
+      var url = StringUtils.replaceAll(ngObibaMicaUrl.getUrl('SetOpalExportResource'), {':type': type, ':id': setId});
+
+      if (ids && ids.length) {
+        url = url + '?ids=' + ids.join(',');
+      }
+
+      return url;
     };
 
     this.searchPage = function (query) {
