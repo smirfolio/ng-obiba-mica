@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-10-04
+ * Date: 2019-10-09
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -10983,6 +10983,7 @@ ngObibaMica.search
 'use strict';
 /* global BUCKET_TYPES */
 /* global DISPLAY_TYPES */
+/* global RowPopupState */
 ngObibaMica.search
     .controller('CoverageResultTableController', [
     '$scope',
@@ -11001,6 +11002,7 @@ ngObibaMica.search
     'ngObibaMicaSearch',
     function ($scope, $location, $q, $translate, $filter, LocalizedValues, PageUrlService, RqlQueryUtils, RqlQueryService, CoverageGroupByService, StudyFilterShortcutService, TaxonomyService, AlertService, ngObibaMicaSearch) {
         var targetMap = {}, vocabulariesTermsMap = {};
+        var rowPopupState = new RowPopupState();
         targetMap[BUCKET_TYPES.NETWORK] = QUERY_TARGETS.NETWORK;
         targetMap[BUCKET_TYPES.STUDY] = QUERY_TARGETS.STUDY;
         targetMap[BUCKET_TYPES.STUDY_INDIVIDUAL] = QUERY_TARGETS.STUDY;
@@ -11373,9 +11375,20 @@ ngObibaMica.search
             StudyFilterShortcutService.filter(choice, $scope.lang);
         }
         function init() {
+            $scope.rowPopupState = null;
             $scope.fullCoverageDisabled = true;
             onLocationChange();
         }
+        function onRowMouseOver(event, row) {
+            rowPopupState.update(event.target, row);
+            $scope.rowPopupState = rowPopupState;
+        }
+        function onRowMouseLeave() {
+            rowPopupState.reset();
+            $scope.rowPopupState = null;
+        }
+        $scope.onRowMouseOver = onRowMouseOver;
+        $scope.onRowMouseLeave = onRowMouseLeave;
         $scope.totalOptions = ngObibaMicaSearch.getOptions().coverage.total;
         $scope.showMissing = true;
         $scope.toggleMissing = function (value) {
@@ -11609,6 +11622,152 @@ ngObibaMica.search
         };
     }]);
 //# sourceMappingURL=component.js.map
+/*
+ * Copyright (c) 2019 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+"use strict";
+var CoverageRowPopupController = /** @class */ (function () {
+    function CoverageRowPopupController($log, $timeout, $translate) {
+        this.$log = $log;
+        this.$timeout = $timeout;
+        this.$translate = $translate;
+        this.element = null;
+        this.container = null;
+        this.content = null;
+        this.headers = null;
+        this.headersMap = null;
+        this.timeoutPromise = null;
+        this.visible = false;
+    }
+    CoverageRowPopupController.prototype.$onInit = function () {
+        var _this = this;
+        this.container = document.querySelector(".table-responsive");
+        this.element = document.querySelector("#row-popup");
+        // Required for cleaning up the event listeners later, the direct reference to the class listeners and bind
+        // does not work well.
+        this.scrollHandler = this.onScroll.bind(this);
+        this.mouseMoveHandler = this.onMouseMove.bind(this);
+        // Cache the column header translations
+        var titleKeys = ["search.coverage-dce-cols.study",
+            "search.coverage-dce-cols.population",
+            "search.coverage-dce-cols.dce",
+            "search.coverage-buckets.dataset",
+            "search.coverage-buckets.study",
+        ];
+        this.headersMap = {};
+        this.$translate(titleKeys).then(function (translations) {
+            _this.headersMap.dceId = [translations["search.coverage-dce-cols.study"],
+                translations["search.coverage-dce-cols.population"],
+                translations["search.coverage-dce-cols.dce"],
+            ];
+            _this.headersMap.datasetId = [translations["search.coverage-buckets.dataset"]];
+            _this.headersMap.studyId = [translations["search.coverage-buckets.study"]];
+        });
+    };
+    CoverageRowPopupController.prototype.$onChanges = function (changes) {
+        var _this = this;
+        if (changes.state.isFirstChange()) {
+            return;
+        }
+        // Set the content without delay so the element dimension are correctly calculated
+        if (this.state) {
+            this.initContent();
+        }
+        // Delay until the content is set and the element dimensions are updated
+        this.timeoutPromise = this.$timeout(function () {
+            if (_this.state) {
+                _this.container.addEventListener("scroll", _this.scrollHandler);
+                window.addEventListener("mousemove", _this.mouseMoveHandler);
+                _this.initPosition();
+            }
+            else {
+                _this.container.removeEventListener("scroll", _this.scrollHandler);
+                window.removeEventListener("mousemove", _this.mouseMoveHandler);
+                _this.content = null;
+                _this.headers = null;
+            }
+        });
+    };
+    CoverageRowPopupController.prototype.$onDestroy = function () {
+        this.$timeout.cancel(this.timeoutPromise);
+        this.container.removeEventListener("scroll", this.scrollHandler);
+        window.removeEventListener("mousemove", this.mouseMoveHandler);
+    };
+    CoverageRowPopupController.prototype.onMouseMove = function (event) {
+        this.element.style.left = event.clientX - this.element.offsetWidth + "px";
+    };
+    CoverageRowPopupController.prototype.onScroll = function () {
+        this.visible =
+            this.container.getBoundingClientRect().left > this.state.getElement().children[1].getBoundingClientRect().x;
+    };
+    CoverageRowPopupController.prototype.initPosition = function () {
+        var targetElement = this.state.getElement();
+        var rowRect = targetElement.getBoundingClientRect();
+        this.element.style.top = rowRect.top - this.element.offsetHeight + "px";
+    };
+    CoverageRowPopupController.prototype.initContent = function () {
+        var model = this.state.getModel();
+        this.content = model.title.trim().split(/:/);
+        this.headers = this.headersMap[model.field].slice(0);
+        // cleanup content when there are no DCE
+        if ("dceId" === model.field && this.content.length < 3) {
+            this.headers.pop();
+        }
+    };
+    CoverageRowPopupController.$inject = ["$log", "$timeout", "$translate"];
+    return CoverageRowPopupController;
+}());
+var CoverageRowPopupComponent = /** @class */ (function () {
+    function CoverageRowPopupComponent() {
+        this.transclude = true;
+        this.bindings = {
+            state: "<",
+        };
+        this.controller = CoverageRowPopupController;
+        this.controllerAs = "$ctrl";
+        this.templateUrl = "search/components/result/coverage-result/row-popup/component.html";
+    }
+    return CoverageRowPopupComponent;
+}());
+ngObibaMica.search
+    .component("coverageRowPopup", new CoverageRowPopupComponent());
+//# sourceMappingURL=component.js.map
+/*
+ * Copyright (c) 2019 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+"use strict";
+var RowPopupState = /** @class */ (function () {
+    function RowPopupState() {
+    }
+    RowPopupState.prototype.update = function (target, model) {
+        this.element = "TR" === target.tagName ? target : target.closest("TR");
+        this.model = model;
+    };
+    RowPopupState.prototype.reset = function () {
+        this.element = null;
+        this.model = null;
+    };
+    RowPopupState.prototype.getElement = function () {
+        return this.element;
+    };
+    RowPopupState.prototype.getModel = function () {
+        return this.model;
+    };
+    return RowPopupState;
+}());
+//# sourceMappingURL=row-popup-state.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
@@ -16745,7 +16904,7 @@ ngObibaMica.fileBrowser
         };
     }]);
 //# sourceMappingURL=file-browser-service.js.map
-angular.module('templates-ngObibaMica', ['access/components/action-log/component.html', 'access/components/action-log/item/component.html', 'access/components/action-log/item/delete-modal.html', 'access/components/action-log/item/edit-modal.html', 'access/components/entity-list/component.html', 'access/components/print-friendly-view/component.html', 'access/components/status-progressbar/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/components/badge-count/component.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/buttons-panel/component.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/cell-stat-value/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/add-to-set-modal/component.html', 'sets/components/cart-documents-table/component.html', 'sets/components/set-variables-table/component.html', 'sets/views/cart.html', 'sets/views/sets.html', 'utils/components/entity-schema-form/component.html', 'utils/components/table-alert-header/component.html', 'utils/services/user-profile-modal/service.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+angular.module('templates-ngObibaMica', ['access/components/action-log/component.html', 'access/components/action-log/item/component.html', 'access/components/action-log/item/delete-modal.html', 'access/components/action-log/item/edit-modal.html', 'access/components/entity-list/component.html', 'access/components/print-friendly-view/component.html', 'access/components/status-progressbar/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/components/badge-count/component.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/buttons-panel/component.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/cell-stat-value/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/coverage-result/row-popup/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/add-to-set-modal/component.html', 'sets/components/cart-documents-table/component.html', 'sets/components/set-variables-table/component.html', 'sets/views/cart.html', 'sets/views/sets.html', 'utils/components/entity-schema-form/component.html', 'utils/components/table-alert-header/component.html', 'utils/services/user-profile-modal/service.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/components/action-log/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/components/action-log/component.html",
@@ -20294,6 +20453,7 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
     "  <div class=\"table-responsive table-scroll\" ng-if=\"!loading && table.taxonomyHeaders.length > 0\">\n" +
+    "    <coverage-row-popup state=\"rowPopupState\"></coverage-row-popup>\n" +
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
     "        <tr>\n" +
@@ -20358,7 +20518,9 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "          </tr>\n" +
     "      </thead>\n" +
     "      <tbody>\n" +
-    "        <tr ng-repeat=\"row in ::table.rows track by row.value\" ng-show=\"showMissing || table.termHeaders.length == row.hits.length\">\n" +
+    "        <tr ng-repeat=\"row in ::table.rows track by row.value\" ng-show=\"showMissing || table.termHeaders.length == row.hits.length\"\n" +
+    "            ng-mouseover=\"onRowMouseOver($event, row)\"\n" +
+    "            ng-mouseleave=\"onRowMouseLeave($event, row)\">\n" +
     "          <td style=\"text-align: center\">\n" +
     "            <input type=\"checkbox\" ng-model=\"row.selected\">\n" +
     "          </td>\n" +
@@ -20405,6 +20567,23 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "        </tr>\n" +
     "      </tfoot>\n" +
     "    </table>\n" +
+    "  </div>\n" +
+    "</div>\n" +
+    "");
+}]);
+
+angular.module("search/components/result/coverage-result/row-popup/component.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/components/result/coverage-result/row-popup/component.html",
+    "<div ng-show=\"$ctrl.visible === true\" class=\"coverage-row-popup\" id=\"row-popup\">\n" +
+    "  <div class=\"coverage-row-popup-content\">\n" +
+    "      <table class=\"table table-striped table-condensed no-padding no-margin\">\n" +
+    "        <tr>\n" +
+    "          <th ng-repeat=\"value in $ctrl.headers\">{{value}}</th>\n" +
+    "        </tr>\n" +
+    "        <tr>\n" +
+    "          <td ng-repeat=\"value in $ctrl.content\">{{value}}</td>\n" +
+    "        </tr>\n" +
+    "      </table>\n" +
     "  </div>\n" +
     "</div>");
 }]);
