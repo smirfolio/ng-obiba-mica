@@ -67,7 +67,7 @@
 
   <div ng-if="loading" class="loading"></div>
 
-  <div class="table-responsive table-scroll" ng-if="!loading && table.taxonomyHeaders.length > 0">
+  <div id="coverage-table-container" class="table-responsive table-scroll" ng-if="!loading && table.taxonomyHeaders.length > 0">
     <coverage-row-popup state="rowPopupState"></coverage-row-popup>
     <table class="table table-bordered table-striped">
       <thead>
