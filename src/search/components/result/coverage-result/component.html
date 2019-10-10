@@ -68,6 +68,7 @@
   <div ng-if="loading" class="loading"></div>
 
   <div class="table-responsive table-scroll" ng-if="!loading && table.taxonomyHeaders.length > 0">
+    <coverage-row-popup state="rowPopupState"></coverage-row-popup>
     <table class="table table-bordered table-striped">
       <thead>
         <tr>
@@ -132,7 +133,9 @@
           </tr>
       </thead>
       <tbody>
-        <tr ng-repeat="row in ::table.rows track by row.value" ng-show="showMissing || table.termHeaders.length == row.hits.length">
+        <tr ng-repeat="row in ::table.rows track by row.value" ng-show="showMissing || table.termHeaders.length == row.hits.length"
+            ng-mouseover="onRowMouseOver($event, row)"
+            ng-mouseleave="onRowMouseLeave($event, row)">
           <td style="text-align: center">
             <input type="checkbox" ng-model="row.selected">
           </td>
