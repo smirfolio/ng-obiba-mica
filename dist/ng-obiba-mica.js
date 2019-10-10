@@ -19418,22 +19418,27 @@ angular.module("search/components/criteria/numeric-vocabulary-filter-detail/comp
 
 angular.module("search/components/criteria/terms-vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/terms-vocabulary-filter-detail/component.html",
-    "<div ng-class=\"{'row': ($index + 1) % 4 === 0}\"\n" +
+    "<div ng-if=\"$index % 4 == 0\"  class=\"row margin-left--5\"\n" +
     "     ng-repeat=\"term in $ctrl.vocabulary.filteredTerms | sortTerms:$ctrl.vocabulary | limitTo:$ctrl.limitNumber\">\n" +
-    "  <div class=\"col-xs-3 col-md-3\">\n" +
-    "    <div class=\"checkbox\">\n" +
-    "      <label uib-popover=\"{{term.description ? term.description : term.title | localizedString}}\"\n" +
-    "             popover-title=\"{{term.description ? term.title : null | localizedString}}\"\n" +
+    "  <div class=\"col-xs-3 col-md-3\" ng-repeat=\"key in [0,1,2,3]\">\n" +
+    "    <div ng-show=\"$ctrl.vocabulary.filteredTerms[$parent.$index + key]\" class=\"checkbox\">\n" +
+    "      <label uib-popover=\"{{$ctrl.vocabulary.filteredTerms[$parent.$index + key].description ? $ctrl.vocabulary.filteredTerms[$parent.$index + key].description :\n" +
+    "       $ctrl.vocabulary.filteredTerms[$parent.$index + key].title | localizedString}}\"\n" +
+    "             popover-title=\"{{$ctrl.vocabulary.filteredTerms[$parent.$index + key].description ? $ctrl.vocabulary.filteredTerms[$parent.$index + key].title :\n" +
+    "              null | localizedString}}\"\n" +
     "             popover-placement=\"bottom\"\n" +
     "             popover-trigger=\"'mouseenter'\"\n" +
     "             popover-popup-delay=\"250\"\n" +
     "             popover-class=\"right-panel-popover\"\n" +
-    "             for=\"term-{{$ctrl.vocabulary.name + '-' + $index + '-' + term.name}}\"\n" +
+    "             for=\"$ctrl.vocabulary.filteredTerms[$parent.$index + key]-{{$ctrl.vocabulary.name + '-' + ($parent.$index + key) + '-' +\n" +
+    "             $ctrl.vocabulary.filteredTerms[$parent.$index + key].name}}\"\n" +
     "             class=\"word-break\">\n" +
-    "        <input id=\"term-{{$ctrl.vocabulary.name + '-' + $index + '-' + term.name}}\"\n" +
+    "        <input id=\"$ctrl.vocabulary.filteredTerms[$parent.$index + key]-{{$ctrl.vocabulary.name + '-' + ($parent.$index + key) + '-' +\n" +
+    "              $ctrl.vocabulary.filteredTerms[$parent.$index + key].name}}\"\n" +
     "               type=\"checkbox\"\n" +
-    "               ng-model=\"term.selected\"\n" +
-    "               ng-click=\"$ctrl.clickCheckbox(term)\"> {{term.title | localizedString}}\n" +
+    "               ng-model=\"$ctrl.vocabulary.filteredTerms[$parent.$index + key].selected\"\n" +
+    "               ng-click=\"$ctrl.clickCheckbox($ctrl.vocabulary.filteredTerms[$parent.$index + key])\">\n" +
+    "                  {{$ctrl.vocabulary.filteredTerms[$parent.$index + key].title | localizedString}}\n" +
     "      </label>\n" +
     "    </div>\n" +
     "  </div>\n" +
