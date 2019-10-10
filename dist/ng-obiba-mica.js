@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-10-09
+ * Date: 2019-10-10
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -11647,8 +11647,9 @@ var CoverageRowPopupController = /** @class */ (function () {
     }
     CoverageRowPopupController.prototype.$onInit = function () {
         var _this = this;
-        this.container = document.querySelector(".table-responsive");
+        this.container = document.querySelector("#coverage-table-container");
         this.element = document.querySelector("#row-popup");
+        this.$log.log(">>>", this.container, this.container);
         // Required for cleaning up the event listeners later, the direct reference to the class listeners and bind
         // does not work well.
         this.scrollHandler = this.onScroll.bind(this);
@@ -20452,7 +20453,7 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
-    "  <div class=\"table-responsive table-scroll\" ng-if=\"!loading && table.taxonomyHeaders.length > 0\">\n" +
+    "  <div id=\"coverage-table-container\" class=\"table-responsive table-scroll\" ng-if=\"!loading && table.taxonomyHeaders.length > 0\">\n" +
     "    <coverage-row-popup state=\"rowPopupState\"></coverage-row-popup>\n" +
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
