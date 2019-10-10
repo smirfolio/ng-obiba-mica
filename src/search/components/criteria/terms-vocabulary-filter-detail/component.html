@@ -1,19 +1,24 @@
-<div ng-class="{'row': ($index + 1) % 4 === 0}"
+<div ng-if="$index % 4 == 0"  class="row margin-left--5"
      ng-repeat="term in $ctrl.vocabulary.filteredTerms | sortTerms:$ctrl.vocabulary | limitTo:$ctrl.limitNumber">
-  <div class="col-xs-3 col-md-3">
-    <div class="checkbox">
-      <label uib-popover="{{term.description ? term.description : term.title | localizedString}}"
-             popover-title="{{term.description ? term.title : null | localizedString}}"
+  <div class="col-xs-3 col-md-3" ng-repeat="key in [0,1,2,3]">
+    <div ng-show="$ctrl.vocabulary.filteredTerms[$parent.$index + key]" class="checkbox">
+      <label uib-popover="{{$ctrl.vocabulary.filteredTerms[$parent.$index + key].description ? $ctrl.vocabulary.filteredTerms[$parent.$index + key].description :
+       $ctrl.vocabulary.filteredTerms[$parent.$index + key].title | localizedString}}"
+             popover-title="{{$ctrl.vocabulary.filteredTerms[$parent.$index + key].description ? $ctrl.vocabulary.filteredTerms[$parent.$index + key].title :
+              null | localizedString}}"
              popover-placement="bottom"
              popover-trigger="'mouseenter'"
              popover-popup-delay="250"
              popover-class="right-panel-popover"
-             for="term-{{$ctrl.vocabulary.name + '-' + $index + '-' + term.name}}"
+             for="$ctrl.vocabulary.filteredTerms[$parent.$index + key]-{{$ctrl.vocabulary.name + '-' + ($parent.$index + key) + '-' +
+             $ctrl.vocabulary.filteredTerms[$parent.$index + key].name}}"
              class="word-break">
-        <input id="term-{{$ctrl.vocabulary.name + '-' + $index + '-' + term.name}}"
+        <input id="$ctrl.vocabulary.filteredTerms[$parent.$index + key]-{{$ctrl.vocabulary.name + '-' + ($parent.$index + key) + '-' +
+              $ctrl.vocabulary.filteredTerms[$parent.$index + key].name}}"
                type="checkbox"
-               ng-model="term.selected"
-               ng-click="$ctrl.clickCheckbox(term)"> {{term.title | localizedString}}
+               ng-model="$ctrl.vocabulary.filteredTerms[$parent.$index + key].selected"
+               ng-click="$ctrl.clickCheckbox($ctrl.vocabulary.filteredTerms[$parent.$index + key])">
+                  {{$ctrl.vocabulary.filteredTerms[$parent.$index + key].title | localizedString}}
       </label>
     </div>
   </div>
