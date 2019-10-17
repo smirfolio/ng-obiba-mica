@@ -42,7 +42,6 @@ class CoverageRowPopupController implements ng.IComponentController {
   public $onInit() {
     this.container = document.querySelector("#coverage-table-container");
     this.element = document.querySelector("#row-popup");
-    this.$log.log(">>>", this.container, this.container);
 
     // Required for cleaning up the event listeners later, the direct reference to the class listeners and bind
     // does not work well.
@@ -84,6 +83,7 @@ class CoverageRowPopupController implements ng.IComponentController {
         this.container.addEventListener("scroll", this.scrollHandler);
         window.addEventListener("mousemove", this.mouseMoveHandler);
         this.initPosition();
+        this.onScroll();
       } else {
         this.container.removeEventListener("scroll", this.scrollHandler);
         window.removeEventListener("mousemove", this.mouseMoveHandler);
