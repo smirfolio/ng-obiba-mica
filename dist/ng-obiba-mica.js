@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-10-17
+ * Date: 2019-10-18
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -11684,7 +11684,6 @@ var CoverageRowPopupController = /** @class */ (function () {
             if (_this.state) {
                 _this.container.addEventListener("scroll", _this.scrollHandler);
                 window.addEventListener("mousemove", _this.mouseMoveHandler);
-                _this.initPosition();
                 _this.onScroll();
             }
             else {
@@ -11701,16 +11700,12 @@ var CoverageRowPopupController = /** @class */ (function () {
         window.removeEventListener("mousemove", this.mouseMoveHandler);
     };
     CoverageRowPopupController.prototype.onMouseMove = function (event) {
-        this.element.style.left = event.clientX - this.element.offsetWidth + "px";
+        this.element.style.left = event.clientX + CoverageRowPopupController.MARGIN + "px";
+        this.element.style.top = event.clientY + CoverageRowPopupController.MARGIN + "px";
     };
     CoverageRowPopupController.prototype.onScroll = function () {
         this.visible =
             this.container.getBoundingClientRect().left > this.state.getElement().children[1].getBoundingClientRect().x;
-    };
-    CoverageRowPopupController.prototype.initPosition = function () {
-        var targetElement = this.state.getElement();
-        var rowRect = targetElement.getBoundingClientRect();
-        this.element.style.top = rowRect.top - this.element.offsetHeight + "px";
     };
     CoverageRowPopupController.prototype.initContent = function () {
         var model = this.state.getModel();
@@ -11722,6 +11717,7 @@ var CoverageRowPopupController = /** @class */ (function () {
         }
     };
     CoverageRowPopupController.$inject = ["$log", "$timeout", "$translate"];
+    CoverageRowPopupController.MARGIN = 15;
     return CoverageRowPopupController;
 }());
 var CoverageRowPopupComponent = /** @class */ (function () {
@@ -20553,7 +20549,7 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "              </div>\n" +
     "            </div>\n" +
     "          </td>\n" +
-    "          <td ng-repeat=\"h in ::table.termHeaders\" title=\"{{h.entity.titles[0].value}}\">\n" +
+    "          <td ng-repeat=\"h in ::table.termHeaders\">\n" +
     "            <a href ng-click=\"updateCriteria(row.value, h, $index, 'variables')\">\n" +
     "              <span class=\"label label-info\" ng-show=\"row.hitsTitles[$index]\">{{row.hitsTitles[$index]}}</span>\n" +
     "            </a>\n" +
