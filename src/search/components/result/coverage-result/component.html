@@ -162,7 +162,7 @@
               </div>
             </div>
           </td>
-          <td ng-repeat="h in ::table.termHeaders" title="{{h.entity.titles[0].value}}">
+          <td ng-repeat="h in ::table.termHeaders">
             <a href ng-click="updateCriteria(row.value, h, $index, 'variables')">
               <span class="label label-info" ng-show="row.hitsTitles[$index]">{{row.hitsTitles[$index]}}</span>
             </a>

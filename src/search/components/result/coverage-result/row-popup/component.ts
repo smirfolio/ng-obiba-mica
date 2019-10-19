@@ -15,6 +15,8 @@ declare var ngObibaMica: any;
 class CoverageRowPopupController implements ng.IComponentController {
   private static $inject = ["$log", "$timeout", "$translate"];
 
+  private static MARGIN: number = 15;
+
   public state: any;
 
   private element: HTMLElement = null;
@@ -82,7 +84,6 @@ class CoverageRowPopupController implements ng.IComponentController {
       if (this.state) {
         this.container.addEventListener("scroll", this.scrollHandler);
         window.addEventListener("mousemove", this.mouseMoveHandler);
-        this.initPosition();
         this.onScroll();
       } else {
         this.container.removeEventListener("scroll", this.scrollHandler);
@@ -101,18 +102,13 @@ class CoverageRowPopupController implements ng.IComponentController {
   }
 
   private onMouseMove(event: MouseEvent): void {
-    this.element.style.left = event.clientX - this.element.offsetWidth + "px";
+    this.element.style.left = event.clientX  + CoverageRowPopupController.MARGIN + "px";
+    this.element.style.top = event.clientY + CoverageRowPopupController.MARGIN + "px";
   }
 
   private onScroll(): void {
     this.visible =
       this.container.getBoundingClientRect().left > this.state.getElement().children[1].getBoundingClientRect().x;
-  }
-
-  private initPosition(): void {
-    const targetElement = this.state.getElement();
-    const rowRect = targetElement.getBoundingClientRect();
-    this.element.style.top = rowRect.top - this.element.offsetHeight + "px";
   }
 
   private initContent(): void {
