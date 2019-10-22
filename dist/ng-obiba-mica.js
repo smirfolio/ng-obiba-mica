@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-09-16
+ * Date: 2019-10-22
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -3052,14 +3052,14 @@ var SetService = /** @class */ (function () {
             this.$location.replace();
         }
     };
-    SetService.prototype.getOpalViewsDownloadUrl = function (type, setId) {
+    SetService.prototype.getOpalViewsDownloadUrl = function (type, setId, ids) {
         if (!setId) {
             var cartSet = this.getCartSet("variables");
             if (cartSet) {
                 setId = cartSet.id;
             }
         }
-        return this.PageUrlService.downloadOpalView(type, setId);
+        return this.PageUrlService.downloadOpalView(type, setId, ids);
     };
     SetService.prototype.getDownloadUrl = function (documentType, setId) {
         var id = setId;
@@ -3307,7 +3307,7 @@ var DocumentsSetTableComponentController = /** @class */ (function () {
             : this.SetService.getDownloadUrl(this.type, this.setId);
     };
     DocumentsSetTableComponentController.prototype.opalExport = function () {
-        return this.SetService.getOpalViewsDownloadUrl(this.type, this.setId);
+        return this.SetService.getOpalViewsDownloadUrl(this.type, this.setId, this.hasSelections() ? this.getSelectedDocumentIds() : []);
     };
     DocumentsSetTableComponentController.prototype.search = function () {
         this.SetService.gotoSearch(this.type, this.setId);
@@ -3677,7 +3677,7 @@ var CartDocumentsTableController = /** @class */ (function (_super) {
                 var datasetName = _this.localize(doc.datasetName);
                 var datasetLink = _this.PageUrlService.datasetPage(doc.datasetId, doc.variableType);
                 var variableLink = _this.PageUrlService.variablePage(doc.id);
-                var attrLabel = doc.attributes.filter(function (attr) { return attr.name === "label"; });
+                var attrLabel = (doc.attributes || []).filter(function (attr) { return attr.name === "label"; });
                 var variableLabel = attrLabel && attrLabel.length > 0 ? _this.localize(attrLabel[0].values) : "";
                 var row = new Array({
                     link: undefined,
@@ -3795,7 +3795,7 @@ var VariablesSetTableComponentController = /** @class */ (function (_super) {
                 var datasetName = _this.localize(doc.datasetName);
                 var datasetLink = _this.PageUrlService.datasetPage(doc.datasetId, doc.variableType);
                 var variableLink = _this.PageUrlService.variablePage(doc.id);
-                var attrLabel = doc.attributes.filter(function (attr) { return attr.name === "label"; });
+                var attrLabel = (doc.attributes || []).filter(function (attr) { return attr.name === "label"; });
                 var variableLabel = attrLabel && attrLabel.length > 0 ? _this.localize(attrLabel[0].values) : "";
                 var row = new Array({
                     link: undefined,
@@ -5948,7 +5948,7 @@ var TaxonomyCartFilter = /** @class */ (function () {
                     validateBucket(bucket);
                     validateDisplay(display);
                     $scope.search.type = type;
-                    $scope.search.withZeros = search.withZeros;
+                    $scope.search.withZeros = search.withZeros ? search.withZeros : true;
                     $scope.search.bucket = bucket;
                     $scope.search.display = display;
                     $scope.search.query = query;
@@ -6157,9 +6157,8 @@ var TaxonomyCartFilter = /** @class */ (function () {
                 taxonomyVocabulary.existingItem =
                     RqlQueryService.findCriteriaItemFromTreeById(target, CriteriaIdGenerator.generate(taxonomy, taxonomyVocabulary), $scope.search.criteria, true);
             }
-            function toggleLeftPanelVisibility() {
-                $scope.showLeftPanel = !$scope.showLeftPanel;
-                $scope.$broadcast('ngObibaMicaLeftPaneToggle', $scope.showLeftPanel);
+            function toggleLeftPanelVisibility(visible) {
+                $scope.showLeftPanel = visible;
             }
             function onTaxonomyFilterPanelToggleVisibility(target, taxonomy) {
                 if (target && taxonomy) {
@@ -6504,9 +6503,16 @@ var TaxonomyCartFilter = /** @class */ (function () {
             $scope.inSearchMode = function () {
                 return $scope.viewMode === VIEW_MODES.SEARCH;
             };
-            $scope.toggleFullscreen = function () {
-                $scope.isFullscreen = !$scope.isFullscreen;
+            $scope.toggleFullscreen = function (fullscreen) {
+                if ($scope.isFullscreen && $scope.isFullscreen !== fullscreen) {
+                    // in case the ESC key was pressed
+                    $timeout(function () { $scope.isFullscreen = fullscreen; });
+                }
+                else {
+                    $scope.isFullscreen = fullscreen;
+                }
             };
+            $scope.isFullscreen = false;
             $scope.isSearchAvailable = true;
             ObibaServerConfigResource.get(function (micaConfig) {
                 $scope.isSearchAvailable = !micaConfig.isSingleStudyEnabled ||
@@ -6514,9 +6520,6 @@ var TaxonomyCartFilter = /** @class */ (function () {
                     micaConfig.isCollectedDatasetEnabled || micaConfig.isHarmonizedDatasetEnabled;
             });
             $scope.unbindLocationChange = $scope.$on('$locationChangeSuccess', onLocationChange);
-            $rootScope.$on('ngObibaMicaSearch.fullscreenChange', function (obj, isEnabled) {
-                $scope.isFullscreen = isEnabled;
-            });
             $rootScope.$on('ngObibaMicaSearch.sortChange', function (obj, sort) {
                 $scope.search.rqlQuery = RqlQueryService.prepareSearchQueryNoFields($scope.search.display, $scope.search.type, $scope.search.rqlQuery, $scope.lang, sort);
                 refreshQuery();
@@ -7084,8 +7087,12 @@ ngObibaMica.search.service("CoverageGroupByService", ["ngObibaMicaSearch", Cover
             }
             return url;
         };
-        this.downloadOpalView = function (type, setId) {
-            return StringUtils.replaceAll(ngObibaMicaUrl.getUrl('SetOpalExportResource'), { ':type': type, ':id': setId });
+        this.downloadOpalView = function (type, setId, ids) {
+            var url = StringUtils.replaceAll(ngObibaMicaUrl.getUrl('SetOpalExportResource'), { ':type': type, ':id': setId });
+            if (ids && ids.length) {
+                url = url + '?ids=' + ids.join(',');
+            }
+            return url;
         };
         this.searchPage = function (query) {
             var url = ngObibaMicaUrl.getUrl('BaseUrl') + ngObibaMicaUrl.getUrl('SearchBaseUrl');
@@ -9153,6 +9160,84 @@ ngObibaMica.search
 })();
 //# sourceMappingURL=vocabulary-filters.js.map
 /*
+ * Copyright (c) 2019 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+"use strict";
+var ButtonsPanelController = /** @class */ (function () {
+    function ButtonsPanelController($log, $rootScope, $translate) {
+        var _this = this;
+        this.$log = $log;
+        this.$rootScope = $rootScope;
+        this.$translate = $translate;
+        this.showPanel = true;
+        this.isFullscreen = false;
+        this.showIconForPanelButton = false;
+        this.showIconForFullscreenButton = false;
+        this.$rootScope.$on("ngObibaMicaSearch.fullscreenChange", function (event, isEnabled) {
+            _this.isFullscreen = isEnabled;
+            _this.onToggleFullscreen({ fullscreen: _this.isFullscreen });
+        });
+        this.$rootScope.$on("$translateChangeSuccess", function () { return _this.ensureButtonTitles(); });
+    }
+    ButtonsPanelController.prototype.toggleFullscreen = function () {
+        this.isFullscreen = !this.isFullscreen;
+        this.onToggleFullscreen({ fullscreen: this.isFullscreen });
+    };
+    ButtonsPanelController.prototype.toggleLeftPanelVisibility = function () {
+        this.showPanel = !this.showPanel;
+        this.onToggleLeftPanelVisibility({ visible: this.showPanel });
+        this.$rootScope.$broadcast("ngObibaMicaLeftPaneToggle", this.showPanel);
+    };
+    ButtonsPanelController.prototype.$onInit = function () {
+        this.ensureButtonTitles();
+    };
+    ButtonsPanelController.prototype.ensureButtonTitles = function () {
+        var _this = this;
+        var keys = [
+            "search.left-panel-close-title",
+            "search.left-panel-open-title",
+            "search.enter-fullscreen-title",
+            "search.exit-fullscreen-title"
+        ];
+        this.$translate(keys).then(function (translations) {
+            _this.showIconForFullscreenButton =
+                "" !== translations["search.enter-fullscreen-title"] &&
+                    translations["search.enter-fullscreen-title"] !== "search.enter-fullscreen-title" &&
+                    "" !== translations["search.exit-fullscreen-title"] &&
+                    translations["search.exit-fullscreen-title"] !== "search.exit-fullscreen-title";
+            _this.showIconForPanelButton =
+                "" !== translations["search.left-panel-open-title"] &&
+                    translations["search.left-panel-open-title"] !== "search.left-panel-open-title" &&
+                    "" !== translations["search.left-panel-close-title"] &&
+                    translations["search.left-panel-close-title"] !== "search.left-panel-close-title";
+        });
+    };
+    ButtonsPanelController.$inject = ["$log", "$rootScope", "$translate"];
+    return ButtonsPanelController;
+}());
+var ButtonsPanelComponent = /** @class */ (function () {
+    function ButtonsPanelComponent() {
+        this.transclude = true;
+        this.bindings = {
+            onToggleFullscreen: "&",
+            onToggleLeftPanelVisibility: "&",
+        };
+        this.controller = ButtonsPanelController;
+        this.controllerAs = "$ctrl";
+        this.templateUrl = "search/components/buttons-panel/component.html";
+    }
+    return ButtonsPanelComponent;
+}());
+ngObibaMica.search
+    .component("buttonsPanelComponent", new ButtonsPanelComponent());
+//# sourceMappingURL=component.js.map
+/*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
@@ -9709,7 +9794,13 @@ ngObibaMica.search
                 ctrl.onSelectArgs({ vocabulary: ctrl.vocabulary, args: args });
             }
         }
+        function altEnterText(event, value) {
+            var input = new obiba.utils.NgObibaStringUtils().cleanDoubleQuotesLeftUnclosed(value);
+            var args = { text: input || '*' };
+            ctrl.onSelectArgs({ vocabulary: ctrl.vocabulary, args: args });
+        }
         ctrl.enterText = enterText;
+        ctrl.altEnterText = altEnterText;
     }
     ngObibaMica.search
         .component('matchVocabularyFilterDetail', {
@@ -10892,6 +10983,7 @@ ngObibaMica.search
 'use strict';
 /* global BUCKET_TYPES */
 /* global DISPLAY_TYPES */
+/* global RowPopupState */
 ngObibaMica.search
     .controller('CoverageResultTableController', [
     '$scope',
@@ -10910,6 +11002,7 @@ ngObibaMica.search
     'ngObibaMicaSearch',
     function ($scope, $location, $q, $translate, $filter, LocalizedValues, PageUrlService, RqlQueryUtils, RqlQueryService, CoverageGroupByService, StudyFilterShortcutService, TaxonomyService, AlertService, ngObibaMicaSearch) {
         var targetMap = {}, vocabulariesTermsMap = {};
+        var rowPopupState = new RowPopupState();
         targetMap[BUCKET_TYPES.NETWORK] = QUERY_TARGETS.NETWORK;
         targetMap[BUCKET_TYPES.STUDY] = QUERY_TARGETS.STUDY;
         targetMap[BUCKET_TYPES.STUDY_INDIVIDUAL] = QUERY_TARGETS.STUDY;
@@ -11282,9 +11375,20 @@ ngObibaMica.search
             StudyFilterShortcutService.filter(choice, $scope.lang);
         }
         function init() {
+            $scope.rowPopupState = null;
             $scope.fullCoverageDisabled = true;
             onLocationChange();
         }
+        function onRowMouseOver(event, row) {
+            rowPopupState.update(event.target, row);
+            $scope.rowPopupState = rowPopupState;
+        }
+        function onRowMouseLeave() {
+            rowPopupState.reset();
+            $scope.rowPopupState = null;
+        }
+        $scope.onRowMouseOver = onRowMouseOver;
+        $scope.onRowMouseLeave = onRowMouseLeave;
         $scope.totalOptions = ngObibaMicaSearch.getOptions().coverage.total;
         $scope.showMissing = true;
         $scope.toggleMissing = function (value) {
@@ -11518,6 +11622,149 @@ ngObibaMica.search
         };
     }]);
 //# sourceMappingURL=component.js.map
+/*
+ * Copyright (c) 2019 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+"use strict";
+var CoverageRowPopupController = /** @class */ (function () {
+    function CoverageRowPopupController($log, $timeout, $translate) {
+        this.$log = $log;
+        this.$timeout = $timeout;
+        this.$translate = $translate;
+        this.element = null;
+        this.container = null;
+        this.content = null;
+        this.headers = null;
+        this.headersMap = null;
+        this.timeoutPromise = null;
+        this.visible = false;
+    }
+    CoverageRowPopupController.prototype.$onInit = function () {
+        var _this = this;
+        this.container = document.querySelector("#coverage-table-container");
+        this.element = document.querySelector("#row-popup");
+        // Required for cleaning up the event listeners later, the direct reference to the class listeners and bind
+        // does not work well.
+        this.scrollHandler = this.onScroll.bind(this);
+        this.mouseMoveHandler = this.onMouseMove.bind(this);
+        // Cache the column header translations
+        var titleKeys = ["search.coverage-dce-cols.study",
+            "search.coverage-dce-cols.population",
+            "search.coverage-dce-cols.dce",
+            "search.coverage-buckets.dataset",
+            "search.coverage-buckets.study",
+        ];
+        this.headersMap = {};
+        this.$translate(titleKeys).then(function (translations) {
+            _this.headersMap.dceId = [translations["search.coverage-dce-cols.study"],
+                translations["search.coverage-dce-cols.population"],
+                translations["search.coverage-dce-cols.dce"],
+            ];
+            _this.headersMap.datasetId = [translations["search.coverage-buckets.dataset"]];
+            _this.headersMap.studyId = [translations["search.coverage-buckets.study"]];
+        });
+    };
+    CoverageRowPopupController.prototype.$onChanges = function (changes) {
+        var _this = this;
+        if (changes.state.isFirstChange()) {
+            return;
+        }
+        // Set the content without delay so the element dimension are correctly calculated
+        if (this.state) {
+            this.initContent();
+        }
+        // Delay until the content is set and the element dimensions are updated
+        this.timeoutPromise = this.$timeout(function () {
+            if (_this.state) {
+                _this.container.addEventListener("scroll", _this.scrollHandler);
+                window.addEventListener("mousemove", _this.mouseMoveHandler);
+                _this.onScroll();
+            }
+            else {
+                _this.container.removeEventListener("scroll", _this.scrollHandler);
+                window.removeEventListener("mousemove", _this.mouseMoveHandler);
+                _this.content = null;
+                _this.headers = null;
+            }
+        });
+    };
+    CoverageRowPopupController.prototype.$onDestroy = function () {
+        this.$timeout.cancel(this.timeoutPromise);
+        this.container.removeEventListener("scroll", this.scrollHandler);
+        window.removeEventListener("mousemove", this.mouseMoveHandler);
+    };
+    CoverageRowPopupController.prototype.onMouseMove = function (event) {
+        this.element.style.left = event.clientX + CoverageRowPopupController.MARGIN + "px";
+        this.element.style.top = event.clientY + CoverageRowPopupController.MARGIN + "px";
+    };
+    CoverageRowPopupController.prototype.onScroll = function () {
+        this.visible =
+            this.container.getBoundingClientRect().left > this.state.getElement().children[1].getBoundingClientRect().x;
+    };
+    CoverageRowPopupController.prototype.initContent = function () {
+        var model = this.state.getModel();
+        this.content = model.title.trim().split(/:/);
+        this.headers = this.headersMap[model.field].slice(0);
+        // cleanup content when there are no DCE
+        if ("dceId" === model.field && this.content.length < 3) {
+            this.headers.pop();
+        }
+    };
+    CoverageRowPopupController.$inject = ["$log", "$timeout", "$translate"];
+    CoverageRowPopupController.MARGIN = 15;
+    return CoverageRowPopupController;
+}());
+var CoverageRowPopupComponent = /** @class */ (function () {
+    function CoverageRowPopupComponent() {
+        this.transclude = true;
+        this.bindings = {
+            state: "<",
+        };
+        this.controller = CoverageRowPopupController;
+        this.controllerAs = "$ctrl";
+        this.templateUrl = "search/components/result/coverage-result/row-popup/component.html";
+    }
+    return CoverageRowPopupComponent;
+}());
+ngObibaMica.search
+    .component("coverageRowPopup", new CoverageRowPopupComponent());
+//# sourceMappingURL=component.js.map
+/*
+ * Copyright (c) 2019 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+"use strict";
+var RowPopupState = /** @class */ (function () {
+    function RowPopupState() {
+    }
+    RowPopupState.prototype.update = function (target, model) {
+        this.element = "TR" === target.tagName ? target : target.closest("TR");
+        this.model = model;
+    };
+    RowPopupState.prototype.reset = function () {
+        this.element = null;
+        this.model = null;
+    };
+    RowPopupState.prototype.getElement = function () {
+        return this.element;
+    };
+    RowPopupState.prototype.getModel = function () {
+        return this.model;
+    };
+    return RowPopupState;
+}());
+//# sourceMappingURL=row-popup-state.js.map
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
@@ -12435,6 +12682,7 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
             link: function (scope) {
                 scope.annotationsEnabled = VariableAnnotationsService.isAnnotationsEnabled();
                 function setSummaries(summaries) {
+                    scope._summaries = summaries;
                     if (summaries) {
                         VariableAnnotationsService.processAnnotations(summaries).then(function () {
                             scope._summaries = summaries;
@@ -12444,10 +12692,8 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
                 scope.options = ngObibaMicaSearch.getOptions().variables;
                 scope.optionsCols = scope.options.variablesColumn;
                 scope.PageUrlService = PageUrlService;
-                if (scope.annotationsEnabled) {
-                    scope.__defineSetter__('summaries', setSummaries);
-                    scope.__defineGetter__('summaries', function () { return scope._summaries; });
-                }
+                scope.__defineSetter__('summaries', setSummaries);
+                scope.__defineGetter__('summaries', function () { return scope._summaries; });
                 SearchResultSelectionsService.decorateSearchResult(QUERY_TYPES.VARIABLES, scope);
             }
         };
@@ -12479,76 +12725,109 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
             }
         };
     }
-    ngObibaMica.search.directive('scrollToTop', ScrollToTop);
-    ngObibaMica.search.directive('tableScroll', ['$timeout', function ($timeout) {
-            return {
-                restrict: 'C',
-                scope: {},
-                link: function (scope, elem) {
-                    var windowFirstChild = document.querySelector('body .navbar-fixed-top');
-                    var onscroll;
-                    var theadRectangle;
-                    var initialTheadBackgroundColor = elem.find('table > thead').css('background-color');
-                    var opaqueTheadBackground = rgbaToRgb(initialTheadBackgroundColor);
-                    if (window.onscroll) {
-                        onscroll = window.onscroll;
-                    }
-                    function rgbaToRgb(color) {
-                        var rgbaRegex = /^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+),?[\s+]?(\S+)\)$/i;
-                        var matches = color.match(rgbaRegex);
-                        if (matches && matches.length >= 4) {
-                            var r = parseInt(matches[1], 10);
-                            var g = parseInt(matches[2], 10);
-                            var b = parseInt(matches[3], 10);
-                            var a = parseFloat(matches[4] || '1', 10);
-                            var rPrime = (1 - a) * 255 + a * r;
-                            var gPrime = (1 - a) * 255 + a * g;
-                            var bPrime = (1 - a) * 255 + a * b;
-                            return 'rgb(' + rPrime + ', ' + gPrime + ', ' + bPrime + ')';
-                        }
-                        return color;
-                    }
-                    function getWindowScroll() {
-                        return {
-                            top: window.pageYOffset,
-                            left: window.pageXOffset
-                        };
-                    }
-                    function getElementRectangle(item) {
-                        var rectangle = item.getBoundingClientRect();
-                        var windowScroll = getWindowScroll();
-                        return {
-                            left: rectangle.left + windowScroll.left,
-                            top: rectangle.top + windowScroll.top,
-                            width: rectangle.width,
-                            height: rectangle.height
-                        };
-                    }
-                    // Update the theadRectangle on Left panel toggling useful in responsive small screen
-                    scope.$on('ngObibaMicaLeftPaneToggle', function () {
-                        $timeout(function () {
-                            var thead = elem.find('table > thead');
-                            theadRectangle = getElementRectangle(thead[0]);
-                        });
+    function TableScroll($timeout, $rootScope) {
+        return {
+            restrict: 'C',
+            scope: {},
+            link: function (scope, elem) {
+                var timeoutPromise = null;
+                var fullscreenElement = document.querySelector('.can-full-screen');
+                var windowFirstChild = document.querySelector('body .navbar-fixed-top');
+                var thead = elem.find('table > thead');
+                var theadTop = null;
+                var saveTheadTop = null;
+                var initialTheadBackgroundColor = elem.find('table > thead').css('background-color');
+                var opaqueTheadBackground = rgbaToRgb(initialTheadBackgroundColor);
+                function updateTHeadTop() {
+                    timeoutPromise = $timeout(function () {
+                        theadTop = getElementRectangle(thead[0]).top;
                     });
-                    window.onscroll = function (event) {
-                        var thead = elem.find('table > thead');
-                        theadRectangle = theadRectangle || getElementRectangle(thead[0]);
-                        var bodyFirstItemHeight = windowFirstChild ? windowFirstChild.getBoundingClientRect().height : 0;
-                        var itemTop = theadRectangle.top + bodyFirstItemHeight;
-                        if (getWindowScroll().top > itemTop) {
-                            thead.css('transform', 'translateY(' + Math.max(0, getWindowScroll().top + bodyFirstItemHeight - theadRectangle.top) + 'px)');
-                            thead.css('background-color', opaqueTheadBackground);
-                        }
-                        else {
-                            thead.css('transform', 'translateY(0)');
-                            thead.css('background-color', initialTheadBackgroundColor);
-                        }
-                        return onscroll && onscroll(event);
+                }
+                function rgbaToRgb(color) {
+                    var rgbaRegex = /^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+),?[\s+]?(\S+)\)$/i;
+                    var matches = color.match(rgbaRegex);
+                    if (matches && matches.length >= 4) {
+                        var r = parseInt(matches[1], 10);
+                        var g = parseInt(matches[2], 10);
+                        var b = parseInt(matches[3], 10);
+                        var a = parseFloat(matches[4] || '1', 10);
+                        var rPrime = (1 - a) * 255 + a * r;
+                        var gPrime = (1 - a) * 255 + a * g;
+                        var bPrime = (1 - a) * 255 + a * b;
+                        return 'rgb(' + rPrime + ', ' + gPrime + ', ' + bPrime + ')';
+                    }
+                    return color;
+                }
+                function getWindowScroll() {
+                    return {
+                        top: window.pageYOffset,
+                        left: window.pageXOffset
                     };
                 }
-            };
-        }]);
+                function getElementRectangle(item) {
+                    var rectangle = item.getBoundingClientRect();
+                    var windowScroll = getWindowScroll();
+                    return {
+                        left: rectangle.left + windowScroll.left,
+                        top: rectangle.top + windowScroll.top,
+                        width: rectangle.width,
+                        height: rectangle.height
+                    };
+                }
+                function onScrollFullscreen() {
+                    if (fullscreenElement.scrollTop > theadTop) {
+                        thead.css('transform', 'translateY(' + (fullscreenElement.scrollTop - theadTop) + 'px)');
+                        thead.css('background-color', opaqueTheadBackground);
+                    }
+                    else {
+                        thead.css('transform', 'translateY(0)');
+                        thead.css('background-color', initialTheadBackgroundColor);
+                    }
+                }
+                function onFullscreenChanged(obj, isFullscreen) {
+                    if (isFullscreen) {
+                        fullscreenElement.scrollTo(0, 0);
+                        saveTheadTop = theadTop;
+                        updateTHeadTop();
+                        window.removeEventListener('scroll', onScroll);
+                        fullscreenElement.addEventListener('scroll', onScrollFullscreen);
+                    }
+                    else {
+                        theadTop = saveTheadTop;
+                        saveTheadTop = null;
+                        fullscreenElement.removeEventListener('scroll', onScrollFullscreen);
+                        window.addEventListener('scroll', onScroll);
+                        onScroll();
+                    }
+                }
+                function onScroll() {
+                    theadTop = theadTop || getElementRectangle(thead[0]).top;
+                    var bodyFirstItemHeight = windowFirstChild ? windowFirstChild.getBoundingClientRect().height : 0;
+                    var itemTop = theadTop + bodyFirstItemHeight;
+                    if (window.scrollY > itemTop) {
+                        thead.css('transform', 'translateY(' + Math.max(0, window.scrollY + bodyFirstItemHeight - theadTop) + 'px)');
+                        thead.css('background-color', opaqueTheadBackground);
+                    }
+                    else {
+                        thead.css('transform', 'translateY(0)');
+                        thead.css('background-color', initialTheadBackgroundColor);
+                    }
+                }
+                function onDestroy() {
+                    $timeout.cancel(timeoutPromise);
+                    window.removeEventListener('scroll', onScroll);
+                    fullscreenElement.removeEventListener('scroll', onScrollFullscreen);
+                }
+                $rootScope.$on('ngObibaMicaSearch.fullscreenChange', onFullscreenChanged);
+                scope.$on('ngObibaMicaLeftPaneToggle', updateTHeadTop);
+                scope.$on('$destroy', onDestroy);
+                window.addEventListener('scroll', onScroll);
+                updateTHeadTop();
+            }
+        };
+    }
+    ngObibaMica.search.directive('scrollToTop', ScrollToTop);
+    ngObibaMica.search.directive('tableScroll', ['$timeout', '$rootScope', TableScroll]);
 })();
 //# sourceMappingURL=component.js.map
 /*
@@ -16622,7 +16901,7 @@ ngObibaMica.fileBrowser
         };
     }]);
 //# sourceMappingURL=file-browser-service.js.map
-angular.module('templates-ngObibaMica', ['access/components/action-log/component.html', 'access/components/action-log/item/component.html', 'access/components/action-log/item/delete-modal.html', 'access/components/action-log/item/edit-modal.html', 'access/components/entity-list/component.html', 'access/components/print-friendly-view/component.html', 'access/components/status-progressbar/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/components/badge-count/component.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/cell-stat-value/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/add-to-set-modal/component.html', 'sets/components/cart-documents-table/component.html', 'sets/components/set-variables-table/component.html', 'sets/views/cart.html', 'sets/views/sets.html', 'utils/components/entity-schema-form/component.html', 'utils/components/table-alert-header/component.html', 'utils/services/user-profile-modal/service.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+angular.module('templates-ngObibaMica', ['access/components/action-log/component.html', 'access/components/action-log/item/component.html', 'access/components/action-log/item/delete-modal.html', 'access/components/action-log/item/edit-modal.html', 'access/components/entity-list/component.html', 'access/components/print-friendly-view/component.html', 'access/components/status-progressbar/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/components/badge-count/component.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/buttons-panel/component.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/cell-stat-value/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/coverage-result/row-popup/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/add-to-set-modal/component.html', 'sets/components/cart-documents-table/component.html', 'sets/components/set-variables-table/component.html', 'sets/views/cart.html', 'sets/views/sets.html', 'utils/components/entity-schema-form/component.html', 'utils/components/table-alert-header/component.html', 'utils/services/user-profile-modal/service.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/components/action-log/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/components/action-log/component.html",
@@ -19130,6 +19409,50 @@ angular.module("localized/localized-textarea-template.html", []).run(["$template
     "</div>");
 }]);
 
+angular.module("search/components/buttons-panel/component.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/components/buttons-panel/component.html",
+    "<!--\n" +
+    "  ~ Copyright (c) 2019 OBiBa. All rights reserved.\n" +
+    "  ~\n" +
+    "  ~ This program and the accompanying materials\n" +
+    "  ~ are made available under the terms of the GNU Public License v3.0.\n" +
+    "  ~\n" +
+    "  ~ You should have received a copy of the GNU General Public License\n" +
+    "  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.\n" +
+    "  -->\n" +
+    "\n" +
+    "<div>\n" +
+    "  <a ng-if=\"!$ctrl.showIconForPanelButton\"\n" +
+    "     href\n" +
+    "     class=\"btn btn-sm btn-default\"\n" +
+    "     ng-click=\"$ctrl.toggleLeftPanelVisibility()\"\n" +
+    "     title=\"{{$ctrl.showPanel ? 'search.left-panel-close-tooltip' : 'search.left-panel-open-tooltip' | translate}}\">\n" +
+    "     <span><i class=\"fa\" ng-class=\"{'fa-times': $ctrl.showPanel, 'fa-bars': !$ctrl.showPanel}\"></i></span>\n" +
+    "  </a>\n" +
+    "  <a ng-if=\"!$ctrl.showIconForFullscreenButton\"\n" +
+    "    href\n" +
+    "     class=\"btn btn-sm btn-default pull-right\"\n" +
+    "     ng-click=\"$ctrl.toggleFullscreen()\"\n" +
+    "     title=\"{{$ctrl.isFullscreen ? 'exit-fullscreen' : 'fullscreen' | translate}}\">\n" +
+    "     <i class=\"glyphicon\"\n" +
+    "       ng-class=\"{'glyphicon-resize-full': !$ctrl.isFullscreen, 'glyphicon-resize-small': $ctrl.isFullscreen}\"></i>\n" +
+    "  </a>\n" +
+    "\n" +
+    "  <a ng-if=\"$ctrl.showIconForPanelButton\"\n" +
+    "     href\n" +
+    "     class=\"btn btn-xs btn-default\"\n" +
+    "     ng-click=\"$ctrl.toggleLeftPanelVisibility()\">\n" +
+    "     <span>{{$ctrl.showPanel ? 'search.left-panel-close-title' : 'search.left-panel-open-title' | translate}}</span>\n" +
+    "  </a>\n" +
+    "  <a ng-if=\"$ctrl.showIconForFullscreenButton\"\n" +
+    "     href\n" +
+    "     class=\"btn btn-xs btn-default pull-right\"\n" +
+    "     ng-click=\"$ctrl.toggleFullscreen()\">\n" +
+    "     <span>{{$ctrl.isFullscreen ? 'search.exit-fullscreen-title' : 'search.enter-fullscreen-title' | translate}}</span>\n" +
+    "  </a>\n" +
+    "</div>");
+}]);
+
 angular.module("search/components/criteria/criteria-root/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/criteria-root/component.html",
     "<div class=\"form-inline\">\n" +
@@ -19392,10 +19715,16 @@ angular.module("search/components/criteria/item-region/string-terms/component.ht
 
 angular.module("search/components/criteria/match-vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("search/components/criteria/match-vocabulary-filter-detail/component.html",
-    "<input type=\"text\" class=\"form-control\"\n" +
-    "       placeholder=\"{{'search.match.placeholder' | translate}}\"\n" +
-    "       ng-model=\"$ctrl.vocabulary.matchString\"\n" +
-    "       ng-keyup=\"$ctrl.enterText($event)\">");
+    "<div class=\"input-group\">\n" +
+    "    <input type=\"text\" class=\"form-control\"\n" +
+    "    placeholder=\"{{'search.match.placeholder' | translate}}\"\n" +
+    "    ng-model=\"$ctrl.vocabulary.matchString\"\n" +
+    "    ng-keyup=\"$ctrl.enterText($event)\">\n" +
+    "    <span class=\"input-group-btn\">\n" +
+    "      <button class=\"btn btn-default\" type=\"button\" ng-disabled=\"!$ctrl.vocabulary.matchString\" ng-click=\"$ctrl.altEnterText($event, $ctrl.vocabulary.matchString)\"><i class=\"fa fa-check\"></i></button>\n" +
+    "    </span>\n" +
+    "</div>\n" +
+    "");
 }]);
 
 angular.module("search/components/criteria/numeric-vocabulary-filter-detail/component.html", []).run(["$templateCache", function($templateCache) {
@@ -20125,7 +20454,8 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
-    "  <div class=\"table-responsive table-scroll\" ng-if=\"!loading && table.taxonomyHeaders.length > 0\">\n" +
+    "  <div id=\"coverage-table-container\" class=\"table-responsive table-scroll\" ng-if=\"!loading && table.taxonomyHeaders.length > 0\">\n" +
+    "    <coverage-row-popup state=\"rowPopupState\"></coverage-row-popup>\n" +
     "    <table class=\"table table-bordered table-striped\">\n" +
     "      <thead>\n" +
     "        <tr>\n" +
@@ -20190,7 +20520,9 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "          </tr>\n" +
     "      </thead>\n" +
     "      <tbody>\n" +
-    "        <tr ng-repeat=\"row in ::table.rows track by row.value\" ng-show=\"showMissing || table.termHeaders.length == row.hits.length\">\n" +
+    "        <tr ng-repeat=\"row in ::table.rows track by row.value\" ng-show=\"showMissing || table.termHeaders.length == row.hits.length\"\n" +
+    "            ng-mouseover=\"onRowMouseOver($event, row)\"\n" +
+    "            ng-mouseleave=\"onRowMouseLeave($event, row)\">\n" +
     "          <td style=\"text-align: center\">\n" +
     "            <input type=\"checkbox\" ng-model=\"row.selected\">\n" +
     "          </td>\n" +
@@ -20217,7 +20549,7 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "              </div>\n" +
     "            </div>\n" +
     "          </td>\n" +
-    "          <td ng-repeat=\"h in ::table.termHeaders\" title=\"{{h.entity.titles[0].value}}\">\n" +
+    "          <td ng-repeat=\"h in ::table.termHeaders\">\n" +
     "            <a href ng-click=\"updateCriteria(row.value, h, $index, 'variables')\">\n" +
     "              <span class=\"label label-info\" ng-show=\"row.hitsTitles[$index]\">{{row.hitsTitles[$index]}}</span>\n" +
     "            </a>\n" +
@@ -20237,6 +20569,23 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "        </tr>\n" +
     "      </tfoot>\n" +
     "    </table>\n" +
+    "  </div>\n" +
+    "</div>\n" +
+    "");
+}]);
+
+angular.module("search/components/result/coverage-result/row-popup/component.html", []).run(["$templateCache", function($templateCache) {
+  $templateCache.put("search/components/result/coverage-result/row-popup/component.html",
+    "<div ng-show=\"$ctrl.visible === true\" class=\"coverage-row-popup\" id=\"row-popup\">\n" +
+    "  <div class=\"coverage-row-popup-content\">\n" +
+    "      <table class=\"table table-striped table-condensed no-padding no-margin\">\n" +
+    "        <tr>\n" +
+    "          <th ng-repeat=\"value in $ctrl.headers\">{{value}}</th>\n" +
+    "        </tr>\n" +
+    "        <tr>\n" +
+    "          <td ng-repeat=\"value in $ctrl.content\">{{value}}</td>\n" +
+    "        </tr>\n" +
+    "      </table>\n" +
     "  </div>\n" +
     "</div>");
 }]);
@@ -20802,10 +21151,9 @@ angular.module("search/components/result/variables-result-table/component.html",
     "              <localized value=\"summary.variableLabel\" lang=\"lang\"></localized>\n" +
     "            </td>\n" +
     "            <td ng-if=\"annotationsEnabled\">\n" +
-    "              <ul class=\"list-annotations no-padding-left\" ng-if=\"summary.annotations.length > 1\">\n" +
+    "              <ul class=\"list-annotations\">\n" +
     "                <li ng-repeat=\"annotation in summary.annotations\"><span>{{annotation.title}}</span></li>\n" +
     "              </ul>\n" +
-    "              <span ng-if=\"summary.annotations.length === 1\">{{summary.annotations[0].title}}</span>\n" +
     "            </td>\n" +
     "            <td ng-if=\"optionsCols.showVariablesTypeColumn\">\n" +
     "              {{'search.variable.' + summary.variableType.toLowerCase() | translate}}\n" +
@@ -21476,23 +21824,14 @@ angular.module("search/views/search2.html", []).run(["$templateCache", function(
     "  -->\n" +
     "\n" +
     "<div ng-show=\"inSearchMode()\" class=\"can-full-screen\"  fullscreen=\"isFullscreen\">\n" +
-    "\n" +
     "  <!-- Search criteria region -->\n" +
     "  <search-criteria-region options=\"options\" search=\"search\"></search-criteria-region>\n" +
-    "  <div>\n" +
-    "    <a href\n" +
-    "       class=\"btn btn-sm btn-default\"\n" +
-    "       ng-click=\"toggleLeftPanelVisibility()\"\n" +
-    "       title=\"{{showLeftPanel ? 'search.left-panel-close-tooltip' : 'search.left-panel-open-tooltip' | translate}}\">\n" +
-    "      <span><i class=\"fa\" ng-class=\"{'fa-times': showLeftPanel, 'fa-bars': !showLeftPanel}\"></i></span>\n" +
-    "    </a>\n" +
-    "    <a href\n" +
-    "       class=\"btn btn-sm btn-default pull-right\"\n" +
-    "       ng-click=\"toggleFullscreen()\"\n" +
-    "       title=\"{{isFullscreen ? 'exit-fullscreen' : 'fullscreen' | translate}}\">\n" +
-    "      <i class=\"glyphicon\" ng-class=\"{'glyphicon-resize-full': !isFullscreen, 'glyphicon-resize-small': isFullscreen}\"></i>\n" +
-    "    </a>\n" +
-    "  </div>\n" +
+    "\n" +
+    "  <buttons-panel-component\n" +
+    "    on-toggle-fullscreen=\"toggleFullscreen(fullscreen)\"\n" +
+    "    on-toggle-left-panel-visibility=\"toggleLeftPanelVisibility(visible)\">\n" +
+    "  </buttons-panel-component>\n" +
+    "\n" +
     "  <div ng-class=\"{'overlay-back-on': search.showTaxonomyPanel}\">\n" +
     "  </div>\n" +
     "  <div ng-class=\"{'overlay-front-on': search.showTaxonomyPanel}\">\n" +
@@ -21634,7 +21973,7 @@ angular.module("sets/components/cart-documents-table/component.html", []).run(["
     "    </a>\n" +
     "\n" +
     "    <span ng-if=\"$ctrl.micaConfigShowOpalViews\">\n" +
-    "      <a obiba-file-download get-url=\"$ctrl.opalExport()\" method=\"'get'\" target=\"_self\" class=\"action btn btn-primary btn-responsive\" download title=\"{{'sets.opal-views-download-button-help' | translate}}\">\n" +
+    "      <a obiba-file-download get-url=\"$ctrl.opalExport()\" target=\"_self\" class=\"action btn btn-primary btn-responsive\" download title=\"{{'sets.opal-views-download-button-help' | translate}}\">\n" +
     "        <i class=\"fa fa-download\"></i> {{'sets.opal-views-download-button-text' | translate}}\n" +
     "      </a>\n" +
     "    </span>\n" +
@@ -21734,7 +22073,7 @@ angular.module("sets/components/set-variables-table/component.html", []).run(["$
     "    </a>\n" +
     "\n" +
     "    <span ng-if=\"$ctrl.micaConfigShowOpalViews\">\n" +
-    "      <a obiba-file-download get-url=\"$ctrl.opalExport()\" method=\"'get'\" target=\"_self\" class=\"action btn btn-primary btn-responsive\" download title=\"{{'sets.opal-views-download-button-help' | translate}}\">\n" +
+    "      <a obiba-file-download get-url=\"$ctrl.opalExport()\" target=\"_self\" class=\"action btn btn-primary btn-responsive\" download title=\"{{'sets.opal-views-download-button-help' | translate}}\">\n" +
     "        <i class=\"fa fa-download\"></i> {{'sets.opal-views-download-button-text' | translate}}\n" +
     "      </a>\n" +
     "    </span>\n" +
