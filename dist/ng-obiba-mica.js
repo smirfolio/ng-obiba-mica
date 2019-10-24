@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-10-22
+ * Date: 2019-10-24
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -15587,6 +15587,7 @@ var BadgeCountComponent = /** @class */ (function () {
     function BadgeCountComponent() {
         this.transclude = true;
         this.bindings = {
+            badgeClass: "<",
             badgeOptions: "<",
             entityCount: "<",
             entityType: "<",
@@ -18872,12 +18873,12 @@ angular.module("graphics/views/tables-directive.html", []).run(["$templateCache"
 angular.module("lists/components/badge-count/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("lists/components/badge-count/component.html",
     "<span ng-if=\"$ctrl.badgeOptions.showBadge\">\n" +
-    "  <a class=\"btn btn-default btn-xxs disabled\" test-ref=\"dataSchemaVariableCount\"\n" +
+    "  <a ng-class=\"$ctrl.badgeClass\" class=\" disabled\" test-ref=\"dataSchemaVariableCount\"\n" +
     "        ng-if=\"$ctrl.badgeOptions.showBadge && !$ctrl.badgeOptions.showTab\" disabled>\n" +
     "    <localized-number value=\"$ctrl.entityCount\"></localized-number>\n" +
     "  {{ $ctrl.labelBadge | translate }}\n" +
     "  </a>\n" +
-    "  <a class=\"btn btn-default btn-xxs\"\n" +
+    "  <a ng-class=\"$ctrl.badgeClass\" class=\"\"\n" +
     "     test-ref=\"dataSchemaVariableCount\" href=\"{{$ctrl.entityType | doSearchQuery:$ctrl.query }}\" ng-if=\"$ctrl.badgeOptions.showTab\">\n" +
     "    <localized-number value=\"$ctrl.entityCount\"></localized-number>\n" +
     "    {{ $ctrl.labelBadge | translate }}\n" +
@@ -19137,23 +19138,26 @@ angular.module("lists/views/list/studies-search-result-table-template.html", [])
     "                        <div class=\"sm-top-margin\">\n" +
     "                            {{counts=summary['obiba.mica.CountStatsDto.studyCountStats'];\"\"}}\n" +
     "                            <badge-count ng-if=\"counts.networks\"\n" +
-    "                                    entity-count=\"counts.networks\"\n" +
-    "                                    entity-type=\"'networks'\"\n" +
-    "                                    label-badge=\"counts.networks>1?'networks':'network.label'\"\n" +
-    "                                    badge-options=\"options.obibaListOptions.showNetworkBadge\"\n" +
-    "                                    query=\"'network(in(Mica_network.studyIds,' + summary.id +  '))'\">\n" +
+    "                                        badge-class=\"'btn btn-default btn-xxs'\"\n" +
+    "                                        entity-count=\"counts.networks\"\n" +
+    "                                        entity-type=\"'networks'\"\n" +
+    "                                        label-badge=\"counts.networks>1?'networks':'network.label'\"\n" +
+    "                                        badge-options=\"options.obibaListOptions.showNetworkBadge\"\n" +
+    "                                        query=\"'network(in(Mica_network.studyIds,' + summary.id +  '))'\">\n" +
     "                            </badge-count>\n" +
     "\n" +
     "                            {{datasetsCount=counts.studyDatasets +\n" +
     "                            counts.harmonizationDatasets;\"\"}}\n" +
     "                            <badge-count ng-if=\"datasetsCount\"\n" +
-    "                                    entity-count=\"datasetsCount\"\n" +
-    "                                    entity-type=\"'datasets'\"\n" +
-    "                                    label-badge=\"datasetsCount>1?'datasets':'dataset.details'\"\n" +
-    "                                    badge-options=\"options.obibaListOptions.showDatasetBadge\"\n" +
-    "                                    query=\"'study(in(Mica_study.id,' + summary.id + '))'\">\n" +
+    "                                        badge-class=\"'btn btn-default btn-xxs'\"\n" +
+    "                                        entity-count=\"datasetsCount\"\n" +
+    "                                        entity-type=\"'datasets'\"\n" +
+    "                                        label-badge=\"datasetsCount>1?'datasets':'dataset.details'\"\n" +
+    "                                        badge-options=\"options.obibaListOptions.showDatasetBadge\"\n" +
+    "                                        query=\"'study(in(Mica_study.id,' + summary.id + '))'\">\n" +
     "                            </badge-count>\n" +
     "                            <badge-count ng-if=\"counts.studyVariables\"\n" +
+    "                                         badge-class=\"'btn btn-default btn-xxs'\"\n" +
     "                                         entity-count=\"counts.studyVariables\"\n" +
     "                                         entity-type=\"'variables'\"\n" +
     "                                         label-badge=\"counts.studyVariables>1?'client.label.study-variables':'client.label.study-variable'\"\n" +
@@ -19161,6 +19165,7 @@ angular.module("lists/views/list/studies-search-result-table-template.html", [])
     "                                         query=\"'study(in(Mica_study.id,' + summary.id + ')),variable(in(Mica_variable.variableType,Collected))'\">\n" +
     "                            </badge-count>\n" +
     "                            <badge-count ng-if=\"counts.dataschemaVariables\"\n" +
+    "                                         badge-class=\"'btn btn-default btn-xxs'\"\n" +
     "                                         entity-count=\"counts.dataschemaVariables\"\n" +
     "                                         entity-type=\"'variables'\"\n" +
     "                                         label-badge=\"counts.dataschemaVariables>1?'client.label.dataschema-variables':'client.label.dataschema-variable'\"\n" +
