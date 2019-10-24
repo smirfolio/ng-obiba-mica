@@ -1,10 +1,10 @@
 <span ng-if="$ctrl.badgeOptions.showBadge">
-  <a class="btn btn-default btn-xxs disabled" test-ref="dataSchemaVariableCount"
+  <a ng-class="$ctrl.badgeClass" class=" disabled" test-ref="dataSchemaVariableCount"
         ng-if="$ctrl.badgeOptions.showBadge && !$ctrl.badgeOptions.showTab" disabled>
     <localized-number value="$ctrl.entityCount"></localized-number>
   {{ $ctrl.labelBadge | translate }}
   </a>
-  <a class="btn btn-default btn-xxs"
+  <a ng-class="$ctrl.badgeClass" class=""
      test-ref="dataSchemaVariableCount" href="{{$ctrl.entityType | doSearchQuery:$ctrl.query }}" ng-if="$ctrl.badgeOptions.showTab">
     <localized-number value="$ctrl.entityCount"></localized-number>
     {{ $ctrl.labelBadge | translate }}

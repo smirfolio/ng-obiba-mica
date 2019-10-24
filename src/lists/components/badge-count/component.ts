@@ -13,6 +13,7 @@
 class BadgeCountController implements ng.IComponentController {
     private static $inject = ["$log"];
     public badgeOptions: any;
+    public badgeClass: string;
     public entityCount: any;
     public entityType: string;
     public labelBadge: any;
@@ -34,6 +35,7 @@ class BadgeCountComponent implements ng.IComponentOptions {
     constructor() {
         this.transclude = true;
         this.bindings = {
+            badgeClass: "<",
             badgeOptions: "<",
             entityCount: "<",
             entityType: "<",
