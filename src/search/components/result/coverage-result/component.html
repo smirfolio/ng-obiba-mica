@@ -132,8 +132,8 @@
           </th>
           </tr>
       </thead>
-      <tbody>
-        <tr ng-repeat="row in ::table.rows track by row.value" ng-show="showMissing || table.termHeaders.length == row.hits.length"
+      <tbody class="infinite-scroll" load=loadMoreRows()>
+        <tr ng-repeat="row in filteredRows track by row.value" ng-show="showMissing || table.termHeaders.length == row.hits.length"
             ng-mouseover="onRowMouseOver($event, row)"
             ng-mouseleave="onRowMouseLeave($event, row)">
           <td style="text-align: center">

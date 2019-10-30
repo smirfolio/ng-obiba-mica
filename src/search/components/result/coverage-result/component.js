@@ -37,7 +37,6 @@ ngObibaMica.search
       var targetMap = {}, vocabulariesTermsMap = {};
       var rowPopupState = new RowPopupState();
 
-
       targetMap[BUCKET_TYPES.NETWORK] = QUERY_TARGETS.NETWORK;
       targetMap[BUCKET_TYPES.STUDY] = QUERY_TARGETS.STUDY;
       targetMap[BUCKET_TYPES.STUDY_INDIVIDUAL] = QUERY_TARGETS.STUDY;
@@ -459,6 +458,23 @@ ngObibaMica.search
         $scope.rowPopupState = null;
       }
 
+      function loadMoreRows() {
+        if ($scope.result && $scope.result.rows) {
+          var ceiling = Math.ceil($scope.result.rows.length / $scope.rowsPageSize);
+
+          if (ceiling > $scope.nextFilteredRowsPage) {
+            var nextPage = $scope.result.rows.slice($scope.rowsPageSize * $scope.nextFilteredRowsPage, $scope.rowsPageSize * ($scope.nextFilteredRowsPage + 1));
+            $scope.nextFilteredRowsPage++;
+
+            $scope.filteredRows.push.apply($scope.filteredRows, nextPage);
+          }
+        }
+      }
+
+      $scope.loadMoreRows = loadMoreRows;
+      $scope.filteredRows = [];
+      $scope.rowsPageSize = 20;
+      $scope.nextFilteredRowsPage = 0;
       $scope.onRowMouseOver = onRowMouseOver;
       $scope.onRowMouseLeave = onRowMouseLeave;
       $scope.totalOptions = ngObibaMicaSearch.getOptions().coverage.total;
@@ -588,6 +604,11 @@ ngObibaMica.search
           var tableTmp = $scope.result;
           tableTmp.cols = splitIds();
           $scope.table = tableTmp;
+
+          $scope.filteredRows = [];
+          $scope.nextFilteredRowsPage = 0;
+
+          $scope.loadMoreRows();
 
           vocabulariesTermsMap = decorateTermHeaders($scope.table.vocabularyHeaders, $scope.table.termHeaders, 'vocabularyName');
           decorateTermHeaders($scope.table.taxonomyHeaders, $scope.table.termHeaders, 'taxonomyName');
