@@ -139,7 +139,34 @@
     };
   }
 
+  function InfiniteScroll($timeout) {
+    return {
+      restrict: 'C',
+      scope: {
+        load: '&'
+      },
+      link: function(scope, element) {
+        function scroll () {
+          var rawEle = element[0];
+
+          if (window.scrollY >= rawEle.offsetHeight) {
+            $timeout(function () {
+              scope.load();
+            });
+          }
+        }
+
+        window.document.addEventListener('scroll', scroll);
+
+        scope.$on('$destroy', function () {
+          window.document.removeEventListener('scroll', scroll);
+        });
+      }
+    };
+  }
+
   ngObibaMica.search.directive('scrollToTop', ScrollToTop);
   ngObibaMica.search.directive('tableScroll', ['$timeout', '$rootScope', TableScroll]);
+  ngObibaMica.search.directive('infiniteScroll', ['$timeout', InfiniteScroll]);
 
 })();
