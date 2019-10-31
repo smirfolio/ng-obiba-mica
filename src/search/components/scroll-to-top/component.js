@@ -149,7 +149,7 @@
         function scroll () {
           var rawEle = element[0];
 
-          if (window.scrollY >= rawEle.offsetHeight) {
+          if (window.scrollY >= (0.8 * rawEle.offsetHeight)) {
             $timeout(function () {
               scope.load();
             });
