@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-10-30
+ * Date: 2019-10-31
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -12852,7 +12852,7 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
             link: function (scope, element) {
                 function scroll() {
                     var rawEle = element[0];
-                    if (window.scrollY >= rawEle.offsetHeight) {
+                    if (window.scrollY >= (0.8 * rawEle.offsetHeight)) {
                         $timeout(function () {
                             scope.load();
                         });
