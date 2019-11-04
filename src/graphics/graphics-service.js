@@ -44,6 +44,7 @@ ngObibaMica.graphics
           geoChartOptions: {
             header : ['graphics.country', 'graphics.nbr-studies'],
             title : 'graphics.geo-chart-title',
+            subtitle : 'graphics.geo-chart-subtitle',
             options: {
               backgroundColor: {fill: 'transparent'},
               colors: [
@@ -170,6 +171,7 @@ ngObibaMica.graphics
       };
 
       this.getArrayByAggregation = function (aggregationName, entityDto) {
+        if(entityDto){
         var deferred = $q.defer();
 
         if (!aggregationName || !entityDto) {
@@ -236,10 +238,11 @@ ngObibaMica.graphics
               }
             }
           });
-          
+
           deferred.resolve(arrayData);
         });
         return deferred.promise;
+        }
       };
     }])
 
