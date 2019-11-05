@@ -11,36 +11,32 @@
     <div class="panel-body">
       <div class="row">
         <div class="col-xs-12 col-lg-6">
-          <div ng-if="chart.chartObject.type === 'GeoChart'">
-            <obiba-geo config="chart.chartObject.d3Config"></obiba-geo>
-          </div>
-          <div ng-if="chart.chartObject.type !== 'GeoChart'">
-            <obiba-nv-chart chart-config="chart.chartObject.d3Config"></obiba-nv-chart>
-          </div>
+          <div obiba-chart
+               field-transformer="chart.chartObject.fieldTransformer"
+               chart-type="chart.chartObject.type"
+               chart-aggregation-name="chart.chartObject.vocabulary"
+               chart-entity-dto="'studyResultDto'"
+               chart-options-name="chart.chartObject.optionsName"
+               chart-options="chart.chartObject.options"
+               chart-header="chart.getTable().data[0]"
+               chart-title-graph="chart.chartObject.title"
+               chart-subtitle-graph="chart.chartObject.subtitle"
+               chart-select-graphic="true"
+               chart-studies-data="dtosResult"
+          ></div>
         </div>
-        <div class="col-xs-12 col-lg-6">
-          <div class="table-responsive" ng-if="chart.getTable().data  &&  chart.getTable().data.length>1">
-            <table style="max-height: 400px;" class="table table-bordered table-striped" fixed-header="chart.getTable().data">
-              <thead>
-                <tr>
-                  <th>{{chart.getTable().data[0][0]}}</th>
-                  <th>{{chart.getTable().data[0][1]}}</th>
-                  <th ng-if="chart.getTable().data[0][2]">{{chart.getTable().data[0][2]}}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr ng-repeat="row in chart.getTable().entries">
-                  <td>{{row.title}}</td>
-                  <td>
-                    <a href ng-click="updateCriteria(row.key, chart.getTable().vocabulary)">
-                      <localized-number value="row.value"></localized-number>
-                    </a>
-                  </td>
-                  <td ng-if="row.participantsNbr">{{row.participantsNbr}}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <div class="col-md-6"
+             obiba-table
+             chart-type="{{'Table-' + chart.chartObject.type}}"
+             chart-aggregation-name="chart.chartObject.vocabulary"
+             chart-entity-dto="'studyResultDto'"
+             chart-options-name="chart.chartObject.optionsName"
+             chart-header="chart.getTable().data[0]"
+             chart-select-graphic="true"
+             chart-ordered="chart.chartObject.ordered"
+             chart-not-ordered="chart.chartObject.notOrdered"
+             chart-sortedby="chart.chartObject.sortedby"
+             chart-studies-data="dtosResult">
         </div>
       </div>
     </div>

@@ -26,7 +26,9 @@ ngObibaMica.graphics
         chartHeader: '=',
         chartTitle: '=',
         chartTitleGraph: '=',
-        chartSelectGraphic: '='
+        chartSubtitleGraph: '=',
+        chartSelectGraphic: '=',
+        chartStudiesData: '='
       },
       templateUrl: 'graphics/views/charts-directive.html',
       controller: 'GraphicChartsController'
@@ -48,7 +50,9 @@ ngObibaMica.graphics
       chartTitleGraph: '=',
       chartSelectGraphic: '=',
       chartOrdered: '=',
-      chartNotOrdered: '='
+      chartNotOrdered: '=',
+      chartSortedby: '=',
+      chartStudiesData: '='
     },
     templateUrl: 'graphics/views/tables-directive.html',
     controller: 'GraphicChartsController'

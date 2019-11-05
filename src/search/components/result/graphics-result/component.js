@@ -19,7 +19,7 @@ ngObibaMica.search
         return $scope.chartObjects && Object.keys($scope.chartObjects).length > 0;
       };
 
-      var setChartObject = function (vocabulary, dtoObject, header, title, options, isTable) {
+      var setChartObject = function (vocabulary, dtoObject, header, options, isTable) {
 
         return GraphicChartsUtils.getArrayByAggregation(vocabulary, dtoObject)
           .then(function (entries) {
@@ -34,7 +34,6 @@ ngObibaMica.search
 
             if (data.length > 0) {
               data.unshift(header);
-              angular.extend(options, { title: title });
 
               return {
                 data: data,
@@ -64,25 +63,26 @@ ngObibaMica.search
           setChartObject('populations-model-selectionCriteria-countriesIso',
             result.studyResultDto,
             [$filter('translate')(charOptions.geoChartOptions.header[0]), $filter('translate')(charOptions.geoChartOptions.header[1])],
-            $filter('translate')(charOptions.geoChartOptions.title) + ' (N=' + result.studyResultDto.totalHits + ')',
             charOptions.geoChartOptions.options).then(function (geoStudies) {
               if (geoStudies) {
                 var d3Config = new D3GeoConfig()
-                  .withData(geoStudies.entries)
-                  .withTitle($filter('translate')(charOptions.geoChartOptions.title) + ' (N=' + result.studyResultDto.totalHits + ')');
+                  .withData(geoStudies.entries);
+                angular.extend(geoStudies.options, { title: $filter('translate')(charOptions.geoChartOptions.title)});
+                angular.extend(geoStudies.options, { subtitle: $filter('translate')(charOptions.geoChartOptions.subtitle)});
                 d3Config.withColor(charOptions.geoChartOptions.options.colors);
                 var chartObject = {
                   geoChartOptions: {
                     directiveTitle: geoStudies.options.title,
-                    headerTitle: $filter('translate')('graphics.geo-charts'),
                     chartObject: {
-                      geoTitle: geoStudies.options.title,
+                      title: geoStudies.options.title,
+                      subtitle: geoStudies.options.subtitle,
                       options: geoStudies.options,
                       type: 'GeoChart',
                       vocabulary: geoStudies.vocabulary,
                       data: geoStudies.data,
                       entries: geoStudies.entries,
-                      d3Config: d3Config
+                      d3Config: d3Config,
+                      sortedby:['title', 'value']
                     }
                   }
                 };
@@ -98,26 +98,25 @@ ngObibaMica.search
             [$filter('translate')(charOptions.studiesDesigns.header[0]),
             $filter('translate')(charOptions.studiesDesigns.header[1])
             ],
-            $filter('translate')(charOptions.studiesDesigns.title) + ' (N=' + result.studyResultDto.totalHits + ')',
             charOptions.studiesDesigns.options).then(function (methodDesignStudies) {
               if (methodDesignStudies) {
                 var d3Config = new D3ChartConfig(methodDesignStudies.vocabulary)
-                  .withType('multiBarHorizontalChart')
-                  .withTitle($filter('translate')(charOptions.studiesDesigns.title) + ' (N=' + result.studyResultDto.totalHits + ')')
-                  .withData(angular.copy(methodDesignStudies.entries), false, $filter('translate')('graphics.nbr-studies'));
+                  .withType('multiBarHorizontalChart');
                 d3Config.options.chart.showLegend = false;
                 d3Config.options.chart.color = charOptions.numberParticipants.options.colors;
                 var chartObject = {
                   studiesDesigns: {
-                    //directiveTitle: methodDesignStudies.options.title ,
+                    directiveTitle: methodDesignStudies.options.title ,
                     headerTitle: $filter('translate')('graphics.study-design'),
                     chartObject: {
+                      title: charOptions.studiesDesigns.title,
                       options: methodDesignStudies.options,
                       type: 'BarChart',
                       data: methodDesignStudies.data,
                       vocabulary: methodDesignStudies.vocabulary,
                       entries: methodDesignStudies.entries,
-                      d3Config: d3Config
+                      d3Config: d3Config,
+                      sortedby: []
                     }
                   }
                 };
@@ -132,16 +131,17 @@ ngObibaMica.search
             $filter('translate')(charOptions.studiesDesigns.header[1]),
             $filter('translate')(charOptions.studiesDesigns.header[2])
             ],
-            $filter('translate')(charOptions.studiesDesigns.title) + ' (N=' + result.studyResultDto.totalHits + ')',
             charOptions.studiesDesigns.options, true).then(function (methodDesignStudies) {
               if (methodDesignStudies) {
                 var chartObject = {
                   chartObjectTable: {
+                    title: charOptions.studiesDesigns.title,
                     options: methodDesignStudies.options,
                     type: 'BarChart',
                     data: methodDesignStudies.data,
                     vocabulary: methodDesignStudies.vocabulary,
-                    entries: methodDesignStudies.entries
+                    entries: methodDesignStudies.entries,
+                    sortedby: []
                   }
 
                 };
@@ -151,15 +151,14 @@ ngObibaMica.search
                 angular.extend($scope.chartObjects.studiesDesigns, chartObject);
               }
             });
+
           setChartObject('model-numberOfParticipants-participant-number-range',
             result.studyResultDto,
             [$filter('translate')(charOptions.numberParticipants.header[0]), $filter('translate')(charOptions.numberParticipants.header[1])],
-            $filter('translate')(charOptions.numberParticipants.title) + ' (N=' + result.studyResultDto.totalHits + ')',
             charOptions.numberParticipants.options).then(function (numberParticipant) {
               if (numberParticipant) {
                 var chartConfig = new D3ChartConfig(numberParticipant.vocabulary)
                   .withType('pieChart')
-                  .withTitle($filter('translate')(charOptions.numberParticipants.title) + ' (N=' + result.studyResultDto.totalHits + ')')
                   .withData(angular.copy(numberParticipant.entries), true);
                 chartConfig.options.chart.legendPosition = 'right';
                 chartConfig.options.chart.color = charOptions.numberParticipants.options.colors;
@@ -167,12 +166,14 @@ ngObibaMica.search
                   numberParticipants: {
                     headerTitle: $filter('translate')('graphics.number-participants'),
                     chartObject: {
+                      title: charOptions.numberParticipants.title,
                       options: numberParticipant.options,
                       type: 'PieChart',
                       data: numberParticipant.data,
                       vocabulary: numberParticipant.vocabulary,
                       entries: numberParticipant.entries,
-                      d3Config: chartConfig
+                      d3Config: chartConfig,
+                      sortedby: []
                     }
                   }
                 };
@@ -186,12 +187,10 @@ ngObibaMica.search
           setChartObject('populations-dataCollectionEvents-model-bioSamples',
             result.studyResultDto,
             [$filter('translate')(charOptions.biologicalSamples.header[0]), $filter('translate')(charOptions.biologicalSamples.header[1])],
-            $filter('translate')(charOptions.biologicalSamples.title) + ' (N=' + result.studyResultDto.totalHits + ')',
             charOptions.biologicalSamples.options).then(function (bioSamplesStudies) {
               if (bioSamplesStudies) {
                 var d3Config = new D3ChartConfig(bioSamplesStudies.vocabulary)
                   .withType('multiBarHorizontalChart')
-                  .withTitle($filter('translate')(charOptions.biologicalSamples.title) + ' (N=' + result.studyResultDto.totalHits + ')')
                   .withData(angular.copy(bioSamplesStudies.entries), false, $filter('translate')('graphics.nbr-studies'));
                 d3Config.options.chart.showLegend = false;
                 d3Config.options.chart.color = charOptions.numberParticipants.options.colors;
@@ -199,12 +198,14 @@ ngObibaMica.search
                   biologicalSamples: {
                     headerTitle: $filter('translate')('graphics.bio-samples'),
                     chartObject: {
+                      title: charOptions.biologicalSamples.title,
                       options: bioSamplesStudies.options,
                       type: 'BarChart',
                       data: bioSamplesStudies.data,
                       vocabulary: bioSamplesStudies.vocabulary,
                       entries: bioSamplesStudies.entries,
-                      d3Config: d3Config
+                      d3Config: d3Config,
+                      sortedby: []
                     }
                   }
                 };
@@ -214,6 +215,7 @@ ngObibaMica.search
                 angular.extend($scope.chartObjects, chartObject);
               }
             });
+          $scope.dtosResult = result;
         }
       });
     }])
