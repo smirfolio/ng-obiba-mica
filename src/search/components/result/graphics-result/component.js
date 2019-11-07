@@ -129,7 +129,8 @@ ngObibaMica.search
             result.studyResultDto,
             [$filter('translate')(charOptions.studiesDesigns.header[0]),
             $filter('translate')(charOptions.studiesDesigns.header[1]),
-            $filter('translate')(charOptions.studiesDesigns.header[2])
+            $filter('translate')(charOptions.studiesDesigns.header[2]),
+            $filter('translate')(charOptions.studiesDesigns.header[3])
             ],
             charOptions.studiesDesigns.options, true).then(function (methodDesignStudies) {
               if (methodDesignStudies) {
@@ -154,7 +155,7 @@ ngObibaMica.search
 
           setChartObject('model-numberOfParticipants-participant-number-range',
             result.studyResultDto,
-            [$filter('translate')(charOptions.numberParticipants.header[0]), $filter('translate')(charOptions.numberParticipants.header[1])],
+            [$filter('translate')(charOptions.numberParticipants.header[0]), $filter('translate')(charOptions.numberParticipants.header[1]), $filter('translate')(charOptions.numberParticipants.header[2])],
             charOptions.numberParticipants.options).then(function (numberParticipant) {
               if (numberParticipant) {
                 var chartConfig = new D3ChartConfig(numberParticipant.vocabulary)
