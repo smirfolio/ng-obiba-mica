@@ -19,7 +19,13 @@ ngObibaMica.utils
       return window.encodeURIComponent(input);
     };
   })
-
+  .factory('MathFunction', function(){
+    return {
+      round: function(value, decimal){
+        return +(Math.round(value + 'e+' + decimal)  + 'e-' + decimal);
+      }
+    };
+  })
   .service('GraphicChartsConfigurations', function(){
 
     this.getClientConfig = function(){

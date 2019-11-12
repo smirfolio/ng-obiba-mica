@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-11-07
+ * Date: 2019-11-14
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -232,6 +232,13 @@ function NgObibaMicaTemplateUrlFactory() {
         .factory('urlEncode', function () {
         return function (input) {
             return window.encodeURIComponent(input);
+        };
+    })
+        .factory('MathFunction', function () {
+        return {
+            round: function (value, decimal) {
+                return +(Math.round(value + 'e+' + decimal) + 'e-' + decimal);
+            }
         };
     })
         .service('GraphicChartsConfigurations', function () {
@@ -15777,7 +15784,8 @@ ngObibaMica.graphics
     'D3GeoConfig',
     'D3ChartConfig',
     'LocalizedValues',
-    function ($rootScope, $scope, $filter, $window, GraphicChartsConfig, GraphicChartsUtils, GraphicChartsData, RqlQueryService, ngObibaMicaUrl, D3GeoConfig, D3ChartConfig, LocalizedValues) {
+    'MathFunction',
+    function ($rootScope, $scope, $filter, $window, GraphicChartsConfig, GraphicChartsUtils, GraphicChartsData, RqlQueryService, ngObibaMicaUrl, D3GeoConfig, D3ChartConfig, LocalizedValues, MathFunction) {
         function initializeChartData(StudiesData, chartAggregationName) {
             $scope.chartObject = {};
             if ($scope.chartEntityDto) {
@@ -15818,7 +15826,7 @@ ngObibaMica.graphics
                                                 value: a.value + b.value,
                                                 participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
                                                 key: '-',
-                                                perc: (parseFloat(a.perc) + parseFloat(b.perc)).toFixed(2)
+                                                perc: MathFunction.round(parseFloat(a.perc) + parseFloat(b.perc), 2)
                                             };
                                         }));
                                     }
@@ -15834,7 +15842,7 @@ ngObibaMica.graphics
                                             return {
                                                 title: $filter('translate')('total'),
                                                 value: a.value + b.value,
-                                                perc: (parseFloat(a.perc) + parseFloat(b.perc)).toFixed(2)
+                                                perc: MathFunction.round(parseFloat(a.perc) + parseFloat(b.perc), 2)
                                             };
                                         }));
                                     }
@@ -16101,8 +16109,8 @@ ngObibaMica.graphics
     };
     return factory;
 })
-    .service('GraphicChartsUtils', ['LocalizedValues', 'TaxonomyResource', 'VocabularyService', '$q', '$translate',
-    function (LocalizedValues, TaxonomyResource, VocabularyService, $q, $translate) {
+    .service('GraphicChartsUtils', ['LocalizedValues', 'TaxonomyResource', 'VocabularyService', '$q', '$translate', 'MathFunction',
+    function (LocalizedValues, TaxonomyResource, VocabularyService, $q, $translate, MathFunction) {
         var studyTaxonomy = {};
         studyTaxonomy.getTerms = function (aggregationName) {
             var deferred = $q.defer();
@@ -16152,7 +16160,8 @@ ngObibaMica.graphics
                                                 arrayData[i] = {
                                                     title: LocalizedValues.forLocale(sortTerm.title, $translate.use()),
                                                     value: term.count,
-                                                    key: term.key, perc: ((100 * term.count) / entityDto.totalHits).toFixed(2)
+                                                    key: term.key,
+                                                    perc: MathFunction.round((100 * term.count) / entityDto.totalHits, 2)
                                                 };
                                                 i++;
                                             }
@@ -16188,7 +16197,7 @@ ngObibaMica.graphics
                                                         value: term.count,
                                                         participantsNbr: numberOfParticipant,
                                                         key: term.key,
-                                                        perc: ((100 * term.count) / entityDto.totalHits).toFixed(2)
+                                                        perc: MathFunction.round((100 * term.count) / entityDto.totalHits, 2)
                                                     };
                                                 }
                                                 else {
@@ -19013,6 +19022,7 @@ angular.module("graphics/views/tables-directive.html", []).run(["$templateCache"
     "            <td ng-if=\"row.title.toLowerCase()!='total'\">{{row.title}}</td>\n" +
     "            <td><a href ng-click=\"updateCriteria(row.key, chartObject.vocabulary)\">{{localizedNumber(row.value)}}</a></td>\n" +
     "            <td ng-if=\"row.participantsNbr\">{{localizedNumber(row.participantsNbr)}}</td>\n" +
+    "            <td ng-if=\"row.participantsNbr==0\">-</td>\n" +
     "            <td ng-if=\"row.perc\">{{row.perc}} %</td>\n" +
     "        </tr>\n" +
     "        </tbody>\n" +

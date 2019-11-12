@@ -25,6 +25,7 @@ ngObibaMica.graphics
     'D3GeoConfig',
     'D3ChartConfig',
     'LocalizedValues',
+    'MathFunction',
     function ($rootScope,
               $scope,
               $filter,
@@ -36,8 +37,8 @@ ngObibaMica.graphics
               ngObibaMicaUrl,
               D3GeoConfig,
               D3ChartConfig,
-              LocalizedValues) {
-
+              LocalizedValues,
+              MathFunction) {
       function initializeChartData(StudiesData, chartAggregationName) {
         $scope.chartObject = {};
         if($scope.chartEntityDto){
@@ -80,7 +81,7 @@ ngObibaMica.graphics
                               value: a.value + b.value,
                               participantsNbr:  parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
                               key: '-',
-                              perc: (parseFloat(a.perc) + parseFloat(b.perc)).toFixed(2)
+                              perc: MathFunction.round(parseFloat(a.perc) + parseFloat(b.perc), 2)
                             };
                           }));
                         }
@@ -96,7 +97,7 @@ ngObibaMica.graphics
                             return {
                               title: $filter('translate')('total'),
                               value: a.value + b.value,
-                              perc: (parseFloat(a.perc) + parseFloat(b.perc)).toFixed(2)
+                              perc: MathFunction.round(parseFloat(a.perc) + parseFloat(b.perc), 2)
                             };
                           }));
                         }
