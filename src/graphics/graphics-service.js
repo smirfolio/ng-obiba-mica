@@ -134,8 +134,8 @@ ngObibaMica.graphics
     return factory;
 
   })
-  .service('GraphicChartsUtils', ['LocalizedValues', 'TaxonomyResource', 'VocabularyService', '$q', '$translate',
-    function (LocalizedValues, TaxonomyResource, VocabularyService, $q, $translate) {
+  .service('GraphicChartsUtils', ['LocalizedValues', 'TaxonomyResource', 'VocabularyService', '$q', '$translate', 'MathFunction',
+    function (LocalizedValues, TaxonomyResource, VocabularyService, $q, $translate, MathFunction) {
       var studyTaxonomy = {};
 
       studyTaxonomy.getTerms = function (aggregationName) {
@@ -193,7 +193,8 @@ ngObibaMica.graphics
                         arrayData[i] = {
                           title: LocalizedValues.forLocale(sortTerm.title, $translate.use()),
                           value: term.count,
-                          key: term.key, perc:  ((100* term.count)/entityDto.totalHits).toFixed(2)
+                          key: term.key,
+                          perc:  MathFunction.round((100* term.count)/entityDto.totalHits, 2)
                         };
                         i++;
                       }
@@ -230,7 +231,7 @@ ngObibaMica.graphics
                             value: term.count,
                             participantsNbr: numberOfParticipant,
                             key: term.key,
-                            perc:  ((100* term.count)/entityDto.totalHits).toFixed(2)
+                            perc:  MathFunction.round((100* term.count)/entityDto.totalHits, 2)
                           };
                         } else {
                           arrayData[i] = {title: LocalizedValues.forLocale(sortTerm.title, $translate.use()), value: term.count, key: term.key};
