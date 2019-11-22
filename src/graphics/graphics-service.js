@@ -266,7 +266,7 @@ ngObibaMica.graphics
       var localizedQuery = new RqlQuery().serializeArgs(localizedRqlQuery.args);
       return RqlQueryService.prepareGraphicsQuery(localizedQuery,
         ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'],
-        ['Mica_study.methods-design']
+        ['Mica_study.methods-design','Mica_study.start-range']
       );
     };
   }]);
