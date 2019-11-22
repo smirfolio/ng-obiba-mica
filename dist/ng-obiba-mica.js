@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-11-14
+ * Date: 2019-11-22
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -6088,7 +6088,7 @@ var TaxonomyCartFilter = /** @class */ (function () {
                         break;
                     case DISPLAY_TYPES.GRAPHICS:
                         $scope.search.loading = true;
-                        $scope.search.executedQuery = RqlQueryService.prepareGraphicsQuery(localizedQuery, ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'], ['Mica_study.methods-design']);
+                        $scope.search.executedQuery = RqlQueryService.prepareGraphicsQuery(localizedQuery, ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'], ['Mica_study.methods-design', 'Mica_study.start-range']);
                         JoinQuerySearchResource.studies({ query: $scope.search.executedQuery }, function onSuccess(response) {
                             $scope.search.result.graphics = response;
                             $scope.search.loading = false;
@@ -16229,7 +16229,7 @@ ngObibaMica.graphics
             var localizedRqlQuery = angular.copy(RqlQueryService.parseQuery(query));
             RqlQueryUtils.addLocaleQuery(localizedRqlQuery, $translate.use());
             var localizedQuery = new RqlQuery().serializeArgs(localizedRqlQuery.args);
-            return RqlQueryService.prepareGraphicsQuery(localizedQuery, ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'], ['Mica_study.methods-design']);
+            return RqlQueryService.prepareGraphicsQuery(localizedQuery, ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'], ['Mica_study.methods-design', 'Mica_study.start-range']);
         };
     }]);
 //# sourceMappingURL=graphics-service.js.map
