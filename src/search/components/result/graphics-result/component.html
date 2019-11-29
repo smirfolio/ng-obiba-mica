@@ -1,42 +1,30 @@
 <div>
   <div ng-if="loading" class="loading"></div>
 
-  <p class="help-block" ng-if="!loading && !noResults && !hasChartObjects()" translate>search.no-graphic-result</p>
+  <p class="help-block" ng-if="!loading && !noResults  && !dtosResult" translate>search.no-graphic-result</p>
   <p class="help-block" ng-if="!loading && noResults" translate>search.no-results</p>
 
   <div ng-repeat="chart in chartObjects" class="panel panel-default">
     <div class="panel-heading">
-      {{chart.headerTitle}}
+      {{chart.chartConfig.headerTitle}}
     </div>
     <div class="panel-body">
       <div class="row">
         <div class="col-xs-12 col-lg-6">
           <div obiba-chart
-               field-transformer="chart.chartObject.fieldTransformer"
-               chart-type="chart.chartObject.type"
-               chart-aggregation-name="chart.chartObject.vocabulary"
-               chart-entity-dto="'studyResultDto'"
-               chart-options-name="chart.chartObject.optionsName"
-               chart-options="chart.chartObject.options"
-               chart-header="chart.getTable().data[0]"
-               chart-title-graph="chart.chartObject.title"
-               chart-subtitle-graph="chart.chartObject.subtitle"
-               chart-select-graphic="true"
+               chart-config = "chart.chartConfig"
+               chart-type="chart.chartConfig.chartType"
+               chart-aggregation-name="chart.chartConfig.chartAggregationName"
                chart-studies-data="dtosResult"
           ></div>
         </div>
-        <div class="col-md-6"
+        <div class="col-xs-12 col-lg-6"
              obiba-table
-             chart-type="{{'Table-' + chart.chartObject.type}}"
-             chart-aggregation-name="chart.chartObject.vocabulary"
-             chart-entity-dto="'studyResultDto'"
-             chart-options-name="chart.chartObject.optionsName"
-             chart-header="chart.getTable().data[0]"
-             chart-select-graphic="true"
-             chart-ordered="chart.chartObject.ordered"
-             chart-not-ordered="chart.chartObject.notOrdered"
-             chart-sortedby="chart.chartObject.sortedby"
-             chart-studies-data="dtosResult">
+             chart-config = "chart.chartConfig"
+             chart-type="{{'Table-' + chart.chartConfig.chartType}}"
+             chart-aggregation-name="chart.chartConfig.chartAggregationName"
+             chart-studies-data="dtosResult"
+             on-update-criteria=onUpdateCriteria>
         </div>
       </div>
     </div>

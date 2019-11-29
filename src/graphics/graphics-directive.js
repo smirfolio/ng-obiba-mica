@@ -17,17 +17,9 @@ ngObibaMica.graphics
       restrict: 'EA',
       replace: true,
       scope: {
-        fieldTransformer: '=',
+        chartConfig: '=',
         chartType: '=',
         chartAggregationName: '=',
-        chartEntityDto: '=',
-        chartOptionsName: '=',
-        chartOptions: '=',
-        chartHeader: '=',
-        chartTitle: '=',
-        chartTitleGraph: '=',
-        chartSubtitleGraph: '=',
-        chartSelectGraphic: '=',
         chartStudiesData: '='
       },
       templateUrl: 'graphics/views/charts-directive.html',
@@ -39,20 +31,11 @@ ngObibaMica.graphics
     restrict: 'EA',
     replace: true,
     scope: {
-      fieldTransformer: '=',
+      chartConfig: '=',
       chartType: '@',
       chartAggregationName: '=',
-      chartEntityDto: '=',
-      chartOptionsName: '=',
-      chartOptions: '=',
-      chartHeader: '=',
-      chartTitle: '=',
-      chartTitleGraph: '=',
-      chartSelectGraphic: '=',
-      chartOrdered: '=',
-      chartNotOrdered: '=',
-      chartSortedby: '=',
-      chartStudiesData: '='
+      chartStudiesData: '=',
+      onUpdateCriteria: '='
     },
     templateUrl: 'graphics/views/tables-directive.html',
     controller: 'GraphicChartsController'
