@@ -128,11 +128,9 @@ ngObibaMica.utils
           }
         );
 
-        // watch table resize
-        $scope.$watch(function() {
-          return elem.offsetWidth;
-        }, function() {
-          redrawTable();
+        window.addEventListener('resize', redrawTable);
+        $scope.$on('$destroy', function () {
+          window.document.removeEventListener('resize', redrawTable);
         });
       }
     };

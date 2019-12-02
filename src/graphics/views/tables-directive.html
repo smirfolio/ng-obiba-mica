@@ -1,19 +1,19 @@
 <div>
-    <table ng-if="chartObject.entries && chartObject.entries.length" style="max-height: 400px;" class="table table-bordered table-striped" fixed-header="chartObject.getTable().data">
+    <table ng-if="chartObject.entries && chartObject.entries.length" style="max-height: 400px;" class="table table-bordered table-striped" fixed-header="chartObject.getTable()">
         <thead>
         <tr>
         <th ng-repeat="(value, header) in chartObject.header track by $index" >
             {{header}}
             <a ng-if="chartObject.sortedby.length > 0" class="pull-right">
-                <i ng-class="selectedCls2(value)" ng-click="changeSorting(value)"></i>
+                <i ng-class="columnOrderClass(value)" ng-click="changeSorting(value)"></i>
             </a>
         </th>
         </tr>
         </thead>
         <tbody>
         <tr ng-repeat="row in chartObject.entries | orderBy:sort.sortingOrder:sort.reverse track by $index" >
-            <td ng-if="row.title.toLowerCase()=='total'"><b>{{row.title}}</b></td>
             <td ng-if="row.title.toLowerCase()!='total'">{{row.title}}</td>
+            <td ng-if="row.title.toLowerCase()=='total'"><b>{{row.title}}</b></td>
             <td><a href ng-click="updateCriteria(row.key, chartObject.vocabulary)">{{localizedNumber(row.value)}}</a></td>
             <td ng-if="row.participantsNbr">{{localizedNumber(row.participantsNbr)}}</td>
             <td ng-if="row.participantsNbr==0">-</td>

@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-11-22
+ * Date: 2019-12-02
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -325,11 +325,9 @@ function NgObibaMicaTemplateUrlFactory() {
                             redrawTable();
                         }
                     });
-                    // watch table resize
-                    $scope.$watch(function () {
-                        return elem.offsetWidth;
-                    }, function () {
-                        redrawTable();
+                    window.addEventListener('resize', redrawTable);
+                    $scope.$on('$destroy', function () {
+                        window.document.removeEventListener('resize', redrawTable);
                     });
                 }
             };
@@ -11863,185 +11861,34 @@ ngObibaMica.search
     'RqlQueryService',
     '$filter',
     '$scope',
-    'D3GeoConfig',
-    'D3ChartConfig',
-    function (GraphicChartsConfig, GraphicChartsUtils, RqlQueryService, $filter, $scope, D3GeoConfig, D3ChartConfig) {
-        $scope.hasChartObjects = function () {
-            return $scope.chartObjects && Object.keys($scope.chartObjects).length > 0;
-        };
-        var setChartObject = function (vocabulary, dtoObject, header, options, isTable) {
-            return GraphicChartsUtils.getArrayByAggregation(vocabulary, dtoObject)
-                .then(function (entries) {
-                var data = entries.map(function (e) {
-                    if (e.participantsNbr && isTable) {
-                        return [e.title, e.value, e.participantsNbr];
-                    }
-                    else {
-                        return [e.title, e.value];
-                    }
-                });
-                if (data.length > 0) {
-                    data.unshift(header);
-                    return {
-                        data: data,
-                        entries: entries,
-                        options: options,
-                        vocabulary: vocabulary
-                    };
-                }
-            });
-        };
-        var charOptions = GraphicChartsConfig.getOptions().ChartsOptions;
+    function (GraphicChartsConfig, GraphicChartsUtils, RqlQueryService, $filter, $scope) {
         $scope.updateCriteria = function (key, vocabulary) {
             RqlQueryService.createCriteriaItem('study', 'Mica_study', vocabulary, key).then(function (item) {
                 $scope.onUpdateCriteria(item, 'studies');
             });
         };
-        $scope.$watch('result', function (result) {
+        function initialize(result) {
+            if (!result) {
+                return;
+            }
             $scope.chartObjects = {};
             $scope.noResults = true;
+            var graphs = GraphicChartsUtils.getGraphConfig();
             if (result && result.studyResultDto.totalHits) {
                 $scope.noResults = false;
-                setChartObject('populations-model-selectionCriteria-countriesIso', result.studyResultDto, [$filter('translate')(charOptions.geoChartOptions.header[0]), $filter('translate')(charOptions.geoChartOptions.header[1])], charOptions.geoChartOptions.options).then(function (geoStudies) {
-                    if (geoStudies) {
-                        var d3Config = new D3GeoConfig()
-                            .withData(geoStudies.entries);
-                        angular.extend(geoStudies.options, { title: $filter('translate')(charOptions.geoChartOptions.title) });
-                        angular.extend(geoStudies.options, { subtitle: $filter('translate')(charOptions.geoChartOptions.subtitle) });
-                        d3Config.withColor(charOptions.geoChartOptions.options.colors);
-                        var chartObject = {
-                            geoChartOptions: {
-                                directiveTitle: geoStudies.options.title,
-                                chartObject: {
-                                    title: geoStudies.options.title,
-                                    subtitle: geoStudies.options.subtitle,
-                                    options: geoStudies.options,
-                                    type: 'GeoChart',
-                                    vocabulary: geoStudies.vocabulary,
-                                    data: geoStudies.data,
-                                    entries: geoStudies.entries,
-                                    d3Config: d3Config,
-                                    sortedby: ['title', 'value']
-                                }
-                            }
-                        };
-                        chartObject.geoChartOptions.getTable = function () {
-                            return chartObject.geoChartOptions.chartObject;
-                        };
-                        angular.extend($scope.chartObjects, chartObject);
-                    }
-                });
-                // Study design chart.
-                setChartObject('model-methods-design', result.studyResultDto, [$filter('translate')(charOptions.studiesDesigns.header[0]),
-                    $filter('translate')(charOptions.studiesDesigns.header[1])
-                ], charOptions.studiesDesigns.options).then(function (methodDesignStudies) {
-                    if (methodDesignStudies) {
-                        var d3Config = new D3ChartConfig(methodDesignStudies.vocabulary)
-                            .withType('multiBarHorizontalChart');
-                        d3Config.options.chart.showLegend = false;
-                        d3Config.options.chart.color = charOptions.numberParticipants.options.colors;
-                        var chartObject = {
-                            studiesDesigns: {
-                                directiveTitle: methodDesignStudies.options.title,
-                                headerTitle: $filter('translate')('graphics.study-design'),
-                                chartObject: {
-                                    title: charOptions.studiesDesigns.title,
-                                    options: methodDesignStudies.options,
-                                    type: 'BarChart',
-                                    data: methodDesignStudies.data,
-                                    vocabulary: methodDesignStudies.vocabulary,
-                                    entries: methodDesignStudies.entries,
-                                    d3Config: d3Config,
-                                    sortedby: []
-                                }
-                            }
-                        };
-                        angular.extend($scope.chartObjects, chartObject);
-                    }
-                });
-                // Study design table.
-                setChartObject('model-methods-design', result.studyResultDto, [$filter('translate')(charOptions.studiesDesigns.header[0]),
-                    $filter('translate')(charOptions.studiesDesigns.header[1]),
-                    $filter('translate')(charOptions.studiesDesigns.header[2]),
-                    $filter('translate')(charOptions.studiesDesigns.header[3])
-                ], charOptions.studiesDesigns.options, true).then(function (methodDesignStudies) {
-                    if (methodDesignStudies) {
-                        var chartObject = {
-                            chartObjectTable: {
-                                title: charOptions.studiesDesigns.title,
-                                options: methodDesignStudies.options,
-                                type: 'BarChart',
-                                data: methodDesignStudies.data,
-                                vocabulary: methodDesignStudies.vocabulary,
-                                entries: methodDesignStudies.entries,
-                                sortedby: []
-                            }
-                        };
-                        chartObject.getTable = function () {
-                            return chartObject.chartObjectTable;
-                        };
-                        angular.extend($scope.chartObjects.studiesDesigns, chartObject);
-                    }
-                });
-                setChartObject('model-numberOfParticipants-participant-number-range', result.studyResultDto, [$filter('translate')(charOptions.numberParticipants.header[0]), $filter('translate')(charOptions.numberParticipants.header[1]), $filter('translate')(charOptions.numberParticipants.header[2])], charOptions.numberParticipants.options).then(function (numberParticipant) {
-                    if (numberParticipant) {
-                        var chartConfig = new D3ChartConfig(numberParticipant.vocabulary)
-                            .withType('pieChart')
-                            .withData(angular.copy(numberParticipant.entries), true);
-                        chartConfig.options.chart.legendPosition = 'right';
-                        chartConfig.options.chart.color = charOptions.numberParticipants.options.colors;
-                        var chartObject = {
-                            numberParticipants: {
-                                headerTitle: $filter('translate')('graphics.number-participants'),
-                                chartObject: {
-                                    title: charOptions.numberParticipants.title,
-                                    options: numberParticipant.options,
-                                    type: 'PieChart',
-                                    data: numberParticipant.data,
-                                    vocabulary: numberParticipant.vocabulary,
-                                    entries: numberParticipant.entries,
-                                    d3Config: chartConfig,
-                                    sortedby: []
-                                }
-                            }
-                        };
-                        chartObject.numberParticipants.getTable = function () {
-                            return chartObject.numberParticipants.chartObject;
-                        };
-                        angular.extend($scope.chartObjects, chartObject);
-                    }
-                });
-                setChartObject('populations-dataCollectionEvents-model-bioSamples', result.studyResultDto, [$filter('translate')(charOptions.biologicalSamples.header[0]), $filter('translate')(charOptions.biologicalSamples.header[1])], charOptions.biologicalSamples.options).then(function (bioSamplesStudies) {
-                    if (bioSamplesStudies) {
-                        var d3Config = new D3ChartConfig(bioSamplesStudies.vocabulary)
-                            .withType('multiBarHorizontalChart')
-                            .withData(angular.copy(bioSamplesStudies.entries), false, $filter('translate')('graphics.nbr-studies'));
-                        d3Config.options.chart.showLegend = false;
-                        d3Config.options.chart.color = charOptions.numberParticipants.options.colors;
-                        var chartObject = {
-                            biologicalSamples: {
-                                headerTitle: $filter('translate')('graphics.bio-samples'),
-                                chartObject: {
-                                    title: charOptions.biologicalSamples.title,
-                                    options: bioSamplesStudies.options,
-                                    type: 'BarChart',
-                                    data: bioSamplesStudies.data,
-                                    vocabulary: bioSamplesStudies.vocabulary,
-                                    entries: bioSamplesStudies.entries,
-                                    d3Config: d3Config,
-                                    sortedby: []
-                                }
-                            }
-                        };
-                        chartObject.biologicalSamples.getTable = function () {
-                            return chartObject.biologicalSamples.chartObject;
-                        };
-                        angular.extend($scope.chartObjects, chartObject);
-                    }
+                $scope.dtosResult = result;
+                $scope.chartObjects = [];
+                Object.keys(graphs).forEach(function (Chart) {
+                    var chartOption = {
+                        chartConfig: null
+                    };
+                    chartOption.chartConfig = graphs[Chart];
+                    $scope.chartObjects.push(chartOption);
                 });
                 $scope.dtosResult = result;
             }
-        });
+        }
+        $scope.__defineSetter__('result', initialize);
     }
 ])
     .directive('graphicsResult', [function () {
@@ -12049,8 +11896,8 @@ ngObibaMica.search
             restrict: 'EA',
             replace: true,
             scope: {
-                result: '=',
-                loading: '=',
+                result: '<',
+                loading: '<',
                 onUpdateCriteria: '='
             },
             controller: 'GraphicsResultController',
@@ -15678,7 +15525,8 @@ function GraphicChartsDataProvider() {
     }
     this.$get = ['$log', 'JoinQuerySearchResource', 'ServerErrorUtils', 'AlertService', 'GraphicChartsConfig', 'GraphicChartsQuery',
         function ($log, JoinQuerySearchResource, ServerErrorUtils, AlertService, GraphicChartsConfig, GraphicChartsQuery) {
-            var queryDto = GraphicChartsQuery.queryDtoBuilder(GraphicChartsConfig.getOptions().entityIds, GraphicChartsConfig.getOptions().entityType);
+            var chartConf = GraphicChartsConfig.getOptions();
+            var queryDto = GraphicChartsQuery.queryDtoBuilder(chartConf.entityIds, chartConf.entityType);
             return new DataProvider(JoinQuerySearchResource.studies({
                 query: queryDto
             }, function onSuccess(response) {
@@ -15718,17 +15566,9 @@ ngObibaMica.graphics
             restrict: 'EA',
             replace: true,
             scope: {
-                fieldTransformer: '=',
+                chartConfig: '=',
                 chartType: '=',
                 chartAggregationName: '=',
-                chartEntityDto: '=',
-                chartOptionsName: '=',
-                chartOptions: '=',
-                chartHeader: '=',
-                chartTitle: '=',
-                chartTitleGraph: '=',
-                chartSubtitleGraph: '=',
-                chartSelectGraphic: '=',
                 chartStudiesData: '='
             },
             templateUrl: 'graphics/views/charts-directive.html',
@@ -15740,20 +15580,11 @@ ngObibaMica.graphics
             restrict: 'EA',
             replace: true,
             scope: {
-                fieldTransformer: '=',
+                chartConfig: '=',
                 chartType: '@',
                 chartAggregationName: '=',
-                chartEntityDto: '=',
-                chartOptionsName: '=',
-                chartOptions: '=',
-                chartHeader: '=',
-                chartTitle: '=',
-                chartTitleGraph: '=',
-                chartSelectGraphic: '=',
-                chartOrdered: '=',
-                chartNotOrdered: '=',
-                chartSortedby: '=',
-                chartStudiesData: '='
+                chartStudiesData: '=',
+                onUpdateCriteria: '='
             },
             templateUrl: 'graphics/views/tables-directive.html',
             controller: 'GraphicChartsController'
@@ -15781,199 +15612,104 @@ ngObibaMica.graphics
     'GraphicChartsData',
     'RqlQueryService',
     'ngObibaMicaUrl',
-    'D3GeoConfig',
-    'D3ChartConfig',
     'LocalizedValues',
-    'MathFunction',
-    function ($rootScope, $scope, $filter, $window, GraphicChartsConfig, GraphicChartsUtils, GraphicChartsData, RqlQueryService, ngObibaMicaUrl, D3GeoConfig, D3ChartConfig, LocalizedValues, MathFunction) {
-        function initializeChartData(StudiesData, chartAggregationName) {
-            $scope.chartObject = {};
-            if ($scope.chartEntityDto) {
-                GraphicChartsUtils.getArrayByAggregation(chartAggregationName, StudiesData[$scope.chartEntityDto])
-                    .then(function (entries) {
-                    var data = entries.map(function (e) {
-                        if (e.participantsNbr) {
-                            return [e.title, e.value, e.participantsNbr, e.perc];
-                        }
-                        else {
-                            return [e.title, e.value];
-                        }
+    function ($rootScope, $scope, $filter, $window, GraphicChartsConfig, GraphicChartsUtils, GraphicChartsData, RqlQueryService, ngObibaMicaUrl, LocalizedValues) {
+        var graphOptions = GraphicChartsConfig.getOptions();
+        function updateTableData(graphOptions) {
+            $scope.chartObject.ordered = graphOptions.ChartsOptions[$scope.chartConfig.chartType].ordered;
+            $scope.chartObject.notOrdered = graphOptions.ChartsOptions[$scope.chartConfig.chartType].notOrdered;
+            $scope.chartObject.sortedby = graphOptions.ChartsOptions[$scope.chartConfig.chartType].sortedby;
+            $scope.chartObject.getTable = function () {
+                return $scope.chartObject.data;
+            };
+            if ($scope.chartObject.sortedby.length > 0) {
+                $scope.sort = {
+                    sortingOrder: $scope.chartObject.sortedby[0],
+                    reverse: false
+                };
+                if ($scope.sort.sortingOrder !== '') {
+                    $scope.chartObject.entries = Object.keys($scope.chartObject.entries).map(function (key) {
+                        return $scope.chartObject.entries[key];
                     });
-                    if (data) {
-                        if (/^Table-/.exec($scope.chartType) !== null) {
-                            $scope.chartObject.ordered = $scope.chartOrdered;
-                            $scope.chartObject.notOrdered = $scope.chartNotOrdered;
-                            $scope.chartObject.sortedby = $scope.chartSortedby;
-                            switch (chartAggregationName) {
-                                case 'populations-model-selectionCriteria-countriesIso':
-                                case 'populations-dataCollectionEvents-model-bioSamples':
-                                    $scope.chartObject.header = {
-                                        title: $filter('translate')($scope.chartHeader[0]),
-                                        value: $filter('translate')($scope.chartHeader[1])
-                                    };
-                                    break;
-                                case 'model-methods-design':
-                                    $scope.chartObject.header = {
-                                        title: $filter('translate')($scope.chartHeader[0]),
-                                        value: $filter('translate')($scope.chartHeader[1]),
-                                        key: $filter('translate')($scope.chartHeader[2]),
-                                        perc: $filter('translate')($scope.chartHeader[3])
-                                    };
-                                    if (entries.length > 1) {
-                                        entries.push(entries.reduce(function (a, b) {
-                                            return {
-                                                title: $filter('translate')('total'),
-                                                value: a.value + b.value,
-                                                participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
-                                                key: '-',
-                                                perc: MathFunction.round(parseFloat(a.perc) + parseFloat(b.perc), 2)
-                                            };
-                                        }));
-                                    }
-                                    break;
-                                case 'model-numberOfParticipants-participant-number-range':
-                                    $scope.chartObject.header = {
-                                        title: $filter('translate')($scope.chartHeader[0]),
-                                        value: $filter('translate')($scope.chartHeader[1]),
-                                        perc: $filter('translate')($scope.chartHeader[2])
-                                    };
-                                    if (entries.length > 1) {
-                                        entries.push(entries.reduce(function (a, b) {
-                                            return {
-                                                title: $filter('translate')('total'),
-                                                value: a.value + b.value,
-                                                perc: MathFunction.round(parseFloat(a.perc) + parseFloat(b.perc), 2)
-                                            };
-                                        }));
-                                    }
-                                    break;
-                            }
-                            $scope.chartObject.type = $scope.chartType;
-                            $scope.chartObject.data = data;
-                            $scope.chartObject.vocabulary = $scope.chartAggregationName;
-                            $scope.chartObject.entries = entries;
-                            $scope.chartObject.getTable = function () {
-                                return $scope.chartObject;
-                            };
-                            if ($scope.chartObject.sortedby.length > 0) {
-                                $scope.sort = {
-                                    sortingOrder: $scope.chartObject.sortedby[0],
-                                    reverse: false
-                                };
-                                if ($scope.sort.sortingOrder !== '') {
-                                    $scope.chartObject.entries = Object.keys($scope.chartObject.entries).map(function (key) {
-                                        return $scope.chartObject.entries[key];
-                                    });
-                                    $scope.chartObject.entries = $filter('orderBy')(entries, $scope.sort.sortingOrder, $scope.sort.reverse);
-                                }
-                            }
-                            $scope.changeSorting = function (column) {
-                                if ($scope.chartObject.sortedby.length > 0) {
-                                    var sort = $scope.sort;
-                                    if (sort.sortingOrder === column) {
-                                        sort.reverse = !$scope.sort.reverse;
-                                    }
-                                    else {
-                                        sort.sortingOrder = column;
-                                        sort.reverse = false;
-                                    }
-                                }
-                            };
-                            $scope.selectedCls2 = function (column) {
-                                if ($scope.chartObject.sortedby.length > 0) {
-                                    if (column === $scope.sort.sortingOrder) {
-                                        return ('fa fa-chevron-' + (($scope.sort.reverse) ? 'down' : 'up'));
-                                    }
-                                    else {
-                                        return 'fa fa-sort';
-                                    }
-                                }
-                            };
-                            $scope.localizedNumber = function (number) {
-                                return LocalizedValues.formatNumber(number);
-                            };
-                        }
-                        else {
-                            if ($scope.chartHeader.length < 3) {
-                                data.unshift([$filter('translate')($scope.chartHeader[0]), $filter('translate')($scope.chartHeader[1])]);
-                            }
-                            else {
-                                data.map(function (item) {
-                                    item.pop();
-                                    return item;
-                                });
-                                data.unshift([
-                                    $filter('translate')($scope.chartHeader[0]),
-                                    $filter('translate')($scope.chartHeader[1])
-                                ]);
-                            }
-                            $scope.chartObject.term = true;
-                            $scope.chartObject.type = $scope.chartType;
-                            $scope.chartObject.data = data;
-                            $scope.chartObject.options = { backgroundColor: { fill: 'transparent' } };
-                            angular.extend($scope.chartObject.options, $scope.chartOptions);
-                            $scope.chartObject.options.title = $filter('translate')($scope.chartTitleGraph) + ' (N=' + StudiesData.studyResultDto.totalHits + ')';
-                            $scope.$parent.directive = { title: $scope.chartObject.options.title };
-                        }
-                    }
-                    if ($scope.chartType === 'GeoChart') {
-                        $scope.chartObject.options.subtitle = $filter('translate')($scope.chartSubtitleGraph);
-                        $scope.$parent.directive = {
-                            title: $scope.chartObject.options.title,
-                            subtitle: $scope.chartObject.options.subtitle
-                        };
-                        $scope.chartObject.d3Config = new D3GeoConfig().withData(entries)
-                            .withTitle($scope.chartObject.options.title)
-                            .withSubtitle($scope.chartObject.options.subtitle);
-                        if ($scope.chartObject.options) {
-                            $scope.chartObject.d3Config.withColor($scope.chartOptions.colors);
-                        }
+                    $scope.chartObject.entries = $filter('orderBy')($scope.chartObject.entries, $scope.sort.sortingOrder, $scope.sort.reverse);
+                }
+            }
+            $scope.changeSorting = function (column) {
+                if ($scope.chartObject.sortedby.length > 0) {
+                    var sort = $scope.sort;
+                    if (sort.sortingOrder === column) {
+                        sort.reverse = !$scope.sort.reverse;
                     }
                     else {
-                        $scope.chartObject.d3Config = new D3ChartConfig(chartAggregationName).withType($scope.chartType === 'PieChart' ? 'pieChart' : 'multiBarHorizontalChart')
-                            .withData(entries, $scope.chartType === 'PieChart', $filter('translate')('graphics.nbr-studies'))
-                            .withTitle($filter('translate')($scope.chartTitleGraph) + ' (N=' + StudiesData.studyResultDto.totalHits + ')');
-                        if ($scope.chartType !== 'PieChart') {
-                            $scope.chartObject.d3Config.options.chart.showLegend = false;
-                        }
-                        if ($scope.chartObject.options && $scope.chartObject.options.colors) {
-                            $scope.chartObject.d3Config.options.chart.color = $scope.chartOptions.colors;
-                        }
-                        $scope.chartObject.d3Config.options.chart.legendPosition = 'right';
-                        $scope.chartObject.d3Config.options.chart.legend = { margin: {
-                                top: 0,
-                                right: 10,
-                                bottom: 0,
-                                left: 0
-                            } };
+                        sort.sortingOrder = column;
+                        sort.reverse = false;
                     }
-                });
-            }
+                    $scope.sort = sort;
+                }
+            };
+            $scope.columnOrderClass = function (column) {
+                if ($scope.chartObject.sortedby.length > 0) {
+                    if (column === $scope.sort.sortingOrder) {
+                        return ('fa fa-chevron-' + (($scope.sort.reverse) ? 'down' : 'up'));
+                    }
+                    else {
+                        return 'fa fa-sort';
+                    }
+                }
+            };
+            $scope.localizedNumber = function (number) {
+                return LocalizedValues.formatNumber(number);
+            };
         }
         $scope.updateCriteria = function (key, vocabulary) {
             RqlQueryService.createCriteriaItem('study', 'Mica_study', vocabulary, key).then(function (item) {
-                var entity = GraphicChartsConfig.getOptions().entityType;
-                var id = GraphicChartsConfig.getOptions().entityIds;
+                var entity = graphOptions.entityType;
+                var id = graphOptions.entityIds;
                 var parts = item.id.split('.');
-                var urlRedirect = ngObibaMicaUrl.getUrl('SearchBaseUrl') + '?type=studies&query=' +
-                    entity + '(in(Mica_' + entity + '.id,' + id + ')),study(in(' + parts[0] + '.' + parts[1] + ',' +
-                    parts[2].replace(':', '%253A') + '))';
-                $window.location.href = ngObibaMicaUrl.getUrl('BaseUrl') + urlRedirect;
+                var urlRedirect;
+                if (entity && id) {
+                    urlRedirect = ngObibaMicaUrl.getUrl('SearchBaseUrl') +
+                        '?type=studies&query=' +
+                        entity + '(in(Mica_' + entity + '.id,' + id + '))' +
+                        ((typeof parts[2] !== 'undefined') ?
+                            ',study(in(' + parts[0] + '.' + parts[1] + ',' + parts[2].replace(':', '%253A') :
+                            ',study(exists(' + parts[0] + '.' + parts[1]) +
+                        '))';
+                    $window.location.href = ngObibaMicaUrl.getUrl('BaseUrl') + urlRedirect;
+                }
+                else {
+                    $scope.onUpdateCriteria(item, 'studies');
+                }
             });
         };
         $scope.ready = true;
+        $scope.chartObject = [];
         if ($scope.chartStudiesData) {
-            initializeChartData($scope.chartStudiesData, $scope.chartAggregationName);
+            GraphicChartsUtils.initializeChartData($scope.chartStudiesData.studyResultDto, graphOptions.ChartsOptions, $scope.chartAggregationName, $scope.chartConfig, $scope.chartType).then(function (returnedScope) {
+                angular.extend($scope.chartObject, returnedScope.chartObject);
+                if (/^Table-/.exec($scope.chartType) !== null) {
+                    updateTableData(graphOptions);
+                }
+            });
         }
         else {
-            $scope.$watch('chartAggregationName', function () {
-                if ($scope.chartAggregationName) {
-                    GraphicChartsData.getData(function (StudiesData) {
-                        if (StudiesData) {
-                            initializeChartData(StudiesData, $scope.chartAggregationName);
+            $scope.__defineSetter__('chartAggregationName', function (value) {
+                if (value) {
+                    $scope._chartAggregationName = value;
+                    GraphicChartsData.getData(function (resultDto) {
+                        if (resultDto) {
+                            GraphicChartsUtils.initializeChartData(resultDto.studyResultDto, graphOptions.ChartsOptions, $scope.chartAggregationName, $scope.chartConfig, $scope.chartType).then(function (returnScope) {
+                                angular.extend($scope.chartObject, returnScope.chartObject);
+                                if (/^Table-/.exec($scope.chartType) !== null) {
+                                    updateTableData(graphOptions);
+                                }
+                            });
                         }
                     });
                 }
+            });
+            $scope.__defineGetter__('chartAggregationName', function () {
+                return $scope._chartAggregationName;
             });
         }
     }
@@ -16020,10 +15756,17 @@ ngObibaMica.graphics
             entityIds: 'NaN',
             entityType: null,
             ChartsOptions: {
-                geoChartOptions: {
+                geoChart: {
+                    type: 'geoChart',
+                    aggregationName: 'populations-model-selectionCriteria-countriesIso',
+                    optionsName: 'geoChart',
                     header: ['graphics.country', 'graphics.nbr-studies'],
                     title: 'graphics.geo-chart-title',
                     subtitle: 'graphics.geo-chart-subtitle',
+                    active: true,
+                    ordered: true,
+                    notOrdered: false,
+                    sortedby: ['title', 'value'],
                     options: {
                         backgroundColor: { fill: 'transparent' },
                         colors: [
@@ -16036,8 +15779,15 @@ ngObibaMica.graphics
                     }
                 },
                 studiesDesigns: {
+                    type: 'BarChart',
                     header: ['graphics.study-design', 'graphics.nbr-studies', 'graphics.number-participants', 'graphics.percentage.studies'],
                     title: 'graphics.study-design-chart-title',
+                    aggregationName: 'model-methods-design',
+                    optionsName: 'studiesDesigns',
+                    active: true,
+                    ordered: true,
+                    notOrdered: false,
+                    sortedby: [],
                     options: {
                         bars: 'horizontal',
                         series: {
@@ -16059,8 +15809,15 @@ ngObibaMica.graphics
                     }
                 },
                 numberParticipants: {
+                    type: 'PieChart',
                     header: ['graphics.number-participants', 'graphics.nbr-studies', 'graphics.percentage.studies'],
                     title: 'graphics.number-participants-chart-title',
+                    aggregationName: 'model-numberOfParticipants-participant-number-range',
+                    optionsName: 'numberParticipants',
+                    active: true,
+                    ordered: false,
+                    notOrdered: true,
+                    sortedby: [],
                     options: {
                         backgroundColor: { fill: 'transparent' },
                         colors: ['#b8cbed',
@@ -16072,8 +15829,43 @@ ngObibaMica.graphics
                     }
                 },
                 biologicalSamples: {
+                    type: 'BarChart',
                     header: ['graphics.bio-samples', 'graphics.nbr-studies'],
                     title: 'graphics.bio-samples-chart-title',
+                    aggregationName: 'populations-dataCollectionEvents-model-bioSamples',
+                    optionsName: 'biologicalSamples',
+                    active: true,
+                    ordered: true,
+                    notOrdered: false,
+                    sortedby: [],
+                    options: {
+                        bars: 'horizontal',
+                        series: {
+                            0: { axis: 'nbrStudies' } // Bind series 1 to an axis
+                        },
+                        axes: {
+                            x: {
+                                nbrStudies: { side: 'top', label: 'Number of Studies' } // Top x-axis.
+                            }
+                        },
+                        backgroundColor: { fill: 'transparent' },
+                        colors: ['#b8cbed',
+                            '#e5edfb',
+                            '#cfddf5',
+                            '#a0b8e2',
+                            '#88a4d4']
+                    }
+                },
+                startYear: {
+                    type: 'BarChart',
+                    header: ['graphics.study-start-year', 'graphics.nbr-studies', 'graphics.number-participants', 'graphics.percentage.studies'],
+                    title: 'graphics.study-start-year-chart-title',
+                    aggregationName: 'model-startYear-range',
+                    optionsName: 'startYear',
+                    active: true,
+                    ordered: false,
+                    notOrdered: true,
+                    sortedby: [],
                     options: {
                         bars: 'horizontal',
                         series: {
@@ -16099,7 +15891,14 @@ ngObibaMica.graphics
         if (typeof (newOptions) === 'object') {
             Object.keys(newOptions).forEach(function (option) {
                 if (option in factory.options) {
-                    factory.options[option] = newOptions[option];
+                    if (option !== 'ChartsOptions') {
+                        factory.options[option] = newOptions[option];
+                    }
+                    else {
+                        Object.keys(newOptions.ChartsOptions).forEach(function (chartObject) {
+                            factory.options.ChartsOptions[chartObject].options.colors = newOptions.ChartsOptions[chartObject].options.colors;
+                        });
+                    }
                 }
             });
         }
@@ -16109,8 +15908,17 @@ ngObibaMica.graphics
     };
     return factory;
 })
-    .service('GraphicChartsUtils', ['LocalizedValues', 'TaxonomyResource', 'VocabularyService', '$q', '$translate', 'MathFunction',
-    function (LocalizedValues, TaxonomyResource, VocabularyService, $q, $translate, MathFunction) {
+    .service('GraphicChartsUtils', [
+    'LocalizedValues',
+    'TaxonomyResource',
+    'VocabularyService',
+    '$q',
+    '$translate',
+    '$filter',
+    'D3GeoConfig',
+    'D3ChartConfig',
+    'MathFunction',
+    function (LocalizedValues, TaxonomyResource, VocabularyService, $q, $translate, $filter, D3GeoConfig, D3ChartConfig, MathFunction) {
         var studyTaxonomy = {};
         studyTaxonomy.getTerms = function (aggregationName) {
             var deferred = $q.defer();
@@ -16139,84 +15947,276 @@ ngObibaMica.graphics
             }
             return deferred.promise;
         };
-        this.getArrayByAggregation = function (aggregationName, entityDto) {
+        var participantBucket = function (term, sortTerm, entityDto) {
+            var numberOfParticipant = 0;
+            var arrayData;
+            angular.forEach(term.aggs, function (aggBucket) {
+                if (aggBucket.aggregation === 'model-numberOfParticipants-participant-number') {
+                    var aggregateBucket = aggBucket['obiba.mica.StatsAggregationResultDto.stats'];
+                    numberOfParticipant = aggregateBucket ? aggregateBucket.data.sum : 0;
+                }
+            });
+            arrayData = {
+                title: LocalizedValues.forLocale(sortTerm.title, $translate.use()),
+                value: term.count,
+                participantsNbr: numberOfParticipant,
+                key: term.key,
+                perc: MathFunction.round((100 * term.count) / entityDto.totalHits, 2)
+            };
+            return arrayData;
+        };
+        var getArrayByAggregation = function (aggregationName, entityDto, terms) {
             if (entityDto) {
-                var deferred = $q.defer();
                 if (!aggregationName || !entityDto) {
-                    deferred.resolve([]);
+                    return [];
                 }
                 var arrayData = [];
-                studyTaxonomy.getTerms(aggregationName).then(function (terms) {
-                    var sortedTerms = terms;
-                    var i = 0;
-                    angular.forEach(entityDto.aggs, function (aggregation) {
-                        if (aggregation.aggregation === aggregationName) {
-                            if (aggregation['obiba.mica.RangeAggregationResultDto.ranges']) {
-                                i = 0;
-                                angular.forEach(sortedTerms, function (sortTerm) {
-                                    angular.forEach(aggregation['obiba.mica.RangeAggregationResultDto.ranges'], function (term) {
-                                        if (sortTerm.name === term.key) {
-                                            if (term.count) {
-                                                arrayData[i] = {
-                                                    title: LocalizedValues.forLocale(sortTerm.title, $translate.use()),
-                                                    value: term.count,
-                                                    key: term.key,
-                                                    perc: MathFunction.round((100 * term.count) / entityDto.totalHits, 2)
-                                                };
-                                                i++;
-                                            }
-                                        }
-                                    });
-                                });
-                            }
-                            else {
-                                // MK-924 sort countries by title in the display language
-                                if (aggregation.aggregation === 'populations-model-selectionCriteria-countriesIso') {
-                                    var locale = $translate.use();
-                                    sortedTerms.sort(function (a, b) {
-                                        var textA = LocalizedValues.forLocale(a.title, locale);
-                                        var textB = LocalizedValues.forLocale(b.title, locale);
-                                        return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-                                    });
-                                }
-                                var numberOfParticipant = 0;
-                                i = 0;
-                                angular.forEach(sortedTerms, function (sortTerm) {
-                                    angular.forEach(aggregation['obiba.mica.TermsAggregationResultDto.terms'], function (term) {
-                                        if (sortTerm.name === term.key) {
-                                            if (term.count) {
-                                                if (aggregation.aggregation === 'model-methods-design') {
-                                                    angular.forEach(term.aggs, function (aggBucket) {
-                                                        if (aggBucket.aggregation === 'model-numberOfParticipants-participant-number') {
-                                                            var aggregateBucket = aggBucket['obiba.mica.StatsAggregationResultDto.stats'];
-                                                            numberOfParticipant = aggregateBucket ? aggregateBucket.data.sum : 0;
+                var sortedTerms = terms;
+                var i = 0;
+                angular.forEach(entityDto.aggs, function (aggregation) {
+                    if (aggregation.aggregation === aggregationName) {
+                        if (aggregation['obiba.mica.RangeAggregationResultDto.ranges']) {
+                            i = 0;
+                            angular.forEach(sortedTerms, function (sortTerm) {
+                                angular.forEach(aggregation['obiba.mica.RangeAggregationResultDto.ranges'], function (term) {
+                                    angular.forEach(entityDto.aggs, function (aggregation) {
+                                        if (aggregation.aggregation === aggregationName) {
+                                            if (aggregation['obiba.mica.RangeAggregationResultDto.ranges']) {
+                                                if (sortTerm.name === term.key) {
+                                                    if (term.count) {
+                                                        if (aggregation.aggregation === 'model-startYear-range') {
+                                                            arrayData[i] = participantBucket(term, sortTerm, entityDto, arrayData);
                                                         }
-                                                    });
-                                                    arrayData[i] = {
-                                                        title: LocalizedValues.forLocale(sortTerm.title, $translate.use()),
-                                                        value: term.count,
-                                                        participantsNbr: numberOfParticipant,
-                                                        key: term.key,
-                                                        perc: MathFunction.round((100 * term.count) / entityDto.totalHits, 2)
-                                                    };
+                                                        else {
+                                                            arrayData[i] = {
+                                                                title: LocalizedValues.forLocale(sortTerm.title, $translate.use()),
+                                                                value: term.count,
+                                                                key: term.key, perc: MathFunction.round((100 * term.count) / entityDto.totalHits, 2)
+                                                            };
+                                                        }
+                                                        i++;
+                                                    }
                                                 }
-                                                else {
-                                                    arrayData[i] = { title: LocalizedValues.forLocale(sortTerm.title, $translate.use()), value: term.count, key: term.key };
-                                                }
-                                                i++;
                                             }
                                         }
                                     });
                                 });
+                            });
+                        }
+                        else {
+                            // MK-924 sort countries by title in the display language
+                            if (aggregation.aggregation === 'populations-model-selectionCriteria-countriesIso') {
+                                var locale = $translate.use();
+                                sortedTerms.sort(function (a, b) {
+                                    var textA = LocalizedValues.forLocale(a.title, locale);
+                                    var textB = LocalizedValues.forLocale(b.title, locale);
+                                    return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+                                });
                             }
+                            i = 0;
+                            angular.forEach(sortedTerms, function (sortTerm) {
+                                angular.forEach(aggregation['obiba.mica.TermsAggregationResultDto.terms'], function (term) {
+                                    if (sortTerm.name === term.key) {
+                                        if (term.count) {
+                                            if (aggregation.aggregation === 'model-methods-design') {
+                                                arrayData[i] = participantBucket(term, sortTerm, entityDto);
+                                            }
+                                            else {
+                                                arrayData[i] = { title: LocalizedValues.forLocale(sortTerm.title, $translate.use()), value: term.count, key: term.key };
+                                            }
+                                            i++;
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    }
+                });
+                return arrayData;
+            }
+        };
+        this.getGraphConfig = function () {
+            return {
+                'populations-model-selectionCriteria-countriesIso': {
+                    chartType: 'geoChart',
+                    headerTitle: $filter('translate')('graphics.geo-charts'),
+                    chartAggregationName: 'populations-model-selectionCriteria-countriesIso',
+                },
+                'model-methods-design': {
+                    chartType: 'studiesDesigns',
+                    headerTitle: $filter('translate')('graphics.study-design'),
+                    chartAggregationName: 'model-methods-design',
+                },
+                'model-numberOfParticipants-participant-number-range': {
+                    chartType: 'numberParticipants',
+                    headerTitle: $filter('translate')('graphics.number-participants'),
+                    chartAggregationName: 'model-numberOfParticipants-participant-number-range',
+                },
+                'populations-dataCollectionEvents-model-bioSamples': {
+                    chartType: 'biologicalSamples',
+                    headerTitle: $filter('translate')('graphics.bio-samples'),
+                    chartAggregationName: 'populations-dataCollectionEvents-model-bioSamples',
+                },
+                'model-startYear-range': {
+                    chartType: 'startYear',
+                    headerTitle: $filter('translate')('graphics.study-start-year'),
+                    chartAggregationName: 'model-startYear-range',
+                }
+            };
+        };
+        this.initializeChartData = function (StudiesData, graphOptions, chartAggregationName, chartConfig, directiveType) {
+            var returnedScope = {
+                chartObject: {
+                    options: {}
+                }
+            };
+            if (StudiesData) {
+                var deferred = $q.defer();
+                if (!chartAggregationName) {
+                    deferred.resolve([]);
+                    return null;
+                }
+                studyTaxonomy.getTerms(chartAggregationName).then(function (terms) {
+                    var entries = getArrayByAggregation(chartAggregationName, StudiesData, terms);
+                    var data = entries.map(function (e) {
+                        if (e.participantsNbr) {
+                            return [e.title, e.value, e.participantsNbr, e.perc];
+                        }
+                        else {
+                            return [e.title, e.value];
                         }
                     });
-                    deferred.resolve(arrayData);
+                    if (data) {
+                        if (/^Table-/.exec(directiveType) !== null) {
+                            switch (chartAggregationName) {
+                                case 'populations-model-selectionCriteria-countriesIso':
+                                    returnedScope.chartObject.header = {
+                                        title: $filter('translate')(graphOptions.geoChart.header[0]),
+                                        value: $filter('translate')(graphOptions.geoChart.header[1])
+                                    };
+                                    break;
+                                case 'populations-dataCollectionEvents-model-bioSamples':
+                                    returnedScope.chartObject.header = {
+                                        title: $filter('translate')(graphOptions.biologicalSamples.header[0]),
+                                        value: $filter('translate')(graphOptions.biologicalSamples.header[1])
+                                    };
+                                    break;
+                                case 'model-methods-design':
+                                    returnedScope.chartObject.header = {
+                                        title: $filter('translate')(graphOptions.studiesDesigns.header[0]),
+                                        value: $filter('translate')(graphOptions.studiesDesigns.header[1]),
+                                        key: $filter('translate')(graphOptions.studiesDesigns.header[2]),
+                                        perc: $filter('translate')(graphOptions.studiesDesigns.header[3])
+                                    };
+                                    if (entries.length > 1) {
+                                        entries.push(entries.reduce(function (a, b) {
+                                            return {
+                                                title: $filter('translate')('total'),
+                                                value: a.value + b.value,
+                                                participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
+                                                key: '-',
+                                                perc: MathFunction.round(parseFloat(a.perc) + parseFloat(b.perc), 2)
+                                            };
+                                        }));
+                                    }
+                                    break;
+                                case 'model-numberOfParticipants-participant-number-range':
+                                    returnedScope.chartObject.header = {
+                                        title: $filter('translate')(graphOptions.numberParticipants.header[0]),
+                                        value: $filter('translate')(graphOptions.numberParticipants.header[1]),
+                                        perc: $filter('translate')(graphOptions.numberParticipants.header[2])
+                                    };
+                                    if (entries.length > 1) {
+                                        entries.push(entries.reduce(function (a, b) {
+                                            return {
+                                                title: $filter('translate')('total'),
+                                                value: a.value + b.value,
+                                                perc: MathFunction.round(parseFloat(a.perc) + parseFloat(b.perc), 2)
+                                            };
+                                        }));
+                                    }
+                                    break;
+                                case 'model-startYear-range':
+                                    returnedScope.chartObject.header = {
+                                        title: $filter('translate')(graphOptions.startYear.header[0]),
+                                        value: $filter('translate')(graphOptions.startYear.header[1]),
+                                        key: $filter('translate')(graphOptions.startYear.header[2]),
+                                        perc: $filter('translate')(graphOptions.startYear.header[3])
+                                    };
+                                    if (entries.length > 1) {
+                                        entries.push(entries.reduce(function (a, b) {
+                                            return {
+                                                title: $filter('translate')('total'),
+                                                value: a.value + b.value,
+                                                participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
+                                                key: '-',
+                                                perc: MathFunction.round(parseFloat(a.perc) + parseFloat(b.perc), 2)
+                                            };
+                                        }));
+                                    }
+                                    break;
+                            }
+                            returnedScope.chartObject.type = graphOptions[chartConfig.chartType].type;
+                            returnedScope.chartObject.data = data;
+                            returnedScope.chartObject.vocabulary = chartAggregationName;
+                            returnedScope.chartObject.entries = entries;
+                        }
+                        else {
+                            if (graphOptions[chartConfig.chartType].header.length < 3) {
+                                data.unshift([$filter('translate')(graphOptions[chartConfig.chartType].header[0]), $filter('translate')(graphOptions[chartConfig.chartType].header[1])]);
+                            }
+                            else {
+                                data.map(function (item) {
+                                    item.pop();
+                                    return item;
+                                });
+                                data.unshift([
+                                    $filter('translate')(graphOptions[chartConfig.chartType].header[0]),
+                                    $filter('translate')(graphOptions[chartConfig.chartType].header[1])
+                                ]);
+                            }
+                            returnedScope.chartObject.term = true;
+                            returnedScope.chartObject.type = graphOptions[chartConfig.chartType].type;
+                            returnedScope.chartObject.data = data;
+                            returnedScope.chartObject.options.backgroundColor = { fill: 'transparent' };
+                            angular.extend(returnedScope.chartObject.options, graphOptions[chartConfig.chartType].options);
+                            returnedScope.chartObject.options.title = $filter('translate')(graphOptions[chartConfig.chartType].title) + ' (N=' + StudiesData.totalHits + ')';
+                        }
+                    }
+                    if (chartConfig.chartType === 'geoChart') {
+                        returnedScope.chartObject.options.subtitle = $filter('translate')(graphOptions[chartConfig.chartType].subtitle);
+                        returnedScope.chartObject.d3Config = new D3GeoConfig().withData(entries)
+                            .withTitle(returnedScope.chartObject.options.title)
+                            .withSubtitle(returnedScope.chartObject.options.subtitle);
+                        if (returnedScope.chartObject.options) {
+                            returnedScope.chartObject.d3Config.withColor(graphOptions[chartConfig.chartType].options.colors);
+                        }
+                    }
+                    else {
+                        returnedScope.chartObject.d3Config = new D3ChartConfig(chartAggregationName).withType(graphOptions[chartConfig.chartType].type === 'PieChart' ? 'pieChart' : 'multiBarHorizontalChart')
+                            .withData(entries, graphOptions[chartConfig.chartType].type === 'PieChart', $filter('translate')('graphics.nbr-studies'))
+                            .withTitle($filter('translate')(graphOptions[chartConfig.chartType].title) + ' (N=' + StudiesData.totalHits + ')');
+                        if (graphOptions[chartConfig.chartType].type !== 'PieChart') {
+                            returnedScope.chartObject.d3Config.options.chart.showLegend = false;
+                        }
+                        if (returnedScope.chartObject.options && returnedScope.chartObject.options.colors) {
+                            returnedScope.chartObject.d3Config.options.chart.color = graphOptions[chartConfig.chartType].options.colors;
+                        }
+                        returnedScope.chartObject.d3Config.options.chart.legendPosition = 'right';
+                        returnedScope.chartObject.d3Config.options.chart.legend = { margin: {
+                                top: 0,
+                                right: 10,
+                                bottom: 0,
+                                left: 0
+                            } };
+                    }
+                    deferred.resolve(returnedScope);
                 });
                 return deferred.promise;
             }
         };
-    }])
+    }
+])
     .service('GraphicChartsQuery', ['RqlQueryService', 'RqlQueryUtils', '$translate', function (RqlQueryService, RqlQueryUtils, $translate) {
         this.queryDtoBuilder = function (entityIds, entityType) {
             var query;
@@ -16229,7 +16229,10 @@ ngObibaMica.graphics
             var localizedRqlQuery = angular.copy(RqlQueryService.parseQuery(query));
             RqlQueryUtils.addLocaleQuery(localizedRqlQuery, $translate.use());
             var localizedQuery = new RqlQuery().serializeArgs(localizedRqlQuery.args);
-            return RqlQueryService.prepareGraphicsQuery(localizedQuery, ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'], ['Mica_study.methods-design', 'Mica_study.start-range']);
+            return RqlQueryService.prepareGraphicsQuery(localizedQuery, ['Mica_study.populations-selectionCriteria-countriesIso',
+                'Mica_study.populations-dataCollectionEvents-bioSamples',
+                'Mica_study.numberOfParticipants-participant-number',
+            ], ['Mica_study.methods-design', 'Mica_study.start-range']);
         };
     }]);
 //# sourceMappingURL=graphics-service.js.map
@@ -18992,10 +18995,10 @@ angular.module("file-browser/views/toolbar-template.html", []).run(["$templateCa
 angular.module("graphics/views/charts-directive.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("graphics/views/charts-directive.html",
     "<div>\n" +
-    "  <div ng-if=\"chartObject.type === 'GeoChart'\">\n" +
+    "  <div ng-if=\"chartObject.type === 'geoChart'\">\n" +
     "    <obiba-geo config=\"chartObject.d3Config\"></obiba-geo>\n" +
     "  </div>\n" +
-    "  <div ng-if=\"chartObject.type !== 'GeoChart'\">\n" +
+    "  <div ng-if=\"chartObject.type !== 'geoChart'\">\n" +
     "    <obiba-nv-chart chart-config=\"chartObject.d3Config\"></obiba-nv-chart>\n" +
     "  </div>\n" +
     "</div>\n" +
@@ -19005,21 +19008,21 @@ angular.module("graphics/views/charts-directive.html", []).run(["$templateCache"
 angular.module("graphics/views/tables-directive.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("graphics/views/tables-directive.html",
     "<div>\n" +
-    "    <table ng-if=\"chartObject.entries && chartObject.entries.length\" style=\"max-height: 400px;\" class=\"table table-bordered table-striped\" fixed-header=\"chartObject.getTable().data\">\n" +
+    "    <table ng-if=\"chartObject.entries && chartObject.entries.length\" style=\"max-height: 400px;\" class=\"table table-bordered table-striped\" fixed-header=\"chartObject.getTable()\">\n" +
     "        <thead>\n" +
     "        <tr>\n" +
     "        <th ng-repeat=\"(value, header) in chartObject.header track by $index\" >\n" +
     "            {{header}}\n" +
     "            <a ng-if=\"chartObject.sortedby.length > 0\" class=\"pull-right\">\n" +
-    "                <i ng-class=\"selectedCls2(value)\" ng-click=\"changeSorting(value)\"></i>\n" +
+    "                <i ng-class=\"columnOrderClass(value)\" ng-click=\"changeSorting(value)\"></i>\n" +
     "            </a>\n" +
     "        </th>\n" +
     "        </tr>\n" +
     "        </thead>\n" +
     "        <tbody>\n" +
     "        <tr ng-repeat=\"row in chartObject.entries | orderBy:sort.sortingOrder:sort.reverse track by $index\" >\n" +
-    "            <td ng-if=\"row.title.toLowerCase()=='total'\"><b>{{row.title}}</b></td>\n" +
     "            <td ng-if=\"row.title.toLowerCase()!='total'\">{{row.title}}</td>\n" +
+    "            <td ng-if=\"row.title.toLowerCase()=='total'\"><b>{{row.title}}</b></td>\n" +
     "            <td><a href ng-click=\"updateCriteria(row.key, chartObject.vocabulary)\">{{localizedNumber(row.value)}}</a></td>\n" +
     "            <td ng-if=\"row.participantsNbr\">{{localizedNumber(row.participantsNbr)}}</td>\n" +
     "            <td ng-if=\"row.participantsNbr==0\">-</td>\n" +
@@ -20829,42 +20832,30 @@ angular.module("search/components/result/graphics-result/component.html", []).ru
     "<div>\n" +
     "  <div ng-if=\"loading\" class=\"loading\"></div>\n" +
     "\n" +
-    "  <p class=\"help-block\" ng-if=\"!loading && !noResults && !hasChartObjects()\" translate>search.no-graphic-result</p>\n" +
+    "  <p class=\"help-block\" ng-if=\"!loading && !noResults  && !dtosResult\" translate>search.no-graphic-result</p>\n" +
     "  <p class=\"help-block\" ng-if=\"!loading && noResults\" translate>search.no-results</p>\n" +
     "\n" +
     "  <div ng-repeat=\"chart in chartObjects\" class=\"panel panel-default\">\n" +
     "    <div class=\"panel-heading\">\n" +
-    "      {{chart.headerTitle}}\n" +
+    "      {{chart.chartConfig.headerTitle}}\n" +
     "    </div>\n" +
     "    <div class=\"panel-body\">\n" +
     "      <div class=\"row\">\n" +
     "        <div class=\"col-xs-12 col-lg-6\">\n" +
     "          <div obiba-chart\n" +
-    "               field-transformer=\"chart.chartObject.fieldTransformer\"\n" +
-    "               chart-type=\"chart.chartObject.type\"\n" +
-    "               chart-aggregation-name=\"chart.chartObject.vocabulary\"\n" +
-    "               chart-entity-dto=\"'studyResultDto'\"\n" +
-    "               chart-options-name=\"chart.chartObject.optionsName\"\n" +
-    "               chart-options=\"chart.chartObject.options\"\n" +
-    "               chart-header=\"chart.getTable().data[0]\"\n" +
-    "               chart-title-graph=\"chart.chartObject.title\"\n" +
-    "               chart-subtitle-graph=\"chart.chartObject.subtitle\"\n" +
-    "               chart-select-graphic=\"true\"\n" +
+    "               chart-config = \"chart.chartConfig\"\n" +
+    "               chart-type=\"chart.chartConfig.chartType\"\n" +
+    "               chart-aggregation-name=\"chart.chartConfig.chartAggregationName\"\n" +
     "               chart-studies-data=\"dtosResult\"\n" +
     "          ></div>\n" +
     "        </div>\n" +
-    "        <div class=\"col-md-6\"\n" +
+    "        <div class=\"col-xs-12 col-lg-6\"\n" +
     "             obiba-table\n" +
-    "             chart-type=\"{{'Table-' + chart.chartObject.type}}\"\n" +
-    "             chart-aggregation-name=\"chart.chartObject.vocabulary\"\n" +
-    "             chart-entity-dto=\"'studyResultDto'\"\n" +
-    "             chart-options-name=\"chart.chartObject.optionsName\"\n" +
-    "             chart-header=\"chart.getTable().data[0]\"\n" +
-    "             chart-select-graphic=\"true\"\n" +
-    "             chart-ordered=\"chart.chartObject.ordered\"\n" +
-    "             chart-not-ordered=\"chart.chartObject.notOrdered\"\n" +
-    "             chart-sortedby=\"chart.chartObject.sortedby\"\n" +
-    "             chart-studies-data=\"dtosResult\">\n" +
+    "             chart-config = \"chart.chartConfig\"\n" +
+    "             chart-type=\"{{'Table-' + chart.chartConfig.chartType}}\"\n" +
+    "             chart-aggregation-name=\"chart.chartConfig.chartAggregationName\"\n" +
+    "             chart-studies-data=\"dtosResult\"\n" +
+    "             on-update-criteria=onUpdateCriteria>\n" +
     "        </div>\n" +
     "      </div>\n" +
     "    </div>\n" +
