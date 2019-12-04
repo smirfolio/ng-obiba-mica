@@ -47,40 +47,48 @@ ngObibaMica.graphics
             sortingOrder : $scope.chartObject.sortedby[0],
             reverse : false
           };
-          if ($scope.sort.sortingOrder !== '') {
+          if ($scope.sort.sortingOrder !== '' && $scope.chartObject.ordered) {
             $scope.chartObject.entries = Object.keys($scope.chartObject.entries).map(function(key){
               return $scope.chartObject.entries[key];
             });
             $scope.chartObject.entries = $filter('orderBy')($scope.chartObject.entries, $scope.sort.sortingOrder, $scope.sort.reverse);
           }
         }
-
-
-        $scope.changeSorting = function (column) {
-          if($scope.chartObject.sortedby.length > 0) {
-            var sort = $scope.sort;
-            if (sort.sortingOrder === column) {
-              sort.reverse = !$scope.sort.reverse;
-            } else {
-              sort.sortingOrder = column;
-              sort.reverse = false;
-            }
-            $scope.sort = sort;
-          }
-        };
-        $scope.columnOrderClass = function (column) {
-          if($scope.chartObject.sortedby.length > 0) {
-            if (column === $scope.sort.sortingOrder) {
-              return ('fa fa-chevron-' + (($scope.sort.reverse) ? 'down' : 'up'));
-            } else {
-              return 'fa fa-sort';
-            }
-          }
-        };
-        $scope.localizedNumber = function (number){
-          return LocalizedValues.formatNumber(number);
-        };
+        else{
+          $scope.sort = {
+            sortingOrder : 'title',
+            reverse : false
+          };
+          // always sort by default column 'title'
+          $scope.chartObject.entries = $filter('orderBy')($scope.chartObject.entries, 'title');
+        }
       }
+
+      $scope.changeSorting = function (column) {
+        if($scope.chartObject.sortedby.length > 0) {
+          var sort = $scope.sort;
+          if (sort.sortingOrder === column) {
+            sort.reverse = !$scope.sort.reverse;
+          } else {
+            sort.sortingOrder = column;
+            sort.reverse = false;
+          }
+          $scope.sort = sort;
+        }
+      };
+      $scope.columnOrderClass = function (column) {
+        if($scope.chartObject.sortedby.length > 0) {
+          if (column === $scope.sort.sortingOrder) {
+            return ('fa fa-chevron-' + (($scope.sort.reverse) ? 'down' : 'up'));
+          } else {
+            return 'fa fa-sort';
+          }
+        }
+      };
+      $scope.localizedNumber = function (number){
+        return LocalizedValues.formatNumber(number);
+      };
+
       $scope.updateCriteria = function(key, vocabulary) {
         RqlQueryService.createCriteriaItem('study', 'Mica_study', vocabulary, key).then(function (item) {
           var entity = graphOptions.entityType;
