@@ -75,7 +75,7 @@ ngObibaMica.utils
 
               var tdElems = elem.querySelector('tbody tr:first-child td:nth-child(' + (i + 1) + ')');
               var tfElems = elem.querySelector('tfoot tr:first-child td:nth-child(' + (i + 1) + ')');
-              var columnWidth = tdElems ? tdElems.offsetWidth : thElem.offsetWidth;
+              var columnWidth = Math.ceil(elem.querySelectorAll('thead')[0].offsetWidth/(elem.querySelectorAll('thead th').length || 1));
 
               if(tdElems) {
                 tdElems.style.width = columnWidth + 'px';
