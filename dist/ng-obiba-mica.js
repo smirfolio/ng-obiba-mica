@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-12-04
+ * Date: 2019-12-06
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -281,7 +281,7 @@ function NgObibaMicaTemplateUrlFactory() {
                             angular.forEach(elem.querySelectorAll('tr:first-child th'), function (thElem, i) {
                                 var tdElems = elem.querySelector('tbody tr:first-child td:nth-child(' + (i + 1) + ')');
                                 var tfElems = elem.querySelector('tfoot tr:first-child td:nth-child(' + (i + 1) + ')');
-                                var columnWidth = tdElems ? tdElems.offsetWidth : thElem.offsetWidth;
+                                var columnWidth = Math.ceil(elem.querySelectorAll('thead')[0].offsetWidth / (elem.querySelectorAll('thead th').length || 1));
                                 if (tdElems) {
                                     tdElems.style.width = columnWidth + 'px';
                                 }
@@ -15639,6 +15639,7 @@ ngObibaMica.graphics
                     sortingOrder: 'title',
                     reverse: false
                 };
+                // always sort by default column 'title'
                 $scope.chartObject.entries = $filter('orderBy')($scope.chartObject.entries, 'title');
             }
         }
@@ -16101,12 +16102,14 @@ ngObibaMica.graphics
                                         title: $filter('translate')(graphOptions.geoChart.header[0]),
                                         value: $filter('translate')(graphOptions.geoChart.header[1])
                                     };
+                                    returnedScope.chartObject.headerLength = Object.keys(graphOptions.geoChart.header).length;
                                     break;
                                 case 'populations-dataCollectionEvents-model-bioSamples':
                                     returnedScope.chartObject.header = {
                                         title: $filter('translate')(graphOptions.biologicalSamples.header[0]),
                                         value: $filter('translate')(graphOptions.biologicalSamples.header[1])
                                     };
+                                    returnedScope.chartObject.headerLength = Object.keys(graphOptions.biologicalSamples.header).length;
                                     break;
                                 case 'model-methods-design':
                                     returnedScope.chartObject.header = {
@@ -16115,12 +16118,13 @@ ngObibaMica.graphics
                                         key: $filter('translate')(graphOptions.studiesDesigns.header[2]),
                                         perc: $filter('translate')(graphOptions.studiesDesigns.header[3])
                                     };
+                                    returnedScope.chartObject.headerLength = Object.keys(graphOptions.studiesDesigns.header).length;
                                     if (entries.length > 1) {
                                         entries.push(entries.reduce(function (a, b) {
                                             return {
                                                 title: $filter('translate')('total'),
                                                 value: a.value + b.value,
-                                                participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
+                                                participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr.header),
                                                 key: '-',
                                                 perc: MathFunction.round(parseFloat(a.perc) + parseFloat(b.perc), 2)
                                             };
@@ -16133,6 +16137,7 @@ ngObibaMica.graphics
                                         value: $filter('translate')(graphOptions.numberParticipants.header[1]),
                                         perc: $filter('translate')(graphOptions.numberParticipants.header[2])
                                     };
+                                    returnedScope.chartObject.headerLength = Object.keys(graphOptions.numberParticipants.header).length;
                                     if (entries.length > 1) {
                                         entries.push(entries.reduce(function (a, b) {
                                             return {
@@ -16150,6 +16155,7 @@ ngObibaMica.graphics
                                         key: $filter('translate')(graphOptions.startYear.header[2]),
                                         perc: $filter('translate')(graphOptions.startYear.header[3])
                                     };
+                                    returnedScope.chartObject.headerLength = Object.keys(graphOptions.startYear.header).length;
                                     if (entries.length > 1) {
                                         entries.push(entries.reduce(function (a, b) {
                                             return {
@@ -19018,7 +19024,7 @@ angular.module("graphics/views/tables-directive.html", []).run(["$templateCache"
     "    <table ng-if=\"chartObject.entries && chartObject.entries.length\" style=\"max-height: 400px;\" class=\"table table-bordered table-striped\" fixed-header=\"chartObject.getTable()\">\n" +
     "        <thead>\n" +
     "        <tr>\n" +
-    "        <th ng-repeat=\"(value, header) in chartObject.header track by $index\" >\n" +
+    "        <th ng-repeat=\"(value, header) in chartObject.header track by $index\" width=\"{{100/chartObject.headerLength}}%\" >\n" +
     "            {{header}}\n" +
     "            <a ng-if=\"chartObject.sortedby.length > 0\" class=\"pull-right\">\n" +
     "                <i ng-class=\"columnOrderClass(value)\" ng-click=\"changeSorting(value)\"></i>\n" +
