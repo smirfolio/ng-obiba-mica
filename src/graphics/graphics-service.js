@@ -394,12 +394,14 @@ ngObibaMica.graphics
                       title: $filter('translate')(graphOptions.geoChart.header[0]),
                       value: $filter('translate')(graphOptions.geoChart.header[1])
                     };
+                    returnedScope.chartObject.headerLength =  Object.keys(graphOptions.geoChart.header).length;
                     break;
                   case 'populations-dataCollectionEvents-model-bioSamples':
                     returnedScope.chartObject.header = {
                       title: $filter('translate')(graphOptions.biologicalSamples.header[0]),
                       value: $filter('translate')(graphOptions.biologicalSamples.header[1])
                     };
+                    returnedScope.chartObject.headerLength =  Object.keys(graphOptions.biologicalSamples.header).length;
                     break;
                   case  'model-methods-design':
                     returnedScope.chartObject.header = {
@@ -408,6 +410,7 @@ ngObibaMica.graphics
                       key: $filter('translate')(graphOptions.studiesDesigns.header[2]),
                       perc: $filter('translate')(graphOptions.studiesDesigns.header[3])
                     };
+                    returnedScope.chartObject.headerLength =  Object.keys(graphOptions.studiesDesigns.header).length;
                     if(entries.length>1){
                       entries.push(entries.reduce(function (a, b){
                         return {
@@ -426,6 +429,7 @@ ngObibaMica.graphics
                       value: $filter('translate')(graphOptions.numberParticipants.header[1]),
                       perc: $filter('translate')(graphOptions.numberParticipants.header[2])
                     };
+                    returnedScope.chartObject.headerLength = Object.keys(graphOptions.numberParticipants.header).length;
                     if(entries.length>1){
                       entries.push(entries.reduce(function (a, b){
                         return {
@@ -443,6 +447,7 @@ ngObibaMica.graphics
                       key: $filter('translate')(graphOptions.startYear.header[2]),
                       perc: $filter('translate')(graphOptions.startYear.header[3])
                     };
+                    returnedScope.chartObject.headerLength =  Object.keys(graphOptions.startYear.header).length;
                     if(entries.length>1){
                       entries.push(entries.reduce(function (a, b){
                         return {

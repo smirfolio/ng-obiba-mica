@@ -2,7 +2,7 @@
     <table ng-if="chartObject.entries && chartObject.entries.length" style="max-height: 400px;" class="table table-bordered table-striped" fixed-header="chartObject.getTable()">
         <thead>
         <tr>
-        <th ng-repeat="(value, header) in chartObject.header track by $index" >
+        <th ng-repeat="(value, header) in chartObject.header track by $index" width="{{100/chartObject.headerLength}}%" >
             {{header}}
             <a ng-if="chartObject.sortedby.length > 0" class="pull-right">
                 <i ng-class="columnOrderClass(value)" ng-click="changeSorting(value)"></i>
