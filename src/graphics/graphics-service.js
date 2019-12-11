@@ -386,6 +386,7 @@ ngObibaMica.graphics
           }
 
           studyTaxonomy.getTerms(chartAggregationName).then(function(terms) {
+          if(terms){
             var entries = getArrayByAggregation(chartAggregationName, StudiesData,terms);
 
             var data = entries.map(function(e) {
@@ -529,7 +530,8 @@ ngObibaMica.graphics
               if (returnedScope.chartObject.options) {
                 returnedScope.chartObject.d3Config.withColor(graphOptions[chartConfig.chartType].options.colors);
               }
-            } else {
+            }
+              else {
 
               returnedScope.chartObject.d3Config = new D3ChartConfig(chartAggregationName).withType(graphOptions[chartConfig.chartType].type === 'PieChart' ? 'pieChart' : 'multiBarHorizontalChart')
                 .withData(entries, graphOptions[chartConfig.chartType].type === 'PieChart', $filter('translate')('graphics.nbr-studies'))
@@ -551,6 +553,7 @@ ngObibaMica.graphics
                 }};
             }
             deferred.resolve(returnedScope);
+            }
           });
           return deferred.promise;
         }
