@@ -95,7 +95,7 @@ ngObibaMica.graphics
           },
           numberParticipants: {
             type: 'PieChart',
-            header: ['graphics.number-participants', 'graphics.nbr-studies', 'graphics.percentage.studies'],
+            header: ['graphics.number-participants', 'graphics.nbr-studies', 'graphics.number-participants','graphics.percentage.studies'],
             title: 'graphics.number-participants-chart-title',
             aggregationName: 'model-numberOfParticipants-participant-number-range',
             optionsName: 'numberParticipants',
@@ -243,6 +243,10 @@ ngObibaMica.graphics
         return deferred.promise;
       };
 
+      var percentageCalc = function(count, total){
+        return MathFunction.round((100* count)/total, 2) || '0';
+      };
+
       var participantBucket = function(term, sortTerm, entityDto){
         var numberOfParticipant = 0;
         var arrayData;
@@ -257,7 +261,7 @@ ngObibaMica.graphics
           value: term.count,
           participantsNbr: numberOfParticipant,
           key: term.key,
-          perc: MathFunction.round((100* term.count)/entityDto.totalHits, 2)
+          perc: percentageCalc(term.count, entityDto.totalHits)
         };
         return arrayData;
       };
@@ -281,17 +285,24 @@ ngObibaMica.graphics
                         if (aggregation.aggregation === aggregationName) {
                           if (aggregation['obiba.mica.RangeAggregationResultDto.ranges']) {
                             if (sortTerm.name === term.key) {
-                              if (term.count) {
-                                if (aggregation.aggregation === 'model-startYear-range') {
+                              if (aggregation.aggregation === 'model-numberOfParticipants-participant-number-range') {
+                                arrayData[i] = participantBucket(term, sortTerm, entityDto, arrayData);
+                                i++;
+                              }
+                              else{
+                                if (term.count) {
+                                  if (aggregation.aggregation === 'model-startYear-range') {
                                     arrayData[i] = participantBucket(term, sortTerm, entityDto, arrayData);
                                   } else {
                                     arrayData[i] = {
                                       title: LocalizedValues.forLocale(sortTerm.title, $translate.use()),
                                       value: term.count,
-                                      key: term.key, perc: MathFunction.round((100* term.count)/entityDto.totalHits, 2)
+                                      key: term.key,
+                                      perc: percentageCalc(term.count, entityDto.totalHits)
                                     };
                                   }
-                                i++;
+                                  i++;
+                                }
                               }
                             }
                           }
@@ -375,6 +386,7 @@ ngObibaMica.graphics
           }
 
           studyTaxonomy.getTerms(chartAggregationName).then(function(terms) {
+          if(terms){
             var entries = getArrayByAggregation(chartAggregationName, StudiesData,terms);
 
             var data = entries.map(function(e) {
@@ -427,15 +439,36 @@ ngObibaMica.graphics
                     returnedScope.chartObject.header = {
                       title: $filter('translate')(graphOptions.numberParticipants.header[0]),
                       value: $filter('translate')(graphOptions.numberParticipants.header[1]),
-                      perc: $filter('translate')(graphOptions.numberParticipants.header[2])
+                      participantsNbr: $filter('translate')(graphOptions.numberParticipants.header[2]),
+                      perc: $filter('translate')(graphOptions.numberParticipants.header[3])
                     };
                     returnedScope.chartObject.headerLength = Object.keys(graphOptions.numberParticipants.header).length;
                     if(entries.length>1){
+                      var total = 0;
+                      var totalPerc = 0;
+
+                      var totalEntries = entries.reduce(function (a, b){
+                        return {
+                          title: $filter('translate')('graphics.total'),
+                          value: total + (a.value + b.value),
+                          participantsNbr:  parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
+                          perc: MathFunction.round(totalPerc + (parseFloat(a.perc) + parseFloat(b.perc)), 2)
+                        };
+                      });
+
+                      entries.push({
+                        title: $filter('translate')('graphics.undetermined'),
+                        value: StudiesData.totalHits - totalEntries.value,
+                        participantsNbr:  '-',
+                        perc: MathFunction.round(100 - (parseFloat(totalEntries.perc)), 2)
+                      });
+
                       entries.push(entries.reduce(function (a, b){
                         return {
-                          title: $filter('translate')('total'),
-                          value: a.value + b.value,
-                          perc: MathFunction.round(parseFloat(a.perc) + parseFloat(b.perc), 2)
+                          title: $filter('translate')('graphics.total'),
+                          value: total + (a.value + b.value),
+                          participantsNbr:  (a.participantsNbr!=='-'?parseFloat(a.participantsNbr):0) + (b.participantsNbr!=='-'?parseFloat(b.participantsNbr):0),
+                          perc: MathFunction.round(totalPerc + (parseFloat(a.perc) + parseFloat(b.perc)), 2)
                         };
                       }));
                     }
@@ -497,7 +530,8 @@ ngObibaMica.graphics
               if (returnedScope.chartObject.options) {
                 returnedScope.chartObject.d3Config.withColor(graphOptions[chartConfig.chartType].options.colors);
               }
-            } else {
+            }
+              else {
 
               returnedScope.chartObject.d3Config = new D3ChartConfig(chartAggregationName).withType(graphOptions[chartConfig.chartType].type === 'PieChart' ? 'pieChart' : 'multiBarHorizontalChart')
                 .withData(entries, graphOptions[chartConfig.chartType].type === 'PieChart', $filter('translate')('graphics.nbr-studies'))
@@ -519,6 +553,7 @@ ngObibaMica.graphics
                 }};
             }
             deferred.resolve(returnedScope);
+            }
           });
           return deferred.promise;
         }
@@ -543,7 +578,8 @@ ngObibaMica.graphics
           'Mica_study.populations-dataCollectionEvents-bioSamples',
           'Mica_study.numberOfParticipants-participant-number',
         ],
-        ['Mica_study.methods-design', 'Mica_study.start-range']
+        ['Mica_study.methods-design', 'Mica_study.start-range', 'Mica_study.numberOfParticipants-participant-number'],
+        true
       );
     };
   }]);

@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-12-06
+ * Date: 2019-12-11
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -6086,7 +6086,7 @@ var TaxonomyCartFilter = /** @class */ (function () {
                         break;
                     case DISPLAY_TYPES.GRAPHICS:
                         $scope.search.loading = true;
-                        $scope.search.executedQuery = RqlQueryService.prepareGraphicsQuery(localizedQuery, ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'], ['Mica_study.methods-design', 'Mica_study.start-range']);
+                        $scope.search.executedQuery = RqlQueryService.prepareGraphicsQuery(localizedQuery, ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'], ['Mica_study.methods-design', 'Mica_study.start-range', 'Mica_study.numberOfParticipants-participant-number']);
                         JoinQuerySearchResource.studies({ query: $scope.search.executedQuery }, function onSuccess(response) {
                             $scope.search.result.graphics = response;
                             $scope.search.loading = false;
@@ -7879,7 +7879,7 @@ function typeToTarget(type) {
             variable.args.push(aggregate);
             return parsedQuery.serializeArgs(parsedQuery.args);
         };
-        this.prepareGraphicsQuery = function (query, aggregateArgs, bucketArgs) {
+        this.prepareGraphicsQuery = function (query, aggregateArgs, bucketArgs, ensureIndividualStudies) {
             var parsedQuery = this.parseQuery(query);
             // aggregate
             var aggregate = new RqlQuery(RQL_NODE.AGGREGATE);
@@ -7919,7 +7919,19 @@ function typeToTarget(type) {
                 study = new RqlQuery('study');
                 parsedQuery.args.push(study);
             }
-            if (!hasQuery) {
+            if (ensureIndividualStudies) {
+                // Make sure the graphics query is done on individual studies
+                var classNameQuery = findQueryInTargetByVocabulary(study, 'className');
+                if (!classNameQuery) {
+                    classNameQuery = new RqlQuery(RQL_NODE.IN);
+                    classNameQuery.args = ['Mica_study.className', 'Study'];
+                    RqlQueryUtils.addQuery(study, classNameQuery);
+                }
+                else {
+                    classNameQuery.args[1] = 'Study';
+                }
+            }
+            else if (!hasQuery) {
                 study.args.push(new RqlQuery(RQL_NODE.MATCH));
             }
             study.args.push(aggregate);
@@ -11861,7 +11873,9 @@ ngObibaMica.search
     'RqlQueryService',
     '$filter',
     '$scope',
-    function (GraphicChartsConfig, GraphicChartsUtils, RqlQueryService, $filter, $scope) {
+    'TaxonomyResource',
+    'VocabularyService',
+    function (GraphicChartsConfig, GraphicChartsUtils, RqlQueryService, $filter, $scope, TaxonomyResource, VocabularyService) {
         $scope.updateCriteria = function (key, vocabulary) {
             RqlQueryService.createCriteriaItem('study', 'Mica_study', vocabulary, key).then(function (item) {
                 $scope.onUpdateCriteria(item, 'studies');
@@ -11874,16 +11888,34 @@ ngObibaMica.search
             $scope.chartObjects = {};
             $scope.noResults = true;
             var graphs = GraphicChartsUtils.getGraphConfig();
-            if (result && result.studyResultDto.totalHits) {
-                $scope.noResults = false;
-                $scope.dtosResult = result;
-                $scope.chartObjects = [];
-                Object.keys(graphs).forEach(function (Chart) {
-                    var chartOption = {
-                        chartConfig: null
+            var studyTaxonomy = {};
+            if (!studyTaxonomy.vocabularies) {
+                TaxonomyResource.get({
+                    target: 'study',
+                    taxonomy: 'Mica_study'
+                }).$promise.then(function (taxonomy) {
+                    studyTaxonomy.vocabularies = angular.copy(taxonomy.vocabularies);
+                    var haveTaxonomy = function (aggregationName) {
+                        return studyTaxonomy.vocabularies.find(function (vocabulary) {
+                            if (VocabularyService.vocabularyAlias(vocabulary) === aggregationName) {
+                                return true;
+                            }
+                        });
                     };
-                    chartOption.chartConfig = graphs[Chart];
-                    $scope.chartObjects.push(chartOption);
+                    if (result && result.studyResultDto.totalHits) {
+                        $scope.noResults = false;
+                        $scope.dtosResult = result;
+                        $scope.chartObjects = [];
+                        Object.keys(graphs).forEach(function (Chart) {
+                            var chartOption = {
+                                chartConfig: null
+                            };
+                            if (haveTaxonomy(graphs[Chart].chartAggregationName)) {
+                                chartOption.chartConfig = graphs[Chart];
+                                $scope.chartObjects.push(chartOption);
+                            }
+                        });
+                    }
                 });
                 $scope.dtosResult = result;
             }
@@ -15636,11 +15668,9 @@ ngObibaMica.graphics
             }
             else {
                 $scope.sort = {
-                    sortingOrder: 'title',
+                    sortingOrder: false,
                     reverse: false
                 };
-                // always sort by default column 'title'
-                $scope.chartObject.entries = $filter('orderBy')($scope.chartObject.entries, 'title');
             }
         }
         $scope.changeSorting = function (column) {
@@ -15818,7 +15848,7 @@ ngObibaMica.graphics
                 },
                 numberParticipants: {
                     type: 'PieChart',
-                    header: ['graphics.number-participants', 'graphics.nbr-studies', 'graphics.percentage.studies'],
+                    header: ['graphics.number-participants', 'graphics.nbr-studies', 'graphics.number-participants', 'graphics.percentage.studies'],
                     title: 'graphics.number-participants-chart-title',
                     aggregationName: 'model-numberOfParticipants-participant-number-range',
                     optionsName: 'numberParticipants',
@@ -15955,6 +15985,9 @@ ngObibaMica.graphics
             }
             return deferred.promise;
         };
+        var percentageCalc = function (count, total) {
+            return MathFunction.round((100 * count) / total, 2) || '0';
+        };
         var participantBucket = function (term, sortTerm, entityDto) {
             var numberOfParticipant = 0;
             var arrayData;
@@ -15969,7 +16002,7 @@ ngObibaMica.graphics
                 value: term.count,
                 participantsNbr: numberOfParticipant,
                 key: term.key,
-                perc: MathFunction.round((100 * term.count) / entityDto.totalHits, 2)
+                perc: percentageCalc(term.count, entityDto.totalHits)
             };
             return arrayData;
         };
@@ -15991,18 +16024,25 @@ ngObibaMica.graphics
                                         if (aggregation.aggregation === aggregationName) {
                                             if (aggregation['obiba.mica.RangeAggregationResultDto.ranges']) {
                                                 if (sortTerm.name === term.key) {
-                                                    if (term.count) {
-                                                        if (aggregation.aggregation === 'model-startYear-range') {
-                                                            arrayData[i] = participantBucket(term, sortTerm, entityDto, arrayData);
-                                                        }
-                                                        else {
-                                                            arrayData[i] = {
-                                                                title: LocalizedValues.forLocale(sortTerm.title, $translate.use()),
-                                                                value: term.count,
-                                                                key: term.key, perc: MathFunction.round((100 * term.count) / entityDto.totalHits, 2)
-                                                            };
-                                                        }
+                                                    if (aggregation.aggregation === 'model-numberOfParticipants-participant-number-range') {
+                                                        arrayData[i] = participantBucket(term, sortTerm, entityDto, arrayData);
                                                         i++;
+                                                    }
+                                                    else {
+                                                        if (term.count) {
+                                                            if (aggregation.aggregation === 'model-startYear-range') {
+                                                                arrayData[i] = participantBucket(term, sortTerm, entityDto, arrayData);
+                                                            }
+                                                            else {
+                                                                arrayData[i] = {
+                                                                    title: LocalizedValues.forLocale(sortTerm.title, $translate.use()),
+                                                                    value: term.count,
+                                                                    key: term.key,
+                                                                    perc: percentageCalc(term.count, entityDto.totalHits)
+                                                                };
+                                                            }
+                                                            i++;
+                                                        }
                                                     }
                                                 }
                                             }
@@ -16085,145 +16125,165 @@ ngObibaMica.graphics
                     return null;
                 }
                 studyTaxonomy.getTerms(chartAggregationName).then(function (terms) {
-                    var entries = getArrayByAggregation(chartAggregationName, StudiesData, terms);
-                    var data = entries.map(function (e) {
-                        if (e.participantsNbr) {
-                            return [e.title, e.value, e.participantsNbr, e.perc];
-                        }
-                        else {
-                            return [e.title, e.value];
-                        }
-                    });
-                    if (data) {
-                        if (/^Table-/.exec(directiveType) !== null) {
-                            switch (chartAggregationName) {
-                                case 'populations-model-selectionCriteria-countriesIso':
-                                    returnedScope.chartObject.header = {
-                                        title: $filter('translate')(graphOptions.geoChart.header[0]),
-                                        value: $filter('translate')(graphOptions.geoChart.header[1])
-                                    };
-                                    returnedScope.chartObject.headerLength = Object.keys(graphOptions.geoChart.header).length;
-                                    break;
-                                case 'populations-dataCollectionEvents-model-bioSamples':
-                                    returnedScope.chartObject.header = {
-                                        title: $filter('translate')(graphOptions.biologicalSamples.header[0]),
-                                        value: $filter('translate')(graphOptions.biologicalSamples.header[1])
-                                    };
-                                    returnedScope.chartObject.headerLength = Object.keys(graphOptions.biologicalSamples.header).length;
-                                    break;
-                                case 'model-methods-design':
-                                    returnedScope.chartObject.header = {
-                                        title: $filter('translate')(graphOptions.studiesDesigns.header[0]),
-                                        value: $filter('translate')(graphOptions.studiesDesigns.header[1]),
-                                        key: $filter('translate')(graphOptions.studiesDesigns.header[2]),
-                                        perc: $filter('translate')(graphOptions.studiesDesigns.header[3])
-                                    };
-                                    returnedScope.chartObject.headerLength = Object.keys(graphOptions.studiesDesigns.header).length;
-                                    if (entries.length > 1) {
-                                        entries.push(entries.reduce(function (a, b) {
-                                            return {
-                                                title: $filter('translate')('total'),
-                                                value: a.value + b.value,
-                                                participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr.header),
-                                                key: '-',
-                                                perc: MathFunction.round(parseFloat(a.perc) + parseFloat(b.perc), 2)
-                                            };
-                                        }));
-                                    }
-                                    break;
-                                case 'model-numberOfParticipants-participant-number-range':
-                                    returnedScope.chartObject.header = {
-                                        title: $filter('translate')(graphOptions.numberParticipants.header[0]),
-                                        value: $filter('translate')(graphOptions.numberParticipants.header[1]),
-                                        perc: $filter('translate')(graphOptions.numberParticipants.header[2])
-                                    };
-                                    returnedScope.chartObject.headerLength = Object.keys(graphOptions.numberParticipants.header).length;
-                                    if (entries.length > 1) {
-                                        entries.push(entries.reduce(function (a, b) {
-                                            return {
-                                                title: $filter('translate')('total'),
-                                                value: a.value + b.value,
-                                                perc: MathFunction.round(parseFloat(a.perc) + parseFloat(b.perc), 2)
-                                            };
-                                        }));
-                                    }
-                                    break;
-                                case 'model-startYear-range':
-                                    returnedScope.chartObject.header = {
-                                        title: $filter('translate')(graphOptions.startYear.header[0]),
-                                        value: $filter('translate')(graphOptions.startYear.header[1]),
-                                        key: $filter('translate')(graphOptions.startYear.header[2]),
-                                        perc: $filter('translate')(graphOptions.startYear.header[3])
-                                    };
-                                    returnedScope.chartObject.headerLength = Object.keys(graphOptions.startYear.header).length;
-                                    if (entries.length > 1) {
-                                        entries.push(entries.reduce(function (a, b) {
-                                            return {
-                                                title: $filter('translate')('total'),
-                                                value: a.value + b.value,
-                                                participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
-                                                key: '-',
-                                                perc: MathFunction.round(parseFloat(a.perc) + parseFloat(b.perc), 2)
-                                            };
-                                        }));
-                                    }
-                                    break;
-                            }
-                            returnedScope.chartObject.type = graphOptions[chartConfig.chartType].type;
-                            returnedScope.chartObject.data = data;
-                            returnedScope.chartObject.vocabulary = chartAggregationName;
-                            returnedScope.chartObject.entries = entries;
-                        }
-                        else {
-                            if (graphOptions[chartConfig.chartType].header.length < 3) {
-                                data.unshift([$filter('translate')(graphOptions[chartConfig.chartType].header[0]), $filter('translate')(graphOptions[chartConfig.chartType].header[1])]);
+                    if (terms) {
+                        var entries = getArrayByAggregation(chartAggregationName, StudiesData, terms);
+                        var data = entries.map(function (e) {
+                            if (e.participantsNbr) {
+                                return [e.title, e.value, e.participantsNbr, e.perc];
                             }
                             else {
-                                data.map(function (item) {
-                                    item.pop();
-                                    return item;
-                                });
-                                data.unshift([
-                                    $filter('translate')(graphOptions[chartConfig.chartType].header[0]),
-                                    $filter('translate')(graphOptions[chartConfig.chartType].header[1])
-                                ]);
+                                return [e.title, e.value];
                             }
-                            returnedScope.chartObject.term = true;
-                            returnedScope.chartObject.type = graphOptions[chartConfig.chartType].type;
-                            returnedScope.chartObject.data = data;
-                            returnedScope.chartObject.options.backgroundColor = { fill: 'transparent' };
-                            angular.extend(returnedScope.chartObject.options, graphOptions[chartConfig.chartType].options);
-                            returnedScope.chartObject.options.title = $filter('translate')(graphOptions[chartConfig.chartType].title) + ' (N=' + StudiesData.totalHits + ')';
+                        });
+                        if (data) {
+                            if (/^Table-/.exec(directiveType) !== null) {
+                                switch (chartAggregationName) {
+                                    case 'populations-model-selectionCriteria-countriesIso':
+                                        returnedScope.chartObject.header = {
+                                            title: $filter('translate')(graphOptions.geoChart.header[0]),
+                                            value: $filter('translate')(graphOptions.geoChart.header[1])
+                                        };
+                                        returnedScope.chartObject.headerLength = Object.keys(graphOptions.geoChart.header).length;
+                                        break;
+                                    case 'populations-dataCollectionEvents-model-bioSamples':
+                                        returnedScope.chartObject.header = {
+                                            title: $filter('translate')(graphOptions.biologicalSamples.header[0]),
+                                            value: $filter('translate')(graphOptions.biologicalSamples.header[1])
+                                        };
+                                        returnedScope.chartObject.headerLength = Object.keys(graphOptions.biologicalSamples.header).length;
+                                        break;
+                                    case 'model-methods-design':
+                                        returnedScope.chartObject.header = {
+                                            title: $filter('translate')(graphOptions.studiesDesigns.header[0]),
+                                            value: $filter('translate')(graphOptions.studiesDesigns.header[1]),
+                                            key: $filter('translate')(graphOptions.studiesDesigns.header[2]),
+                                            perc: $filter('translate')(graphOptions.studiesDesigns.header[3])
+                                        };
+                                        returnedScope.chartObject.headerLength = Object.keys(graphOptions.studiesDesigns.header).length;
+                                        if (entries.length > 1) {
+                                            entries.push(entries.reduce(function (a, b) {
+                                                return {
+                                                    title: $filter('translate')('total'),
+                                                    value: a.value + b.value,
+                                                    participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
+                                                    key: '-',
+                                                    perc: MathFunction.round(parseFloat(a.perc) + parseFloat(b.perc), 2)
+                                                };
+                                            }));
+                                        }
+                                        break;
+                                    case 'model-numberOfParticipants-participant-number-range':
+                                        returnedScope.chartObject.header = {
+                                            title: $filter('translate')(graphOptions.numberParticipants.header[0]),
+                                            value: $filter('translate')(graphOptions.numberParticipants.header[1]),
+                                            participantsNbr: $filter('translate')(graphOptions.numberParticipants.header[2]),
+                                            perc: $filter('translate')(graphOptions.numberParticipants.header[3])
+                                        };
+                                        returnedScope.chartObject.headerLength = Object.keys(graphOptions.numberParticipants.header).length;
+                                        if (entries.length > 1) {
+                                            var total = 0;
+                                            var totalPerc = 0;
+                                            var totalEntries = entries.reduce(function (a, b) {
+                                                return {
+                                                    title: $filter('translate')('graphics.total'),
+                                                    value: total + (a.value + b.value),
+                                                    participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
+                                                    perc: MathFunction.round(totalPerc + (parseFloat(a.perc) + parseFloat(b.perc)), 2)
+                                                };
+                                            });
+                                            entries.push({
+                                                title: $filter('translate')('graphics.undetermined'),
+                                                value: StudiesData.totalHits - totalEntries.value,
+                                                participantsNbr: '-',
+                                                perc: MathFunction.round(100 - (parseFloat(totalEntries.perc)), 2)
+                                            });
+                                            entries.push(entries.reduce(function (a, b) {
+                                                return {
+                                                    title: $filter('translate')('graphics.total'),
+                                                    value: total + (a.value + b.value),
+                                                    participantsNbr: (a.participantsNbr !== '-' ? parseFloat(a.participantsNbr) : 0) + (b.participantsNbr !== '-' ? parseFloat(b.participantsNbr) : 0),
+                                                    perc: MathFunction.round(totalPerc + (parseFloat(a.perc) + parseFloat(b.perc)), 2)
+                                                };
+                                            }));
+                                        }
+                                        break;
+                                    case 'model-startYear-range':
+                                        returnedScope.chartObject.header = {
+                                            title: $filter('translate')(graphOptions.startYear.header[0]),
+                                            value: $filter('translate')(graphOptions.startYear.header[1]),
+                                            key: $filter('translate')(graphOptions.startYear.header[2]),
+                                            perc: $filter('translate')(graphOptions.startYear.header[3])
+                                        };
+                                        returnedScope.chartObject.headerLength = Object.keys(graphOptions.startYear.header).length;
+                                        if (entries.length > 1) {
+                                            entries.push(entries.reduce(function (a, b) {
+                                                return {
+                                                    title: $filter('translate')('total'),
+                                                    value: a.value + b.value,
+                                                    participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
+                                                    key: '-',
+                                                    perc: MathFunction.round(parseFloat(a.perc) + parseFloat(b.perc), 2)
+                                                };
+                                            }));
+                                        }
+                                        break;
+                                }
+                                returnedScope.chartObject.type = graphOptions[chartConfig.chartType].type;
+                                returnedScope.chartObject.data = data;
+                                returnedScope.chartObject.vocabulary = chartAggregationName;
+                                returnedScope.chartObject.entries = entries;
+                            }
+                            else {
+                                if (graphOptions[chartConfig.chartType].header.length < 3) {
+                                    data.unshift([$filter('translate')(graphOptions[chartConfig.chartType].header[0]), $filter('translate')(graphOptions[chartConfig.chartType].header[1])]);
+                                }
+                                else {
+                                    data.map(function (item) {
+                                        item.pop();
+                                        return item;
+                                    });
+                                    data.unshift([
+                                        $filter('translate')(graphOptions[chartConfig.chartType].header[0]),
+                                        $filter('translate')(graphOptions[chartConfig.chartType].header[1])
+                                    ]);
+                                }
+                                returnedScope.chartObject.term = true;
+                                returnedScope.chartObject.type = graphOptions[chartConfig.chartType].type;
+                                returnedScope.chartObject.data = data;
+                                returnedScope.chartObject.options.backgroundColor = { fill: 'transparent' };
+                                angular.extend(returnedScope.chartObject.options, graphOptions[chartConfig.chartType].options);
+                                returnedScope.chartObject.options.title = $filter('translate')(graphOptions[chartConfig.chartType].title) + ' (N=' + StudiesData.totalHits + ')';
+                            }
                         }
+                        if (chartConfig.chartType === 'geoChart') {
+                            returnedScope.chartObject.options.subtitle = $filter('translate')(graphOptions[chartConfig.chartType].subtitle);
+                            returnedScope.chartObject.d3Config = new D3GeoConfig().withData(entries)
+                                .withTitle(returnedScope.chartObject.options.title)
+                                .withSubtitle(returnedScope.chartObject.options.subtitle);
+                            if (returnedScope.chartObject.options) {
+                                returnedScope.chartObject.d3Config.withColor(graphOptions[chartConfig.chartType].options.colors);
+                            }
+                        }
+                        else {
+                            returnedScope.chartObject.d3Config = new D3ChartConfig(chartAggregationName).withType(graphOptions[chartConfig.chartType].type === 'PieChart' ? 'pieChart' : 'multiBarHorizontalChart')
+                                .withData(entries, graphOptions[chartConfig.chartType].type === 'PieChart', $filter('translate')('graphics.nbr-studies'))
+                                .withTitle($filter('translate')(graphOptions[chartConfig.chartType].title) + ' (N=' + StudiesData.totalHits + ')');
+                            if (graphOptions[chartConfig.chartType].type !== 'PieChart') {
+                                returnedScope.chartObject.d3Config.options.chart.showLegend = false;
+                            }
+                            if (returnedScope.chartObject.options && returnedScope.chartObject.options.colors) {
+                                returnedScope.chartObject.d3Config.options.chart.color = graphOptions[chartConfig.chartType].options.colors;
+                            }
+                            returnedScope.chartObject.d3Config.options.chart.legendPosition = 'right';
+                            returnedScope.chartObject.d3Config.options.chart.legend = { margin: {
+                                    top: 0,
+                                    right: 10,
+                                    bottom: 0,
+                                    left: 0
+                                } };
+                        }
+                        deferred.resolve(returnedScope);
                     }
-                    if (chartConfig.chartType === 'geoChart') {
-                        returnedScope.chartObject.options.subtitle = $filter('translate')(graphOptions[chartConfig.chartType].subtitle);
-                        returnedScope.chartObject.d3Config = new D3GeoConfig().withData(entries)
-                            .withTitle(returnedScope.chartObject.options.title)
-                            .withSubtitle(returnedScope.chartObject.options.subtitle);
-                        if (returnedScope.chartObject.options) {
-                            returnedScope.chartObject.d3Config.withColor(graphOptions[chartConfig.chartType].options.colors);
-                        }
-                    }
-                    else {
-                        returnedScope.chartObject.d3Config = new D3ChartConfig(chartAggregationName).withType(graphOptions[chartConfig.chartType].type === 'PieChart' ? 'pieChart' : 'multiBarHorizontalChart')
-                            .withData(entries, graphOptions[chartConfig.chartType].type === 'PieChart', $filter('translate')('graphics.nbr-studies'))
-                            .withTitle($filter('translate')(graphOptions[chartConfig.chartType].title) + ' (N=' + StudiesData.totalHits + ')');
-                        if (graphOptions[chartConfig.chartType].type !== 'PieChart') {
-                            returnedScope.chartObject.d3Config.options.chart.showLegend = false;
-                        }
-                        if (returnedScope.chartObject.options && returnedScope.chartObject.options.colors) {
-                            returnedScope.chartObject.d3Config.options.chart.color = graphOptions[chartConfig.chartType].options.colors;
-                        }
-                        returnedScope.chartObject.d3Config.options.chart.legendPosition = 'right';
-                        returnedScope.chartObject.d3Config.options.chart.legend = { margin: {
-                                top: 0,
-                                right: 10,
-                                bottom: 0,
-                                left: 0
-                            } };
-                    }
-                    deferred.resolve(returnedScope);
                 });
                 return deferred.promise;
             }
@@ -16245,7 +16305,7 @@ ngObibaMica.graphics
             return RqlQueryService.prepareGraphicsQuery(localizedQuery, ['Mica_study.populations-selectionCriteria-countriesIso',
                 'Mica_study.populations-dataCollectionEvents-bioSamples',
                 'Mica_study.numberOfParticipants-participant-number',
-            ], ['Mica_study.methods-design', 'Mica_study.start-range']);
+            ], ['Mica_study.methods-design', 'Mica_study.start-range', 'Mica_study.numberOfParticipants-participant-number'], true);
         };
     }]);
 //# sourceMappingURL=graphics-service.js.map
@@ -19033,12 +19093,13 @@ angular.module("graphics/views/tables-directive.html", []).run(["$templateCache"
     "        </tr>\n" +
     "        </thead>\n" +
     "        <tbody>\n" +
-    "        <tr ng-repeat=\"row in chartObject.entries | orderBy:sort.sortingOrder:sort.reverse track by $index\" >\n" +
+    "        <tr ng-repeat=\"row in (sort.sortingOrder?(chartObject.entries | orderBy:sort.sortingOrder:sort.reverse):(chartObject.entries)) track by $index\" >\n" +
     "            <td ng-if=\"row.title.toLowerCase()!='total'\">{{row.title}}</td>\n" +
     "            <td ng-if=\"row.title.toLowerCase()=='total'\"><b>{{row.title}}</b></td>\n" +
-    "            <td><a href ng-click=\"updateCriteria(row.key, chartObject.vocabulary)\">{{localizedNumber(row.value)}}</a></td>\n" +
-    "            <td ng-if=\"row.participantsNbr\">{{localizedNumber(row.participantsNbr)}}</td>\n" +
-    "            <td ng-if=\"row.participantsNbr==0\">-</td>\n" +
+    "            <td ng-if=\"row.value=='0'\">{{localizedNumber(row.value)}}</td>\n" +
+    "            <td ng-if=\"row.value!='0'\" ><a href ng-click=\"updateCriteria(row.key, chartObject.vocabulary)\">{{localizedNumber(row.value)}}</a></td>\n" +
+    "            <td ng-if=\"row.participantsNbr\"><div style=\"width: 30%; display: inline-block\"></div> {{localizedNumber(row.participantsNbr)}}</td>\n" +
+    "            <td ng-if=\"row.participantsNbr==0\"><div style=\"width: 30%; display: inline-block\"></div>-</td>\n" +
     "            <td ng-if=\"row.perc\">{{row.perc}} %</td>\n" +
     "        </tr>\n" +
     "        </tbody>\n" +
