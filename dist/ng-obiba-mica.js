@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-12-11
+ * Date: 2019-12-12
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -325,6 +325,9 @@ function NgObibaMicaTemplateUrlFactory() {
                             redrawTable();
                         }
                     });
+                    // Re-draw table on left panel close/open
+                    $scope.$on('ngObibaMicaLeftPaneToggle', redrawTable);
+                    // Re-draw table on resize browser window
                     window.addEventListener('resize', redrawTable);
                     $scope.$on('$destroy', function () {
                         window.document.removeEventListener('resize', redrawTable);
