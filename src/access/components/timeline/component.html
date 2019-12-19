@@ -1,0 +1,9 @@
+<ol class="timeline">
+    <li class="timeline__step" ng-class="{ 'done': $ctrl.isDone(step.date) }" ng-style="{'width': $ctrl.stepWidth + '%'}" ng-repeat="step in $ctrl.steps">
+        <label class="timeline__step-label">
+            <span class="timeline__step-content">{{$ctrl.toLocaleDateString(step.date)}}</span>
+        </label>
+        <span class="timeline__step-title">{{step.title}}</span>
+        <i class="timeline__step-marker">{{step.marker}}</i>
+    </li>
+</ol>
