@@ -25,7 +25,7 @@
 
     <div ng-if="validForm">
 
-      <p class="help-block col-md-4"><span translate>created-by</span>
+      <p class="help-block pull-left"><span translate>created-by</span>
         <span ng-if="!actions.canViewProfile('mica-data-access-officer')">
            {{getFullName(dataAccessRequest.profile) || dataAccessRequest.applicant}},
         </span>
@@ -34,7 +34,7 @@
             {{getFullName(dataAccessRequest.profile) || dataAccessRequest.applicant}}</a>,
         </span>
         <span title="{{dataAccessRequest.timestamps.created | amDateFormat: 'lll'}}">{{dataAccessRequest.timestamps.created | amCalendar}}</span>
-        <status-progressbar status="dataAccessRequest.status" config="dataAccessForm"></status-progressbar>
+        <span class="label label-primary hoffset1">{{dataAccessRequest.status | translate}}</span>
       </p>
 
       <div class="pull-right">
@@ -62,6 +62,12 @@
           ng-if="actions.canEditStatus(dataAccessRequest) && nextStatus.canReject(dataAccessRequest)"
           class="btn btn-info" translate>reject
         </a>
+        <a ng-click="editStartDate()"
+          ng-if="dataAccessRequest.reportsTimeline && actions.canEditStartDate(dataAccessRequest)"
+          class="btn btn-primary">
+          <i class="fa fa-clock-o"></i>
+          <span>{{'start-date' | translate}}</span>
+        </a>
         <a ng-href="#/data-access-request/{{dataAccessRequest.id}}/edit"
           ng-if="actions.canEdit(dataAccessRequest)"
           class="btn btn-primary" title="{{'edit' | translate}}">
@@ -84,6 +90,10 @@
       </div>
 
       <div class="clearfix"></div>
+
+      <status-progressbar status="dataAccessRequest.status" history="dataAccessRequest.statusChangeHistory" config="dataAccessForm"></status-progressbar>
+
+      <reports-progressbar timeline="dataAccessRequest.reportsTimeline"></reports-progressbar>
 
       <div class="voffset2" ng-if="dataAccessRequest.project.permissions && dataAccessRequest.project.permissions.view">
         <div ng-if="dataAccessRequest.project" class="pull-right">
