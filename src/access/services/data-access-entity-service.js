@@ -36,6 +36,10 @@
         return canDoAction(request, 'VIEW');
       },
 
+      canEditStartDate: function (request) {
+        return request.status === 'APPROVED' && canDoAction(request, 'EDIT_ACTION_LOGS');
+      },
+
       canEdit: function (request) {
         return canDoAction(request, 'EDIT');
       },

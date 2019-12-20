@@ -240,6 +240,46 @@ ngObibaMica.access
           }).pop();
         }
 
+        function editStartDate() {
+
+          function saveStartDate(startDate) {
+            var yyyy = startDate.getFullYear();
+            var mm = startDate.getMonth() + 1;
+            var dd = startDate.getDate();
+            var dateStr = yyyy + '-' + mm + '-' + dd;          
+            $scope.dataAccessRequest.startDate = dateStr;
+            DataAccessRequestResource.editStartDate({ id: $scope.dataAccessRequest.id, date: dateStr }, function () {
+              getRequest();
+            }, onError);
+          }
+
+          $uibModal.open({
+            templateUrl: 'access/components/reports-progressbar/edit-start-date-modal.html',
+            controller: ['$uibModalInstance', 'requestItem',
+              function ($uibModalInstance, requestItem) {
+                this.startDate = new Date(requestItem.reportsTimeline.startDate);
+                this.endDate = new Date(requestItem.reportsTimeline.endDate);
+                this.originalDate = this.startDate;
+                this.valideDate = function() {
+                  return this.startDate && this.startDate.getTime() < this.endDate.getTime();
+                };
+                this.close = function () {
+                  if (this.originalDate !== this.startDate) {
+                    saveStartDate(this.startDate);
+                  }
+                  $uibModalInstance.dismiss('close');
+                };
+              }],
+            controllerAs: '$modal',
+            size: 'sm',
+            resolve: {
+              requestItem: function () {
+                return $scope.dataAccessRequest;
+              }
+            }
+          });
+        }
+
         function deleteEntity() {
           $scope.requestToDelete = $scope.dataAccessRequest.id;
           $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog,
@@ -394,6 +434,7 @@ ngObibaMica.access
         $scope.showAttachmentsForm = false;
         $scope.selectTab = selectTab;
         $scope.delete = deleteEntity;
+        $scope.editStartDate = editStartDate;
         $scope.submitComment = submitComment;
         $scope.updateComment = updateComment;
         $scope.deleteComment = deleteComment;

@@ -62,6 +62,12 @@
           ng-if="actions.canEditStatus(dataAccessRequest) && nextStatus.canReject(dataAccessRequest)"
           class="btn btn-info" translate>reject
         </a>
+        <a ng-click="editStartDate()"
+          ng-if="dataAccessRequest.reportsTimeline && actions.canEditStartDate(dataAccessRequest)"
+          class="btn btn-primary">
+          <i class="fa fa-clock-o"></i>
+          <span>{{'start-date' | translate}}</span>
+        </a>
         <a ng-href="#/data-access-request/{{dataAccessRequest.id}}/edit"
           ng-if="actions.canEdit(dataAccessRequest)"
           class="btn btn-primary" title="{{'edit' | translate}}">
