@@ -23,12 +23,24 @@ class TimelineController implements ng.IComponentController {
         }
     }
 
-    public toLocaleDateString(dateStr: string) {
-        return new Date(dateStr).toLocaleDateString();
+    public getContent(step: any) {
+        if (step.date) {
+            return this.toLocaleDateString(step.date);
+        } else {
+            return step.content;
+        }
     }
 
-    public isDone(dateStr: string) {
-        return Date.parse(dateStr) <= Date.now();
+    public isDone(step: any) {
+        if (step.date) {
+            return Date.parse(step.date) <= Date.now();
+        } else {
+            return step.done;
+        }
+    }
+
+    private toLocaleDateString(dateStr: string) {
+        return new Date(dateStr).toLocaleDateString();
     }
 }
 

@@ -176,31 +176,6 @@ ngObibaMica.access
               $scope.attachments = dataAccessRequest.attachments || [];
               $scope.lastSubmittedDate = findLastSubmittedDate();
 
-              if (dataAccessRequest.reportsTimeline) {
-                var reportSteps = [];
-                reportSteps.push({
-                  title: $filter('translate')('data-access-request.start'),
-                  date: dataAccessRequest.reportsTimeline.startDate,
-                  marker: $filter('translate')('data-access-request.start-label')
-                });
-                if (dataAccessRequest.reportsTimeline.intermediateDates) {
-                  var i;
-                  for (i = 0; i < dataAccessRequest.reportsTimeline.intermediateDates.length; i++) {
-                    reportSteps.push({
-                      title: $filter('translate')('data-access-request.intermediate'),
-                      date: dataAccessRequest.reportsTimeline.intermediateDates[i],
-                      marker: i + 1
-                    }); 
-                  }
-                }
-                reportSteps.push({
-                  title: $filter('translate')('data-access-request.end'),
-                  date: dataAccessRequest.reportsTimeline.endDate,
-                  marker: $filter('translate')('data-access-request.end-label')
-                });
-                $scope.reportSteps = reportSteps;
-              }
-
               $scope.logsHistory =
               DataAccessEntityService.processLogsHistory(
                 [].concat((dataAccessRequest.statusChangeHistory), (dataAccessRequest.actionLogHistory || []), (amendmentsLogHistory || []))
