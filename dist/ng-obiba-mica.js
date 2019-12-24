@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2019-12-20
+ * Date: 2019-12-24
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -6323,7 +6323,7 @@ var TaxonomyCartFilter = /** @class */ (function () {
                         break;
                     case DISPLAY_TYPES.GRAPHICS:
                         $scope.search.loading = true;
-                        $scope.search.executedQuery = RqlQueryService.prepareGraphicsQuery(localizedQuery, ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'], ['Mica_study.methods-design', 'Mica_study.start-range', 'Mica_study.numberOfParticipants-participant-number']);
+                        $scope.search.executedQuery = RqlQueryService.prepareGraphicsQuery(localizedQuery, ['Mica_study.populations-selectionCriteria-countriesIso', 'Mica_study.populations-dataCollectionEvents-bioSamples', 'Mica_study.numberOfParticipants-participant-number'], ['Mica_study.methods-design', 'Mica_study.start-range', 'Mica_study.numberOfParticipants-participant-number'], true);
                         JoinQuerySearchResource.studies({ query: $scope.search.executedQuery }, function onSuccess(response) {
                             $scope.search.result.graphics = response;
                             $scope.search.loading = false;
@@ -16266,20 +16266,18 @@ ngObibaMica.graphics
                                                         i++;
                                                     }
                                                     else {
-                                                        if (term.count) {
-                                                            if (aggregation.aggregation === 'model-startYear-range') {
-                                                                arrayData[i] = participantBucket(term, sortTerm, entityDto, arrayData);
-                                                            }
-                                                            else {
-                                                                arrayData[i] = {
-                                                                    title: LocalizedValues.forLocale(sortTerm.title, $translate.use()),
-                                                                    value: term.count,
-                                                                    key: term.key,
-                                                                    perc: percentageCalc(term.count, entityDto.totalHits)
-                                                                };
-                                                            }
-                                                            i++;
+                                                        if (aggregation.aggregation === 'model-startYear-range') {
+                                                            arrayData[i] = participantBucket(term, sortTerm, entityDto, arrayData);
                                                         }
+                                                        else {
+                                                            arrayData[i] = {
+                                                                title: LocalizedValues.forLocale(sortTerm.title, $translate.use()),
+                                                                value: term.count,
+                                                                key: term.key,
+                                                                perc: percentageCalc(term.count, entityDto.totalHits)
+                                                            };
+                                                        }
+                                                        i++;
                                                     }
                                                 }
                                             }
@@ -16302,15 +16300,13 @@ ngObibaMica.graphics
                             angular.forEach(sortedTerms, function (sortTerm) {
                                 angular.forEach(aggregation['obiba.mica.TermsAggregationResultDto.terms'], function (term) {
                                     if (sortTerm.name === term.key) {
-                                        if (term.count) {
-                                            if (aggregation.aggregation === 'model-methods-design') {
-                                                arrayData[i] = participantBucket(term, sortTerm, entityDto);
-                                            }
-                                            else {
-                                                arrayData[i] = { title: LocalizedValues.forLocale(sortTerm.title, $translate.use()), value: term.count, key: term.key };
-                                            }
-                                            i++;
+                                        if (aggregation.aggregation === 'model-methods-design' && aggregation.aggregation !== 'populations-dataCollectionEvents-model-bioSamples') {
+                                            arrayData[i] = participantBucket(term, sortTerm, entityDto);
                                         }
+                                        else {
+                                            arrayData[i] = { title: LocalizedValues.forLocale(sortTerm.title, $translate.use()), value: term.count, key: term.key };
+                                        }
+                                        i++;
                                     }
                                 });
                             });
@@ -16374,6 +16370,9 @@ ngObibaMica.graphics
                         });
                         if (data) {
                             if (/^Table-/.exec(directiveType) !== null) {
+                                var total;
+                                var totalPerc;
+                                var totalEntries;
                                 switch (chartAggregationName) {
                                     case 'populations-model-selectionCriteria-countriesIso':
                                         returnedScope.chartObject.header = {
@@ -16404,7 +16403,7 @@ ngObibaMica.graphics
                                                     value: a.value + b.value,
                                                     participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
                                                     key: '-',
-                                                    perc: MathFunction.round(parseFloat(a.perc) + parseFloat(b.perc), 2)
+                                                    perc: 100
                                                 };
                                             }));
                                         }
@@ -16418,9 +16417,9 @@ ngObibaMica.graphics
                                         };
                                         returnedScope.chartObject.headerLength = Object.keys(graphOptions.numberParticipants.header).length;
                                         if (entries.length > 1) {
-                                            var total = 0;
-                                            var totalPerc = 0;
-                                            var totalEntries = entries.reduce(function (a, b) {
+                                            total = 0;
+                                            totalPerc = 0;
+                                            totalEntries = entries.reduce(function (a, b) {
                                                 return {
                                                     title: $filter('translate')('graphics.total'),
                                                     value: total + (a.value + b.value),
@@ -16429,17 +16428,17 @@ ngObibaMica.graphics
                                                 };
                                             });
                                             entries.push({
-                                                title: $filter('translate')('graphics.undetermined'),
+                                                title: $filter('translate')('numberOfParticipants.no-limit'),
                                                 value: StudiesData.totalHits - totalEntries.value,
                                                 participantsNbr: '-',
-                                                perc: MathFunction.round(100 - (parseFloat(totalEntries.perc)), 2)
+                                                perc: percentageCalc((StudiesData.totalHits - totalEntries.value), StudiesData.totalHits) || '0'
                                             });
                                             entries.push(entries.reduce(function (a, b) {
                                                 return {
                                                     title: $filter('translate')('graphics.total'),
                                                     value: total + (a.value + b.value),
                                                     participantsNbr: (a.participantsNbr !== '-' ? parseFloat(a.participantsNbr) : 0) + (b.participantsNbr !== '-' ? parseFloat(b.participantsNbr) : 0),
-                                                    perc: MathFunction.round(totalPerc + (parseFloat(a.perc) + parseFloat(b.perc)), 2)
+                                                    perc: 100
                                                 };
                                             }));
                                         }
@@ -16453,13 +16452,31 @@ ngObibaMica.graphics
                                         };
                                         returnedScope.chartObject.headerLength = Object.keys(graphOptions.startYear.header).length;
                                         if (entries.length > 1) {
+                                            total = 0;
+                                            totalPerc = 0;
+                                            totalEntries = entries.reduce(function (a, b) {
+                                                return {
+                                                    title: $filter('translate')('graphics.total'),
+                                                    value: total + (a.value + b.value),
+                                                    participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
+                                                    key: '-',
+                                                    perc: MathFunction.round(totalPerc + (parseFloat(a.perc) + parseFloat(b.perc)), 2)
+                                                };
+                                            });
+                                            entries.push({
+                                                title: $filter('translate')('graphics.undetermined'),
+                                                value: StudiesData.totalHits - totalEntries.value,
+                                                participantsNbr: '-',
+                                                key: '-',
+                                                perc: percentageCalc((StudiesData.totalHits - totalEntries.value), StudiesData.totalHits) || '0'
+                                            });
                                             entries.push(entries.reduce(function (a, b) {
                                                 return {
                                                     title: $filter('translate')('total'),
-                                                    value: a.value + b.value,
-                                                    participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
+                                                    value: total + (a.value + b.value),
+                                                    participantsNbr: (a.participantsNbr !== '-' ? parseFloat(a.participantsNbr) : 0) + (b.participantsNbr !== '-' ? parseFloat(b.participantsNbr) : 0),
                                                     key: '-',
-                                                    perc: MathFunction.round(parseFloat(a.perc) + parseFloat(b.perc), 2)
+                                                    perc: 100
                                                 };
                                             }));
                                         }
