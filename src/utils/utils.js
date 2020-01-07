@@ -19,7 +19,13 @@ ngObibaMica.utils
       return window.encodeURIComponent(input);
     };
   })
-
+  .factory('MathFunction', function(){
+    return {
+      round: function(value, decimal){
+        return +(Math.round(value + 'e+' + decimal)  + 'e-' + decimal);
+      }
+    };
+  })
   .service('GraphicChartsConfigurations', function(){
 
     this.getClientConfig = function(){
@@ -69,7 +75,7 @@ ngObibaMica.utils
 
               var tdElems = elem.querySelector('tbody tr:first-child td:nth-child(' + (i + 1) + ')');
               var tfElems = elem.querySelector('tfoot tr:first-child td:nth-child(' + (i + 1) + ')');
-              var columnWidth = tdElems ? tdElems.offsetWidth : thElem.offsetWidth;
+              var columnWidth = Math.ceil(elem.querySelectorAll('thead')[0].offsetWidth/(elem.querySelectorAll('thead th').length || 1));
 
               if(tdElems) {
                 tdElems.style.width = columnWidth + 'px';
@@ -121,12 +127,12 @@ ngObibaMica.utils
             }
           }
         );
-
-        // watch table resize
-        $scope.$watch(function() {
-          return elem.offsetWidth;
-        }, function() {
-          redrawTable();
+        // Re-draw table on left panel close/open
+        $scope.$on('ngObibaMicaLeftPaneToggle', redrawTable);
+        // Re-draw table on resize browser window
+        window.addEventListener('resize', redrawTable);
+        $scope.$on('$destroy', function () {
+          window.document.removeEventListener('resize', redrawTable);
         });
       }
     };

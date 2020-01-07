@@ -23,7 +23,8 @@ function GraphicChartsDataProvider() {
 
   this.$get = ['$log', 'JoinQuerySearchResource', 'ServerErrorUtils', 'AlertService', 'GraphicChartsConfig', 'GraphicChartsQuery',
     function ($log, JoinQuerySearchResource, ServerErrorUtils, AlertService, GraphicChartsConfig, GraphicChartsQuery) {
-    var queryDto = GraphicChartsQuery.queryDtoBuilder(GraphicChartsConfig.getOptions().entityIds, GraphicChartsConfig.getOptions().entityType);
+    var chartConf = GraphicChartsConfig.getOptions();
+    var queryDto = GraphicChartsQuery.queryDtoBuilder(chartConf.entityIds, chartConf.entityType);
 
     return new DataProvider(JoinQuerySearchResource.studies({
         query: queryDto
