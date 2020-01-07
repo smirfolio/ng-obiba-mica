@@ -43,11 +43,15 @@ class VariableAnnotationsService {
     this.ensureAnnotationTaxonomies().then(() => {
       variables.forEach((variable) => {
         (variable.annotations || []).forEach((annotation) => {
-          annotation.title = this.localizedAnnotations[this.createMapKey(annotation)];
-          if (!annotation.title) {
-            this.localizeAnnotation(annotation).then((localized) => {
-              annotation.title = localized;
+          const cachedResult = this.localizedAnnotations[this.createMapKey(annotation)];
+          if (!cachedResult) {
+            this.localizeAnnotation(annotation).then((result) => {
+              annotation.index = result.index;
+              annotation.title = result.title;
             });
+          } else {
+            annotation.index = cachedResult.index;
+            annotation.title = cachedResult.title;
           }
         });
       });
@@ -83,13 +87,16 @@ class VariableAnnotationsService {
     }
 
     let localized = null;
+    let index = 0;
     this.TaxonomyResource.get({
       target: QUERY_TARGETS.VARIABLE,
       taxonomy: annotation.taxonomy,
     }).$promise.then((taxonomy) => {
-      taxonomy.vocabularies.some((vocabulary) => {
+      taxonomy.vocabularies.some((vocabulary, index1) => {
         if (vocabulary.name === annotation.vocabulary) {
-          (vocabulary.terms || []).some((term) => {
+          (vocabulary.terms || []).some((term, index2) => {
+            index = (index1 + 1 ) * 10000 + index2;
+
             if (term.name === annotation.value) {
               localized = this.LocalizedValues.forLocale(term.title, this.$translate.use());
               return true;
@@ -100,8 +107,9 @@ class VariableAnnotationsService {
         }
       });
 
-      this.localizedAnnotations[key] = localized;
-      deferred.resolve(localized || annotation.value);
+      const result = {index, title: localized || annotation.value};
+      this.localizedAnnotations[key] = result;
+      deferred.resolve(result);
     });
 
     return deferred.promise;
