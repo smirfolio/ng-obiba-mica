@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2020-01-06
+ * Date: 2020-01-08
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -8827,11 +8827,16 @@ var VariableAnnotationsService = /** @class */ (function () {
         this.ensureAnnotationTaxonomies().then(function () {
             variables.forEach(function (variable) {
                 (variable.annotations || []).forEach(function (annotation) {
-                    annotation.title = _this.localizedAnnotations[_this.createMapKey(annotation)];
-                    if (!annotation.title) {
-                        _this.localizeAnnotation(annotation).then(function (localized) {
-                            annotation.title = localized;
+                    var cachedResult = _this.localizedAnnotations[_this.createMapKey(annotation)];
+                    if (!cachedResult) {
+                        _this.localizeAnnotation(annotation).then(function (result) {
+                            annotation.index = result.index;
+                            annotation.title = result.title;
                         });
+                    }
+                    else {
+                        annotation.index = cachedResult.index;
+                        annotation.title = cachedResult.title;
                     }
                 });
             });
@@ -8862,13 +8867,15 @@ var VariableAnnotationsService = /** @class */ (function () {
             deferred.resolve(this.localizedAnnotations[key] || annotation.value);
         }
         var localized = null;
+        var index = 0;
         this.TaxonomyResource.get({
             target: QUERY_TARGETS.VARIABLE,
             taxonomy: annotation.taxonomy,
         }).$promise.then(function (taxonomy) {
-            taxonomy.vocabularies.some(function (vocabulary) {
+            taxonomy.vocabularies.some(function (vocabulary, index1) {
                 if (vocabulary.name === annotation.vocabulary) {
-                    (vocabulary.terms || []).some(function (term) {
+                    (vocabulary.terms || []).some(function (term, index2) {
+                        index = (index1 + 1) * 10000 + index2;
                         if (term.name === annotation.value) {
                             localized = _this.LocalizedValues.forLocale(term.title, _this.$translate.use());
                             return true;
@@ -8877,8 +8884,9 @@ var VariableAnnotationsService = /** @class */ (function () {
                     return true;
                 }
             });
-            _this.localizedAnnotations[key] = localized;
-            deferred.resolve(localized || annotation.value);
+            var result = { index: index, title: localized || annotation.value };
+            _this.localizedAnnotations[key] = result;
+            deferred.resolve(result);
         });
         return deferred.promise;
     };
@@ -21359,7 +21367,7 @@ angular.module("search/components/result/variables-result-table/component.html",
     "            </td>\n" +
     "            <td ng-if=\"annotationsEnabled\">\n" +
     "              <ul class=\"list-annotations\">\n" +
-    "                <li ng-repeat=\"annotation in summary.annotations\"><span>{{annotation.title}}</span></li>\n" +
+    "                <li ng-repeat=\"annotation in summary.annotations | orderBy:'index'\"><span>{{annotation.title}}</span></li>\n" +
     "              </ul>\n" +
     "            </td>\n" +
     "            <td ng-if=\"optionsCols.showVariablesTypeColumn\">\n" +
