@@ -1,9 +1,9 @@
 /*!
- * ng-obiba-mica - v3.4.0
+ * ng-obiba-mica - v3.6.3
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2020-01-07
+ * Date: 2020-01-08
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -126,7 +126,6 @@ function NgObibaMicaTemplateUrlFactory() {
             'DataAccessRequestsExportHistoryResource': 'ws/data-access-requests/_history?lang=:lang',
             'DataAccessRequestsExportCsvResource': 'ws/data-access-requests/csv?lang=:lang',
             'DataAccessRequestResource': 'ws/data-access-request/:id',
-            'DataAccessRequestStartDateResource': 'ws/data-access-request/:id/_start-date?date=:date',
             'DataAccessRequestActionLogsResource': 'ws/data-access-request/:id/_log-actions',
             'DataAccessAmendmentsLogHistoryResource': 'ws/data-access-request/:id/amendments/_history',
             'DataAccessRequestAttachmentsUpdateResource': 'ws/data-access-request/:id/_attachments',
@@ -1247,69 +1246,7 @@ var PrintFriendlyComponent = /** @class */ (function () {
 ngObibaMica.access.component("printFriendlyView", new PrintFriendlyComponent());
 //# sourceMappingURL=component.js.map
 /*
- * Copyright (c) 2019 OBiBa. All rights reserved.
- *
- * This program and the accompanying materials
- * are made available under the terms of the GNU Public License v3.0.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-"use strict";
-var ReportsProgressBarController = /** @class */ (function () {
-    function ReportsProgressBarController() {
-    }
-    ReportsProgressBarController.prototype.$onChanges = function (changes) {
-        if (this.timeline) {
-            this.steps = [];
-            this.steps.push({
-                date: this.timeline.startDate,
-                marker: "data-access-request.start-label",
-                title: "data-access-request.start",
-            });
-            if (this.timeline.intermediateDates) {
-                var i = void 0;
-                for (i = 0; i < this.timeline.intermediateDates.length; i++) {
-                    this.steps.push({
-                        date: this.timeline.intermediateDates[i],
-                        marker: i + 1,
-                        title: "data-access-request.intermediate",
-                    });
-                }
-            }
-            this.steps.push({
-                date: this.timeline.endDate,
-                marker: "data-access-request.end-label",
-                title: "data-access-request.end",
-            });
-        }
-        else {
-            this.steps = undefined;
-        }
-    };
-    ReportsProgressBarController.prototype.isVisible = function () {
-        return this.timeline;
-    };
-    ReportsProgressBarController.$inject = ["$log"];
-    return ReportsProgressBarController;
-}());
-var ReportsProgressBarComponent = /** @class */ (function () {
-    function ReportsProgressBarComponent() {
-        this.templateUrl = "access/components/reports-progressbar/component.html";
-        this.transclude = false;
-        this.transclude = true;
-        this.bindings = {
-            timeline: "<",
-        };
-        this.controller = ReportsProgressBarController;
-        this.controllerAs = "$ctrl";
-    }
-    return ReportsProgressBarComponent;
-}());
-ngObibaMica.access.component("reportsProgressbar", new ReportsProgressBarComponent());
-//# sourceMappingURL=component.js.map
-/*
- * Copyright (c) 2019 OBiBa. All rights reserved.
+ * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
  * are made available under the terms of the GNU Public License v3.0.
@@ -1319,107 +1256,34 @@ ngObibaMica.access.component("reportsProgressbar", new ReportsProgressBarCompone
  */
 "use strict";
 var StatusProgressBarController = /** @class */ (function () {
-    function StatusProgressBarController() {
+    function StatusProgressBarController($log) {
+        this.$log = $log;
+        this.percent = 0;
     }
     StatusProgressBarController.prototype.$onChanges = function (changes) {
         if (this.status && this.config) {
             if (!this.states) {
                 this.initializeStates();
             }
-            this.updateStatusSteps();
+            this.updateStatus();
         }
-    };
-    StatusProgressBarController.prototype.isVisible = function () {
-        return this.status !== "APPROVED";
     };
     StatusProgressBarController.prototype.initializeStates = function () {
-        var i = 1;
+        var i = 0;
         this.states = {};
         this.states.OPENED = i++;
-        if (true === this.config.withConditionalApproval) {
-            this.states.CONDITIONALLY_APPROVED = this.states.OPENED;
-        }
         this.states.SUBMITTED = i++;
         if (true === this.config.withReview) {
             this.states.REVIEWED = i++;
         }
+        if (true === this.config.withConditionalApproval) {
+            this.states.CONDITIONALLY_APPROVED = i++;
+        }
         this.states.APPROVED = this.states.REJECTED = i;
+        this.step = 100 / i;
     };
-    StatusProgressBarController.prototype.updateStatusSteps = function () {
-        this.steps = new Array();
-        if (this.status === "CONDITIONALLY_APPROVED") {
-            this.steps.push({
-                date: this.findStatusChangeDate("CONDITIONALLY_APPROVED"),
-                done: true,
-                marker: this.states.CONDITIONALLY_APPROVED,
-                title: "CONDITIONALLY_APPROVED",
-            });
-        }
-        else {
-            this.steps.push({
-                date: this.findStatusChangeDate("OPENED"),
-                done: true,
-                marker: this.states.OPENED,
-                title: "OPENED",
-            });
-        }
-        var submittedDone = this.states[this.status] >= this.states.SUBMITTED;
-        this.steps.push({
-            date: submittedDone ? this.findStatusChangeDate("SUBMITTED") : undefined,
-            done: submittedDone,
-            marker: this.states.SUBMITTED,
-            title: "SUBMITTED",
-        });
-        var reviewedDone = this.states[this.status] >= this.states.REVIEWED;
-        if (true === this.config.withReview) {
-            this.steps.push({
-                date: reviewedDone ? this.findStatusChangeDate("REVIEWED") : undefined,
-                done: reviewedDone,
-                marker: this.states.REVIEWED,
-                title: "REVIEWED",
-            });
-        }
-        if (this.status === "REJECTED") {
-            this.steps.push({
-                date: this.findStatusChangeDate("REJECTED"),
-                done: true,
-                marker: this.states.REJECTED,
-                title: "REJECTED",
-            });
-        }
-        else if (this.status === "APPROVED") {
-            this.steps.push({
-                date: this.findStatusChangeDate("APPROVED"),
-                done: true,
-                marker: this.states.APPROVED,
-                title: "APPROVED",
-            });
-        }
-        else {
-            this.steps.push({
-                done: false,
-                marker: this.states.APPROVED,
-                title: "APPROVED-REJECTED",
-            });
-        }
-    };
-    StatusProgressBarController.prototype.findStatusChangeDate = function (status) {
-        if (this.history) {
-            if (status === "OPENED") {
-                // creation
-                return this.history[0].changedOn;
-            }
-            else {
-                // reverse inspection
-                var i = void 0;
-                for (i = this.history.length; i > 0; i--) {
-                    var change = this.history[i - 1];
-                    if (change.to === status) {
-                        return change.changedOn;
-                    }
-                }
-            }
-        }
+    StatusProgressBarController.prototype.updateStatus = function () {
+        this.percent = this.states[this.status] * this.step;
     };
     StatusProgressBarController.$inject = ["$log"];
     return StatusProgressBarController;
@@ -1431,7 +1295,6 @@ var StatusProgressBarComponent = /** @class */ (function () {
         this.transclude = true;
         this.bindings = {
             config: "<",
-            history: "<",
             status: "<",
         };
         this.controller = StatusProgressBarController;
@@ -1440,61 +1303,6 @@ var StatusProgressBarComponent = /** @class */ (function () {
     return StatusProgressBarComponent;
 }());
 ngObibaMica.access.component("statusProgressbar", new StatusProgressBarComponent());
-//# sourceMappingURL=component.js.map
-/*
- * Copyright (c) 2019 OBiBa. All rights reserved.
- *
- * This program and the accompanying materials
- * are made available under the terms of the GNU Public License v3.0.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-"use strict";
-var TimelineController = /** @class */ (function () {
-    function TimelineController() {
-    }
-    TimelineController.prototype.$onChanges = function (changes) {
-        if (this.steps) {
-            this.stepWidth = 100 / this.steps.length;
-        }
-    };
-    TimelineController.prototype.getContent = function (step) {
-        if (step.date) {
-            return this.toLocaleDateString(step.date);
-        }
-        else {
-            return step.content;
-        }
-    };
-    TimelineController.prototype.isDone = function (step) {
-        if (step.date) {
-            return Date.parse(step.date) <= Date.now();
-        }
-        else {
-            return step.done;
-        }
-    };
-    TimelineController.prototype.toLocaleDateString = function (dateStr) {
-        return new Date(dateStr).toLocaleDateString();
-    };
-    TimelineController.$inject = ["$log"];
-    return TimelineController;
-}());
-var TimelineComponent = /** @class */ (function () {
-    function TimelineComponent() {
-        this.templateUrl = "access/components/timeline/component.html";
-        this.transclude = false;
-        this.transclude = true;
-        this.bindings = {
-            steps: "<",
-        };
-        this.controller = TimelineController;
-        this.controllerAs = "$ctrl";
-    }
-    return TimelineComponent;
-}());
-ngObibaMica.access.component("timeline", new TimelineComponent());
 //# sourceMappingURL=component.js.map
 'use strict';
 (function () {
@@ -1675,9 +1483,6 @@ ngObibaMica.access.service("DataAccessEntityResource", DataAccessEntityResource)
             },
             canView: function (request) {
                 return canDoAction(request, 'VIEW');
-            },
-            canEditStartDate: function (request) {
-                return request.status === 'APPROVED' && canDoAction(request, 'EDIT_ACTION_LOGS');
             },
             canEdit: function (request) {
                 return canDoAction(request, 'EDIT');
@@ -2051,43 +1856,6 @@ ngObibaMica.access
                 }
             }).pop();
         }
-        function editStartDate() {
-            function saveStartDate(startDate) {
-                var yyyy = startDate.getFullYear();
-                var mm = startDate.getMonth() + 1;
-                var dd = startDate.getDate();
-                var dateStr = yyyy + '-' + mm + '-' + dd;
-                $scope.dataAccessRequest.startDate = dateStr;
-                DataAccessRequestResource.editStartDate({ id: $scope.dataAccessRequest.id, date: dateStr }, function () {
-                    getRequest();
-                }, onError);
-            }
-            $uibModal.open({
-                templateUrl: 'access/components/reports-progressbar/edit-start-date-modal.html',
-                controller: ['$uibModalInstance', 'requestItem',
-                    function ($uibModalInstance, requestItem) {
-                        this.startDate = new Date(requestItem.reportsTimeline.startDate);
-                        this.endDate = new Date(requestItem.reportsTimeline.endDate);
-                        this.originalDate = this.startDate;
-                        this.valideDate = function () {
-                            return this.startDate && this.startDate.getTime() < this.endDate.getTime();
-                        };
-                        this.close = function () {
-                            if (this.originalDate !== this.startDate) {
-                                saveStartDate(this.startDate);
-                            }
-                            $uibModalInstance.dismiss('close');
-                        };
-                    }],
-                controllerAs: '$modal',
-                size: 'sm',
-                resolve: {
-                    requestItem: function () {
-                        return $scope.dataAccessRequest;
-                    }
-                }
-            });
-        }
         function deleteEntity() {
             $scope.requestToDelete = $scope.dataAccessRequest.id;
             $rootScope.$broadcast(NOTIFICATION_EVENTS.showConfirmDialog, {
@@ -2215,7 +1983,6 @@ ngObibaMica.access
         $scope.showAttachmentsForm = false;
         $scope.selectTab = selectTab;
         $scope.delete = deleteEntity;
-        $scope.editStartDate = editStartDate;
         $scope.submitComment = submitComment;
         $scope.updateComment = updateComment;
         $scope.deleteComment = deleteComment;
@@ -2694,7 +2461,6 @@ ngObibaMica.access
     function ($resource, ngObibaMicaUrl) {
         return $resource(ngObibaMicaUrl.getUrl('DataAccessRequestResource'), {}, {
             'save': { method: 'PUT', params: { id: '@id' }, errorHandler: true },
-            'editStartDate': { method: 'PUT', params: { id: '@id', date: '@date' }, url: ngObibaMicaUrl.getUrl('DataAccessRequestStartDateResource'), errorHandler: true },
             'editActionLogs': { method: 'PUT', params: { id: '@id' }, url: ngObibaMicaUrl.getUrl('DataAccessRequestActionLogsResource'), errorHandler: true },
             'get': { method: 'GET' },
             'delete': { method: 'DELETE' }
@@ -11649,20 +11415,6 @@ ngObibaMica.search
             rowPopupState.reset();
             $scope.rowPopupState = null;
         }
-        function loadMoreRows() {
-            if ($scope.result && $scope.result.rows) {
-                var ceiling = Math.ceil($scope.result.rows.length / $scope.rowsPageSize);
-                if (ceiling > $scope.nextFilteredRowsPage) {
-                    var nextPage = $scope.result.rows.slice($scope.rowsPageSize * $scope.nextFilteredRowsPage, $scope.rowsPageSize * ($scope.nextFilteredRowsPage + 1));
-                    $scope.nextFilteredRowsPage++;
-                    $scope.filteredRows.push.apply($scope.filteredRows, nextPage);
-                }
-            }
-        }
-        $scope.loadMoreRows = loadMoreRows;
-        $scope.filteredRows = [];
-        $scope.rowsPageSize = 20;
-        $scope.nextFilteredRowsPage = 0;
         $scope.onRowMouseOver = onRowMouseOver;
         $scope.onRowMouseLeave = onRowMouseLeave;
         $scope.totalOptions = ngObibaMicaSearch.getOptions().coverage.total;
@@ -11777,9 +11529,6 @@ ngObibaMica.search
                 var tableTmp = $scope.result;
                 tableTmp.cols = splitIds();
                 $scope.table = tableTmp;
-                $scope.filteredRows = [];
-                $scope.nextFilteredRowsPage = 0;
-                $scope.loadMoreRows();
                 vocabulariesTermsMap = decorateTermHeaders($scope.table.vocabularyHeaders, $scope.table.termHeaders, 'vocabularyName');
                 decorateTermHeaders($scope.table.taxonomyHeaders, $scope.table.termHeaders, 'taxonomyName');
                 decorateVocabularyHeaders($scope.table.taxonomyHeaders, $scope.table.vocabularyHeaders);
@@ -12981,31 +12730,8 @@ var SearchResultSelectionsDecorator = /** @class */ (function (_super) {
             }
         };
     }
-    function InfiniteScroll($timeout) {
-        return {
-            restrict: 'C',
-            scope: {
-                load: '&'
-            },
-            link: function (scope, element) {
-                function scroll() {
-                    var rawEle = element[0];
-                    if (window.scrollY >= (0.8 * rawEle.offsetHeight)) {
-                        $timeout(function () {
-                            scope.load();
-                        });
-                    }
-                }
-                window.document.addEventListener('scroll', scroll);
-                scope.$on('$destroy', function () {
-                    window.document.removeEventListener('scroll', scroll);
-                });
-            }
-        };
-    }
     ngObibaMica.search.directive('scrollToTop', ScrollToTop);
     ngObibaMica.search.directive('tableScroll', ['$timeout', '$rootScope', TableScroll]);
-    ngObibaMica.search.directive('infiniteScroll', ['$timeout', InfiniteScroll]);
 })();
 //# sourceMappingURL=component.js.map
 /*
@@ -17393,7 +17119,7 @@ ngObibaMica.fileBrowser
         };
     }]);
 //# sourceMappingURL=file-browser-service.js.map
-angular.module('templates-ngObibaMica', ['access/components/action-log/component.html', 'access/components/action-log/item/component.html', 'access/components/action-log/item/delete-modal.html', 'access/components/action-log/item/edit-modal.html', 'access/components/entity-list/component.html', 'access/components/print-friendly-view/component.html', 'access/components/reports-progressbar/component.html', 'access/components/reports-progressbar/edit-start-date-modal.html', 'access/components/status-progressbar/component.html', 'access/components/timeline/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/components/badge-count/component.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/buttons-panel/component.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/cell-stat-value/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/coverage-result/row-popup/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/add-to-set-modal/component.html', 'sets/components/cart-documents-table/component.html', 'sets/components/set-variables-table/component.html', 'sets/views/cart.html', 'sets/views/sets.html', 'utils/components/entity-schema-form/component.html', 'utils/components/table-alert-header/component.html', 'utils/services/user-profile-modal/service.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
+angular.module('templates-ngObibaMica', ['access/components/action-log/component.html', 'access/components/action-log/item/component.html', 'access/components/action-log/item/delete-modal.html', 'access/components/action-log/item/edit-modal.html', 'access/components/entity-list/component.html', 'access/components/print-friendly-view/component.html', 'access/components/status-progressbar/component.html', 'access/views/data-access-amendment-view.html', 'access/views/data-access-request-documents-view.html', 'access/views/data-access-request-form.html', 'access/views/data-access-request-history-view.html', 'access/views/data-access-request-list.html', 'access/views/data-access-request-profile-user-modal.html', 'access/views/data-access-request-submitted-modal.html', 'access/views/data-access-request-validation-modal.html', 'access/views/data-access-request-view.html', 'analysis/components/crosstab-study-table/component.html', 'analysis/components/entities-count-result-table/component.html', 'analysis/components/variable-criteria/component.html', 'analysis/crosstab/views/crosstab-variable-crosstab.html', 'analysis/crosstab/views/crosstab-variable-frequencies-empty.html', 'analysis/crosstab/views/crosstab-variable-frequencies.html', 'analysis/crosstab/views/crosstab-variable-statistics-empty.html', 'analysis/crosstab/views/crosstab-variable-statistics.html', 'analysis/views/analysis-entities-count.html', 'attachment/attachment-input-template.html', 'attachment/attachment-list-template.html', 'file-browser/views/document-detail-template.html', 'file-browser/views/documents-table-template.html', 'file-browser/views/file-browser-template.html', 'file-browser/views/toolbar-template.html', 'graphics/views/charts-directive.html', 'graphics/views/tables-directive.html', 'lists/components/badge-count/component.html', 'lists/views/input-search-widget/input-search-widget-template.html', 'lists/views/list/datasets-search-result-table-template.html', 'lists/views/list/networks-search-result-table-template.html', 'lists/views/list/studies-search-result-table-template.html', 'lists/views/region-criteria/criterion-dropdown-template.html', 'lists/views/region-criteria/search-criteria-region-template.html', 'lists/views/search-result-list-template.html', 'lists/views/sort-widget/sort-widget-template.html', 'localized/localized-input-group-template.html', 'localized/localized-input-template.html', 'localized/localized-template.html', 'localized/localized-textarea-template.html', 'search/components/buttons-panel/component.html', 'search/components/criteria/criteria-root/component.html', 'search/components/criteria/criteria-target/component.html', 'search/components/criteria/item-region/dropdown/component.html', 'search/components/criteria/item-region/item-node/component.html', 'search/components/criteria/item-region/match/component.html', 'search/components/criteria/item-region/numeric/component.html', 'search/components/criteria/item-region/region/component.html', 'search/components/criteria/item-region/string-terms/component.html', 'search/components/criteria/match-vocabulary-filter-detail/component.html', 'search/components/criteria/numeric-vocabulary-filter-detail/component.html', 'search/components/criteria/terms-vocabulary-filter-detail/component.html', 'search/components/entity-counts/component.html', 'search/components/entity-search-typeahead/component.html', 'search/components/facets/taxonomy/component.html', 'search/components/input-search-filter/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-list/component.html', 'search/components/meta-taxonomy/meta-taxonomy-filter-panel/component.html', 'search/components/panel/classification/component.html', 'search/components/panel/taxonomies-panel/component.html', 'search/components/panel/taxonomy-panel/component.html', 'search/components/panel/term-panel/component.html', 'search/components/panel/vocabulary-panel/component.html', 'search/components/result/cell-stat-value/component.html', 'search/components/result/coverage-result/component.html', 'search/components/result/coverage-result/row-popup/component.html', 'search/components/result/datasets-result-table/component.html', 'search/components/result/graphics-result/component.html', 'search/components/result/networks-result-table/component.html', 'search/components/result/pagination/component.html', 'search/components/result/search-result/component.html', 'search/components/result/search-result/coverage.html', 'search/components/result/search-result/graphics.html', 'search/components/result/search-result/list.html', 'search/components/result/studies-result-table/component.html', 'search/components/result/tabs-order-count/component.html', 'search/components/result/variables-result-table/component.html', 'search/components/search-box-region/component.html', 'search/components/study-filter-shortcut/component.html', 'search/components/taxonomy/taxonomy-filter-detail/component.html', 'search/components/taxonomy/taxonomy-filter-panel/component.html', 'search/components/vocabulary-filter-detail-heading/component.html', 'search/components/vocabulary/vocabulary-filter-detail/component.html', 'search/views/classifications.html', 'search/views/classifications/taxonomy-accordion-group.html', 'search/views/classifications/taxonomy-template.html', 'search/views/classifications/vocabulary-accordion-group.html', 'search/views/criteria/criterion-header-template.html', 'search/views/criteria/target-template.html', 'search/views/list/pagination-template.html', 'search/views/search-layout.html', 'search/views/search-result-graphics-template.html', 'search/views/search-result-list-dataset-template.html', 'search/views/search-result-list-network-template.html', 'search/views/search-result-list-study-template.html', 'search/views/search-result-list-variable-template.html', 'search/views/search.html', 'search/views/search2.html', 'sets/components/add-to-set-modal/component.html', 'sets/components/cart-documents-table/component.html', 'sets/components/set-variables-table/component.html', 'sets/views/cart.html', 'sets/views/sets.html', 'utils/components/entity-schema-form/component.html', 'utils/components/table-alert-header/component.html', 'utils/services/user-profile-modal/service.html', 'utils/views/unsaved-modal.html', 'views/pagination-template.html']);
 
 angular.module("access/components/action-log/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/components/action-log/component.html",
@@ -17698,60 +17424,16 @@ angular.module("access/components/print-friendly-view/component.html", []).run([
     "");
 }]);
 
-angular.module("access/components/reports-progressbar/component.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("access/components/reports-progressbar/component.html",
-    "<timeline steps=\"$ctrl.steps\" ng-if=\"$ctrl.isVisible()\"></timeline>");
-}]);
-
-angular.module("access/components/reports-progressbar/edit-start-date-modal.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("access/components/reports-progressbar/edit-start-date-modal.html",
-    "<div class=\"modal-header\">\n" +
-    "  <h4 class=\"modal-title\">\n" +
-    "    {{'start-date' | translate}}\n" +
-    "  </h4>\n" +
-    "</div>\n" +
-    "\n" +
-    "<div class=\"modal-body\">\n" +
-    "  <form name=\"startDateModalForm\">\n" +
-    "    <div class=\"form-group\">\n" +
-    "      <div class=\"input-group\">\n" +
-    "        <input type=\"text\" class=\"form-control\" uib-datepicker-popup=\"yyyy-MM-dd\" ng-model=\"$modal.startDate\" ng-required=\"true\"\n" +
-    "          ng-focus=\"$modal.open = !$modal.startDate\" is-open=\"$modal.open\" placeholder=\"yyyy-MM-dd\" show-button-bar=\"false\">\n" +
-    "        <span class=\"input-group-btn\">\n" +
-    "          <button type=\"button\" class=\"btn btn-sm btn-default\" ng-click=\"$modal.open = !$modal.open\">\n" +
-    "            <i class=\"glyphicon glyphicon-calendar\"></i>\n" +
-    "          </button>\n" +
-    "        </span>\n" +
-    "      </div>\n" +
-    "      <p class=\"help-block\">{{'data-access-request.start-date-help' | translate}}</p>\n" +
-    "    </div>\n" +
-    "  </form>\n" +
-    "</div>\n" +
-    "\n" +
-    "<div class=\"modal-footer\">\n" +
-    "  <button class=\"btn btn-responsive btn-default\" type=\"button\" ng-click=\"$dismiss()\" translate>cancel</button>\n" +
-    "  <button class=\"btn btn-responsive btn-primary\" type=\"button\" ng-disabled=\"!$modal.valideDate()\"\n" +
-    "    ng-click=\"$modal.close()\" translate>ok</button>\n" +
-    "</div>");
-}]);
-
 angular.module("access/components/status-progressbar/component.html", []).run(["$templateCache", function($templateCache) {
   $templateCache.put("access/components/status-progressbar/component.html",
-    "<timeline steps=\"$ctrl.steps\" ng-if=\"$ctrl.isVisible()\"></timeline>");
-}]);
-
-angular.module("access/components/timeline/component.html", []).run(["$templateCache", function($templateCache) {
-  $templateCache.put("access/components/timeline/component.html",
-    "<ol class=\"timeline\">\n" +
-    "    <li class=\"timeline__step\" ng-class=\"{ 'done': $ctrl.isDone(step) }\" ng-style=\"{'width': $ctrl.stepWidth + '%'}\" ng-repeat=\"step in $ctrl.steps\">\n" +
-    "        <label class=\"timeline__step-label\" ng-if=\"$ctrl.getContent(step)\">\n" +
-    "            <span class=\"timeline__step-content\">{{$ctrl.getContent(step) | translate}}</span>\n" +
-    "        </label>\n" +
-    "        <span class=\"timeline__step-title\">{{step.title | translate}}</span>\n" +
-    "        <i class=\"timeline__step-marker\">{{step.marker | translate}}</i>\n" +
-    "    </li>\n" +
-    "</ol>\n" +
-    "");
+    "<div class=\"progress obiba-status-progress\">\n" +
+    "    <div class=\"progress-bar obiba-status-progress-bar\"\n" +
+    "         ng-class=\"{'progress-bar-default': $ctrl.percent < 1, 'progress-bar-success': $ctrl.percent > 0}\"\n" +
+    "         role=\"progressbar\"\n" +
+    "         ng-style=\"{'width': $ctrl.percent + '%'}\">\n" +
+    "        <span>{{$ctrl.status | translate}}</span>\n" +
+    "    </div>\n" +
+    "</div>");
 }]);
 
 angular.module("access/views/data-access-amendment-view.html", []).run(["$templateCache", function($templateCache) {
@@ -17765,7 +17447,7 @@ angular.module("access/views/data-access-amendment-view.html", []).run(["$templa
     "\n" +
     "    <obiba-alert id=\"DataAccessAmendmentViewController\"></obiba-alert>\n" +
     "\n" +
-    "    <p class=\"help-block pull-left\" ng-if=\"requestEntity.applicant\">\n" +
+    "    <p class=\"help-block col-md-4\" ng-if=\"requestEntity.applicant\">\n" +
     "      <span translate>created-by</span>\n" +
     "      <span ng-if=\"!actions.canViewProfile('mica-data-access-officer')\">\n" +
     "        {{getFullName(requestEntity.profile) || requestEntity.applicant}},\n" +
@@ -17775,7 +17457,7 @@ angular.module("access/views/data-access-amendment-view.html", []).run(["$templa
     "          {{getFullName(requestEntity.profile) || requestEntity.applicant}}</a>,\n" +
     "      </span>\n" +
     "      <span title=\"{{requestEntity.timestamps.created | amDateFormat: 'lll'}}\">{{requestEntity.timestamps.created | amCalendar}}</span>\n" +
-    "      <span class=\"label label-primary hoffset1\">{{requestEntity.status | translate}}</span>\n" +
+    "      <status-progressbar status=\"requestEntity.status\" config=\"dataAccessForm\"></status-progressbar>\n" +
     "    </p>\n" +
     "\n" +
     "    <div class=\"pull-right\" ng-if=\"read && formDrawn\">\n" +
@@ -17812,8 +17494,6 @@ angular.module("access/views/data-access-amendment-view.html", []).run(["$templa
     "    </div>\n" +
     "\n" +
     "    <div class=\"clearfix\"></div>\n" +
-    "\n" +
-    "    <status-progressbar status=\"requestEntity.status\" config=\"dataAccessForm\"></status-progressbar>\n" +
     "\n" +
     "    <form id=\"request-form\" name=\"forms.requestForm\">\n" +
     "      <div class=\"pull-right\" ng-if=\"!read && formDrawn\">\n" +
@@ -18202,7 +17882,7 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "\n" +
     "    <div ng-if=\"validForm\">\n" +
     "\n" +
-    "      <p class=\"help-block pull-left\"><span translate>created-by</span>\n" +
+    "      <p class=\"help-block col-md-4\"><span translate>created-by</span>\n" +
     "        <span ng-if=\"!actions.canViewProfile('mica-data-access-officer')\">\n" +
     "           {{getFullName(dataAccessRequest.profile) || dataAccessRequest.applicant}},\n" +
     "        </span>\n" +
@@ -18211,7 +17891,7 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "            {{getFullName(dataAccessRequest.profile) || dataAccessRequest.applicant}}</a>,\n" +
     "        </span>\n" +
     "        <span title=\"{{dataAccessRequest.timestamps.created | amDateFormat: 'lll'}}\">{{dataAccessRequest.timestamps.created | amCalendar}}</span>\n" +
-    "        <span class=\"label label-primary hoffset1\">{{dataAccessRequest.status | translate}}</span>\n" +
+    "        <status-progressbar status=\"dataAccessRequest.status\" config=\"dataAccessForm\"></status-progressbar>\n" +
     "      </p>\n" +
     "\n" +
     "      <div class=\"pull-right\">\n" +
@@ -18239,12 +17919,6 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "          ng-if=\"actions.canEditStatus(dataAccessRequest) && nextStatus.canReject(dataAccessRequest)\"\n" +
     "          class=\"btn btn-info\" translate>reject\n" +
     "        </a>\n" +
-    "        <a ng-click=\"editStartDate()\"\n" +
-    "          ng-if=\"dataAccessRequest.reportsTimeline && actions.canEditStartDate(dataAccessRequest)\"\n" +
-    "          class=\"btn btn-primary\">\n" +
-    "          <i class=\"fa fa-clock-o\"></i>\n" +
-    "          <span>{{'start-date' | translate}}</span>\n" +
-    "        </a>\n" +
     "        <a ng-href=\"#/data-access-request/{{dataAccessRequest.id}}/edit\"\n" +
     "          ng-if=\"actions.canEdit(dataAccessRequest)\"\n" +
     "          class=\"btn btn-primary\" title=\"{{'edit' | translate}}\">\n" +
@@ -18267,10 +17941,6 @@ angular.module("access/views/data-access-request-view.html", []).run(["$template
     "      </div>\n" +
     "\n" +
     "      <div class=\"clearfix\"></div>\n" +
-    "\n" +
-    "      <status-progressbar status=\"dataAccessRequest.status\" history=\"dataAccessRequest.statusChangeHistory\" config=\"dataAccessForm\"></status-progressbar>\n" +
-    "\n" +
-    "      <reports-progressbar timeline=\"dataAccessRequest.reportsTimeline\"></reports-progressbar>\n" +
     "\n" +
     "      <div class=\"voffset2\" ng-if=\"dataAccessRequest.project.permissions && dataAccessRequest.project.permissions.view\">\n" +
     "        <div ng-if=\"dataAccessRequest.project\" class=\"pull-right\">\n" +
@@ -21080,8 +20750,8 @@ angular.module("search/components/result/coverage-result/component.html", []).ru
     "          </th>\n" +
     "          </tr>\n" +
     "      </thead>\n" +
-    "      <tbody class=\"infinite-scroll\" load=loadMoreRows()>\n" +
-    "        <tr ng-repeat=\"row in filteredRows track by row.value\" ng-show=\"showMissing || table.termHeaders.length == row.hits.length\"\n" +
+    "      <tbody>\n" +
+    "        <tr ng-repeat=\"row in ::table.rows track by row.value\" ng-show=\"showMissing || table.termHeaders.length == row.hits.length\"\n" +
     "            ng-mouseover=\"onRowMouseOver($event, row)\"\n" +
     "            ng-mouseleave=\"onRowMouseLeave($event, row)\">\n" +
     "          <td style=\"text-align: center\">\n" +
