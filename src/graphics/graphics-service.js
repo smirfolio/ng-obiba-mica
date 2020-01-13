@@ -428,7 +428,7 @@ ngObibaMica.graphics
                           title: $filter('translate')('total'),
                           value: a.value + b.value,
                           participantsNbr:  parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
-                          key: '-',
+                          key: 'exists',
                           perc: 100
                         };
                       }));
@@ -451,6 +451,7 @@ ngObibaMica.graphics
                           title: $filter('translate')('graphics.total'),
                           value: total + (a.value + b.value),
                           participantsNbr:  parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
+                          key: 'exists',
                           perc: MathFunction.round(totalPerc + (parseFloat(a.perc) + parseFloat(b.perc)), 2)
                         };
                       });
@@ -459,6 +460,7 @@ ngObibaMica.graphics
                         title: $filter('translate')('numberOfParticipants.no-limit'),
                         value: StudiesData.totalHits - totalEntries.value,
                         participantsNbr:  '-',
+                        key: 'missing',
                         perc: percentageCalc((StudiesData.totalHits - totalEntries.value), StudiesData.totalHits) || '0'
                       });
 
@@ -467,6 +469,7 @@ ngObibaMica.graphics
                           title: $filter('translate')('graphics.total'),
                           value: total + (a.value + b.value),
                           participantsNbr:  (a.participantsNbr!=='-'?parseFloat(a.participantsNbr):0) + (b.participantsNbr!=='-'?parseFloat(b.participantsNbr):0),
+                          key: 'exists',
                           perc: 100
                         };
                       }));
@@ -488,7 +491,7 @@ ngObibaMica.graphics
                           title: $filter('translate')('graphics.total'),
                           value: total + (a.value + b.value),
                           participantsNbr:  parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
-                          key: '-',
+                          key: 'exists',
                           perc: MathFunction.round(totalPerc + (parseFloat(a.perc) + parseFloat(b.perc)), 2)
                         };
                       });
@@ -496,7 +499,7 @@ ngObibaMica.graphics
                         title: $filter('translate')('graphics.undetermined'),
                         value: StudiesData.totalHits - totalEntries.value,
                         participantsNbr:  '-',
-                        key: '-',
+                        key: 'missing',
                         perc: percentageCalc((StudiesData.totalHits - totalEntries.value), StudiesData.totalHits) || '0'
                       });
 
@@ -505,7 +508,7 @@ ngObibaMica.graphics
                           title: $filter('translate')('total'),
                           value:  total + (a.value + b.value),
                           participantsNbr:  (a.participantsNbr!=='-'?parseFloat(a.participantsNbr):0) + (b.participantsNbr!=='-'?parseFloat(b.participantsNbr):0),
-                          key: '-',
+                          key: 'exists',
                           perc:  100
                         };
                       }));

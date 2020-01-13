@@ -23,6 +23,7 @@ ngObibaMica.graphics
     'RqlQueryService',
     'ngObibaMicaUrl',
     'LocalizedValues',
+    'RqlQueryUpdaterFactory',
     function ($rootScope,
               $scope,
               $filter,
@@ -32,7 +33,8 @@ ngObibaMica.graphics
               GraphicChartsData,
               RqlQueryService,
               ngObibaMicaUrl,
-              LocalizedValues) {
+              LocalizedValues,
+              RqlQueryUpdaterFactory) {
       var graphOptions =  GraphicChartsConfig.getOptions();
 
       function updateTableData(graphOptions){
@@ -92,19 +94,32 @@ ngObibaMica.graphics
           var entity = graphOptions.entityType;
           var id = graphOptions.entityIds;
           var parts = item.id.split('.');
-          var urlRedirect;
+          var queryParams = RqlQueryUpdaterFactory.create(null, QUERY_TYPES.STUDIES, 'list');
+            switch (key) {
+              case 'missing':
+                var missingQuery = new RqlQuery(RQL_NODE.MISSING);
+                missingQuery.args = [parts[0] + '.' + parts[1]];
+                queryParams.update(QUERY_TARGETS.STUDY, missingQuery, true, true);
+                break;
+              case'exists':
+                  // All studies of current query
+                break;
+              default:
+                var mainQuery = new RqlQuery(RQL_NODE.IN);
+                mainQuery.args = [parts[0] + '.' + parts[1], (entity && id) ? encodeURIComponent(parts[2]) : parts[2]];
+                queryParams.update(QUERY_TARGETS.STUDY, mainQuery, true, true);
+            }
+            var classNameQuery = new RqlQuery(RQL_NODE.IN);
+            classNameQuery.args = ['Mica_study.className', 'Study'];
+            queryParams.update(QUERY_TARGETS.STUDY, classNameQuery, true, true);
           if(entity && id){
-            urlRedirect = ngObibaMicaUrl.getUrl('SearchBaseUrl') +
-              '?type=studies&query=' +
-              entity + '(in(Mica_' + entity + '.id,' + id + '))' +
-              ((typeof parts[2] !== 'undefined')?
-                ',study(in(' + parts[0] + '.' + parts[1] + ',' + parts[2].replace(':', '%253A'):
-                ',study(exists(' + parts[0] + '.' + parts[1]) +
-              '))';
-            $window.location.href = ngObibaMicaUrl.getUrl('BaseUrl') + urlRedirect;
+            var networkQuery = new RqlQuery(RQL_NODE.IN);
+            networkQuery.args = ['Mica_' + entity + '.id', id];
+            queryParams.update(QUERY_TARGETS.NETWORK, networkQuery, true, true);
+            $window.location.href = ngObibaMicaUrl.getUrl('BaseUrl') + ngObibaMicaUrl.getUrl('SearchBaseUrl') + '?' + queryParams.asQueryParams();
           }
           else{
-            $scope.onUpdateCriteria(item, 'studies');
+            queryParams.execute();
           }
         });
       };
