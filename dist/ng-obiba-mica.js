@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2020-01-10
+ * Date: 2020-01-13
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -16098,7 +16098,8 @@ ngObibaMica.graphics
     'RqlQueryService',
     'ngObibaMicaUrl',
     'LocalizedValues',
-    function ($rootScope, $scope, $filter, $window, GraphicChartsConfig, GraphicChartsUtils, GraphicChartsData, RqlQueryService, ngObibaMicaUrl, LocalizedValues) {
+    'RqlQueryUpdaterFactory',
+    function ($rootScope, $scope, $filter, $window, GraphicChartsConfig, GraphicChartsUtils, GraphicChartsData, RqlQueryService, ngObibaMicaUrl, LocalizedValues, RqlQueryUpdaterFactory) {
         var graphOptions = GraphicChartsConfig.getOptions();
         function updateTableData(graphOptions) {
             $scope.chartObject.ordered = graphOptions.ChartsOptions[$scope.chartConfig.chartType].ordered;
@@ -16157,19 +16158,32 @@ ngObibaMica.graphics
                 var entity = graphOptions.entityType;
                 var id = graphOptions.entityIds;
                 var parts = item.id.split('.');
-                var urlRedirect;
+                var queryParams = RqlQueryUpdaterFactory.create(null, QUERY_TYPES.STUDIES, 'list');
+                switch (key) {
+                    case 'missing':
+                        var missingQuery = new RqlQuery(RQL_NODE.MISSING);
+                        missingQuery.args = [parts[0] + '.' + parts[1]];
+                        queryParams.update(QUERY_TARGETS.STUDY, missingQuery, true, true);
+                        break;
+                    case 'exists':
+                        // All studies of current query
+                        break;
+                    default:
+                        var mainQuery = new RqlQuery(RQL_NODE.IN);
+                        mainQuery.args = [parts[0] + '.' + parts[1], (entity && id) ? encodeURIComponent(parts[2]) : parts[2]];
+                        queryParams.update(QUERY_TARGETS.STUDY, mainQuery, true, true);
+                }
+                var classNameQuery = new RqlQuery(RQL_NODE.IN);
+                classNameQuery.args = ['Mica_study.className', 'Study'];
+                queryParams.update(QUERY_TARGETS.STUDY, classNameQuery, true, true);
                 if (entity && id) {
-                    urlRedirect = ngObibaMicaUrl.getUrl('SearchBaseUrl') +
-                        '?type=studies&query=' +
-                        entity + '(in(Mica_' + entity + '.id,' + id + '))' +
-                        ((typeof parts[2] !== 'undefined') ?
-                            ',study(in(' + parts[0] + '.' + parts[1] + ',' + parts[2].replace(':', '%253A') :
-                            ',study(exists(' + parts[0] + '.' + parts[1]) +
-                        '))';
-                    $window.location.href = ngObibaMicaUrl.getUrl('BaseUrl') + urlRedirect;
+                    var networkQuery = new RqlQuery(RQL_NODE.IN);
+                    networkQuery.args = ['Mica_' + entity + '.id', id];
+                    queryParams.update(QUERY_TARGETS.NETWORK, networkQuery, true, true);
+                    $window.location.href = ngObibaMicaUrl.getUrl('BaseUrl') + ngObibaMicaUrl.getUrl('SearchBaseUrl') + '?' + queryParams.asQueryParams();
                 }
                 else {
-                    $scope.onUpdateCriteria(item, 'studies');
+                    queryParams.execute();
                 }
             });
         };
@@ -16618,7 +16632,7 @@ ngObibaMica.graphics
                                                     title: $filter('translate')('total'),
                                                     value: a.value + b.value,
                                                     participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
-                                                    key: '-',
+                                                    key: 'exists',
                                                     perc: 100
                                                 };
                                             }));
@@ -16640,6 +16654,7 @@ ngObibaMica.graphics
                                                     title: $filter('translate')('graphics.total'),
                                                     value: total + (a.value + b.value),
                                                     participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
+                                                    key: 'exists',
                                                     perc: MathFunction.round(totalPerc + (parseFloat(a.perc) + parseFloat(b.perc)), 2)
                                                 };
                                             });
@@ -16647,6 +16662,7 @@ ngObibaMica.graphics
                                                 title: $filter('translate')('numberOfParticipants.no-limit'),
                                                 value: StudiesData.totalHits - totalEntries.value,
                                                 participantsNbr: '-',
+                                                key: 'missing',
                                                 perc: percentageCalc((StudiesData.totalHits - totalEntries.value), StudiesData.totalHits) || '0'
                                             });
                                             entries.push(entries.reduce(function (a, b) {
@@ -16654,6 +16670,7 @@ ngObibaMica.graphics
                                                     title: $filter('translate')('graphics.total'),
                                                     value: total + (a.value + b.value),
                                                     participantsNbr: (a.participantsNbr !== '-' ? parseFloat(a.participantsNbr) : 0) + (b.participantsNbr !== '-' ? parseFloat(b.participantsNbr) : 0),
+                                                    key: 'exists',
                                                     perc: 100
                                                 };
                                             }));
@@ -16675,7 +16692,7 @@ ngObibaMica.graphics
                                                     title: $filter('translate')('graphics.total'),
                                                     value: total + (a.value + b.value),
                                                     participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
-                                                    key: '-',
+                                                    key: 'exists',
                                                     perc: MathFunction.round(totalPerc + (parseFloat(a.perc) + parseFloat(b.perc)), 2)
                                                 };
                                             });
@@ -16683,7 +16700,7 @@ ngObibaMica.graphics
                                                 title: $filter('translate')('graphics.undetermined'),
                                                 value: StudiesData.totalHits - totalEntries.value,
                                                 participantsNbr: '-',
-                                                key: '-',
+                                                key: 'missing',
                                                 perc: percentageCalc((StudiesData.totalHits - totalEntries.value), StudiesData.totalHits) || '0'
                                             });
                                             entries.push(entries.reduce(function (a, b) {
@@ -16691,7 +16708,7 @@ ngObibaMica.graphics
                                                     title: $filter('translate')('total'),
                                                     value: total + (a.value + b.value),
                                                     participantsNbr: (a.participantsNbr !== '-' ? parseFloat(a.participantsNbr) : 0) + (b.participantsNbr !== '-' ? parseFloat(b.participantsNbr) : 0),
-                                                    key: '-',
+                                                    key: 'exists',
                                                     perc: 100
                                                 };
                                             }));
