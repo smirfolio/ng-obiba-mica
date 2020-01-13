@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2020-01-09
+ * Date: 2020-01-13
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -8322,6 +8322,214 @@ function typeToTarget(type) {
 })();
 //# sourceMappingURL=rql-query-service.js.map
 /*
+ * Copyright (c) 2019 OBiBa. All rights reserved.
+ *
+ * This program and the accompanying materials
+ * are made available under the terms of the GNU Public License v3.0.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+/**
+ * Helper class that updates the root RqlQuery. Client code can either execute the modified version or retrieve as a
+ * string.*
+ */
+var RqlQueryUpdater = /** @class */ (function () {
+    function RqlQueryUpdater($location, $filter, $translate, RqlQueryService, AlertService, TaxonomyService, LocalizedValues) {
+        this.$location = $location;
+        this.$filter = $filter;
+        this.$translate = $translate;
+        this.RqlQueryService = RqlQueryService;
+        this.AlertService = AlertService;
+        this.TaxonomyService = TaxonomyService;
+        this.LocalizedValues = LocalizedValues;
+    }
+    RqlQueryUpdater.getQueryTaxonomyAndVocabulary = function (query) {
+        var parts = query.args[0].split(".");
+        var taxonomy = null;
+        var vocabulary = null;
+        if (parts.length > 1) {
+            taxonomy = parts[0];
+            vocabulary = parts[1];
+        }
+        else {
+            vocabulary = parts[0];
+        }
+        return { taxonomy: taxonomy, vocabulary: vocabulary };
+    };
+    /**
+     * Prepare the updater before adding/updating RqlQueries
+     *
+     * @param query - if null the browser query param is parsed
+     * @param type - one of QUERY_TARGETS
+     * @param display - one of DISPLAY_TYPES
+     */
+    RqlQueryUpdater.prototype.prepare = function (query, type, display) {
+        if (query === null) {
+            this.parsedQuery = this.RqlQueryService.parseQuery(this.$location.search().query);
+        }
+        else {
+            this.parsedQuery = this.RqlQueryService.parseQuery(query);
+        }
+        this.type = type;
+        this.display = display;
+        return this;
+    };
+    /**
+     * Updated the parsed query by adding or updating an existing RqlQuery
+     *
+     * @param target
+     * @param newQuery
+     * @param andQuery - used for MUST queries
+     * @param showNotification
+     */
+    RqlQueryUpdater.prototype.update = function (target, newQuery, andQuery, showNotification) {
+        var targetQuery = this.ensureTarget(target);
+        var query = this.findQueryInTarget(targetQuery, newQuery);
+        var isNewQuery = false;
+        if (query) {
+            this.replaceQuery(query, query);
+        }
+        else {
+            isNewQuery = true;
+            this.insertNewQuery(targetQuery, newQuery);
+            query = newQuery;
+        }
+        if (showNotification) {
+            this.notify(targetQuery, query, isNewQuery);
+        }
+        if (andQuery && targetQuery.args.length > 0) {
+            var parent_1 = this.findParentQuery(targetQuery, query);
+            if (parent_1 && this.RqlQueryService.isOperator(parent_1.name)) {
+                parent_1.name = RQL_NODE.AND;
+            }
+        }
+        return this;
+    };
+    /**
+     * Executes the query by updating the window.location query params
+     */
+    RqlQueryUpdater.prototype.execute = function () {
+        if (this.type) {
+            this.$location.search("type", this.type).replace();
+        }
+        if (this.display) {
+            this.$location.search("display", this.display).replace();
+        }
+        this.$location.search("query", new RqlQuery().serializeArgs(this.parsedQuery.args));
+    };
+    /**
+     * Returns the parsed query along with query and display types as query params
+     */
+    RqlQueryUpdater.prototype.asQueryParams = function () {
+        var asParam = function (key, value) { return key + "=" + value; };
+        return asParam("query", new RqlQuery().serializeArgs(this.parsedQuery.args)) + "&"
+            + (this.type ? asParam("type", this.type) + "&" : "")
+            + (this.display ? asParam("display", this.display) : "");
+    };
+    RqlQueryUpdater.prototype.ensureTarget = function (target) {
+        var targetQuery = this.RqlQueryService.findTargetQuery(target, this.parsedQuery);
+        if (!targetQuery) {
+            targetQuery = new RqlQuery(target);
+            this.parsedQuery.args.push(targetQuery);
+        }
+        return targetQuery;
+    };
+    RqlQueryUpdater.prototype.findQueryInTarget = function (targetQuery, query) {
+        var result = RqlQueryUpdater.getQueryTaxonomyAndVocabulary(query);
+        return this.RqlQueryService.findQueryInTargetByTaxonomyVocabulary(targetQuery, result.taxonomy, result.vocabulary);
+    };
+    RqlQueryUpdater.prototype.notify = function (targetQuery, query, isNewQuery) {
+        var _this = this;
+        var target = targetQuery.name;
+        var result = RqlQueryUpdater.getQueryTaxonomyAndVocabulary(query);
+        this.TaxonomyService.getTaxonomy(target, result.taxonomy).then(function (taxonomy) {
+            (taxonomy.vocabularies || []).some(function (vocabulary) {
+                if (vocabulary.name === result.vocabulary) {
+                    var msgKey = isNewQuery ? "search.criterion.created" : "search.criterion.updated";
+                    _this.AlertService.growl({
+                        delay: 3000,
+                        id: "SearchControllerGrowl",
+                        msgArgs: [
+                            _this.LocalizedValues.forLocale(vocabulary.title, _this.$translate.use()),
+                            _this.$filter("translate")("taxonomy.target." + target),
+                        ],
+                        msgKey: msgKey,
+                        type: "info",
+                    });
+                    return true;
+                }
+                return false;
+            });
+        });
+    };
+    RqlQueryUpdater.prototype.insertNewQuery = function (targetQuery, newQuery) {
+        var _this = this;
+        if (targetQuery.args.length > 0) {
+            var replace = targetQuery.args.filter(function (arg) {
+                return _this.RqlQueryService.isLeaf(arg.name) || _this.RqlQueryService.isOperator(arg.name);
+            }).pop();
+            if (replace) {
+                // replaceable args are operators or leaf nodes
+                var andStudyClassName = new RqlQuery(RQL_NODE.AND);
+                var index = targetQuery.args.indexOf(replace);
+                andStudyClassName.args.push(newQuery, replace);
+                targetQuery.args[index] = andStudyClassName;
+            }
+            else {
+                targetQuery.args.push(newQuery);
+            }
+        }
+        else {
+            targetQuery.args = [newQuery];
+        }
+    };
+    RqlQueryUpdater.prototype.replaceQuery = function (query, newQuery) {
+        query.name = newQuery.name;
+        query.args = newQuery.args;
+    };
+    RqlQueryUpdater.prototype.findParentQuery = function (targetQuery, query) {
+        var result = { parent: null };
+        this.search(targetQuery, query, result);
+        return result.parent;
+    };
+    RqlQueryUpdater.prototype.search = function (parent, query, result) {
+        var _this = this;
+        return parent.args.some(function (arg) {
+            if (arg === query) {
+                result.parent = parent;
+                return true;
+            }
+            if (arg instanceof RqlQuery) {
+                return _this.search(arg, query, result);
+            }
+            return false;
+        });
+    };
+    return RqlQueryUpdater;
+}());
+var RqlQueryUpdaterFactory = /** @class */ (function () {
+    function RqlQueryUpdaterFactory($location, $filter, $translate, RqlQueryService, AlertService, TaxonomyService, LocalizedValues) {
+        this.$location = $location;
+        this.$filter = $filter;
+        this.$translate = $translate;
+        this.RqlQueryService = RqlQueryService;
+        this.AlertService = AlertService;
+        this.TaxonomyService = TaxonomyService;
+        this.LocalizedValues = LocalizedValues;
+    }
+    RqlQueryUpdaterFactory.prototype.create = function (query, type, display) {
+        return new RqlQueryUpdater(this.$location, this.$filter, this.$translate, this.RqlQueryService, this.AlertService, this.TaxonomyService, this.LocalizedValues).prepare(query, type, display);
+    };
+    return RqlQueryUpdaterFactory;
+}());
+ngObibaMica.search.factory("RqlQueryUpdaterFactory", ["$location", "$filter", "$translate", "RqlQueryService", "AlertService", "TaxonomyService", "LocalizedValues",
+    function ($location, $filter, $translate, RqlQueryService, AlertService, TaxonomyService, LocalizedValues) {
+        return new RqlQueryUpdaterFactory($location, $filter, $translate, RqlQueryService, AlertService, TaxonomyService, LocalizedValues);
+    },
+]);
+//# sourceMappingURL=rql-query-updater-service.js.map
+/*
  * Copyright (c) 2018 OBiBa. All rights reserved.
  *
  * This program and the accompanying materials
@@ -15890,7 +16098,8 @@ ngObibaMica.graphics
     'RqlQueryService',
     'ngObibaMicaUrl',
     'LocalizedValues',
-    function ($rootScope, $scope, $filter, $window, GraphicChartsConfig, GraphicChartsUtils, GraphicChartsData, RqlQueryService, ngObibaMicaUrl, LocalizedValues) {
+    'RqlQueryUpdaterFactory',
+    function ($rootScope, $scope, $filter, $window, GraphicChartsConfig, GraphicChartsUtils, GraphicChartsData, RqlQueryService, ngObibaMicaUrl, LocalizedValues, RqlQueryUpdaterFactory) {
         var graphOptions = GraphicChartsConfig.getOptions();
         function updateTableData(graphOptions) {
             $scope.chartObject.ordered = graphOptions.ChartsOptions[$scope.chartConfig.chartType].ordered;
@@ -15949,19 +16158,32 @@ ngObibaMica.graphics
                 var entity = graphOptions.entityType;
                 var id = graphOptions.entityIds;
                 var parts = item.id.split('.');
-                var urlRedirect;
+                var queryParams = RqlQueryUpdaterFactory.create(null, QUERY_TYPES.STUDIES, 'list');
+                switch (key) {
+                    case 'missing':
+                        var missingQuery = new RqlQuery(RQL_NODE.MISSING);
+                        missingQuery.args = [parts[0] + '.' + parts[1]];
+                        queryParams.update(QUERY_TARGETS.STUDY, missingQuery, true, true);
+                        break;
+                    case 'exists':
+                        // All studies of current query
+                        break;
+                    default:
+                        var mainQuery = new RqlQuery(RQL_NODE.IN);
+                        mainQuery.args = [parts[0] + '.' + parts[1], (entity && id) ? encodeURIComponent(parts[2]) : parts[2]];
+                        queryParams.update(QUERY_TARGETS.STUDY, mainQuery, true, true);
+                }
+                var classNameQuery = new RqlQuery(RQL_NODE.IN);
+                classNameQuery.args = ['Mica_study.className', 'Study'];
+                queryParams.update(QUERY_TARGETS.STUDY, classNameQuery, true, true);
                 if (entity && id) {
-                    urlRedirect = ngObibaMicaUrl.getUrl('SearchBaseUrl') +
-                        '?type=studies&query=' +
-                        entity + '(in(Mica_' + entity + '.id,' + id + '))' +
-                        ((typeof parts[2] !== 'undefined') ?
-                            ',study(in(' + parts[0] + '.' + parts[1] + ',' + parts[2].replace(':', '%253A') :
-                            ',study(exists(' + parts[0] + '.' + parts[1]) +
-                        '))';
-                    $window.location.href = ngObibaMicaUrl.getUrl('BaseUrl') + urlRedirect;
+                    var networkQuery = new RqlQuery(RQL_NODE.IN);
+                    networkQuery.args = ['Mica_' + entity + '.id', id];
+                    queryParams.update(QUERY_TARGETS.NETWORK, networkQuery, true, true);
+                    $window.location.href = ngObibaMicaUrl.getUrl('BaseUrl') + ngObibaMicaUrl.getUrl('SearchBaseUrl') + '?' + queryParams.asQueryParams();
                 }
                 else {
-                    $scope.onUpdateCriteria(item, 'studies');
+                    queryParams.execute();
                 }
             });
         };
@@ -16410,7 +16632,7 @@ ngObibaMica.graphics
                                                     title: $filter('translate')('total'),
                                                     value: a.value + b.value,
                                                     participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
-                                                    key: '-',
+                                                    key: 'exists',
                                                     perc: 100
                                                 };
                                             }));
@@ -16432,6 +16654,7 @@ ngObibaMica.graphics
                                                     title: $filter('translate')('graphics.total'),
                                                     value: total + (a.value + b.value),
                                                     participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
+                                                    key: 'exists',
                                                     perc: MathFunction.round(totalPerc + (parseFloat(a.perc) + parseFloat(b.perc)), 2)
                                                 };
                                             });
@@ -16439,6 +16662,7 @@ ngObibaMica.graphics
                                                 title: $filter('translate')('numberOfParticipants.no-limit'),
                                                 value: StudiesData.totalHits - totalEntries.value,
                                                 participantsNbr: '-',
+                                                key: 'missing',
                                                 perc: percentageCalc((StudiesData.totalHits - totalEntries.value), StudiesData.totalHits) || '0'
                                             });
                                             entries.push(entries.reduce(function (a, b) {
@@ -16446,6 +16670,7 @@ ngObibaMica.graphics
                                                     title: $filter('translate')('graphics.total'),
                                                     value: total + (a.value + b.value),
                                                     participantsNbr: (a.participantsNbr !== '-' ? parseFloat(a.participantsNbr) : 0) + (b.participantsNbr !== '-' ? parseFloat(b.participantsNbr) : 0),
+                                                    key: 'exists',
                                                     perc: 100
                                                 };
                                             }));
@@ -16467,7 +16692,7 @@ ngObibaMica.graphics
                                                     title: $filter('translate')('graphics.total'),
                                                     value: total + (a.value + b.value),
                                                     participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
-                                                    key: '-',
+                                                    key: 'exists',
                                                     perc: MathFunction.round(totalPerc + (parseFloat(a.perc) + parseFloat(b.perc)), 2)
                                                 };
                                             });
@@ -16475,7 +16700,7 @@ ngObibaMica.graphics
                                                 title: $filter('translate')('graphics.undetermined'),
                                                 value: StudiesData.totalHits - totalEntries.value,
                                                 participantsNbr: '-',
-                                                key: '-',
+                                                key: 'missing',
                                                 perc: percentageCalc((StudiesData.totalHits - totalEntries.value), StudiesData.totalHits) || '0'
                                             });
                                             entries.push(entries.reduce(function (a, b) {
@@ -16483,7 +16708,7 @@ ngObibaMica.graphics
                                                     title: $filter('translate')('total'),
                                                     value: total + (a.value + b.value),
                                                     participantsNbr: (a.participantsNbr !== '-' ? parseFloat(a.participantsNbr) : 0) + (b.participantsNbr !== '-' ? parseFloat(b.participantsNbr) : 0),
-                                                    key: '-',
+                                                    key: 'exists',
                                                     perc: 100
                                                 };
                                             }));
