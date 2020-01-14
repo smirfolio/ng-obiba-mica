@@ -80,7 +80,7 @@ class RqlQueryUpdater {
     let isNewQuery = false;
 
     if (query) {
-      this.replaceQuery(query, query);
+      this.replaceQuery(query, newQuery);
     } else {
       isNewQuery = true;
       this.insertNewQuery(targetQuery, newQuery);
