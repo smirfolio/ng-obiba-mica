@@ -102,7 +102,11 @@ ngObibaMica.graphics
                 queryParams.update(QUERY_TARGETS.STUDY, missingQuery, true, true);
                 break;
               case'exists':
-                  // All studies of current query
+                if(parts[1] && parts[1] === 'start-range'){
+                  var existsQuery = new RqlQuery(RQL_NODE.EXISTS);
+                  existsQuery.args = [parts[0] + '.' + parts[1]];
+                  queryParams.update(QUERY_TARGETS.STUDY, existsQuery, true, true);
+                }
                 break;
               default:
                 var mainQuery = new RqlQuery(RQL_NODE.IN);
