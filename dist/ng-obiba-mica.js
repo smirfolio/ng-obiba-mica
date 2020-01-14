@@ -8154,7 +8154,7 @@ var RqlQueryUpdater = /** @class */ (function () {
         var query = this.findQueryInTarget(targetQuery, newQuery);
         var isNewQuery = false;
         if (query) {
-            this.replaceQuery(query, query);
+            this.replaceQuery(query, newQuery);
         }
         else {
             isNewQuery = true;
