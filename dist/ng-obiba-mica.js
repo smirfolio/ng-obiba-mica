@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2020-01-13
+ * Date: 2020-01-14
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -16166,7 +16166,11 @@ ngObibaMica.graphics
                         queryParams.update(QUERY_TARGETS.STUDY, missingQuery, true, true);
                         break;
                     case 'exists':
-                        // All studies of current query
+                        if (parts[1] && parts[1] === 'start-range') {
+                            var existsQuery = new RqlQuery(RQL_NODE.EXISTS);
+                            existsQuery.args = [parts[0] + '.' + parts[1]];
+                            queryParams.update(QUERY_TARGETS.STUDY, existsQuery, true, true);
+                        }
                         break;
                     default:
                         var mainQuery = new RqlQuery(RQL_NODE.IN);
@@ -16687,29 +16691,13 @@ ngObibaMica.graphics
                                         if (entries.length > 1) {
                                             total = 0;
                                             totalPerc = 0;
-                                            totalEntries = entries.reduce(function (a, b) {
+                                            entries.push(entries.reduce(function (a, b) {
                                                 return {
                                                     title: $filter('translate')('graphics.total'),
                                                     value: total + (a.value + b.value),
                                                     participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
                                                     key: 'exists',
                                                     perc: MathFunction.round(totalPerc + (parseFloat(a.perc) + parseFloat(b.perc)), 2)
-                                                };
-                                            });
-                                            entries.push({
-                                                title: $filter('translate')('graphics.undetermined'),
-                                                value: StudiesData.totalHits - totalEntries.value,
-                                                participantsNbr: '-',
-                                                key: 'missing',
-                                                perc: percentageCalc((StudiesData.totalHits - totalEntries.value), StudiesData.totalHits) || '0'
-                                            });
-                                            entries.push(entries.reduce(function (a, b) {
-                                                return {
-                                                    title: $filter('translate')('total'),
-                                                    value: total + (a.value + b.value),
-                                                    participantsNbr: (a.participantsNbr !== '-' ? parseFloat(a.participantsNbr) : 0) + (b.participantsNbr !== '-' ? parseFloat(b.participantsNbr) : 0),
-                                                    key: 'exists',
-                                                    perc: 100
                                                 };
                                             }));
                                         }
