@@ -16754,7 +16754,7 @@ ngObibaMica.graphics
                                     top: 0,
                                     right: 10,
                                     bottom: 0,
-                                    left: 0
+                                    left: 55
                                 } };
                         }
                         deferred.resolve(returnedScope);
