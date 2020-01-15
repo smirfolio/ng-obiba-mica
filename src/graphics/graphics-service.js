@@ -65,7 +65,7 @@ ngObibaMica.graphics
           },
           studiesDesigns: {
             type: 'BarChart',
-            header: ['graphics.study-design', 'graphics.nbr-studies', 'graphics.number-participants', 'graphics.percentage.studies'],
+            header: ['graphics.study-design', 'graphics.nbr-studies', 'graphics.percentage.studies', 'graphics.number-participants'],
             title : 'graphics.study-design-chart-title',
             aggregationName: 'model-methods-design',
             optionsName: 'studiesDesigns',
@@ -95,7 +95,7 @@ ngObibaMica.graphics
           },
           numberParticipants: {
             type: 'PieChart',
-            header: ['graphics.number-participants', 'graphics.nbr-studies', 'graphics.number-participants','graphics.percentage.studies'],
+            header: ['graphics.number-participants', 'graphics.nbr-studies', 'graphics.percentage.studies', 'graphics.number-participants'],
             title: 'graphics.number-participants-chart-title',
             aggregationName: 'model-numberOfParticipants-participant-number-range',
             optionsName: 'numberParticipants',
@@ -143,7 +143,7 @@ ngObibaMica.graphics
           },
           startYear: {
             type: 'BarChart',
-            header : ['graphics.study-start-year', 'graphics.nbr-studies', 'graphics.number-participants', 'graphics.percentage.studies'],
+            header : ['graphics.study-start-year', 'graphics.nbr-studies', 'graphics.percentage.studies', 'graphics.number-participants'],
             title : 'graphics.study-start-year-chart-title',
             aggregationName: 'model-startYear-range',
             optionsName: 'startYear',
