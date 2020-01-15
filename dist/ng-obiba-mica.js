@@ -19337,12 +19337,12 @@ angular.module("graphics/views/tables-directive.html", []).run(["$templateCache"
     "        <tr ng-repeat=\"row in (sort.sortingOrder?(chartObject.entries | orderBy:sort.sortingOrder:sort.reverse):(chartObject.entries)) track by $index\" >\n" +
     "            <td ng-if=\"row.title.toLowerCase()!='total'\">{{row.title}}</td>\n" +
     "            <td ng-if=\"row.title.toLowerCase()=='total'\"><b>{{row.title}}</b></td>\n" +
-    "            <td ng-if=\"row.value=='0'\" style=\"text-align: right; color: #7b8a8b\">{{localizedNumber(row.value)}}<div style=\"width: 30%; display: inline-block\"></div></td>\n" +
-    "            <td ng-if=\"row.value!='0'\" style=\"text-align: right\"><a href ng-click=\"updateCriteria(row.key, chartObject.vocabulary)\">{{localizedNumber(row.value)}}</a><div style=\"width: 30%; display: inline-block\"></div></td>\n" +
-    "            <td ng-if=\"row.perc=='0'\" style=\"text-align: right; color: #7b8a8b\">{{row.perc}} %<div style=\"width: 30%; display: inline-block\"></div></td>\n" +
-    "            <td ng-if=\"row.perc && row.perc!='0'\" style=\"text-align: right\">{{row.perc}} %<div style=\"width: 30%; display: inline-block\"></div></td>\n" +
-    "            <td ng-if=\"row.participantsNbr\" style=\"text-align: right\">{{localizedNumber(row.participantsNbr)}}<div style=\"width: 30%; display: inline-block\"></div></td>\n" +
-    "            <td ng-if=\"row.participantsNbr==0\" style=\"text-align: right; color: #7b8a8b\">-<div style=\"width: 30%; display: inline-block\"></div></td>\n" +
+    "            <td ng-if=\"row.value=='0'\" style=\"text-align: right; color: #7b8a8b\">{{localizedNumber(row.value)}}<div style=\"width: 20%; display: inline-block\"></div></td>\n" +
+    "            <td ng-if=\"row.value!='0'\" style=\"text-align: right\"><a href ng-click=\"updateCriteria(row.key, chartObject.vocabulary)\">{{localizedNumber(row.value)}}</a><div style=\"width: 20%; display: inline-block\"></div></td>\n" +
+    "            <td ng-if=\"row.perc=='0'\" style=\"text-align: right; color: #7b8a8b\">{{row.perc}} %<div style=\"width: 20%; display: inline-block\"></div></td>\n" +
+    "            <td ng-if=\"row.perc && row.perc!='0'\" style=\"text-align: right\">{{row.perc}} %<div style=\"width: 20%; display: inline-block\"></div></td>\n" +
+    "            <td ng-if=\"row.participantsNbr\" style=\"text-align: right\">{{localizedNumber(row.participantsNbr)}}<div style=\"width: 20%; display: inline-block\"></div></td>\n" +
+    "            <td ng-if=\"row.participantsNbr==0\" style=\"text-align: right; color: #7b8a8b\">-<div style=\"width: 20%; display: inline-block\"></div></td>\n" +
     "        </tr>\n" +
     "        </tbody>\n" +
     "    </table>\n" +
