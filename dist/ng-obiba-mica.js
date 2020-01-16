@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2020-01-14
+ * Date: 2020-01-15
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -16289,7 +16289,7 @@ ngObibaMica.graphics
                 },
                 studiesDesigns: {
                     type: 'BarChart',
-                    header: ['graphics.study-design', 'graphics.nbr-studies', 'graphics.number-participants', 'graphics.percentage.studies'],
+                    header: ['graphics.study-design', 'graphics.nbr-studies', 'graphics.percentage.studies', 'graphics.number-participants'],
                     title: 'graphics.study-design-chart-title',
                     aggregationName: 'model-methods-design',
                     optionsName: 'studiesDesigns',
@@ -16319,7 +16319,7 @@ ngObibaMica.graphics
                 },
                 numberParticipants: {
                     type: 'PieChart',
-                    header: ['graphics.number-participants', 'graphics.nbr-studies', 'graphics.number-participants', 'graphics.percentage.studies'],
+                    header: ['graphics.number-participants', 'graphics.nbr-studies', 'graphics.percentage.studies', 'graphics.number-participants'],
                     title: 'graphics.number-participants-chart-title',
                     aggregationName: 'model-numberOfParticipants-participant-number-range',
                     optionsName: 'numberParticipants',
@@ -16367,7 +16367,7 @@ ngObibaMica.graphics
                 },
                 startYear: {
                     type: 'BarChart',
-                    header: ['graphics.study-start-year', 'graphics.nbr-studies', 'graphics.number-participants', 'graphics.percentage.studies'],
+                    header: ['graphics.study-start-year', 'graphics.nbr-studies', 'graphics.percentage.studies', 'graphics.number-participants'],
                     title: 'graphics.study-start-year-chart-title',
                     aggregationName: 'model-startYear-range',
                     optionsName: 'startYear',
@@ -16754,7 +16754,7 @@ ngObibaMica.graphics
                                     top: 0,
                                     right: 10,
                                     bottom: 0,
-                                    left: 0
+                                    left: 55
                                 } };
                         }
                         deferred.resolve(returnedScope);
@@ -19627,11 +19627,12 @@ angular.module("graphics/views/tables-directive.html", []).run(["$templateCache"
     "        <tr ng-repeat=\"row in (sort.sortingOrder?(chartObject.entries | orderBy:sort.sortingOrder:sort.reverse):(chartObject.entries)) track by $index\" >\n" +
     "            <td ng-if=\"row.title.toLowerCase()!='total'\">{{row.title}}</td>\n" +
     "            <td ng-if=\"row.title.toLowerCase()=='total'\"><b>{{row.title}}</b></td>\n" +
-    "            <td ng-if=\"row.value=='0'\">{{localizedNumber(row.value)}}</td>\n" +
-    "            <td ng-if=\"row.value!='0'\" ><a href ng-click=\"updateCriteria(row.key, chartObject.vocabulary)\">{{localizedNumber(row.value)}}</a></td>\n" +
-    "            <td ng-if=\"row.participantsNbr\"><div style=\"width: 30%; display: inline-block\"></div> {{localizedNumber(row.participantsNbr)}}</td>\n" +
-    "            <td ng-if=\"row.participantsNbr==0\"><div style=\"width: 30%; display: inline-block\"></div>-</td>\n" +
-    "            <td ng-if=\"row.perc\">{{row.perc}} %</td>\n" +
+    "            <td ng-if=\"row.value=='0'\" style=\"text-align: right; color: #7b8a8b\">{{localizedNumber(row.value)}}<div style=\"width: 30%; display: inline-block\"></div></td>\n" +
+    "            <td ng-if=\"row.value!='0'\" style=\"text-align: right\"><a href ng-click=\"updateCriteria(row.key, chartObject.vocabulary)\">{{localizedNumber(row.value)}}</a><div style=\"width: 30%; display: inline-block\"></div></td>\n" +
+    "            <td ng-if=\"row.perc=='0'\" style=\"text-align: right; color: #7b8a8b\">{{row.perc}} %<div style=\"width: 30%; display: inline-block\"></div></td>\n" +
+    "            <td ng-if=\"row.perc && row.perc!='0'\" style=\"text-align: right\">{{row.perc}} %<div style=\"width: 30%; display: inline-block\"></div></td>\n" +
+    "            <td ng-if=\"row.participantsNbr\" style=\"text-align: right\">{{localizedNumber(row.participantsNbr)}}<div style=\"width: 30%; display: inline-block\"></div></td>\n" +
+    "            <td ng-if=\"row.participantsNbr==0\" style=\"text-align: right; color: #7b8a8b\">-<div style=\"width: 30%; display: inline-block\"></div></td>\n" +
     "        </tr>\n" +
     "        </tbody>\n" +
     "    </table>\n" +
