@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2020-01-24
+ * Date: 2020-01-30
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -325,6 +325,8 @@ function NgObibaMicaTemplateUrlFactory() {
                             redrawTable();
                         }
                     });
+                    // Re-draw table on sorting table
+                    $scope.$on('ngObibaTableSortUpdate', redrawTable);
                     // Re-draw table on left panel close/open
                     $scope.$on('ngObibaMicaLeftPaneToggle', redrawTable);
                     // Re-draw table on resize browser window
@@ -15904,6 +15906,7 @@ ngObibaMica.graphics
                     sort.reverse = false;
                 }
                 $scope.sort = sort;
+                $scope.$broadcast('ngObibaTableSortUpdate');
             }
         };
         $scope.columnOrderClass = function (column) {
