@@ -74,6 +74,7 @@ ngObibaMica.graphics
             sort.reverse = false;
           }
           $scope.sort = sort;
+          $scope.$broadcast('ngObibaTableSortUpdate');
         }
       };
       $scope.columnOrderClass = function (column) {
