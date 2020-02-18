@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2020-02-03
+ * Date: 2020-02-18
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -9357,7 +9357,8 @@ ngObibaMica.search.service("VariableAnnotationsService", VariableAnnotationsServ
         var VOCABULARY_TYPES = {
             STRING: 'string',
             INTEGER: 'integer',
-            DECIMAL: 'decimal'
+            DECIMAL: 'decimal',
+            KEYWORD: 'keyword'
         };
         function translateField(title) {
             return LocalizedValues.forLocale(title, $translate.use());
@@ -9465,7 +9466,7 @@ ngObibaMica.search.service("VariableAnnotationsService", VariableAnnotationsServ
             return vocabularyAttributeValue(vocabulary, 'termsSortKey', null);
         }
         function isTermsVocabulary(vocabulary) {
-            return vocabularyType(vocabulary) === VOCABULARY_TYPES.STRING && vocabulary.terms;
+            return vocabularyType(vocabulary) === VOCABULARY_TYPES.KEYWORD && vocabulary.terms;
         }
         function isMatchVocabulary(vocabulary) {
             return vocabularyType(vocabulary) === VOCABULARY_TYPES.STRING && !vocabulary.terms;
