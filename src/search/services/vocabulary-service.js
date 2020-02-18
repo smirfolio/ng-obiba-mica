@@ -152,7 +152,7 @@
     }
 
     function isTermsVocabulary(vocabulary) {
-      return vocabularyType(vocabulary) === VOCABULARY_TYPES.KEYWORD && vocabulary.terms;
+      return [VOCABULARY_TYPES.KEYWORD, VOCABULARY_TYPES.STRING].indexOf(vocabularyType(vocabulary)) > -1 && vocabulary.terms;
     }
 
     function isMatchVocabulary(vocabulary) {
