@@ -19,7 +19,8 @@
     var VOCABULARY_TYPES = {
       STRING: 'string',
       INTEGER: 'integer',
-      DECIMAL: 'decimal'
+      DECIMAL: 'decimal',
+      KEYWORD: 'keyword'
     };
 
     function translateField(title) {
@@ -151,7 +152,7 @@
     }
 
     function isTermsVocabulary(vocabulary) {
-      return vocabularyType(vocabulary) === VOCABULARY_TYPES.STRING && vocabulary.terms;
+      return vocabularyType(vocabulary) === VOCABULARY_TYPES.KEYWORD && vocabulary.terms;
     }
 
     function isMatchVocabulary(vocabulary) {
