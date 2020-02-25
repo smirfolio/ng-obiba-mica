@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2020-02-18
+ * Date: 2020-02-25
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -6033,6 +6033,8 @@ var TaxonomyCartFilter = /** @class */ (function () {
 /* global DISPLAY_TYPES */
 /* global CriteriaIdGenerator */
 /* global SORT_FIELDS */
+/* exported QUERY_GROWL_EVENT */
+var QUERY_GROWL_EVENT = 'query.growl-event';
 (function () {
     function manageSearchHelpText($scope, $translate, $cookies) {
         var cookiesSearchHelp = 'micaHideSearchHelpText';
@@ -6498,13 +6500,7 @@ var TaxonomyCartFilter = /** @class */ (function () {
                         RqlQueryService.addCriteriaItem($scope.search.rqlQuery, item, logicalOp);
                     }
                     if (showNotification) {
-                        AlertService.growl({
-                            id: 'SearchControllerGrowl',
-                            type: 'info',
-                            msgKey: growlMsgKey,
-                            msgArgs: [LocalizedValues.forLocale(item.vocabulary.title, $scope.lang), $filter('translate')('taxonomy.target.' + item.target)],
-                            delay: 3000
-                        });
+                        $scope.$broadcast(QUERY_GROWL_EVENT, item.vocabulary.title, $scope.lang, item.target, growlMsgKey);
                     }
                     refreshQuery();
                 }
@@ -6634,6 +6630,7 @@ var TaxonomyCartFilter = /** @class */ (function () {
                             criterion.rqlQuery.name = RQL_NODE.EXISTS;
                             criterion.rqlQuery.args.pop();
                         }
+                        $scope.$broadcast(QUERY_GROWL_EVENT, vocabulary.title, $scope.lang, target);
                         $scope.refreshQuery();
                     }
                     else {
@@ -6724,6 +6721,16 @@ var TaxonomyCartFilter = /** @class */ (function () {
                 criteriaItemMap: {},
                 loading: false
             };
+            $scope.$on(QUERY_GROWL_EVENT, function (event, vocabularyTitle, lang, target, msgKey) {
+                msgKey = msgKey || 'search.criterion.updated';
+                AlertService.growl({
+                    id: 'SearchControllerGrowl',
+                    type: 'info',
+                    msgKey: msgKey,
+                    msgArgs: [LocalizedValues.forLocale(vocabularyTitle, lang), $filter('translate')('taxonomy.target.' + target)],
+                    delay: 3000
+                });
+            });
             $scope.viewMode = VIEW_MODES.SEARCH;
             $scope.searchHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('search');
             $scope.classificationsHeaderTemplateUrl = ngObibaMicaSearchTemplateUrl.getHeaderUrl('classifications');
@@ -9790,6 +9797,7 @@ var CRITERIA_ITEM_EVENT = {
  */
 'use strict';
 /* global CRITERIA_ITEM_EVENT */
+/* global QUERY_GROWL_EVENT */
 (function () {
     /**
      * State shared between Criterion DropDown and its content directives
@@ -9829,6 +9837,7 @@ var CRITERIA_ITEM_EVENT = {
             $scope.state.open = false;
             $scope.state.dirty = false;
             if (wasDirty) {
+                $scope.$emit(QUERY_GROWL_EVENT, $scope.criterion.vocabulary.title, $scope.criterion.lang, $scope.criterion.target);
                 // trigger a query update
                 $scope.$emit(CRITERIA_ITEM_EVENT.refresh);
             }
