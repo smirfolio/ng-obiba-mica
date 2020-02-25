@@ -11,6 +11,7 @@
 'use strict';
 
 /* global CRITERIA_ITEM_EVENT */
+/* global QUERY_GROWL_EVENT */
 
 (function () {
 
@@ -60,6 +61,7 @@
       $scope.state.open = false;
       $scope.state.dirty = false;
       if (wasDirty) {
+        $scope.$emit(QUERY_GROWL_EVENT, $scope.criterion.vocabulary.title, $scope.criterion.lang, $scope.criterion.target);
         // trigger a query update
         $scope.$emit(CRITERIA_ITEM_EVENT.refresh);
       }

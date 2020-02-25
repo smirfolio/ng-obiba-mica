@@ -18,6 +18,9 @@
 /* global CriteriaIdGenerator */
 /* global SORT_FIELDS */
 
+/* exported QUERY_GROWL_EVENT */
+var QUERY_GROWL_EVENT = 'query.growl-event';
+
 (function () {
   function manageSearchHelpText($scope, $translate, $cookies) {
     var cookiesSearchHelp = 'micaHideSearchHelpText';
@@ -584,13 +587,7 @@
             }
 
             if (showNotification) {
-              AlertService.growl({
-                id: 'SearchControllerGrowl',
-                type: 'info',
-                msgKey: growlMsgKey,
-                msgArgs: [LocalizedValues.forLocale(item.vocabulary.title, $scope.lang), $filter('translate')('taxonomy.target.' + item.target)],
-                delay: 3000
-              });
+              $scope.$broadcast(QUERY_GROWL_EVENT, item.vocabulary.title, $scope.lang, item.target, growlMsgKey);
             }
 
             refreshQuery();
@@ -744,6 +741,8 @@
                 criterion.rqlQuery.args.pop();
               }
 
+              $scope.$broadcast(QUERY_GROWL_EVENT, vocabulary.title, $scope.lang, target);
+
               $scope.refreshQuery();
             } else {
               var setExists = vocabulary.terms.length > 1 && selected.length === vocabulary.terms.length;
@@ -842,6 +841,18 @@
           criteriaItemMap: {},
           loading: false
         };
+
+        $scope.$on(QUERY_GROWL_EVENT, function(event, vocabularyTitle, lang, target, msgKey) {
+          msgKey = msgKey || 'search.criterion.updated';
+
+          AlertService.growl({
+            id: 'SearchControllerGrowl',
+            type: 'info',
+            msgKey: msgKey,
+            msgArgs: [LocalizedValues.forLocale(vocabularyTitle, lang), $filter('translate')('taxonomy.target.' + target)],
+            delay: 3000
+          });
+        });
 
         $scope.viewMode = VIEW_MODES.SEARCH;
 
