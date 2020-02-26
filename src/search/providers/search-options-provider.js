@@ -70,6 +70,8 @@
         fields: [
           'attributes.label.*',
           'variableType',
+          'populationId',
+          'dceId',
           'datasetId',
           'datasetAcronym'
         ],

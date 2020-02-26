@@ -18,6 +18,8 @@
             <th ng-if="annotationsEnabled" class="col-width-20">Annotations</th>
             <th class="col-width-10" translate ng-if="optionsCols.showVariablesTypeColumn">type</th>
             <th class="col-width-10" translate ng-if="optionsCols.showVariablesStudiesColumn">search.study.label</th>
+            <th class="col-width-10" translate ng-if="optionsCols.showVariablesStudiesColumn">search.study.population-name</th>
+            <th class="col-width-10" translate ng-if="optionsCols.showVariablesStudiesColumn">search.study.dce-name</th>
             <th class="col-width-15" translate ng-if="optionsCols.showVariablesDatasetsColumn">search.dataset.label</th>
           </tr>
         </thead>
@@ -49,6 +51,17 @@
               <a ng-if="summary.networkId" ng-href="{{PageUrlService.networkPage(summary.networkId)}}">
                 <localized value="summary.networkAcronym" lang="lang"></localized>
               </a>
+            </td>
+            <td ng-if="optionsCols.showVariablesStudiesColumn && populationColumn">
+              <a ng-if="summary.populationName" ng-href="{{PageUrlService.studyPage(summary.studyId, summary.variableType == 'Dataschema' ? 'harmonization' : 'individual')}}">
+                <localized value="summary.populationName" lang="lang"></localized>
+              </a>
+            </td>
+            <td ng-if="optionsCols.showVariablesStudiesColumn && dceColumn">
+              <a ng-if="summary.dceName" ng-href="{{PageUrlService.studyPage(summary.studyId, summary.variableType == 'Dataschema' ? 'harmonization' : 'individual')}}">
+                <localized value="summary.dceName" lang="lang"></localized>
+              </a>
+              <span ng-if="!summary.dceName">-</span>
             </td>
             <td ng-if="optionsCols.showVariablesDatasetsColumn">
               <a ng-href="{{PageUrlService.datasetPage(summary.datasetId, summary.variableType)}}">
