@@ -172,7 +172,7 @@
     }
 
     function sortFilteredVocabularyTerms(vocabulary, terms, locale) {
-      var termsSortKey = vocabularyTermsSortKey(vocabulary);
+      var termsSortKey = vocabularyTermsSortKey(vocabulary) || 'title';
       if (termsSortKey && terms && terms.length > 0) {
         switch (termsSortKey) {
           case 'name':
