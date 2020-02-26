@@ -38,8 +38,8 @@
         }
 
         scope.options = ngObibaMicaSearch.getOptions().variables;
-        scope.populationColumn = scope.options.fields.indexOf('"populationId"') > -1;
-        scope.dceColumn = scope.options.fields.indexOf('"decId"') > -1;
+        scope.populationColumn = scope.options.fields.indexOf('populationId') > -1;
+        scope.dceColumn = scope.options.fields.indexOf('dceId') > -1;
         scope.optionsCols = scope.options.variablesColumn;
         scope.PageUrlService = PageUrlService;
         scope.__defineSetter__('summaries', setSummaries);
