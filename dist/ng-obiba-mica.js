@@ -9490,11 +9490,7 @@ ngObibaMica.search.service("VariableAnnotationsService", VariableAnnotationsServ
             return 'true' === vocabularyAttributeValue(vocabulary, 'facet', 'false');
         }
         function sortFilteredVocabularyTerms(vocabulary, terms, locale) {
-            var isRange = vocabularyAttributeValue(vocabulary, 'range', false);
             var termsSortKey = vocabularyTermsSortKey(vocabulary);
-            if (!isRange) {
-                termsSortKey = termsSortKey || 'title';
-            }
             if (termsSortKey && terms && terms.length > 0) {
                 switch (termsSortKey) {
                     case 'name':
