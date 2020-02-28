@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2020-02-26
+ * Date: 2020-02-28
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -9906,7 +9906,7 @@ var CRITERIA_ITEM_EVENT = {
                     operation = '<' + rqlQuery.args[1];
                     break;
                 case RQL_NODE.BETWEEN:
-                    operation = ':[' + rqlQuery.args[1] + ')';
+                    operation = ':[' + rqlQuery.args[1] + ']';
                     break;
                 case RQL_NODE.IN:
                 case RQL_NODE.CONTAINS:

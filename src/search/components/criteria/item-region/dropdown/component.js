@@ -132,7 +132,7 @@
           operation = '<' + rqlQuery.args[1];
           break;
         case RQL_NODE.BETWEEN:
-          operation = ':[' + rqlQuery.args[1] + ')';
+          operation = ':[' + rqlQuery.args[1] + ']';
           break;
         case RQL_NODE.IN:
         case RQL_NODE.CONTAINS:
