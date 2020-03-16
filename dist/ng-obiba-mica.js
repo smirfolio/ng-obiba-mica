@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2020-02-28
+ * Date: 2020-03-16
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -4784,7 +4784,14 @@ ngObibaMica.search = angular.module('obiba.mica.search', [
                         locale: micaConfig.languages || $translate.use(),
                         showSearchRefreshButton: true,
                         networks: {
-                            showSearchTab: hasMultipleNetworks
+                            showSearchTab: hasMultipleNetworks,
+                            networksColumn: {
+                                showNetworksStudyDatasetColumn: (hasMultipleDatasets && micaConfig.isCollectedDatasetEnabled) === false ? false : ngClientOptions.networks.networksColumn.showNetworksStudyDatasetColumn,
+                                showNetworksHarmonizationDatasetColumn: (hasMultipleDatasets && micaConfig.isHarmonizedDatasetEnabled) === false ? false : ngClientOptions.networks.networksColumn.showNetworksHarmonizationDatasetColumn,
+                                showNetworksVariablesColumn: hasMultipleDatasets && ngClientOptions.networks.networksColumn.showNetworksVariablesColumn,
+                                showNetworksStudyVariablesColumn: (hasMultipleDatasets && micaConfig.isCollectedDatasetEnabled) === false ? false : ngClientOptions.networks.networksColumn.showNetworksStudyVariablesColumn,
+                                showNetworksDataschemaVariablesColumn: (hasMultipleDatasets && micaConfig.isHarmonizedDatasetEnabled) === false ? false : ngClientOptions.networks.networksColumn.showNetworksDataschemaVariablesColumn
+                            }
                         },
                         studies: {
                             showSearchTab: hasMultipleStudies,
@@ -21512,7 +21519,6 @@ angular.module("search/components/result/networks-result-table/component.html", 
     "            </th>\n" +
     "            <th rowspan=\"2\" translate ng-if=\"optionsCols.showNetworksVariablesColumn\">variables</th>\n" +
     "            <th translate ng-attr-colspan=\"{{colSpans.variables}}\" ng-if=\"(optionsCols.showNetworksStudyVariablesColumn && choseIndividual) || (optionsCols.showNetworksDataschemaVariablesColumn && choseHarmonization)\">variables</th>\n" +
-    "          </tr>\n" +
     "          </tr>\n" +
     "          <tr>\n" +
     "            <th translate ng-if=\"optionsCols.showNetworksStudyDatasetColumn && choseIndividual\">search.dataset.collected</th>\n" +
