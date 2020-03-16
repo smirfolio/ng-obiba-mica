@@ -275,7 +275,14 @@
             locale: micaConfig.languages || $translate.use(),
             showSearchRefreshButton: true,
             networks: {
-              showSearchTab: hasMultipleNetworks
+              showSearchTab: hasMultipleNetworks,
+              networksColumn: {
+                showNetworksStudyDatasetColumn: (hasMultipleDatasets && micaConfig.isCollectedDatasetEnabled) === false ? false : ngClientOptions.networks.networksColumn.showNetworksStudyDatasetColumn,
+                showNetworksHarmonizationDatasetColumn: (hasMultipleDatasets && micaConfig.isHarmonizedDatasetEnabled) === false ? false : ngClientOptions.networks.networksColumn.showNetworksHarmonizationDatasetColumn,
+                showNetworksVariablesColumn: hasMultipleDatasets && ngClientOptions.networks.networksColumn.showNetworksVariablesColumn,
+                showNetworksStudyVariablesColumn: (hasMultipleDatasets && micaConfig.isCollectedDatasetEnabled) === false ? false : ngClientOptions.networks.networksColumn.showNetworksStudyVariablesColumn,
+                showNetworksDataschemaVariablesColumn: (hasMultipleDatasets && micaConfig.isHarmonizedDatasetEnabled) === false ? false : ngClientOptions.networks.networksColumn.showNetworksDataschemaVariablesColumn
+              }
             },
             studies: {
               showSearchTab: hasMultipleStudies,
