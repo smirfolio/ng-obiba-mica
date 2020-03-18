@@ -1,9 +1,9 @@
 /*!
- * ng-obiba-mica - v3.4.0
+ * ng-obiba-mica - v3.9.0
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2020-03-16
+ * Date: 2020-03-18
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
