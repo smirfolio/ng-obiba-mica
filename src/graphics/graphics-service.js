@@ -40,6 +40,10 @@ ngObibaMica.graphics
       options: {
         entityIds: 'NaN',
         entityType: null,
+        headerAlignment: 'text-left',
+        valuesAlignment: 'text-left',
+        useMonoFont: null,
+        fixWidth: null,
         ChartsOptions: {
           geoChart: {
             type: 'geoChart',
@@ -184,6 +188,10 @@ ngObibaMica.graphics
             else{
               Object.keys(newOptions.ChartsOptions).forEach(function(chartObject){
                 factory.options.ChartsOptions[chartObject].options.colors = newOptions.ChartsOptions[chartObject].options.colors;
+                factory.options.ChartsOptions[chartObject].headerAlignment = newOptions.headerAlignment;
+                factory.options.ChartsOptions[chartObject].valuesAlignment = newOptions.valuesAlignment;
+                factory.options.ChartsOptions[chartObject].useMonoFont = newOptions.useMonoFont ? 'mono-font' : '';
+                factory.options.ChartsOptions[chartObject].fixWidth = newOptions.fixWidth;
               });
             }
           }
@@ -393,6 +401,59 @@ ngObibaMica.graphics
                 return [e.title, e.value];
               }
             });
+             var summaryEntries = function(chartAggregationName, entries){
+               var bigValue = 0;
+               var bigparticipant = 0;
+               var bigperc = 0;
+               switch (chartAggregationName) {
+                 case 'populations-model-selectionCriteria-countriesIso':
+                 case 'populations-dataCollectionEvents-model-bioSamples':
+                   return entries.reduce(function(a, b){
+                     return {
+                       value: bigValue = a.value > b.value ? a.value : (b.value > bigValue? b.value : bigValue)
+                     };
+                   });
+                 case  'model-methods-design':
+                 case 'model-numberOfParticipants-participant-number-range':
+                 case 'model-startYear-range':
+                   return entries.reduce(function (a, b){
+                     return {
+                       value: StudiesData.totalHits,
+                       participantsNbr: bigparticipant = (a.participantsNbr+'').length > (b.participantsNbr+'').length ? a.participantsNbr :
+                           ((b.participantsNbr+'').length > (bigparticipant+'').length ? b.participantsNbr : bigparticipant),
+                       perc: bigperc = (a.perc+'').length > (b.perc+'').length ? a.perc : ((b.perc+'').length > (bigperc+'').length ? b.perc : bigperc)
+                     };
+                   });
+               }
+             };
+
+             var localizeEntries = function(chartAggregationName, entries, summaries, fixWidth){
+
+               switch (chartAggregationName) {
+                 case 'populations-model-selectionCriteria-countriesIso':
+                 case 'populations-dataCollectionEvents-model-bioSamples':
+                   return entries.map(function(entry){
+                     return {
+                       title: entry.title,
+                       value: LocalizedValues.formatNumber(entry.value, fixWidth ? (summaries.value+'').length : null),
+                       key: entry.key
+                     };
+                   });
+                 case  'model-methods-design':
+                 case 'model-numberOfParticipants-participant-number-range':
+                 case 'model-startYear-range':
+                   return entries.map(function(entry){
+                     return {
+                       title: entry.title,
+                       value: LocalizedValues.formatNumber(entry.value, fixWidth ? (summaries.value+'').length : null),
+                       participantsNbr: (entry.participantsNbr !== 0) ?
+                           (LocalizedValues.formatNumber(entry.participantsNbr, fixWidth ? LocalizedValues.formatNumber(summaries.participantsNbr).length : null)): 0,
+                       key: entry.key,
+                       perc: LocalizedValues.formatNumber(entry.perc, fixWidth ? (summaries.perc+'').length : null) + '%'
+                     };
+                   });
+               }
+             };
 
             if (data) {
               if (/^Table-/.exec(directiveType) !== null) {
@@ -497,6 +558,9 @@ ngObibaMica.graphics
                       }));
                     }
                     break;
+                }
+                if(entries.length>1) {
+                  entries = localizeEntries(chartAggregationName, entries, summaryEntries(chartAggregationName, entries), graphOptions[chartConfig.chartType].fixWidth );
                 }
                 returnedScope.chartObject.type = graphOptions[chartConfig.chartType].type;
                 returnedScope.chartObject.data = data;
