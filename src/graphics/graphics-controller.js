@@ -62,6 +62,14 @@ ngObibaMica.graphics
             reverse : false
           };
         }
+        $scope.localizedNumber = function (number, fixLength){
+          return LocalizedValues.formatNumber(number, fixLength);
+        };
+        $scope.graphicTable = {
+          headerAlignment: graphOptions.ChartsOptions[$scope.chartConfig.chartType].headerAlignment,
+          valuesAlignment: graphOptions.ChartsOptions[$scope.chartConfig.chartType].valuesAlignment,
+          useMonoFont: graphOptions.ChartsOptions[$scope.chartConfig.chartType].useMonoFont
+        };
       }
 
       $scope.changeSorting = function (column) {
@@ -85,9 +93,6 @@ ngObibaMica.graphics
             return 'fa fa-sort';
           }
         }
-      };
-      $scope.localizedNumber = function (number){
-        return LocalizedValues.formatNumber(number);
       };
 
       $scope.updateCriteria = function(key, vocabulary) {
