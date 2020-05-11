@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2020-03-18
+ * Date: 2020-05-11
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -16099,7 +16099,8 @@ ngObibaMica.graphics
                 chartType: '@',
                 chartAggregationName: '=',
                 chartStudiesData: '=',
-                onUpdateCriteria: '='
+                onUpdateCriteria: '=',
+                graphicTable: '@'
             },
             templateUrl: ngObibaMicaGraphicTemplateUrl.getTemplateUrl('graphicTableDirectiveTemplate'),
             controller: 'GraphicChartsController'
@@ -16156,6 +16157,14 @@ ngObibaMica.graphics
                     reverse: false
                 };
             }
+            $scope.localizedNumber = function (number, fixLength) {
+                return LocalizedValues.formatNumber(number, fixLength);
+            };
+            $scope.graphicTable = {
+                headerAlignment: graphOptions.ChartsOptions[$scope.chartConfig.chartType].headerAlignment,
+                valuesAlignment: graphOptions.ChartsOptions[$scope.chartConfig.chartType].valuesAlignment,
+                useMonoFont: graphOptions.ChartsOptions[$scope.chartConfig.chartType].useMonoFont
+            };
         }
         $scope.changeSorting = function (column) {
             if ($scope.chartObject.sortedby.length > 0) {
@@ -16180,9 +16189,6 @@ ngObibaMica.graphics
                     return 'fa fa-sort';
                 }
             }
-        };
-        $scope.localizedNumber = function (number) {
-            return LocalizedValues.formatNumber(number);
         };
         $scope.updateCriteria = function (key, vocabulary) {
             RqlQueryService.createCriteriaItem('study', 'Mica_study', vocabulary, key).then(function (item) {
@@ -16295,6 +16301,10 @@ ngObibaMica.graphics
         options: {
             entityIds: 'NaN',
             entityType: null,
+            headerAlignment: 'text-left',
+            valuesAlignment: 'text-left',
+            useMonoFont: null,
+            fixWidth: null,
             ChartsOptions: {
                 geoChart: {
                     type: 'geoChart',
@@ -16437,6 +16447,10 @@ ngObibaMica.graphics
                     else {
                         Object.keys(newOptions.ChartsOptions).forEach(function (chartObject) {
                             factory.options.ChartsOptions[chartObject].options.colors = newOptions.ChartsOptions[chartObject].options.colors;
+                            factory.options.ChartsOptions[chartObject].headerAlignment = newOptions.headerAlignment;
+                            factory.options.ChartsOptions[chartObject].valuesAlignment = newOptions.valuesAlignment;
+                            factory.options.ChartsOptions[chartObject].useMonoFont = newOptions.useMonoFont ? 'mono-font' : '';
+                            factory.options.ChartsOptions[chartObject].fixWidth = newOptions.fixWidth;
                         });
                     }
                 }
@@ -16633,6 +16647,57 @@ ngObibaMica.graphics
                                 return [e.title, e.value];
                             }
                         });
+                        var summaryEntries = function (chartAggregationName, entries) {
+                            var bigValue = 0;
+                            var bigparticipant = 0;
+                            var bigperc = 0;
+                            switch (chartAggregationName) {
+                                case 'populations-model-selectionCriteria-countriesIso':
+                                case 'populations-dataCollectionEvents-model-bioSamples':
+                                    return entries.reduce(function (a, b) {
+                                        return {
+                                            value: bigValue = a.value > b.value ? a.value : (b.value > bigValue ? b.value : bigValue)
+                                        };
+                                    });
+                                case 'model-methods-design':
+                                case 'model-numberOfParticipants-participant-number-range':
+                                case 'model-startYear-range':
+                                    return entries.reduce(function (a, b) {
+                                        return {
+                                            value: StudiesData.totalHits,
+                                            participantsNbr: bigparticipant = (a.participantsNbr + '').length > (b.participantsNbr + '').length ? a.participantsNbr :
+                                                ((b.participantsNbr + '').length > (bigparticipant + '').length ? b.participantsNbr : bigparticipant),
+                                            perc: bigperc = (a.perc + '').length > (b.perc + '').length ? a.perc : ((b.perc + '').length > (bigperc + '').length ? b.perc : bigperc)
+                                        };
+                                    });
+                            }
+                        };
+                        var localizeEntries = function (chartAggregationName, entries, summaries, fixWidth) {
+                            switch (chartAggregationName) {
+                                case 'populations-model-selectionCriteria-countriesIso':
+                                case 'populations-dataCollectionEvents-model-bioSamples':
+                                    return entries.map(function (entry) {
+                                        return {
+                                            title: entry.title,
+                                            value: LocalizedValues.formatNumber(entry.value, fixWidth ? (summaries.value + '').length : null),
+                                            key: entry.key
+                                        };
+                                    });
+                                case 'model-methods-design':
+                                case 'model-numberOfParticipants-participant-number-range':
+                                case 'model-startYear-range':
+                                    return entries.map(function (entry) {
+                                        return {
+                                            title: entry.title,
+                                            value: LocalizedValues.formatNumber(entry.value, fixWidth ? (summaries.value + '').length : null),
+                                            participantsNbr: (entry.participantsNbr !== 0) ?
+                                                (LocalizedValues.formatNumber(entry.participantsNbr, fixWidth ? LocalizedValues.formatNumber(summaries.participantsNbr).length : null)) : 0,
+                                            key: entry.key,
+                                            perc: LocalizedValues.formatNumber(entry.perc, fixWidth ? (summaries.perc + '').length : null) + '%'
+                                        };
+                                    });
+                            }
+                        };
                         if (data) {
                             if (/^Table-/.exec(directiveType) !== null) {
                                 var total;
@@ -16733,6 +16798,9 @@ ngObibaMica.graphics
                                             }));
                                         }
                                         break;
+                                }
+                                if (entries.length > 1) {
+                                    entries = localizeEntries(chartAggregationName, entries, summaryEntries(chartAggregationName, entries), graphOptions[chartConfig.chartType].fixWidth);
                                 }
                                 returnedScope.chartObject.type = graphOptions[chartConfig.chartType].type;
                                 returnedScope.chartObject.data = data;
@@ -17002,8 +17070,16 @@ ngObibaMica.localized
  */
 'use strict';
 ngObibaMica.localized
-    .service('LocalizedValues', ['$translate', function ($translate) {
+    .service('LocalizedValues', ['$translate', '$sce', function ($translate, $sce) {
         var self = this;
+        var fixLength = function (val, length) {
+            if (val === '-') {
+                return $sce.trustAsHtml(val);
+            }
+            var toAdd = val.split('.').length - 1 || val.split(',').length - 1 || 0;
+            var blankToAdd = '&nbsp;'.repeat((val.length > length) ? (length + toAdd - val.length) : (length - val.length));
+            return $sce.trustAsHtml(blankToAdd + val);
+        };
         this.for = function (values, lang, keyLang, keyValue) {
             if (angular.isArray(values)) {
                 var result = values.filter(function (item) {
@@ -17048,8 +17124,11 @@ ngObibaMica.localized
             }
             return rval;
         };
-        this.formatNumber = function (val) {
-            return (typeof val === 'undefined' || val === null || typeof val !== 'number') ? val : val.toLocaleString($translate.use());
+        this.formatNumber = function (val, lengthToFix) {
+            return (typeof val === 'undefined' || val === null || typeof val !== 'number') ?
+                (lengthToFix ? fixLength(val, lengthToFix) : val) :
+                (lengthToFix ? fixLength(val.toLocaleString($translate.use()), lengthToFix) :
+                    val.toLocaleString($translate.use()));
         };
         this.arrayToObject = function (values) {
             var rval = {};
@@ -19646,7 +19725,8 @@ angular.module("graphics/views/tables-directive.html", []).run(["$templateCache"
     "    <table ng-if=\"chartObject.entries && chartObject.entries.length\" style=\"max-height: 400px;\" class=\"table table-bordered table-striped\" fixed-header=\"chartObject.getTable()\">\n" +
     "        <thead>\n" +
     "        <tr>\n" +
-    "        <th ng-repeat=\"(value, header) in chartObject.header track by $index\" width=\"{{100/chartObject.headerLength}}%\" >\n" +
+    "        <th ng-repeat=\"(value, header) in chartObject.header track by $index\" width=\"{{100/chartObject.headerLength}}%\"\n" +
+    "            ng-class=\"$index!=0 ? graphicTable.headerAlignment : ''\">\n" +
     "            {{header}}\n" +
     "            <a ng-if=\"chartObject.sortedby.length > 0\" class=\"pull-right\">\n" +
     "                <i ng-class=\"columnOrderClass(value)\" ng-click=\"changeSorting(value)\"></i>\n" +
@@ -19658,12 +19738,12 @@ angular.module("graphics/views/tables-directive.html", []).run(["$templateCache"
     "        <tr ng-repeat=\"row in (sort.sortingOrder?(chartObject.entries | orderBy:sort.sortingOrder:sort.reverse):(chartObject.entries)) track by $index\" >\n" +
     "            <td ng-if=\"row.title.toLowerCase()!='total'\">{{row.title}}</td>\n" +
     "            <td ng-if=\"row.title.toLowerCase()=='total'\"><b>{{row.title}}</b></td>\n" +
-    "            <td ng-if=\"row.value=='0'\" style=\"color: #7b8a8b\">{{localizedNumber(row.value)}}</td>\n" +
-    "            <td ng-if=\"row.value!='0'\" ><a href ng-click=\"updateCriteria(row.key, chartObject.vocabulary)\">{{localizedNumber(row.value)}}</a></td>\n" +
-    "            <td ng-if=\"row.perc=='0'\" >{{row.perc}} %</td>\n" +
-    "            <td ng-if=\"row.perc && row.perc!='0'\" >{{row.perc}} %</td>\n" +
-    "            <td ng-if=\"row.participantsNbr\" >{{localizedNumber(row.participantsNbr)}}</td>\n" +
-    "            <td ng-if=\"row.participantsNbr==0\" style=\" color: #7b8a8b\">-</td>\n" +
+    "            <td ng-if=\"row.value=='0'\" ng-class=\"[graphicTable.valuesAlignment,graphicTable.useMonoFont]\" style=\"color: #7b8a8b\" ng-bind-html=\"row.value\"></td>\n" +
+    "            <td ng-if=\"row.value!='0'\" ng-class=\"[graphicTable.valuesAlignment,graphicTable.useMonoFont]\" ><a style=\"text-decoration: none\" href ng-click=\"updateCriteria(row.key, chartObject.vocabulary)\" ng-bind-html=\"row.value\"></a></td>\n" +
+    "            <td ng-if=\"row.perc=='0'\" ng-class=\"[graphicTable.valuesAlignment,graphicTable.useMonoFont]\" ng-bind-html=\"row.perc\" ></td>\n" +
+    "            <td ng-if=\"row.perc && row.perc!='0'\" ng-class=\"[graphicTable.valuesAlignment,graphicTable.useMonoFont]\" ng-bind-html=\"row.perc\"></td>\n" +
+    "            <td ng-if=\"row.participantsNbr\" ng-class=\"[graphicTable.valuesAlignment,graphicTable.useMonoFont]\" ng-bind-html=\"row.participantsNbr\"></td>\n" +
+    "            <td ng-if=\"row.participantsNbr==0\" ng-class=\"[graphicTable.valuesAlignment,graphicTable.useMonoFont]\" style=\" color: #7b8a8b\">-</td>\n" +
     "        </tr>\n" +
     "        </tbody>\n" +
     "    </table>\n" +
