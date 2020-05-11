@@ -12,8 +12,16 @@
 
 ngObibaMica.localized
 
-  .service('LocalizedValues',['$translate' ,function ($translate) {
+  .service('LocalizedValues',['$translate', '$sce' ,function ($translate, $sce) {
       var self = this;
+      var fixLength = function(val, length){
+          if(val === '-') {
+              return $sce.trustAsHtml(val);
+          }
+        var toAdd = val.split('.').length-1 || val.split(',').length-1 || 0;
+        var blankToAdd = '&nbsp;'.repeat((val.length > length) ? (length+toAdd - val.length) : (length - val.length));
+        return $sce.trustAsHtml(blankToAdd + val);
+      };
       this.for = function (values, lang, keyLang, keyValue) {
         if (angular.isArray(values)) {
           var result = values.filter(function (item) {
@@ -64,8 +72,11 @@ ngObibaMica.localized
         return rval;
       };
 
-      this.formatNumber = function (val) {
-        return (typeof val === 'undefined' || val === null || typeof val !== 'number') ? val : val.toLocaleString($translate.use());
+      this.formatNumber = function (val, lengthToFix) {
+        return (typeof val === 'undefined' || val === null || typeof val !== 'number') ?
+                  (lengthToFix ? fixLength(val,lengthToFix) : val ) :
+                  (lengthToFix ? fixLength(val.toLocaleString($translate.use()), lengthToFix) :
+                      val.toLocaleString($translate.use()));
       };
 
       this.arrayToObject = function (values) {
