@@ -35,7 +35,8 @@ ngObibaMica.graphics
       chartType: '@',
       chartAggregationName: '=',
       chartStudiesData: '=',
-      onUpdateCriteria: '='
+      onUpdateCriteria: '=',
+      graphicTable: '@'
     },
     templateUrl: ngObibaMicaGraphicTemplateUrl.getTemplateUrl('graphicTableDirectiveTemplate'),
     controller: 'GraphicChartsController'
