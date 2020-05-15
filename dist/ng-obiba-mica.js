@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2020-05-11
+ * Date: 2020-05-15
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -16502,7 +16502,8 @@ ngObibaMica.graphics
             return deferred.promise;
         };
         var percentageCalc = function (count, total) {
-            return MathFunction.round((100 * count) / total, 2) || '0';
+            var per = MathFunction.round((100 * count) / total, 2) || '0';
+            return per === '0' ? '0' : ((Number(per) === per && per % 1 !== 0) ? Number.parseFloat(per).toFixed(2) : per);
         };
         var participantBucket = function (term, sortTerm, entityDto) {
             var numberOfParticipant = 0;
