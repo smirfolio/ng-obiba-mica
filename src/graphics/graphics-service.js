@@ -252,7 +252,8 @@ ngObibaMica.graphics
       };
 
       var percentageCalc = function(count, total){
-        return MathFunction.round((100* count)/total, 2) || '0';
+        var per = MathFunction.round((100* count)/total, 2) || '0';
+        return per === '0' ? '0' : ((Number(per) === per && per % 1 !== 0) ?  Number.parseFloat(per).toFixed(2) : per);
       };
 
       var participantBucket = function(term, sortTerm, entityDto){
