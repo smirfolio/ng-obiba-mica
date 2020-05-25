@@ -3,7 +3,7 @@
  * https://github.com/obiba/ng-obiba-mica
  *
  * License: GNU Public License version 3
- * Date: 2020-05-11
+ * Date: 2020-05-25
  */
 /*
  * Copyright (c) 2018 OBiBa. All rights reserved.
@@ -16103,7 +16103,12 @@ ngObibaMica.graphics
                 graphicTable: '@'
             },
             templateUrl: ngObibaMicaGraphicTemplateUrl.getTemplateUrl('graphicTableDirectiveTemplate'),
-            controller: 'GraphicChartsController'
+            controller: 'GraphicChartsController',
+            link: function (scope) {
+                scope.isZero = function (value) {
+                    return value ? (parseFloat(value.toString().replace(/[^\d.-]/g, '')) === 0 || false) : false;
+                };
+            }
         };
     }]);
 //# sourceMappingURL=graphics-directive.js.map
@@ -16502,7 +16507,8 @@ ngObibaMica.graphics
             return deferred.promise;
         };
         var percentageCalc = function (count, total) {
-            return MathFunction.round((100 * count) / total, 2) || '0';
+            var per = MathFunction.round((100 * count) / total, 2) || '0';
+            return per === '0' ? '0.00' : Number.parseFloat(per).toFixed(2);
         };
         var participantBucket = function (term, sortTerm, entityDto) {
             var numberOfParticipant = 0;
@@ -16729,11 +16735,11 @@ ngObibaMica.graphics
                                         if (entries.length > 1) {
                                             entries.push(entries.reduce(function (a, b) {
                                                 return {
-                                                    title: $filter('translate')('total'),
+                                                    title: $filter('translate')('graphics.total'),
                                                     value: a.value + b.value,
                                                     participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
                                                     key: 'exists',
-                                                    perc: 100
+                                                    perc: '100.00'
                                                 };
                                             }));
                                         }
@@ -16771,7 +16777,7 @@ ngObibaMica.graphics
                                                     value: total + (a.value + b.value),
                                                     participantsNbr: (a.participantsNbr !== '-' ? parseFloat(a.participantsNbr) : 0) + (b.participantsNbr !== '-' ? parseFloat(b.participantsNbr) : 0),
                                                     key: 'exists',
-                                                    perc: 100
+                                                    perc: '100.00'
                                                 };
                                             }));
                                         }
@@ -16793,7 +16799,7 @@ ngObibaMica.graphics
                                                     value: total + (a.value + b.value),
                                                     participantsNbr: parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
                                                     key: 'exists',
-                                                    perc: MathFunction.round(totalPerc + (parseFloat(a.perc) + parseFloat(b.perc)), 2)
+                                                    perc: '100.00'
                                                 };
                                             }));
                                         }
@@ -19738,10 +19744,10 @@ angular.module("graphics/views/tables-directive.html", []).run(["$templateCache"
     "        <tr ng-repeat=\"row in (sort.sortingOrder?(chartObject.entries | orderBy:sort.sortingOrder:sort.reverse):(chartObject.entries)) track by $index\" >\n" +
     "            <td ng-if=\"row.title.toLowerCase()!='total'\">{{row.title}}</td>\n" +
     "            <td ng-if=\"row.title.toLowerCase()=='total'\"><b>{{row.title}}</b></td>\n" +
-    "            <td ng-if=\"row.value=='0'\" ng-class=\"[graphicTable.valuesAlignment,graphicTable.useMonoFont]\" style=\"color: #7b8a8b\" ng-bind-html=\"row.value\"></td>\n" +
-    "            <td ng-if=\"row.value!='0'\" ng-class=\"[graphicTable.valuesAlignment,graphicTable.useMonoFont]\" ><a style=\"text-decoration: none\" href ng-click=\"updateCriteria(row.key, chartObject.vocabulary)\" ng-bind-html=\"row.value\"></a></td>\n" +
-    "            <td ng-if=\"row.perc=='0'\" ng-class=\"[graphicTable.valuesAlignment,graphicTable.useMonoFont]\" ng-bind-html=\"row.perc\" ></td>\n" +
-    "            <td ng-if=\"row.perc && row.perc!='0'\" ng-class=\"[graphicTable.valuesAlignment,graphicTable.useMonoFont]\" ng-bind-html=\"row.perc\"></td>\n" +
+    "            <td ng-if=\"isZero(row.value)\" style=\"color: #7b8a8b\"ng-class=\"[graphicTable.valuesAlignment,graphicTable.useMonoFont]\" ng-bind-html=\"row.value\"></td>\n" +
+    "            <td ng-if=\"!isZero(row.value)\" ng-class=\"[graphicTable.valuesAlignment,graphicTable.useMonoFont]\" ><a style=\"text-decoration: none\" href ng-click=\"updateCriteria(row.key, chartObject.vocabulary)\" ng-bind-html=\"row.value\"></a></td>\n" +
+    "            <td ng-if=\"isZero(row.perc)\" style=\"color: #7b8a8b\" ng-class=\"[graphicTable.valuesAlignment,graphicTable.useMonoFont]\" ng-bind-html=\"row.perc\" ></td>\n" +
+    "            <td ng-if=\"row.perc && !isZero(row.perc)\" ng-class=\"[graphicTable.valuesAlignment,graphicTable.useMonoFont]\" ng-bind-html=\"row.perc\"></td>\n" +
     "            <td ng-if=\"row.participantsNbr\" ng-class=\"[graphicTable.valuesAlignment,graphicTable.useMonoFont]\" ng-bind-html=\"row.participantsNbr\"></td>\n" +
     "            <td ng-if=\"row.participantsNbr==0\" ng-class=\"[graphicTable.valuesAlignment,graphicTable.useMonoFont]\" style=\" color: #7b8a8b\">-</td>\n" +
     "        </tr>\n" +
@@ -21839,11 +21845,11 @@ angular.module("search/components/result/studies-result-table/component.html", [
     "            <th rowspan=\"2\" translate ng-if=\"optionsCols.showStudiesParticipantsColumn && choseIndividual\">search.study.participants</th>\n" +
     "            <th rowspan=\"2\" translate ng-if=\"optionsCols.showStudiesNetworksColumn\">networks</th>\n" +
     "            <th rowspan=\"2\" translate ng-if=\"optionsCols.showStudiesVariablesColumn\">variables</th>\n" +
-    "            <th translate ng-attr-colspan=\"{{optionsCols.showStudiesStudyDatasetsColumn + optionsCols.showStudiesStudyVariablesColumn}}\"\n" +
-    "              ng-if=\"choseIndividual && (optionsCols.showStudiesStudyDatasetsColumn || optionsCols.showStudiesStudyVariablesColumn)\">search.coverage-buckets.collection\n" +
+    "            <th translate ng-attr-colspan=\"{{(optionsCols.showStudiesStudyDatasetsColumn && choseIndividual) + (optionsCols.showStudiesHarmonizationDatasetsColumn && choseHarmonization)}}\"\n" +
+    "              ng-if=\"(optionsCols.showStudiesStudyDatasetsColumn || optionsCols.showStudiesHarmonizationDatasetsColumn)\">datasets\n" +
     "            </th>\n" +
-    "            <th translate ng-attr-colspan=\"{{optionsCols.showStudiesHarmonizationDatasetsColumn + optionsCols.showStudiesDataschemaVariablesColumn}}\"\n" +
-    "              ng-if=\"choseHarmonization && (optionsCols.showStudiesHarmonizationDatasetsColumn || optionsCols.showStudiesDataschemaVariablesColumn)\">search.coverage-buckets.harmonization</th>\n" +
+    "            <th translate ng-attr-colspan=\"{{(optionsCols.showStudiesStudyVariablesColumn && choseIndividual) + (optionsCols.showStudiesDataschemaVariablesColumn && choseHarmonization)}}\"\n" +
+    "              ng-if=\"(optionsCols.showStudiesStudyVariablesColumn || optionsCols.showStudiesDataschemaVariablesColumn)\">variables</th>\n" +
     "          </tr>\n" +
     "          <tr>\n" +
     "            <th class=\"text-nowrap\" title=\"{{datasourceTitles.questionnaires.title}}\" ng-if=\"optionsCols.showStudiesQuestionnaireColumn && choseIndividual\">\n" +
@@ -21858,10 +21864,10 @@ angular.module("search/components/result/studies-result-table/component.html", [
     "            <th class=\"text-nowrap\" title=\"{{datasourceTitles.others.title}}\" ng-if=\"optionsCols.showStudiesOtherColumn && choseIndividual\">\n" +
     "              <i class=\"fa fa-plus-square-o\"></i>\n" +
     "            </th>\n" +
-    "            <th translate ng-if=\"optionsCols.showStudiesStudyDatasetsColumn && choseIndividual\">datasets</th>\n" +
-    "            <th translate ng-if=\"optionsCols.showStudiesStudyVariablesColumn && choseIndividual\">variables</th>\n" +
-    "            <th translate ng-if=\"optionsCols.showStudiesHarmonizationDatasetsColumn && choseHarmonization\">datasets</th>\n" +
-    "            <th translate ng-if=\"optionsCols.showStudiesDataschemaVariablesColumn && choseHarmonization\">variables</th>\n" +
+    "            <th translate ng-if=\"optionsCols.showStudiesStudyDatasetsColumn && choseIndividual\">search.coverage-buckets.collection</th>\n" +
+    "            <th translate ng-if=\"optionsCols.showStudiesHarmonizationDatasetsColumn && choseHarmonization\">search.coverage-buckets.harmonization</th>\n" +
+    "            <th translate ng-if=\"optionsCols.showStudiesStudyVariablesColumn && choseIndividual\">search.coverage-buckets.collection</th>\n" +
+    "            <th translate ng-if=\"optionsCols.showStudiesDataschemaVariablesColumn && choseHarmonization\">search.coverage-buckets.harmonization</th>\n" +
     "          </tr>\n" +
     "        </thead>\n" +
     "        <tbody test-ref=\"search-results\">\n" +
@@ -21926,14 +21932,6 @@ angular.module("search/components/result/studies-result-table/component.html", [
     "                               update-criteria=\"updateCriteria(summary.id, 'Study', 'datasets')\"></cell-stat-value>\n" +
     "              <span ng-if=\"!summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets\">-</span>\n" +
     "            </td>\n" +
-    "            <td ng-if=\"optionsCols.showStudiesStudyVariablesColumn && choseIndividual\">\n" +
-    "              <cell-stat-value ng-if=\"summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets\"\n" +
-    "                               result-tab-order=\"resultTabOrder\"\n" +
-    "                               destination-tab=\"variable\"\n" +
-    "                               entity-count=\"summary['obiba.mica.CountStatsDto.studyCountStats'].studyVariables\"\n" +
-    "                               update-criteria=\"updateCriteria(summary.id, 'Study', 'variables')\"></cell-stat-value>\n" +
-    "              <span ng-if=\"!summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets\">-</span>\n" +
-    "            </td>\n" +
     "            <td ng-if=\"optionsCols.showStudiesHarmonizationDatasetsColumn && choseHarmonization\">\n" +
     "              <cell-stat-value ng-if=\"summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets\"\n" +
     "                               result-tab-order=\"resultTabOrder\"\n" +
@@ -21941,6 +21939,14 @@ angular.module("search/components/result/studies-result-table/component.html", [
     "                               entity-count=\"summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets\"\n" +
     "                               update-criteria=\"updateCriteria(summary.id, 'HarmonizationStudy', 'datasets')\"></cell-stat-value>\n" +
     "              <span ng-if=\"!summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets\">-</span>\n" +
+    "            </td>\n" +
+    "            <td ng-if=\"optionsCols.showStudiesStudyVariablesColumn && choseIndividual\">\n" +
+    "              <cell-stat-value ng-if=\"summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets\"\n" +
+    "                               result-tab-order=\"resultTabOrder\"\n" +
+    "                               destination-tab=\"variable\"\n" +
+    "                               entity-count=\"summary['obiba.mica.CountStatsDto.studyCountStats'].studyVariables\"\n" +
+    "                               update-criteria=\"updateCriteria(summary.id, 'Study', 'variables')\"></cell-stat-value>\n" +
+    "              <span ng-if=\"!summary['obiba.mica.CountStatsDto.studyCountStats'].studyDatasets\">-</span>\n" +
     "            </td>\n" +
     "            <td ng-if=\"optionsCols.showStudiesDataschemaVariablesColumn && choseHarmonization\">\n" +
     "              <cell-stat-value ng-if=\"summary['obiba.mica.CountStatsDto.studyCountStats'].harmonizationDatasets\"\n" +
