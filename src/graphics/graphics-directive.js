@@ -39,6 +39,11 @@ ngObibaMica.graphics
       graphicTable: '@'
     },
     templateUrl: ngObibaMicaGraphicTemplateUrl.getTemplateUrl('graphicTableDirectiveTemplate'),
-    controller: 'GraphicChartsController'
+    controller: 'GraphicChartsController',
+    link: function (scope) {
+      scope.isZero = function(value){
+        return  value ? (parseFloat(value.toString().replace(/[^\d.-]/g, ''))===0 || false) : false;
+      };
+    }
   };
 }]);
