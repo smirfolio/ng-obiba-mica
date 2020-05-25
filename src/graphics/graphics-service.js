@@ -253,7 +253,7 @@ ngObibaMica.graphics
 
       var percentageCalc = function(count, total){
         var per = MathFunction.round((100* count)/total, 2) || '0';
-        return per === '0' ? '0' : ((Number(per) === per && per % 1 !== 0) ?  Number.parseFloat(per).toFixed(2) : per);
+        return per === '0' ? '0.00' : Number.parseFloat(per).toFixed(2);
       };
 
       var participantBucket = function(term, sortTerm, entityDto){
@@ -487,11 +487,11 @@ ngObibaMica.graphics
                     if(entries.length>1){
                       entries.push(entries.reduce(function (a, b){
                         return {
-                          title: $filter('translate')('total'),
+                          title: $filter('translate')('graphics.total'),
                           value: a.value + b.value,
                           participantsNbr:  parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
                           key: 'exists',
-                          perc: 100
+                          perc: '100.00'
                         };
                       }));
                     }
@@ -532,7 +532,7 @@ ngObibaMica.graphics
                           value: total + (a.value + b.value),
                           participantsNbr:  (a.participantsNbr!=='-'?parseFloat(a.participantsNbr):0) + (b.participantsNbr!=='-'?parseFloat(b.participantsNbr):0),
                           key: 'exists',
-                          perc: 100
+                          perc: '100.00'
                         };
                       }));
                     }
@@ -554,7 +554,7 @@ ngObibaMica.graphics
                           value: total + (a.value + b.value),
                           participantsNbr:  parseFloat(a.participantsNbr) + parseFloat(b.participantsNbr),
                           key: 'exists',
-                          perc: MathFunction.round(totalPerc + (parseFloat(a.perc) + parseFloat(b.perc)), 2)
+                          perc: '100.00'
                         };
                       }));
                     }
